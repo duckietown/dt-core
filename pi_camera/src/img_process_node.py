@@ -14,7 +14,7 @@ def cbCImg(msg):
     # Uncompress CompressedImage to cv image
 
     np_arr = np.fromstring(msg.data, np.uint8)
-    image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    _image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
     # Process image_np
 
     # Publish empty msg for easy hz testing

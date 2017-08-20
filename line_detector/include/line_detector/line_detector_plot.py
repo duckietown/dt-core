@@ -1,6 +1,13 @@
 import numpy as np
 import cv2
 
+__all__ = [
+    'color_segment',
+    'drawNormals',
+    'drawLines',
+    'drawNormals2',
+]
+
 # draw line segments
 def drawLines(bgr, lines, paint):
     if len(lines)>0:

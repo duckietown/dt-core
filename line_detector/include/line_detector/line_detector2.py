@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
 
-from .line_detector_interface import Detections
+from .line_detector_interface import Detections, LineDetectorInterface
+
 from duckietown_utils.parameters import Configurable
-from line_detector.line_detector_interface import LineDetectorInterface
 
 class LineDetector2Dense(Configurable, LineDetectorInterface):
     def __init__(self, configuration):
@@ -61,7 +61,7 @@ class LineDetector2Dense(Configurable, LineDetectorInterface):
 
         # binary dilation
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(self.dilation_kernel_size, self.dilation_kernel_size))
-        
+
         # refine edge for certain color
         edge_color = cv2.bitwise_and(cv2.dilate(bw, kernel), self.edges)
 
@@ -123,11 +123,11 @@ class LineDetector2Dense(Configurable, LineDetectorInterface):
         self.bgr = np.copy(bgr)
         self.hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
         self.edges = self._findEdge(self.bgr)
-  
+
     def getImage(self):
         return self.bgr
 
-    """ 
+    """
     def drawLines(self, lines, paint):
         if len(lines)>0:
             for x1,y1,x2,y2 in lines:

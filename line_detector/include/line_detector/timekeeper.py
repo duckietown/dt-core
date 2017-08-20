@@ -4,7 +4,7 @@ import time
 def asms(s):
     if s is None:
         return 'n/a'
-    return "%.1fms" % (s*1000)
+    return "%.1f ms" % (s*1000)
         
 
 class TimeKeeper():
@@ -42,5 +42,7 @@ class TimeKeeper():
         for phase, data in self.latencies:
             s +=  ' %22s | total latency %10s | delta wall %8s clock %8s\n' % (phase, 
              data['latency_ms'], data['delta_wall_ms'], data['delta_clock_ms'])
-
+            
         return s
+    
+    

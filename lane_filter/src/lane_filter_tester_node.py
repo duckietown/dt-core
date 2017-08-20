@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-import rospy
-import numpy as np
+import rospy 
 from duckietown_msgs.msg import SegmentList, Segment
 
 class LaneFilterTesterNode(object):
     def __init__(self):
-        node_name = "Lane Filter Tester"
+        #node_name = "Lane Filter Tester"
         pub_fake_segment_list = rospy.Publisher("~segment_list", SegmentList, queue_size=1)
         rospy.sleep(1)
 
@@ -28,7 +27,7 @@ class LaneFilterTesterNode(object):
         seg_list = SegmentList()
         seg_list.segments.append(seg)
         pub_fake_segment_list.publish(seg_list)
-        
+
 
     def onShutdown(self):
         rospy.loginfo("[LaneFilterTesterNode] Shutdown.")

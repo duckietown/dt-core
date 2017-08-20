@@ -1,8 +1,8 @@
 from . import logger
 import numpy as np
 
-class SASParams:
-    algorithm = 2 
+class SASParams():
+    algorithm = 2
 
 def scaleandshift(img, scale, shift):
     """ Returns a float image, which might be outside of [0,255]"""
@@ -19,7 +19,7 @@ def scaleandshift(img, scale, shift):
         res = scaleandshift2(img, scale, shift)
     else:
         assert False
-        
+
     return res
 
 def scaleandshift2(img, scale, shift):

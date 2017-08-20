@@ -8,7 +8,7 @@ from duckietown_utils.jpg import image_cv_from_jpg
 import numpy as np
 import threading
 import cv2
-from cv_bridge import CvBridge,CvBridgeError
+from cv_bridge import CvBridge, CvBridgeError
 from line_detector.timekeeper import TimeKeeper
 
 class AntiInstagramNode():
@@ -19,7 +19,7 @@ class AntiInstagramNode():
 		self.locked = False
 
 		self.image_pub_switch = rospy.get_param("~publish_corrected_image",False)
-		
+
         # Initialize publishers and subscribers
 		self.pub_image = rospy.Publisher("~corrected_image",Image,queue_size=1)
 		self.pub_health = rospy.Publisher("~health",AntiInstagramHealth,queue_size=1,latch=True)
@@ -30,8 +30,8 @@ class AntiInstagramNode():
 		self.sub_image = rospy.Subscriber("~uncorrected_image", CompressedImage, self.cbNewImage,queue_size=1)
 		self.sub_click = rospy.Subscriber("~click", BoolStamped, self.cbClick, queue_size=1)
 
-		# Verbose option 
-		self.verbose = rospy.get_param('line_detector_node/verbose',True)  
+		# Verbose option
+		self.verbose = rospy.get_param('line_detector_node/verbose',True)
 
 		# Initialize health message
 		self.health = AntiInstagramHealth()
@@ -81,7 +81,7 @@ class AntiInstagramNode():
 				self.pub_transform.publish(self.transform)
 				rospy.loginfo('ai: Color transform is turned OFF!')
 
-		
+
 	def processImage(self,msg):
 		'''
 		Inputs:
@@ -122,8 +122,8 @@ class AntiInstagramNode():
 
 			self.pub_health.publish(self.health)
 			self.pub_transform.publish(self.transform)
-			rospy.loginfo('ai: Color transform published!!!')
-		
+			rospy.loginfo('ai: Color transform published.')
+
 
 if __name__ == '__main__':
 	# Initialize the node with rospy

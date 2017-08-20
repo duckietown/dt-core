@@ -5,27 +5,24 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
 from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
-from scipy.stats import multivariate_normal, entropy
+from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
-from math import floor, atan2, pi, cos, sin, sqrt
-import time
-
-
+from math import floor, pi, sqrt
 
 class LaneFilterNode(object):
     """
     
-Lane Filter Node
-
-Author: Liam Paull
-
-Inputs: SegmentList from line detector
-
-Outputs: LanePose - the d (lateral displacement) and phi (relative angle) 
-of the car in the lane
-
-For more info on algorithm and parameters please refer to the google doc:
- https://drive.google.com/open?id=0B49dGT7ubfmSX1k5ZVN1dEU4M2M
+        Lane Filter Node
+        
+        Author: Liam Paull
+        
+        Inputs: SegmentList from line detector
+        
+        Outputs: LanePose - the d (lateral displacement) and phi (relative angle) 
+        of the car in the lane
+        
+        For more info on algorithm and parameters please refer to the google doc:
+         https://drive.google.com/open?id=0B49dGT7ubfmSX1k5ZVN1dEU4M2M
 
     """
     def __init__(self):
@@ -62,7 +59,7 @@ For more info on algorithm and parameters please refer to the google doc:
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
-    	#self.pub_prop_img = rospy.Publisher("~prop_img", Image, queue_size=1)
+        #self.pub_prop_img = rospy.Publisher("~prop_img", Image, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
@@ -110,7 +107,7 @@ For more info on algorithm and parameters please refer to the google doc:
     def processSegments(self,segment_list_msg):
         if not self.active:
             return
-        t_start = rospy.get_time()
+#         t_start = rospy.get_time()
 
         if self.use_propagation:
             self.propagateBelief()
@@ -228,11 +225,10 @@ For more info on algorithm and parameters please refer to the google doc:
             return
         self.beliefRV = s_beliefRV/np.sum(s_beliefRV)
 
-    	#bridge = CvBridge()
+        #bridge = CvBridge()
         #prop_img = bridge.cv2_to_imgmsg((255*self.beliefRV).astype('uint8'), "mono8")
         #self.pub_prop_img.publish(prop_img)
-                
-        return
+               
 
     def updateBelief(self,measurement_likelihood):
         self.beliefRV=np.multiply(self.beliefRV+1,measurement_likelihood+1)-1

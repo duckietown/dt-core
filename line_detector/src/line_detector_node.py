@@ -17,6 +17,7 @@ import threading
 import time
 
 
+
 class LineDetectorNode(object):
     def __init__(self):
         self.node_name = "LineDetectorNode"

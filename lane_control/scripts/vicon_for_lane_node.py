@@ -39,7 +39,7 @@ class ViconToLanePose(object):
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
-    def cbParamUpdate(self,event):
+    def cbParamUpdate(self, event):
         self.pub_freq = rospy.get_param("~pub_freq")
         self.pub_delay = rospy.get_param("~pub_delay")
         self.x_goal = rospy.get_param("~x_goal")

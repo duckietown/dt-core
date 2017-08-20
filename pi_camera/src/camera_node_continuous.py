@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-import time
+
 
 class CameraNode(object):
     def __init__(self):
