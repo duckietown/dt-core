@@ -15,7 +15,7 @@ This parameter defines the line detector instantiation. It consists of an array 
 
 **Parameter `img_size`**: not known
 
-TODO: Missing description for entry "img_size".
+TODO: Missing description for entry "`img_size`".
 
 **Parameter `verbose`**: `bool`; default value: `True`
 
@@ -43,19 +43,19 @@ The anti-instagram transform to apply.  See [](#anti_instagram).
 
 **Publisher `color_segment`**: topic `~colorSegment` (`Image`)
 
-TODO: Missing description for entry "color_segment".
+TODO: Missing description for entry "`color_segment`".
 
 **Publisher `edge`**: topic `~edge` (`Image`)
 
-TODO: Missing description for entry "edge".
+TODO: Missing description for entry "`edge`".
 
 **Publisher `segment_list`**: topic `~segment_list` (`SegmentList`)
 
-TODO: Missing description for entry "segment_list".
+TODO: Missing description for entry "`segment_list`".
 
 **Publisher `image_with_lines`**: topic `~image_with_lines` (`Image`)
 
-TODO: Missing description for entry "image_with_lines".
+TODO: Missing description for entry "`image_with_lines`".
 
 
 

@@ -7,23 +7,23 @@
 
 **Parameter `v_gain`**: `float`; default value: `0.41`
 
-TODO: Missing description for entry "v_gain".
+TODO: Missing description for entry "`v_gain`".
 
 **Parameter `omega_gain`**: `float`; default value: `8.3`
 
-TODO: Missing description for entry "omega_gain".
+TODO: Missing description for entry "`omega_gain`".
 
 **Parameter `bicycle_kinematics`**: `int`; default value: `0`
 
-TODO: Missing description for entry "bicycle_kinematics".
+TODO: Missing description for entry "`bicycle_kinematics`".
 
 **Parameter `simulated_vehicle_length`**: `float`; default value: `0.18`
 
-TODO: Missing description for entry "simulated_vehicle_length".
+TODO: Missing description for entry "`simulated_vehicle_length`".
 
 **Parameter `steer_angle_gain`**: `int`; default value: `1`
 
-TODO: Missing description for entry "steer_angle_gain".
+TODO: Missing description for entry "`steer_angle_gain`".
 
 ### Subscriptions 
 
@@ -35,27 +35,27 @@ The `Joy.msg` from `joy_node` of the `joy` package. The vertical axis of the lef
 
 **Publisher `avoidance`**: topic `~start_avoidance` (`BoolStamped`)
 
-TODO: Missing description for entry "avoidance".
+TODO: Missing description for entry "`avoidance`".
 
 **Publisher `car_cmd`**: topic `~car_cmd` (`Twist2DStamped`)
 
-TODO: Missing description for entry "car_cmd".
+TODO: Missing description for entry "`car_cmd`".
 
 **Publisher `joy_override`**: topic `~joystick_override` (`BoolStamped`)
 
-TODO: Missing description for entry "joy_override".
+TODO: Missing description for entry "`joy_override`".
 
 **Publisher `parallel_autonomy`**: topic `~parallel_autonomy` (`BoolStamped`)
 
-TODO: Missing description for entry "parallel_autonomy".
+TODO: Missing description for entry "`parallel_autonomy`".
 
 **Publisher `e_stop`**: topic `wheels_driver_node/emergency_stop` (`BoolStamped`)
 
-TODO: Missing description for entry "e_stop".
+TODO: Missing description for entry "`e_stop`".
 
 **Publisher `anti_instagram`**: topic `anti_instagram_node/click` (`BoolStamped`)
 
-TODO: Missing description for entry "anti_instagram".
+TODO: Missing description for entry "`anti_instagram`".
 
 
 

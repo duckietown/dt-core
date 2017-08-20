@@ -7,19 +7,19 @@
 
 **Parameter `peak_val`**: `float`; default value: `10.0`
 
-TODO: Missing description for entry "peak_val".
+TODO: Missing description for entry "`peak_val`".
 
 **Parameter `l_max`**: `float`; default value: `2.0`
 
-TODO: Missing description for entry "l_max".
+TODO: Missing description for entry "`l_max`".
 
 **Parameter `lanewidth`**: `float`; default value: `0.4`
 
-TODO: Missing description for entry "lanewidth".
+TODO: Missing description for entry "`lanewidth`".
 
 **Parameter `mean_d_0`**: `float`; default value: `0.0`
 
-TODO: Missing description for entry "mean_d_0".
+TODO: Missing description for entry "`mean_d_0`".
 
 **Parameter `min_max`**: `float`; default value: `0.3`
 
@@ -27,7 +27,7 @@ Expressed in nats.
 
 **Parameter `d_max`**: `float`; default value: `0.5`
 
-TODO: Missing description for entry "d_max".
+TODO: Missing description for entry "`d_max`".
 
 **Parameter `use_distance_weighting`**: `bool`; default value: `False`
 
@@ -35,7 +35,7 @@ For use of distance weighting (dw) function.
 
 **Parameter `linewidth_white`**: `float`; default value: `0.04`
 
-TODO: Missing description for entry "linewidth_white".
+TODO: Missing description for entry "`linewidth_white`".
 
 **Parameter `cov_omega`**: `float`; default value: `0.01`
 
@@ -57,19 +57,19 @@ For use of minimum segment count.
 
 **Parameter `phi_min`**: `float`; default value: `-1.5707`
 
-TODO: Missing description for entry "phi_min".
+TODO: Missing description for entry "`phi_min`".
 
 **Parameter `sigma_d_0`**: `float`; default value: `0.0`
 
-TODO: Missing description for entry "sigma_d_0".
+TODO: Missing description for entry "`sigma_d_0`".
 
 **Parameter `phi_max`**: `float`; default value: `1.5707`
 
-TODO: Missing description for entry "phi_max".
+TODO: Missing description for entry "`phi_max`".
 
 **Parameter `zero_val`**: `float`; default value: `1.0`
 
-TODO: Missing description for entry "zero_val".
+TODO: Missing description for entry "`zero_val`".
 
 **Parameter `delta_phi`**: `float`; default value: `0.0`
 
@@ -77,7 +77,7 @@ TODO: Missing description for entry "zero_val".
 
 **Parameter `l_peak`**: `float`; default value: `1.0`
 
-TODO: Missing description for entry "l_peak".
+TODO: Missing description for entry "`l_peak`".
 
 **Parameter `cov_v`**: `float`; default value: `0.5`
 
@@ -87,27 +87,27 @@ XXX which units?
 
 **Parameter `sigma_phi_mask`**: `float`; default value: `0.05`
 
-TODO: Missing description for entry "sigma_phi_mask".
+TODO: Missing description for entry "`sigma_phi_mask`".
 
 **Parameter `sigma_d_mask`**: `float`; default value: `0.05`
 
-TODO: Missing description for entry "sigma_d_mask".
+TODO: Missing description for entry "`sigma_d_mask`".
 
 **Parameter `mean_phi_0`**: `float`; default value: `0.0`
 
-TODO: Missing description for entry "mean_phi_0".
+TODO: Missing description for entry "`mean_phi_0`".
 
 **Parameter `sigma_phi_0`**: `float`; default value: `0.0`
 
-TODO: Missing description for entry "sigma_phi_0".
+TODO: Missing description for entry "`sigma_phi_0`".
 
 **Parameter `d_min`**: `float`; default value: `-0.7`
 
-TODO: Missing description for entry "d_min".
+TODO: Missing description for entry "`d_min`".
 
 **Parameter `linewidth_yellow`**: `float`; default value: `0.02`
 
-TODO: Missing description for entry "linewidth_yellow".
+TODO: Missing description for entry "`linewidth_yellow`".
 
 **Parameter `use_min_segs`**: `bool`; default value: `False`
 
@@ -125,33 +125,33 @@ For use of maximum segment distance.
 
 **Subscription `velocity`**: topic `~velocity` (`Twist2DStamped`)
 
-TODO: Missing description for entry "velocity".
+TODO: Missing description for entry "`velocity`".
 
 **Subscription `segment_list`**: topic `~segment_list` (`SegmentList`)
 
-TODO: Missing description for entry "segment_list".
+TODO: Missing description for entry "`segment_list`".
 
 ### Published topics
 
 **Publisher `belief_img`**: topic `~belief_img` (`Image`)
 
-TODO: Missing description for entry "belief_img".
+TODO: Missing description for entry "`belief_img`".
 
 **Publisher `switch`**: topic `~switch` (`BoolStamped`)
 
-TODO: Missing description for entry "switch".
+TODO: Missing description for entry "`switch`".
 
 **Publisher `lane_pose`**: topic `~lane_pose` (`LanePose`)
 
-TODO: Missing description for entry "lane_pose".
+TODO: Missing description for entry "`lane_pose`".
 
 **Publisher `entropy`**: topic `~entropy` (`Float32`)
 
-TODO: Missing description for entry "entropy".
+TODO: Missing description for entry "`entropy`".
 
 **Publisher `in_lane`**: topic `~in_lane` (`BoolStamped`)
 
-TODO: Missing description for entry "in_lane".
+TODO: Missing description for entry "`in_lane`".
 
 
 

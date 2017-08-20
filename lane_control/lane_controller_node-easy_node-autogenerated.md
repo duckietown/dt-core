@@ -33,13 +33,13 @@ Propertional gain for $d$.
 
 **Subscription `lane_reading`**: topic `~lane_pose` (`LanePose`)
 
-TODO: Missing description for entry "lane_reading".
+TODO: Missing description for entry "`lane_reading`".
 
 ### Published topics
 
 **Publisher `car_cmd`**: topic `~car_cmd` (`Twist2DStamped`)
 
-TODO: Missing description for entry "car_cmd".
+TODO: Missing description for entry "`car_cmd`".
 
 
 
