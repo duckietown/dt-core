@@ -1,6 +1,6 @@
 <launch>
-	<arg name="veh"/>
-	<arg name="bagin"/>
+    <arg name="veh"/>
+    <arg name="bagin"/>
 
     <!-- play one bag -->
     <node pkg="rosbag" type="play" name="player" args="$(arg bagin) -l"/>
@@ -13,11 +13,7 @@
 
     <node name="line_detector_node2" pkg="line_detector2"
           type="line_detector_node2.py" output="screen"
-          clear_params="true" required="true">
-            <!-- re-using same configuration -->
-              <rosparam command="load" file="$(find duckietown)/config/baseline/line_detector/line_detector_node/default.yaml"/>
-
-              <param name="verbose" value="true"/>
+          required="true">
     </node>
 
 
