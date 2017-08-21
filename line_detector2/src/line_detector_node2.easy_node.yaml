@@ -10,7 +10,6 @@ parameters:
         desc:
     top_cutoff:
         type: int
-        default:
         desc: This parameter decides how much of the image we should cut off. This is a performance improvement.
     detector:
         type: any

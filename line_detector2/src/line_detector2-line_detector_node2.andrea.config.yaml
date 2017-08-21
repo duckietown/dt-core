@@ -1,11 +1,12 @@
 
 description: |
-    These are the standard values for the line detector.
+    These are the standard values
+    for the line detector.
     
 values:
     img_size: [120,160]
     top_cutoff: 40
-    inex: 10
+    
     
     # should be an array of 2 elements. The first is the name of the class
     # and the second should be the parameters. 
