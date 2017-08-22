@@ -4,7 +4,7 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `line_detector2` in `package.xml`.</description>
 
-  <maintainer email="censi@mit.edu">Andrea Censi</maintainer>
+  <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
   <license>GPLv3</license>
 
