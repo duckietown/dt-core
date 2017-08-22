@@ -1,0 +1,45 @@
+description: |
+    Note that this node publishes on many topics according to the configuration:
+
+        for node_name, topic_name in nodes.items():
+            self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, ...)
+
+parameters:
+    states:
+        desc:
+        type: dict
+        default: {}
+    nodes:
+        desc:
+        type:
+    global_transitions:
+        desc:
+        type: dict
+        default: {}
+    initial_state:
+        desc:
+        type: str
+        default: ''
+    events:
+        desc:
+        type: dict
+        default: {}
+
+subscriptions: {}
+
+publishers:
+    mode:
+        desc:
+        topic: ~mode
+        type: duckietown_msgs/FSMState
+        queue_size: 1
+        latch: true
+
+contracts: {}
+
+# We don't support services yet.
+# TODO: add when done
+# services:
+#     set_state:
+#         topic: ~set_state
+#         type: duckietown_msgs/SetFSMState
