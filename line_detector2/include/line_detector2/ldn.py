@@ -142,6 +142,7 @@ class LineDetectorNode2(EasyNode):
     
     def intermittent_log_now(self):
         return self.intermittent_counter % self.intermittent_interval == 1
+    
     def intermittent_log(self, s):
         if not self.intermittent_log_now():
             return
