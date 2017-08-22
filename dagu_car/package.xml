@@ -2,7 +2,7 @@
 <package>
   <name>dagu_car</name>
   <version>1.0.0</version>
-  <description>The dagu_car package</description>
+  <description>TODO: Add a description of package `dagu_car` in `package.xml`.</description>
 
    <maintainer email="yershov@mit.edu">Dmitry Yershov</maintainer>
   <maintainer email="syliu@mit.edu">Shih-Yuan Liu</maintainer>

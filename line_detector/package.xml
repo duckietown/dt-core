@@ -2,7 +2,7 @@
 <package>
   <name>line_detector</name>
   <version>1.0.0</version>
-  <description>The line_detector package</description>
+  <description>TODO: Add a description of package `line_detector` in `package.xml`.</description>
 
   <maintainer email="hangzhao@mit.edu">Hang Zhao</maintainer>
   <maintainer email="syliu@mit.edu">Shih-Yuan Liu</maintainer>
