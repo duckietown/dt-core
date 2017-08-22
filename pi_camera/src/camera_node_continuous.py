@@ -33,11 +33,11 @@ class CameraNode(object):
 
         # if self.uncompress:
         #     self.pub_img_low = rospy.Publisher("~img_low/raw",Image,queue_size=1)
-        #     self.pub_img_high= rospy.Publisher("~img_high/raw",Image,queue_size=1)    
+        #     self.pub_img_high= rospy.Publisher("~img_high/raw",Image,queue_size=1)
         # else:
         #     self.pub_img_low = rospy.Publisher("~img_low/compressed",CompressedImage,queue_size=1)
         #     self.pub_img_high= rospy.Publisher("~img_high/compressed",CompressedImage,queue_size=1)
-        
+
         self.has_published = False
         self.bridge = CvBridge()
 
@@ -82,9 +82,9 @@ class CameraNode(object):
             image_msg = CompressedImage()
             image_msg.data = img_data
             image_msg.format = "jpeg"
-            
+
         image_msg.header.stamp = rospy.Time.now()
-        # Publish 
+        # Publish
         publisher.publish(image_msg)
         # Clear stream
         stream.seek(0)
@@ -98,7 +98,7 @@ class CameraNode(object):
         self.camera.close()
         rospy.loginfo("[%s] Shutdown." %(self.node_name))
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     rospy.init_node('camera_node',anonymous=False)
     camera_node = CameraNode()
     rospy.on_shutdown(camera_node.onShutdown)

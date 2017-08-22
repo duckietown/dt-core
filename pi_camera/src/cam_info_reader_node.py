@@ -9,7 +9,6 @@ class CamInfoReader(object):
     def __init__(self):
         self.node_name = rospy.get_name()
         # Load parameters
-        # self.pub_freq       = self.setupParam("~pub_freq",1.0)
         self.config         = self.setupParam("~config","baseline")
         self.cali_file_name = self.setupParam("~cali_file_name","default")
         self.image_type = self.setupParam("~image_type", "compressed")
@@ -18,13 +17,13 @@ class CamInfoReader(object):
         self.pub_camera_info = rospy.Publisher("~camera_info",CameraInfo,queue_size=1)
         # Get path to calibration yaml file
         rospack = rospkg.RosPack()
-        self.cali_file = rospack.get_path('duckietown') + "/config/" + self.config + "/calibration/camera_intrinsic/" +  self.cali_file_name + ".yaml" 
+        self.cali_file = rospack.get_path('duckietown') + "/config/" + self.config + "/calibration/camera_intrinsic/" +  self.cali_file_name + ".yaml"
         self.camera_info_msg = None
 
         # Load calibration yaml file
         if not os.path.isfile(self.cali_file):
             rospy.logwarn("[%s] Can't find calibration file: %s.\nUsing default calibration instead." %(self.node_name,self.cali_file))
-            self.cali_file = rospack.get_path('duckietown') + "/config/" + self.config + "/calibration/camera_intrinsic/default.yaml" 
+            self.cali_file = rospack.get_path('duckietown') + "/config/" + self.config + "/calibration/camera_intrinsic/default.yaml"
 
         # Shutdown if no calibration file not found
         if not os.path.isfile(self.cali_file):
@@ -41,15 +40,12 @@ class CamInfoReader(object):
         typemsg = "CompressedImage" if self.image_type == "compressed" else "Image"
         rospy.logwarn("[%s] ==============%s",self.node_name, typemsg)
         self.sub_img_compressed = rospy.Subscriber("~compressed_image",img_type,self.cbCompressedImage,queue_size=1)
-    
+
     def cbCompressedImage(self,msg):
         if self.camera_info_msg is not None:
             self.camera_info_msg.header.stamp = msg.header.stamp
             self.pub_camera_info.publish(self.camera_info_msg)
 
-    # def cbTimer(self,event):
-    #     self.camera_info_msg.header.stamp = rospy.Time.now()
-    #     self.pub_camera_info.publish(self.camera_info_msg)
 
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -73,7 +69,7 @@ class CamInfoReader(object):
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutdown." %(self.node_name))
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     rospy.init_node('cam_info_reader',anonymous=False)
     node = CamInfoReader()
     rospy.on_shutdown(node.on_shutdown)
