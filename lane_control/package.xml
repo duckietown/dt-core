@@ -6,6 +6,7 @@
 
   <author email="steven@todo.todo">steven</author>
   <author email="syliu@mit.edu">Shih-Yuan Liu</author>
+  <maintainer email='paull@mit.edu'>Liam Paull</maintainer>
 
   <license>GPLv3</license>
 
@@ -22,5 +23,5 @@
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
 
- 
+
 </package>
