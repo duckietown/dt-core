@@ -5,7 +5,7 @@ TODO: to write
 
 ## Unit tests integrated with `rostest`
 
-Unit tests are integrated with [`rostest`][#rostest].
+Unit tests are integrated with [`rostest`](#rostest).
 
 To run manually, use:
 
