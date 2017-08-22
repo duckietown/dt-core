@@ -1,4 +1,5 @@
-
+description:
+    
 parameters:
     publish_corrected_image:
         desc: |

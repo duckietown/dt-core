@@ -1,8 +1,10 @@
+description:
+    This is a rewriting of `line_detector_node` using the [EasyNode](#easy_node) framework.
 
 parameters:
     verbose:
         desc: |
-            Whether the node is verbose or not. If set to `True`, 
+            Whether the node is verbose or not. If set to `True`,
             the node will write timing statistics to the log.
         type: bool
         default: true
@@ -12,13 +14,13 @@ parameters:
     top_cutoff:
         type: int
         desc: |
-            This parameter decides how much of the image we should cut off. 
+            This parameter decides how much of the image we should cut off.
             This is a performance improvement.
     detector:
         type: any
         desc:  |
-            This parameter defines the line detector instantiation. It consists of an 
-            array of two elements, where the first is a classname or function, 
+            This parameter defines the line detector instantiation. It consists of an
+            array of two elements, where the first is a classname or function,
             and the second is a dictionary of parameters to pass to the function.
 
 subscriptions:
@@ -40,7 +42,7 @@ subscriptions:
     switch:
         desc: |
             This is a switch that allows to control the activity of this node.
-            If the message is true, the node becomes active. If false, it 
+            If the message is true, the node becomes active. If false, it
             switches off. The node starts as active.
         topic: ~switch
         type: duckietown_msgs/BoolStamped
