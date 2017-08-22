@@ -2,7 +2,9 @@
 <package>
   <name>led_emitter</name>
   <version>1.0.0</version>
-  <description>The led_emitter package</description>
+  <description>TODO: description for `led_emitter` package.</description>
+
+  <maintainer email='invalid@invalid.com'>Nobody</maintainer>
 
   <license>GPLv3</license>
 
@@ -17,5 +19,5 @@
   <run_depend>duckietown_msgs</run_depend>
   <run_depend>rgb_led</run_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend> 
+  <run_depend>rospy</run_depend>
 </package>
