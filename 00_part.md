@@ -1,3 +1,3 @@
 # Packages - Convenience {#part:convenience}
 
-TODO: to write
+These packages are convenience packages that group together launch files and tests.
