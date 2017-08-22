@@ -11,12 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
 # catkin_python_setup()
 
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES led_detection
-#  CATKIN_DEPENDS duckietown_msgs roscpp rospy
-#  DEPENDS system_lib
-)
+catkin_package()
+
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
