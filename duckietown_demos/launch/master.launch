@@ -224,7 +224,8 @@
 
 		<!-- car_cmd_switch_node -->
 		<!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
-		<remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/> <!-- need either lots more of these or none of these -->
+		<remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/> 
+		<!-- need either lots more of these or none of these -->
 		<include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -528,7 +529,9 @@
         <group if="$(arg /navigation/random_sr_turns)">
 			<!-- random april tags -->
 			<remap from="sr_turns_node/mode" to="fsm_node/mode"/>
-			<remap from="sr_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/> <!-- remapping outputs since there are two different possible turn types -->
+			<!-- remapping outputs since there are two different possible turn types -->
+			<remap from="sr_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/> 
+			
 
 			<include file="$(find navigation)/launch/sr_turns_node.launch">
 				<arg name="veh" value="$(arg veh)"/>        
@@ -541,7 +544,8 @@
 			<!-- random april tags -->
 			<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 			<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
-			<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/> <!-- remapping outputs since there are two different possible turn types -->
+			<!-- remapping outputs since there are two different possible turn types -->
+			<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/> 
 
 			<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 				<arg name="veh" value="$(arg veh)"/>        
@@ -552,7 +556,8 @@
 
 		<group if="$(arg /navigation/graph_planner)">
 			<remap from="actions_dispatcher_node/fsm_mode" to="fsm_node/mode" />
-			<remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" /> <!-- remapping outputs since there are two different possible turn types -->
+			<!-- remapping outputs since there are two different possible turn types -->
+			<remap from="actions_dispatcher_node/turn_type" to="open_loop_intersection_control_node/turn_type" /> 
 
 			<include file="$(find navigation)/launch/graph_search_server_node.launch">
 				<arg name="map_name" value="$(arg map_name)"/>        

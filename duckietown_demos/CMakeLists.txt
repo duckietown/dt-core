@@ -3,9 +3,6 @@ project(duckietown_demos)
 
 find_package(catkin REQUIRED COMPONENTS )
 
-catkin_package(
-)
+catkin_package()
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(${catkin_INCLUDE_DIRS})
