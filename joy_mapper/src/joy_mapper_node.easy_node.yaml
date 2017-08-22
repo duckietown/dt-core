@@ -1,3 +1,9 @@
+description: |
+    This node takes a `sensor_msgs/Joy.msg` and converts it to a
+    `duckietown_msgs/CarControl.msg`.
+
+    It publishes at a fixed interval with a zero-order hold.
+
 parameters:
     v_gain:
         desc:
