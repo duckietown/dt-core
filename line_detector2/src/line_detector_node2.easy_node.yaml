@@ -16,12 +16,9 @@ parameters:
         desc: |
             This parameter decides how much of the image we should cut off.
             This is a performance improvement.
-    detector:
-        type: any
-        desc:  |
-            This parameter defines the line detector instantiation. It consists of an
-            array of two elements, where the first is a classname or function,
-            and the second is a dictionary of parameters to pass to the function.
+    line_detector:
+        type: str
+        desc: This is the instance of `line_detector` to use.
 
 subscriptions:
     image:
