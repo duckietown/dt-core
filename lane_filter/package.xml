@@ -2,7 +2,7 @@
 <package>
   <name>lane_filter</name>
   <version>1.0.0</version>
-  <description>The lane_filter package</description>
+  <description>TODO: Add a description of package `lane_filter` in `package.xml`.</description>
 
   <maintainer email="paull@mit.edu">Liam Paull</maintainer>
   <license>GPLv3</license>
