@@ -4,9 +4,10 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `anti_instagram` in `package.xml`.</description>
 
-  <maintainer email="mfe@todo.todo">mfe</maintainer>
+  <author email="mfe@todo.todo">mfe</author>
 
   <license>GPLv3</license>
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
 
 
   <buildtool_depend>catkin</buildtool_depend>

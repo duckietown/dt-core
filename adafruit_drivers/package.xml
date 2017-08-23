@@ -3,9 +3,9 @@
   <name>adafruit_drivers</name>
   <version>1.0.0</version>
   <description>TODO: Add a description of package `adafruit_drivers` in `package.xml`.</description>
- 
-  <maintainer email="yershov@mit.edu">Dmitry Yershov</maintainer>
-  <maintainer email="syliu@mit.edu">Shih-Yuan Liu</maintainer>
+
+  <author email="yershov@mit.edu">Dmitry Yershov</author>
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
 
   <license>GPLv3</license>
 
