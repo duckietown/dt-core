@@ -4,8 +4,8 @@
   <version>1.0.0</version>
   <description>TODO: Add a description of package `led_interpreter` in `package.xml`.</description>
 
-  <maintainer email="qlai@todo.todo">qlai</maintainer>
-
+  <author email="qlai@todo.todo">qlai</author>
+  <maintainer email="mack@duckietown.org">Mack</maintainer>
 
   <license>GPLv3</license>
 
@@ -17,5 +17,5 @@
   <run_depend>duckietown_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
- 
+
 </package>
