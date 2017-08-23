@@ -1,7 +1,4 @@
-    # Package `dagu_car` {#dagu_car}
-
-TODO: to write
-
+# Package `dagu_car` {#dagu_car}
 
 
 ## Node `forward_kinematics_node` {#dagu_car-forward_kinematics_node}
