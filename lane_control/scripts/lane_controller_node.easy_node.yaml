@@ -1,5 +1,4 @@
-description:
-
+description: |
     Note: there is some very funny business inside. It appears that `k_d` and `k_theta` are switched around.
 
 parameters:
