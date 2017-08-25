@@ -3,9 +3,9 @@ import cv2
 from anti_instagram.AntiInstagram import AntiInstagram
 from cv_bridge import CvBridge  # @UnresolvedImport
 from duckietown_msgs.msg import (Segment, SegmentList)  # @UnresolvedImport
-from duckietown_utils.instantiate_utils import instantiate
 from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.text_utils import indent
+from easy_algo.algo_db import get_easy_algo_db
 from easy_node import EasyNode
 import numpy as np
 
@@ -13,6 +13,7 @@ from .plotting import drawLines, color_segment
 
 
 class LineDetectorNode2(EasyNode):
+    
     def __init__(self):
         EasyNode.__init__(self, 'line_detector2', 'line_detector_node2')
         
@@ -26,15 +27,13 @@ class LineDetectorNode2(EasyNode):
         self.intermittent_counter = 0
 
     def on_parameters_changed(self, _first_time, updated):
+        
         if 'verbose' in updated:
             self.info('Verbose is now %r' % self.config.verbose)
 
-        if 'detector' in updated:
-            c = self.config.detector
-            self.info('detector config: %s' % str(c))
-            assert isinstance(c, list) and len(c) == 2, c
- 
-            self.detector = instantiate(c[0], c[1])
+        if 'line_detector' in updated:
+            db = get_easy_algo_db()
+            self.detector = db.create_instance('line_detector', self.config.line_detector)
 
     def on_received_switch(self, context, switch_msg):  # @UnusedVariable
         self.active = switch_msg.data
