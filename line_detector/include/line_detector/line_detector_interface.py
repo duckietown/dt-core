@@ -1,11 +1,14 @@
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 
-Detections = namedtuple('Detections', 'lines normals area centers')
+FAMILY_LINE_DETECTOR = 'line_detector'
+
+Detections = namedtuple('Detections', 
+                        ['lines','normals','area','centers'])
+
 
 class LineDetectorInterface():
     __metaclass__ = ABCMeta
-
 
     @abstractmethod
     def setImage(self, bgr):

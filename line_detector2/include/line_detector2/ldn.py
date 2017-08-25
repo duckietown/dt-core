@@ -10,6 +10,7 @@ from easy_node import EasyNode
 import numpy as np
 
 from .plotting import drawLines, color_segment
+from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
 
 
 class LineDetectorNode2(EasyNode):
@@ -88,12 +89,11 @@ class LineDetectorNode2(EasyNode):
             # SegmentList constructor
             segmentList = SegmentList()
             segmentList.header.stamp = image_msg.header.stamp
-    
+   
             # Convert to normalized pixel coordinates, and add segments to segmentList
             top_cutoff =  self.config.top_cutoff
             s0, s1 = self.config.img_size[0],  self.config.img_size[1]
-            
-            
+
             arr_cutoff = np.array((0, top_cutoff, 0, top_cutoff))
             arr_ratio = np.array((1./ s1, 1./ s0, 1./ s1, 1./ s0))
             if len(white.lines) > 0:
@@ -126,18 +126,18 @@ class LineDetectorNode2(EasyNode):
  
             with context.phase('published-images'):
                 # Publish the frame with lines
-                image_msg_out = self.bridge.cv2_to_imgmsg(image_with_lines, "bgr8")
-                image_msg_out.header.stamp = image_msg.header.stamp
-                self.publishers.image_with_lines.publish(image_msg_out) 
+                out = d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
+                self.publishers.image_with_lines.publish(out) 
 
             with context.phase('pub_edge/pub_segment'):
+                out = d8n_image_msg_from_cv_image(self.detector.edges, "mono8", same_timestamp_as=image_msg)
+                self.publishers.edge.publish(out)
+                
                 colorSegment = color_segment(white.area, red.area, yellow.area)
-                edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector.edges, "mono8")
-                colorSegment_msg_out = self.bridge.cv2_to_imgmsg(colorSegment, "bgr8")
-                self.publishers.edge.publish(edge_msg_out)
-                self.publishers.color_segment.publish(colorSegment_msg_out)
+                out = d8n_image_msg_from_cv_image(colorSegment, "bgr8", same_timestamp_as=image_msg) 
+                self.publishers.color_segment.publish(out)
 
-        
+
         if self.intermittent_log_now():
             self.info('stats from easy_node\n' + indent(context.get_stats(), '> '))
     

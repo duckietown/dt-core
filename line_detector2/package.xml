@@ -2,7 +2,9 @@
 <package>
   <name>line_detector2</name>
   <version>1.0.0</version>
-  <description>TODO: Add a description of package `line_detector2` in `package.xml`.</description>
+  <description>
+A re-implementation of the line detector node.
+ </description>
 
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
