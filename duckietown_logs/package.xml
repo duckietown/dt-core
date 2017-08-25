@@ -2,7 +2,10 @@
 <package>
   <name>duckietown_logs</name>
   <version>1.0.0</version>
-  <description>TODO: Add a description of package `duckietown_logs` in `package.xml`.</description>
+  <description>
+Package to create videos from ROS logs.
+
+  </description>
 
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
