@@ -90,8 +90,11 @@ class LineDetectorNode2(EasyNode):
             segmentList.header.stamp = image_msg.header.stamp
     
             # Convert to normalized pixel coordinates, and add segments to segmentList
-            arr_cutoff = np.array((0, self.config.top_cutoff, 0, self.config.top_cutoff))
+            top_cutoff =  self.config.top_cutoff
             s0, s1 = self.config.img_size[0],  self.config.img_size[1]
+            
+            
+            arr_cutoff = np.array((0, top_cutoff, 0, top_cutoff))
             arr_ratio = np.array((1./ s1, 1./ s0, 1./ s1, 1./ s0))
             if len(white.lines) > 0:
                 lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
@@ -106,7 +109,6 @@ class LineDetectorNode2(EasyNode):
             self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
                     len(yellow.lines), len(red.lines)))
  
-
         # Publish segmentList
         with context.phase('publishing'):
             self.publishers.segment_list.publish(segmentList) 
