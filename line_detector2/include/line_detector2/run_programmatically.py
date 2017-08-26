@@ -1,12 +1,10 @@
 
 from collections import OrderedDict
-import logging
 import os
 
 import cv2
-from quickapp.quick_app import QuickApp
+from quickapp.quick_app_base import QuickAppBase
 
-from duckietown_utils import logger
 from duckietown_utils.bag_reading import d8n_bag_read_with_progress
 from duckietown_utils.bag_writing import d8n_write_to_bag_context
 from duckietown_utils.exceptions import DTBadData, DTUserError
@@ -19,9 +17,25 @@ from easy_logs.logs_db import get_easy_logs_db
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR, LineDetectorInterface
 from line_detector.line_detector_plot import drawLines
 import numpy as np
+from quickapp.quick_app import QuickApp
 
 
-class RunLineDetectionTests(QuickApp): 
+class D8App(QuickAppBase):
+    
+    def get_from_args_or_env(self, argname, envname):
+        """ Gets either the argumnent or the environment variable."""
+        options = [getattr(self.options, argname), os.environ.get(envname, None)]
+        options = [_ for _ in options if _ and _.strip()]
+        if not options:
+            msg = ('Either provide command line argument --%s or environment variable %s.' %
+                    (argname, envname))
+            raise DTUserError(msg)     
+        return options[0]
+    
+class D8AppWithJobs(D8App, QuickApp):
+    pass
+    
+class RunLineDetectionTests(D8AppWithJobs): 
     """ Runs the line detection tests programmatically. """
 
     def define_options(self, params):
@@ -72,27 +86,7 @@ class RunLineDetectionTests(QuickApp):
                     self.warning(msg)
                 c.comp(job, log_name, algo_name, dest, job_id=log_name)
 
-
-    def get_from_args_or_env(self, argname, envname):
-        options = [getattr(self.options, argname), os.environ.get(envname, None)]
-        options = [_ for _ in options if _ and _.strip()]
-        if not options:
-            msg = ('Either provide command line argument --%s or environment variable %s.' %
-                    (argname, envname))
-            raise DTUserError(msg)     
-        return options[0]
-
             
-def get_only_valid_logs_with_camera(logs):
-    good_logs = OrderedDict()
-    for k, log in logs.items():
-        if not log.valid: 
-            continue
-        if not log.has_camera:
-            continue
-        good_logs[k] = log
-    return good_logs
-        
 def job(log_name, algo_name, dest):
     logs_db = get_easy_logs_db()
     algo_db = get_easy_algo_db()
@@ -129,7 +123,17 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
             # Write to the bag
             out_bag.write('processed', out)
 
-   
+
+def get_only_valid_logs_with_camera(logs):
+    good_logs = OrderedDict()
+    for k, log in logs.items():
+        if not log.valid: 
+            continue
+        if not log.has_camera:
+            continue
+        good_logs[k] = log
+    return good_logs
+           
    
 programmatic_line_detection_tests = RunLineDetectionTests.get_sys_main()
 
