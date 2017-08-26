@@ -83,7 +83,7 @@ class LEDEmitter(object):
         except ValueError as e:
             self.cycle = None
             self.current_pattern_name = None
-    	self.pub_state.publish(float(self.cycle))
+    self.pub_state.publish(float(self.cycle))
 
 if __name__ == '__main__':
     rospy.init_node('led_emitter',anonymous=False)
