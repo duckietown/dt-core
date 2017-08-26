@@ -22,25 +22,26 @@ import numpy as np
 
 
 class RunLineDetectionTests(QuickApp): 
+    """ Runs the line detection tests programmatically. """
 
     def define_options(self, params):
         params.add_string('algos', default=None,
-                          help="Line detectors query string. If not given, read from ALGOS") 
+            help="Line detectors query string. If not given, read from ALGOS") 
         params.add_string('logs', default=None,
-                           help="Log files query string. If not given, read from LOGS")
+            help="Log files query string. If not given, read from LOGS")
         params.add_string('dest', default=None,
-                          help='Output directory, where to write the ')
+            help='Output directory, where to write the ') 
         
     def define_jobs_context(self, context):
-        logger.setLevel(logging.DEBUG)
+        # logger.setLevel(logging.DEBUG)
+        query_logs = self.get_from_args_or_env('logs', 'LOGS')
+        query_algos = self.get_from_args_or_env('algos', 'ALGOS')
+
         logs_db = get_easy_logs_db()
-        algo_db = get_easy_algo_db()
         
-        query_logs = self.get_query_logs()
-        query_algos = self.get_query_algos()
         dest = self.options.dest or 'out-detector-tests'
   
-        logs = logs_db.query(query_logs)
+        logs = logs_db.query(query_logs, raise_if_no_matches=True)
         
         good_logs = get_only_valid_logs_with_camera(logs)
         
@@ -53,15 +54,14 @@ class RunLineDetectionTests(QuickApp):
         
         self.debug('Log table: \n ' + format_logs(good_logs))
         
-        algos = algo_db.query(FAMILY_LINE_DETECTOR, query_algos)
+        # Find the algorithms
+        algo_db = get_easy_algo_db()
         
-        if not algos:
-            msg = 'Found no algos.'
-            raise Exception(msg)
+        algos = algo_db.query(FAMILY_LINE_DETECTOR, query_algos, raise_if_no_matches=True)
         
         self.info('Found %d algos:\n%s' % (len(algos), "\n".join(list(algos))))
         
-        self.create_jobs(context, logs=good_logs, algos=algos, dest=dest)
+        self.create_jobs(context, logs=good_logs, algos=algos, dest=dest) 
         
     def create_jobs(self, context, logs, algos, dest):
         for algo_name in algos:
@@ -72,19 +72,13 @@ class RunLineDetectionTests(QuickApp):
                     self.warning(msg)
                 c.comp(job, log_name, algo_name, dest, job_id=log_name)
 
-    def get_query_logs(self):
-        options = [self.options.logs, os.environ.get('LOGS', None)]
+
+    def get_from_args_or_env(self, argname, envname):
+        options = [getattr(self.options, argname), os.environ.get(envname, None)]
         options = [_ for _ in options if _ and _.strip()]
         if not options:
-            msg = 'Either provide command line argument --logs or environment variable LOGS.'
-            raise DTUserError(msg)     
-        return options[0]
-    
-    def get_query_algos(self):
-        options = [self.options.algos, os.environ.get('ALGOS', None)]
-        options = [_ for _ in options if _ and _.strip()]
-        if not options:
-            msg = 'Either provide command line argument --logs or environment variable ALGOS.'
+            msg = ('Either provide command line argument --%s or environment variable %s.' %
+                    (argname, envname))
             raise DTUserError(msg)     
         return options[0]
 
@@ -116,7 +110,7 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
     H, W = 200, 320
     with d8n_write_to_bag_context(out_bag_filename) as out_bag:
         for image_msg in d8n_bag_read_with_progress(log, topic):
-            
+            # Get he CV image from a jpg
             image_cv = image_cv_from_jpg(image_msg.data)
             image_cv = cv2.resize(image_cv, (W, H), interpolation=cv2.INTER_NEAREST)
                 
@@ -130,7 +124,9 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
             drawLines(image_with_lines, yellow.lines, (255, 0, 0))
             drawLines(image_with_lines, red.lines, (0, 255, 0))
             
+            # Create output image message
             out = d8n_image_msg_from_cv_image(image_cv, "bgr8", same_timestamp_as=image_msg)
+            # Write to the bag
             out_bag.write('processed', out)
 
    
