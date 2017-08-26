@@ -37,7 +37,7 @@ class graph_search_server():
         self.image_pub.publish(self.bridge.cv2_to_imgmsg(overlay, "bgr8"))
 
     def handle_graph_search(self,req):
-	    # Checking if nodes exists
+        # Checking if nodes exists
         if (req.source_node not in self.duckietown_graph) or (req.target_node not in self.duckietown_graph):
             print "Source or target node do not exist."
             self.publishImage(req, [])
@@ -73,7 +73,7 @@ class graph_search_server():
         overlay *= 1.4
         return overlay
 
-if __name__ == "__main__":	
+if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')
     gss = graph_search_server()
     print 'Starting server...\n'

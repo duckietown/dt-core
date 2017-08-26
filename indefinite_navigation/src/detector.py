@@ -158,6 +158,6 @@ class StaticObjectDetectorNode:
         self.thread_lock.release()
 
 if __name__=="__main__":
-	rospy.init_node('arii')
-	node = StaticObjectDetectorNode()
-	rospy.spin()
+    rospy.init_node('arii')
+    node = StaticObjectDetectorNode()
+    rospy.spin()
