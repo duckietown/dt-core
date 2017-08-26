@@ -3,11 +3,12 @@ from collections import OrderedDict
 import os
 
 import cv2
-from quickapp.quick_app_base import QuickAppBase
 
 from duckietown_utils.bag_reading import d8n_bag_read_with_progress
+from duckietown_utils.bag_visualization import d8n_make_video_from_bag
 from duckietown_utils.bag_writing import d8n_write_to_bag_context
-from duckietown_utils.exceptions import DTBadData, DTUserError
+from duckietown_utils.cli import D8AppWithJobs
+from duckietown_utils.exceptions import DTBadData
 from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
 from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.system_cmd_imp import contract
@@ -17,24 +18,8 @@ from easy_logs.logs_db import get_easy_logs_db
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR, LineDetectorInterface
 from line_detector.line_detector_plot import drawLines
 import numpy as np
-from quickapp.quick_app import QuickApp
 
 
-class D8App(QuickAppBase):
-    
-    def get_from_args_or_env(self, argname, envname):
-        """ Gets either the argumnent or the environment variable."""
-        options = [getattr(self.options, argname), os.environ.get(envname, None)]
-        options = [_ for _ in options if _ and _.strip()]
-        if not options:
-            msg = ('Either provide command line argument --%s or environment variable %s.' %
-                    (argname, envname))
-            raise DTUserError(msg)     
-        return options[0]
-    
-class D8AppWithJobs(D8App, QuickApp):
-    pass
-    
 class RunLineDetectionTests(D8AppWithJobs): 
     """ Runs the line detection tests programmatically. """
 
@@ -84,19 +69,26 @@ class RunLineDetectionTests(D8AppWithJobs):
                 if not log.valid:
                     msg = 'Skipping log %s because invalid' % log_name
                     self.warning(msg)
-                c.comp(job, log_name, algo_name, dest, job_id=log_name)
-
+                out_bag = os.path.join(dest, log_name + '.bag')
+                
+                # Process the data 
+                out_bag = c.comp(job, log_name, algo_name, out_bag, job_id=log_name)
+                
+                # Create the videos
+                for topic in ['processed', 'original']:
+                    mp4 = os.path.join(dest, log_name + '-' + topic + '.mp4')
+                    c.comp(d8n_make_video_from_bag, out_bag,  topic, mp4)
             
-def job(log_name, algo_name, dest):
+def job(log_name, algo_name, out_bag):
     logs_db = get_easy_logs_db()
     algo_db = get_easy_algo_db()
     log = logs_db.logs[log_name]
     line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, algo_name)
-
     vehicle = log.vehicle    
     topic = '/%s/camera_node/image/compressed' % vehicle
-    out_bag = os.path.join(dest, 'out.bag')
+    
     run_from_bag(log, topic, line_detector, out_bag)
+    return out_bag
 
 
 @contract(topic=str, line_detector=LineDetectorInterface)
@@ -119,9 +111,11 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
             drawLines(image_with_lines, red.lines, (0, 255, 0))
             
             # Create output image message
-            out = d8n_image_msg_from_cv_image(image_cv, "bgr8", same_timestamp_as=image_msg)
+            out = d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
             # Write to the bag
             out_bag.write('processed', out)
+            out = d8n_image_msg_from_cv_image(image_cv, "bgr8", same_timestamp_as=image_msg)
+            out_bag.write('original', out)
 
 
 def get_only_valid_logs_with_camera(logs):
