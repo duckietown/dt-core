@@ -93,7 +93,7 @@ class IndefNavigationTurnNode(unittest.TestCase):
         stop.v = 0
         stop.omega = 0
         startTime = rospy.Time.now()
-	end_time = startTime + rospy.Duration.from_sec(1)
+        end_time = startTime + rospy.Duration.from_sec(1)
         rospy.loginfo("start_time = %s, end_time=%s" %(startTime, end_time))
         while rospy.Time.now() < end_time:
             self.pub_wheels.publish(stop)

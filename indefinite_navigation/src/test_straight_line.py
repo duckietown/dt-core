@@ -14,8 +14,8 @@ class IndefNavigationNode(object):
         self.node_name = rospy.get_name()
         
         rospy.loginfo("[%s] Initialzing." %(self.node_name))
-	veh_name= rospy.get_param("veh")['duckiebot_visualizer']['veh_name']
-	wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
+        veh_name= rospy.get_param("veh")['duckiebot_visualizer']['veh_name']
+        wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"
         stop_topic = "/" + veh_name + "/stop_line_filter_node/stop_line_reading"
 
