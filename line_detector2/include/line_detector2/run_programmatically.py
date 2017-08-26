@@ -62,7 +62,9 @@ class RunLineDetectionTests(D8AppWithJobs):
         
         self.info('Found %d algos:\n%s' % (len(algos), "\n".join(list(algos))))
         
-        self.create_jobs(context, logs=good_logs, algos=algos, dest=dest) 
+        do_videos = self.options.videos
+        
+        self.create_jobs(context, logs=good_logs, algos=algos, dest=dest, do_videos=do_videos) 
         
     def create_jobs(self, context, logs, algos, dest):
         for algo_name in algos:
@@ -77,9 +79,10 @@ class RunLineDetectionTests(D8AppWithJobs):
                 out_bag = c.comp(job, log_name, algo_name, out_bag, job_id=log_name)
                 
                 # Create the videos
-                for topic in ['processed']:
-                    mp4 = os.path.join(dest, log_name + '-' + topic + '.mp4')
-                    c.comp(d8n_make_video_from_bag, out_bag,  topic, mp4)
+                if do_videos:
+                    for topic in ['processed']:
+                        mp4 = os.path.join(dest, log_name + '-' + topic + '.mp4')
+                        c.comp(d8n_make_video_from_bag, out_bag,  topic, mp4)
             
 def job(log_name, algo_name, out_bag):
     logs_db = get_easy_logs_db()
