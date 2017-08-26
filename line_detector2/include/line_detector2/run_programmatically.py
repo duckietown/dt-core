@@ -15,7 +15,7 @@ from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.system_cmd_imp import contract
 from easy_algo.algo_db import get_easy_algo_db
 from easy_logs.cli.easy_logs_summary_imp import format_logs
-from easy_logs.logs_db import get_easy_logs_db
+from easy_logs.logs_db import get_easy_logs_db, get_easy_logs_db_fresh
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR, LineDetectorInterface
 from line_detector.visual_state import visual_state_from_image
 from line_detector.visual_state_fancy_display import vs_fancy_display
@@ -56,7 +56,7 @@ class RunLineDetectionTests(D8AppWithJobs):
         self.debug('Log table: \n ' + format_logs(good_logs))
         
         # Find the algorithms
-        algo_db = get_easy_algo_db()
+        algo_db = get_easy_logs_db_fresh()
         
         algos = algo_db.query(FAMILY_LINE_DETECTOR, query_algos, raise_if_no_matches=True)
         
