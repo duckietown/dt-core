@@ -10,14 +10,16 @@ from duckietown_utils.bag_writing import d8n_write_to_bag_context
 from duckietown_utils.cli import D8AppWithJobs
 from duckietown_utils.exceptions import DTBadData
 from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
-from duckietown_utils.jpg import image_cv_from_jpg
+from duckietown_utils.jpg import image_cv_from_jpg, make_images_grid
 from duckietown_utils.system_cmd_imp import contract
 from easy_algo.algo_db import get_easy_algo_db
 from easy_logs.cli.easy_logs_summary_imp import format_logs
 from easy_logs.logs_db import get_easy_logs_db
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR, LineDetectorInterface
-from line_detector.line_detector_plot import drawLines
-import numpy as np
+
+from line_detector.visual_state import VisualState, visual_state_from_image
+from duckietown_utils.image_rescaling import d8_image_zoom_linear
+from line_detector.visual_state_fancy_display import vs_fancy_display
 
 
 class RunLineDetectionTests(D8AppWithJobs): 
@@ -75,7 +77,7 @@ class RunLineDetectionTests(D8AppWithJobs):
                 out_bag = c.comp(job, log_name, algo_name, out_bag, job_id=log_name)
                 
                 # Create the videos
-                for topic in ['processed', 'original']:
+                for topic in ['processed']:
                     mp4 = os.path.join(dest, log_name + '-' + topic + '.mp4')
                     c.comp(d8n_make_video_from_bag, out_bag,  topic, mp4)
             
@@ -100,22 +102,15 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
             image_cv = image_cv_from_jpg(image_msg.data)
             image_cv = cv2.resize(image_cv, (W, H), interpolation=cv2.INTER_NEAREST)
                 
-            line_detector.setImage(image_cv)
-            white = line_detector.detectLines('white')
-            red = line_detector.detectLines('red')
-            yellow = line_detector.detectLines('yellow')
+            vs = visual_state_from_image(image_cv, line_detector)
             
-            image_with_lines = np.copy(image_cv)
-            drawLines(image_with_lines, white.lines, (0, 0, 0))
-            drawLines(image_with_lines, yellow.lines, (255, 0, 0))
-            drawLines(image_with_lines, red.lines, (0, 255, 0))
+            rendered = vs_fancy_display(vs)
+            rendered = d8_image_zoom_linear(rendered, 4)
+            out = d8n_image_msg_from_cv_image(rendered, "bgr8", same_timestamp_as=image_msg)
             
-            # Create output image message
-            out = d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
             # Write to the bag
             out_bag.write('processed', out)
             out = d8n_image_msg_from_cv_image(image_cv, "bgr8", same_timestamp_as=image_msg)
-            out_bag.write('original', out)
 
 
 def get_only_valid_logs_with_camera(logs):

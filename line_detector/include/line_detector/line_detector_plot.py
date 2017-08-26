@@ -9,12 +9,14 @@ __all__ = [
 ]
 
 # draw line segments
-def drawLines(bgr, lines, paint):
+def drawLines(bgr, lines, paint, p1_color=(0,255,0), p2_color=(0,0,255)):
     if len(lines)>0:
         for x1,y1,x2,y2 in lines:
             cv2.line(bgr, (x1,y1), (x2,y2), paint, 2)
-            cv2.circle(bgr, (x1,y1), 2, (0,255,0))
-            cv2.circle(bgr, (x2,y2), 2, (0,0,255))
+            if p1_color is not None:
+                cv2.circle(bgr, (x1,y1), 2, p1_color)
+            if p2_color is not None:
+                cv2.circle(bgr, (x2,y2), 2, p2_color)
 
 # draw segment normals
 def drawNormals(bgr, lines, normals):
