@@ -56,7 +56,7 @@ class RunLineDetectionTests(D8AppWithJobs):
         self.debug('Log table: \n ' + format_logs(good_logs))
         
         # Find the algorithms
-        algo_db = get_easy_logs_db_fresh()
+        algo_db = get_easy_algo_db()
         
         algos = algo_db.query(FAMILY_LINE_DETECTOR, query_algos, raise_if_no_matches=True)
         
