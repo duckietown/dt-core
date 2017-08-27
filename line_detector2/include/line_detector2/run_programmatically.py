@@ -15,7 +15,7 @@ from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.system_cmd_imp import contract
 from easy_algo.algo_db import get_easy_algo_db
 from easy_logs.cli.easy_logs_summary_imp import format_logs
-from easy_logs.logs_db import get_easy_logs_db, get_easy_logs_db_fresh
+from easy_logs.logs_db import get_easy_logs_db
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR, LineDetectorInterface
 from line_detector.visual_state import visual_state_from_image
 from line_detector.visual_state_fancy_display import vs_fancy_display
@@ -30,11 +30,10 @@ class RunLineDetectionTests(D8AppWithJobs):
         params.add_string('logs', default=None,
             help="Log files query string. If not given, read from LOGS")
         params.add_string('dest', default=None,
-            help='Output directory, where to write the ')
+            help='Output directory, where to write the video')
         params.add_flag('videos', help='Create videos') 
         
     def define_jobs_context(self, context):
-        # logger.setLevel(logging.DEBUG)
         query_logs = self.get_from_args_or_env('logs', 'LOGS')
         query_algos = self.get_from_args_or_env('algos', 'ALGOS')
 
@@ -102,9 +101,10 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
     with d8n_write_to_bag_context(out_bag_filename) as out_bag:
         for image_msg in d8n_bag_read_with_progress(log, topic):
             # Get he CV image from a jpg
-            image_cv = image_cv_from_jpg(image_msg.data)
-            image_cv = cv2.resize(image_cv, (W, H), interpolation=cv2.INTER_NEAREST)
-                
+            image_cv = image_cv_from_jpg(image_msg.data)    
+            # image_cv = cv2.resize(image_cv, (W, H), interpolation=cv2.INTER_NEAREST)
+#             continue
+            
             vs = visual_state_from_image(image_cv, line_detector)
             
             rendered = vs_fancy_display(vs)
