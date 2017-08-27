@@ -108,7 +108,7 @@ def run_from_bag(log, topic, line_detector, out_bag_filename):
             vs = visual_state_from_image(image_cv, line_detector)
             
             rendered = vs_fancy_display(vs)
-            rendered = d8_image_zoom_linear(rendered, 4)
+            rendered = d8_image_zoom_linear(rendered, 2)
             out = d8n_image_msg_from_cv_image(rendered, "bgr8", same_timestamp_as=image_msg)
             
             # Write to the bag
