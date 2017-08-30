@@ -1,8 +1,7 @@
-from contracts.utils import check_isinstance
+import cv2
+
+from duckietown_msgs.msg import (Segment)  # @UnresolvedImport
 import numpy as np
-from line_detector.visual_state import VisualState
-from line_detector.line_detector_plot import drawLines
-from duckietown_utils.jpg import make_images_grid
 
 
 BLACK = (0,0,0)
@@ -11,30 +10,37 @@ BGR_GREEN = (0,255,0)
 BGR_WHITE = (255,255,255)
 BGR_YELLOW = (0, 255,255)
 
-def vs_fancy_display(vs):
+def vs_fancy_display(image_cv, segment_list):
     """
-        vs: VisualState
+         
+    """
+    colors = {Segment.WHITE: BGR_WHITE,
+              Segment.RED: BGR_RED,
+              Segment.YELLOW: BGR_YELLOW}
+    
+    ground = np.copy(image_cv)
+    shape = ground.shape[:2]
+    
+    ground = ground / 4 + 120
+     
+    for segment in segment_list.segments:
         
-        returns an image 
-    """
-    check_isinstance(vs, VisualState)
-    im = vs.original_image
-    
-    # BGR
-    img_white = np.copy(im)
-    img_white.fill(0)
-    drawLines(img_white, vs.white.lines, BGR_WHITE, p1_color=None, p2_color=None)
-    
-    img_yellow = np.copy(vs.original_image)
-    img_yellow.fill(0)
-    drawLines(img_yellow, vs.yellow.lines, BGR_YELLOW, p1_color=None, p2_color=None)
-    
-    img_red = np.copy(vs.original_image)
-    img_red.fill(0)
-    drawLines(img_red, vs.red.lines, BGR_RED, p1_color=None, p2_color=None)
-    
-    asgrid = make_images_grid([vs.original_image, img_white, img_yellow, img_red], 
-                           cols=2, pad=10, bgcolor=[1, 1, 1])
-    
-    return asgrid 
+        p1 = segment.pixels_normalized[0]
+        p2 = segment.pixels_normalized[1]
+        
+        P1 = normalized_to_image(p1, shape)
+        P2 = normalized_to_image(p2, shape) 
+        
+        paint = colors[segment.color]
+        width = 1
+        cv2.line(ground, P1, P2, paint, width)
+        
+    return ground
+
+def normalized_to_image(p,shape):
+    x, y = p.x, p.y
+    H, W = shape
+    X = x * W
+    Y = y * H
+    return int(X), int(Y)
 

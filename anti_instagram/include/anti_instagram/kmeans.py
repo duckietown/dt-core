@@ -12,15 +12,16 @@ CENTERS = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 
 
 def getimgdatapts(cv2img):
-	x, y, p = cv2img.shape
-	cv2_tpose=cv2img.transpose()
-	cv2_arr_tpose=np.reshape(cv2_tpose,[p,x*y])
-	npdata=np.transpose(cv2_arr_tpose);
-	return npdata
+    x, y, p = cv2img.shape
+    cv2_tpose = cv2img.transpose()
+    cv2_arr_tpose = np.reshape(cv2_tpose,[p,x*y])
+    npdata = np.transpose(cv2_arr_tpose);
+    return npdata
 
 #priors
 def runKMeans(cv_img, num_colors, init):
-	imgdata = getimgdatapts(cv_img[-100:,:,:])
+    
+	imgdata = getimgdatapts(cv_img[-100:,:,:]) # FIX ME: arbitrary cut off
 	kmc = KMeans(n_clusters=num_colors, max_iter=25, n_init=10, init=init)
 	t1 = time.time();
 	kmc.fit_predict(imgdata)

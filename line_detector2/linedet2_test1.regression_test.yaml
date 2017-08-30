@@ -1,0 +1,24 @@
+description: |
+    Experiments with line detectors
+
+constructor: easy_regression.RegressionTest
+parameters:
+    logs:
+    # - 20160223-amadoa-amadobot-RCDP2
+    # - 20160122-censi-ferrari-RCDP6-qlai/{0:4}
+    # - vehicle:ferrari/shuffle/[:10]/{4:5}
+    - vehicle:ferrari/{0:1}
+    # - dp3auto_2016-04-29-19-56-57_1-oreo
+    processors:
+    - linedet2
+    analyzers:
+    - count_messages
+
+    checks: []
+# - desc: The number of messages read should remain the same.
+#   cond: |
+#     v:count_messages/20160223-amadoa-amadobot-RCDP2/num_messages == 61
+
+    topic_videos:
+    - processed
+    - image
