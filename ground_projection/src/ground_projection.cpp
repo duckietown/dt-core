@@ -45,27 +45,32 @@ class GroundProjection
   bool rectified_input_;
 
   std::string node_name_;
-  
+
   std::string config_name_;
   std::string config_file_name_;
   std::string h_file_;
-  
+
 public:
   GroundProjection()
   : nh_("~")
   {
 
     node_name_ = ros::this_node::getName();
-    
+
+    std::string DT = ros::package::getPath("duckietown");
     // load from homography yaml file
-    nh_.param<std::string>("config",config_name_,"baseline");
-    nh_.param<std::string>("config_file_name",config_file_name_,"default");
-    h_file_ = ros::package::getPath("duckietown") + "/config/" + config_name_ + "/calibration/camera_extrinsic/" + config_file_name_ + ".yaml";    
+    nh_.param<std::string>("config", config_name_, "baseline");
+    nh_.param<std::string>("config_file_name", config_file_name_, "default");
+    h_file_ = DT
+             + "/config/" + config_name_ +
+             "/calibration/camera_extrinsic/"
+             + config_file_name_ + ".yaml";
     std::ifstream fin(h_file_.c_str());
     if (!fin.good())
     {
-      ROS_WARN_STREAM("Can't find homography file: " << h_file_ << " Using default calibration instead.");
-      h_file_ = ros::package::getPath("duckietown") + "/config/" + config_name_ + "/calibration/camera_extrinsic/default.yaml";
+      ROS_WARN_STREAM("Can't find homography file: " << h_file_ <<
+                      " Using default calibration instead.");
+      h_file_ = DT + "/config/" + config_name_ + "/calibration/camera_extrinsic/default.yaml";
       // h_file_ = get_package_filename("package://ground_projection/homography/default.yaml");
     }
     ROS_INFO("load from homography yaml file [%s].", h_file_.c_str());
@@ -87,12 +92,12 @@ public:
     Hinv_ = H_.inv();
 
     nh_.param<bool>("rectified_input", rectified_input_, false);
-    
+
     std::string camera_info_topic = nh_.resolveName("camera_info");
-    ROS_INFO("[%s] Waiting for message on topic: %s", node_name_.c_str(),camera_info_topic.c_str());    
+    ROS_INFO("[%s] Waiting for message on topic: %s", node_name_.c_str(),camera_info_topic.c_str());
     camera_info_ = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic, nh_);
     ROS_INFO("[%s] Got camera_info", node_name_.c_str());
-    
+
     pcm_.fromCameraInfo(camera_info_);
 
     // Publisher
@@ -121,7 +126,7 @@ private:
     float h = static_cast<float>(camera_info_->height);
 
     duckietown_msgs::Pixel pixel;
-    
+
     pixel.u = static_cast<int>(w * vec.x);
     pixel.v = static_cast<int>(h * vec.y);
 
@@ -143,7 +148,7 @@ private:
 
     vec.x = static_cast<float>(pixel.u)/w;
     vec.y = static_cast<float>(pixel.v)/h;
-    
+
     return vec;
   }
 
@@ -182,7 +187,7 @@ private:
       pt_img.x = static_cast<float>(pt_undistorted.x);
       pt_img.y = static_cast<float>(pt_undistorted.y);
     }
-    
+
     cv::Mat pt_gnd_ = H_ * cv::Mat(pt_img);
     cv::Point3f pt_gnd(pt_gnd_);
 
@@ -218,6 +223,8 @@ private:
     }
   }
 
+
+
   void lineseglist_cb(const duckietown_msgs::SegmentList::ConstPtr& msg)
   {
     duckietown_msgs::SegmentList msg_new = *msg;
@@ -230,7 +237,7 @@ private:
     pub_lineseglist_.publish(msg_new);
   }
 
-  bool get_ground_coordinate_cb(ground_projection::GetGroundCoord::Request &req, 
+  bool get_ground_coordinate_cb(ground_projection::GetGroundCoord::Request &req,
                                 ground_projection::GetGroundCoord::Response &res)
   {
     image2ground(req.normalized_uv, res.gp);
@@ -239,7 +246,7 @@ private:
     return true;
   }
 
-  bool get_image_coordinate_cb(ground_projection::GetImageCoord::Request &req, 
+  bool get_image_coordinate_cb(ground_projection::GetImageCoord::Request &req,
                                 ground_projection::GetImageCoord::Response &res)
   {
     ground2image(req.gp, res.normalized_uv);
@@ -248,19 +255,19 @@ private:
     return true;
   }
 
-  
+
   bool estimate_homography_cb(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
   {
     ROS_INFO("Estimating homography...");
     ROS_INFO_STREAM("Waiting from raw image on topic: " << nh_.resolveName("cali_image"));
-    sensor_msgs::Image::ConstPtr img_msg = ros::topic::waitForMessage<sensor_msgs::Image>("cali_image", nh_); 
+    sensor_msgs::Image::ConstPtr img_msg = ros::topic::waitForMessage<sensor_msgs::Image>("cali_image", nh_);
     ROS_INFO_STREAM("Received raw image on topic: " << nh_.resolveName("cali_image"));
 
     cv::Mat mat_rect;
     cv::Mat mat_homography;
     getRectifiedImage(img_msg,mat_rect);
     ROS_INFO("Raw image rectifed.");
-    
+
     if(estimate_homography(mat_rect,mat_homography)){
       ROS_INFO("Homography estimated.");
     }
@@ -271,7 +278,7 @@ private:
 
     mat_homography.copyTo(H_);
     std::vector<float> vec_homography(9,0);
-    // Fill homography vector 
+    // Fill homography vector
     for(int r=0; r<3; r++)
     {
       for(int c=0; c<3; c++)
@@ -280,7 +287,10 @@ private:
       }
     }
     // Write to yaml file
-    std::string wrtie_file_path = ros::package::getPath("duckietown") + "/config/" + config_name_ + "/calibration/camera_extrinsic" + ros::this_node::getNamespace() + ".yaml";
+    std::string wrtie_file_path = ros::package::getPath("duckietown")
+            + "/config/" +
+            config_name_ +
+             "/calibration/camera_extrinsic" + ros::this_node::getNamespace() + ".yaml";
     ROS_INFO("Homography yaml file [%s].", wrtie_file_path.c_str());
     write_homography_yaml(wrtie_file_path, vec_homography);
     return true;
@@ -357,7 +367,7 @@ private:
   }
 
 
-  bool read_homography_yaml(const std::string& h_fname, 
+  bool read_homography_yaml(const std::string& h_fname,
                             std::vector<float>& h)
   {
     std::ifstream fin(h_fname.c_str());
@@ -397,7 +407,7 @@ private:
         h_data[i] >> h[i];
 
       return true;
-    }    
+    }
     catch (YAML::Exception& e) {
       ROS_ERROR("Exception parsing YAML homography:\n%s", e.what());
       return false;
@@ -437,7 +447,7 @@ private:
     return true;
   }
 
-  
+
   std::string get_package_filename(const std::string &url)
   {
     ROS_DEBUG_STREAM("homography URL: " << url);

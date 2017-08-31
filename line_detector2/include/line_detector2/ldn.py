@@ -3,6 +3,7 @@ import cv2
 from anti_instagram.AntiInstagram import AntiInstagram
 from cv_bridge import CvBridge  # @UnresolvedImport
 from duckietown_msgs.msg import (Segment, SegmentList)  # @UnresolvedImport
+from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
 from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.text_utils import indent
 from easy_algo.algo_db import get_easy_algo_db
@@ -10,7 +11,6 @@ from easy_node import EasyNode
 import numpy as np
 
 from .plotting import drawLines, color_segment
-from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
 
 
 class LineDetectorNode2(EasyNode):
