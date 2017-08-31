@@ -7,18 +7,19 @@
 
 This runs the entire pipeline:
 
-    rosrun complete_image_pipeline single_image_pipeline --image ![image] --line_detector ![detector] --image_pre ![image_prep]
+    $ rosrun complete_image_pipeline single_image_pipeline --image ![image] --line_detector ![detector] --image_pre ![image_prep]
+
 
 `![image]` can be a filename or a URL.
 
 For example, this:
 
-    rosrun complete_image_pipeline single_image_pipeline --image   https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1
+    $ rosrun complete_image_pipeline single_image_pipeline --image   https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1
 
-results in an output  as in [](#fig:output-frame2).
+results in an output as in [](#fig:output-frame2).
 
 <div figure-id='fig:output-frame2'>
-    <figcaption>Output of `single_image_pipeline`</figcaption>
+    <figcaption>Output of <code>single_image_pipeline</code></figcaption>
     <img src="frame2-all.jpg"  id='frame2-all'/>
 </div>
 
