@@ -2,7 +2,13 @@
 <package>
   <name>led_detection</name>
   <version>1.0.0</version>
-  <description>TODO: Add a description of package `led_detection` in `package.xml`.</description>
+  <description>
+
+TODO: Add a description of package `led_detection` in `package.xml`.
+
+TODO: add authors
+
+</description>
 
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
@@ -19,5 +25,5 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
 
- 
+
 </package>
