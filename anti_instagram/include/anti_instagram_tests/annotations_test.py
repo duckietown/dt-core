@@ -2,7 +2,6 @@
 import copy
 import os
 import shelve
-
 import cv2
 import scipy.io
 import yaml
@@ -16,6 +15,7 @@ from duckietown_utils.locate_files_impl import locate_files
 from duckietown_utils.path_utils import expand_all, get_ros_package_path
 from line_detector.line_detector_plot import drawLines
 import numpy as np
+from duckietown_utils.image_operations import gray2rgb, zoom_image
 
 
 def merge_comparison_results(comparison_results,overall_results):
@@ -131,8 +131,6 @@ def examine_dataset(dirname, out):
                 if not isinstance(detector, list) and len(detector) == 2:
                     raise ValueError(detector)
 
-                
-
                 def LineDetectorClass():
                     return instantiate(detector[0], detector[1])
 
@@ -143,7 +141,7 @@ def examine_dataset(dirname, out):
 
             together = make_images_grid(summaries, cols=1, pad=10, bgcolor=[.5, .5, .5])
             cv2.imwrite(fn, zoom_image(together, 4))
-    # ipython_if_guy()
+
     overall_results=[]
     comparison_results={}
     for m in mats:
@@ -160,11 +158,6 @@ def examine_dataset(dirname, out):
             
     print "finished mats: "+dirname
     return overall_results
-
-def zoom_image(im, zoom = 4):
-    s = (im.shape[1] * zoom, im.shape[0] * zoom)
-    imz = cv2.resize(im, s, interpolation=cv2.INTER_NEAREST)
-    return imz
 
 def run_detection(transform, jpg, out, shape, interpolation,
                   name, LineDetectorClass):
@@ -276,7 +269,8 @@ def test_pair(transform, jpg, mat, out):
         print 'x', x
         print 'y', y
         print 'mask shape', mask.shape
-        # type in 1- based / matlab-based indices from the list of region types (i.e road, white, yellow, red, or what ever types were annotated)
+        # type in 1- based / matlab-based indices from the list of region types (i.e road, white, 
+        # yellow, red, or what ever types were annotated)
         print 'type', r['type'][0][0][0][0]
         # color in [r,g,b] where [r,g,b]are between 0 and 1 
         print 'color', r['color'][0] 
@@ -354,29 +348,10 @@ def line_detection(LineDetectorClass, bgr):
 
 #    cv2.imwrite('lines_with_normal.png', detector.getImage())
 
-def gray2rgb(gray):
-    '''
-        Converts a H x W grayscale into a H x W x 3 RGB image
-        by replicating the gray channel over R,G,B.
-
-        :param gray: grayscale
-        :type  gray: array[HxW](uint8),H>0,W>0
-
-        :return: A RGB image in shades of gray.
-        :rtype: array[HxWx3](uint8)
-    '''
-#    assert_gray_image(gray, 'input to gray2rgb')
-
-    rgb = np.zeros((gray.shape[0], gray.shape[1], 3), dtype='uint8')
-    for i in range(3):
-        rgb[:, :, i] = gray
-    return rgb
 
 
-def anti_instagram_annotations_test():
-    base = "${DUCKIETOWN_DATA}/phase3-misc-files/so1/"
-
-    base = expand_all(base)
+def anti_instagram_annotations_test(dirname, out_base):
+    base = expand_all(dirname)
 
     if not os.path.exists(base):
         msg = 'Could not find directory %s' % base
@@ -387,30 +362,26 @@ def anti_instagram_annotations_test():
     overall_results=[]
 
     if not dirs:
-        raise ValueError('No IIDS1 directories')
-
-    for d in dirs:
-#         import getpass
-#         uname = getpass.getuser()
-        
-        out_base = 'anti_instagram_annotations_test'
+        raise ValueError('No IIDS1 directories found')
+ 
+    for d in dirs: 
         out = os.path.join(out_base, os.path.basename(d) + '.v')
-#         out = os.path.join(os.path.dirname(d), uname, os.path.basename(d) + '.v')
+
         if not os.path.exists(out):
             os.makedirs(out)
-        results=examine_dataset(d, out)
-        overall_results=merge_comparison_results(results,overall_results)
-        directory_results[d]=results
+        results = examine_dataset(d, out)
+        overall_results = merge_comparison_results(results, overall_results)
+        directory_results[d] = results
         
     db=shelve.open('tests_results',flag='n')
     db['directory_results'] = directory_results
     db['overall_results'] = overall_results
     db.close()
 
-    print("overall average error: %f" % (overall_results['total_error']/overall_results['total_pixels']))
-    print("overall regions checked: %f" % (overall_results['total_regions']))
+    logger.info("overall average error: %f" % (overall_results['total_error']/overall_results['total_pixels']))
+    logger.info("overall regions checked: %f" % (overall_results['total_regions']))
     for t in overall_results['v_vals'].keys():
-        print("region %f: RGB %f,%f,%f, HSV %f,%f,%f"  % 
+        logger.info("region %f: RGB %f,%f,%f, HSV %f,%f,%f"  % 
               (t,
                np.mean(overall_results['r_vals'][t]),
                np.mean(overall_results['g_vals'][t]),

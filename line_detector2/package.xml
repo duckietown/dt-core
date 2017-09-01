@@ -6,6 +6,7 @@
 A re-implementation of the line detector node.
  </description>
 
+ <author email="acensi@idsc.mavt.ethz.ch">Andrea Censi</author>
   <maintainer email="acensi@idsc.mavt.ethz.ch">Andrea Censi</maintainer>
 
   <license>GPLv3</license>

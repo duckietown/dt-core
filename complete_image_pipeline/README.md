@@ -9,8 +9,7 @@ This runs the entire pipeline:
 
     $ rosrun complete_image_pipeline single_image_pipeline --image ![image] --line_detector ![detector] --image_pre ![image_prep]
 
-
-`![image]` can be a filename or a URL.
+where `![image]` can be a filename or a URL.
 
 For example, this:
 
