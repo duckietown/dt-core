@@ -1,33 +1,19 @@
 
 from contextlib import contextmanager
-import re
 
+from duckietown_utils.bag_info import which_robot
 from duckietown_utils.bag_reading import d8n_bag_read_with_progress
+from duckietown_utils.exception_utils import raise_wrapped
 from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
 from duckietown_utils.image_rescaling import d8_image_zoom_linear
+from duckietown_utils.image_timestamps import add_duckietown_header
+from duckietown_utils.jpg import image_cv_from_jpg
 from duckietown_utils.system_cmd_imp import contract
 from easy_algo.algo_db import get_easy_algo_db
 from easy_regression.processor_interface import ProcessorInterface
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
-from duckietown_utils.jpg import image_cv_from_jpg
-from duckietown_utils.exception_utils import raise_wrapped
-from duckietown_utils.image_timestamps import add_duckietown_header
 
-
-def which_robot(bag):
-    pattern  = r'/(\w+)/camera_node/image/compressed'
-    
-    topics = list(bag.get_type_and_topic_info()[1].keys())
-
-    for topic in topics:
-        m = re.match(pattern, topic)
-        if m:
-            vehicle = m.group(1)
-            return vehicle
-    msg = 'Could not find a topic matching %s' % pattern
-    raise ValueError(msg)
- 
 
 class LineDetectorProcessor(ProcessorInterface):
     
@@ -76,14 +62,11 @@ class LineDetectorProcessor(ProcessorInterface):
 
 class FakeContext():
     def __init__(self):
-        pass 
-#         self.sp = getattr(node.subscribers, subscription.name)
+        pass  
 
     @contextmanager
     def phase(self, name):  # @UnusedVariable
             yield
 
     def get_stats(self):
-        pass
-#         return self.sp.pts.get_stats()
-    
+        pass 
