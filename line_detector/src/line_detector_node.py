@@ -15,7 +15,7 @@ import rospy
 import threading
 import time
 from line_detector.line_detector_plot import color_segment, drawLines
-
+import numpy as np
 
 
 class LineDetectorNode(object):
