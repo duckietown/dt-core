@@ -1,5 +1,7 @@
 # rectified image containing a checkerboard
+#LP I'm confused by this since the callback seems to read an image
 sensor_msgs/Image image
 ---
 # 3x3 homography
+#I'm confused by this since the output is written to file why do we need this here LP
 float32[] homography
