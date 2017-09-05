@@ -154,8 +154,8 @@ def transform(p, mapx, mapy):
     H, W = mapx.shape
     assert 0 <= p.x <= 1
     assert 0 <= p.y <= 1
-    u = np.round(p.x * W)
-    v = np.round(p.y * H)
+    u = int(np.round(p.x * W))
+    v = int(np.round(p.y * H))
     # get new points
     p.x = mapx[v,u] / W
     p.y = mapy[v,u] / H
