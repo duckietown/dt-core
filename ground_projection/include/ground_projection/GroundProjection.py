@@ -163,7 +163,6 @@ class GroundProjection():
         cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
 
-<<<<<<< HEAD
     def load_target_info(self, filename=''):
         '''Load information about calibration checkerboard'''
         if not os.path.isfile(filename):
@@ -178,6 +177,3 @@ class GroundProjection():
             'size': (target_data['board_w'], target_data['board_h']),
           }
         return target_info
-	
-=======
->>>>>>> 5411ca70180ad5a95b0e5387603ba60483db0660
