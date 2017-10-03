@@ -42,18 +42,18 @@ class GroundProjection():
         self.ci_ = self.load_camera_info(intrinsics_filename)
         self.pcm_ = PinholeCameraModel()
         self.pcm_.fromCameraInfo(self.ci)
+		self.board = self.load_target_info()        
 
-        
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = ci.width
         ch = ci.height
         pixel.u = cw*vec.x
         pixel.v = ch*vec.y
-        if (pixel.u < 0) pixel.u =0
-        if (pixel.u > cw -1) pixel.u = cw-1
-        if (pixel.v < 0) pixel.v = 0
-        if (pixel.v > ch - 1) pixel.v = 0
+        if (pixel.u < 0): pixel.u =0
+        if (pixel.u > cw -1): pixel.u = cw-1
+        if (pixel.v < 0): pixel.v = 0
+        if (pixel.v > ch - 1): pixel.v = 0
         return pixel
 
     def pixel2vector(self,pixel):
@@ -103,15 +103,16 @@ class GroundProjection():
             
             
     def rectify(self,cv_image_raw):
-        cv_image_rectified = cvMat()
+        # Change cvMat()
+		cv_image_rectified = cvMat()
         self.pcm.rectifyImage(cv_image_raw, cv_image_rectified)
         return cv_image_rectified
 
-    def estimate_homography(self,cv_image, board_size, offset):
+    def estimate_homography(self,cv_image, board, offset):
         cv_image_rectified = self.rectify(cv_image)
         logger.info("image rectified")
         
-        corners = cv2.findChessboardCorners(cv_image, board_size)
+        corners = cv2.findChessboardCorners(cv_image, (board['w'], board['h'])
         if corners is None:
             logger.error("No corners found in image")
         criteria = (cv2.CV_TERMCRIT_EPS + cv2.CV_TERMCRIT_ITER,30,0.1)
@@ -147,4 +148,19 @@ class GroundProjection():
         cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
 
-    def estimate_homography(self, 
+	def load_target_info(self, filename=''):
+		'''Load information about calibration checkerboard'''
+		if not isfile(filename):
+			filename = get_ros_package_path('duckietown') +
+                                   "/config/baseline/calibration/camera_extrinsic/default.yaml"
+		target_data = yaml_load_file(filename)
+		target_info = {
+			'w': target_data['board_w'],
+			'h': target_data['board_h'],
+			'square_size': target_data['square_size'],
+			'x_offset': target_data['x_offset'],
+			'y_offset': target_data['y_offset'],
+			'size': (target_data['board_w', 'board_h'),
+		}
+		return target_info
+	
