@@ -55,20 +55,20 @@ class GroundProjection():
 
     def vector2pixel(self, vec):
         pixel = Pixel()
-        cw = ci.width
-        ch = ci.height
+        cw = self.ci_.width
+        ch = self.ci_.height
         pixel.u = cw*vec.x
         pixel.v = ch*vec.y
-        if (pixel.u < 0): pixel.u =0
-        if (pixel.u > cw -1): pixel.u = cw-1
+        if (pixel.u < 0): pixel.u = 0
+        if (pixel.u > cw -1): pixel.u = cw - 1
         if (pixel.v < 0): pixel.v = 0
         if (pixel.v > ch - 1): pixel.v = 0
         return pixel
 
     def pixel2vector(self,pixel):
         vec = Vector2D()
-        vec.x = pixel.u/ci.width
-        vec.y = pixel.v/ci.height
+        vec.x = pixel.u / self.ci_.width
+        vec.y = pixel.v / self.ci_.height
         return vec
 
     def vector2ground(self, vec):
@@ -160,7 +160,7 @@ class GroundProjection():
     def load_target_info(self, filename=''):
         '''Load information about calibration checkerboard'''
         if not os.path.isfile(filename):
-            filename = get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/default.yaml"
+            filename = get_ros_package_path('duckietown') + '/config/baseline/ground_projection/ground_projection/default.yaml' 
         target_data = yaml_load_file(filename)
         target_info = {
             'width': target_data['board_w'],
