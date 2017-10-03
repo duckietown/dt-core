@@ -1,4 +1,4 @@
-from duckietown_msgs import (Pixel, Vector2D)
+from duckietown_msgs.msg import (Pixel, Vector2D)
 from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
@@ -150,7 +150,7 @@ class GroundProjection():
 
 	def load_target_info(self, filename=''):
 		'''Load information about calibration checkerboard'''
-		if not isfile(filename):
+		if not os.path.isfile(filename):
 			filename = get_ros_package_path('duckietown') +
                                    "/config/baseline/calibration/camera_extrinsic/default.yaml"
 		target_data = yaml_load_file(filename)
