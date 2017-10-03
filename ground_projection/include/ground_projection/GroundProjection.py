@@ -154,8 +154,7 @@ class GroundProjection():
         cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
         cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
         cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.distortion_model:w
- = calib_data['distortion_model']
+        cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
 
     def load_target_info(self, filename=''):
