@@ -65,7 +65,7 @@ class GroundProjection():
         if (pixel.v > ch - 1): pixel.v = 0
         return pixel
 
-    def pixel2vector(self,pixel):
+    def pixel2vector(self, pixel):
         vec = Vector2D()
         vec.x = pixel.u / self.ci_.width
         vec.y = pixel.v / self.ci_.height
@@ -75,15 +75,15 @@ class GroundProjection():
         pixel = self.vector2pixel(vec)
         return self.pixel2ground(pixel)
 
-    def ground2vector(self,point):
+    def ground2vector(self, point):
         pixel = self.ground2image(point)
         return self.pixel2vector(pixel)
 
     def pixel2ground(self,pixel):
-        uv_raw = np.array([pixel.u,pixel.v])
+        uv_raw = np.array([pixel.u, pixel.v])
         if not self.rectified_input:
             uv_raw = self.pcm.rectifyPoint(uv_raw)
-        uv_raw = [uv_raw,1]
+        uv_raw = [uv_raw, 1]
         ground_point = self.H * uv_raw
         point = Point()
         x = ground_point[0]
@@ -94,9 +94,9 @@ class GroundProjection():
         point.z = 0.0
         return point
 
-    def ground2pixel(self,point):
+    def ground2pixel(self, point):
         #TODO check whether z=0 or z=1.
-        ground_point = np.array([point.x,point.y,1.0])
+        ground_point = np.array([point.x, point.y, 1.0])
         image_point = self.Hinv * ground_point
         image_point /= image_point[2]
 
@@ -109,13 +109,19 @@ class GroundProjection():
             pixel.u = image_point[0]
             pixel.v = image_point[1]
 
-            
-            
-    def rectify(self,cv_image_raw):
+    def _rectify(self, cv_image_raw):
         # Change cvMat()
-        cv_image_rectified = cvMat()
-        self.pcm.rectifyImage(cv_image_raw, cv_image_rectified)
+        #cv_image_rectified = cvMat()
+        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+        self.pcm_.rectifyImage(cv_image_raw, cv_image_rectified)
         return cv_image_rectified
+
+    def rectify(self, cv_image_raw):
+        '''Undistort image'''
+        mapx = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
+        mapy = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
+        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm_.K, self.ci_.D, self.pcm_.R, self.pcm_.P, (self.pcm_.width, self.pcm_.height), cv2.CV_32FC1, mapx, mapy)
+        return cv2.remap(cv_image_raw, mapx, mapy, cv2.INTER_CUBIC)
 
     def estimate_homography(self,cv_image, board, offset):
         cv_image_rectified = self.rectify(cv_image)
@@ -134,8 +140,8 @@ class GroundProjection():
                 src_pts[r,c] = np.float32([r*square_size,c*square_size]) + offset
 
         self.H, mask = cv2.findHomography(src_pts, corners, method=cv2.CV_RANSAC)
-        write_homography(self.extrinsic_filename)
-    
+        write_homography(self.extrinsics_filename)
+  
     def load_homography(self, filename):
         data = yaml_load_file(filename)
         return np.array(data['homography']).reshape((3,3))
