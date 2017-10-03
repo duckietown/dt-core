@@ -117,7 +117,12 @@ class GroundProjection():
         return cv_image_rectified
 
     def rectify(self, cv_image_raw):
-        '''Undistort image'''
+        """
+        :param cv_image_raw:        input image
+        :type cv_image_raw:         np.array
+
+        Undistorts a given image using camera calibration parameters
+        """
         mapx = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
         mapy = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm_.K, self.ci_.D, self.pcm_.R, self.pcm_.P, (self.pcm_.width, self.pcm_.height), cv2.CV_32FC1, mapx, mapy)
@@ -135,9 +140,9 @@ class GroundProjection():
 
         #TODO flip checks
 
-        for r in range(board_h):
-            for c in range(board_w):
-                src_pts[r,c] = np.float32([r*square_size,c*square_size]) + offset
+        for rows in range(board.height):
+            for cols in range(board.width):
+                src_pts[rows, cols] = np.float32([r*square_size,c*square_size]) + offset
 
         self.H, mask = cv2.findHomography(src_pts, corners, method=cv2.CV_RANSAC)
         write_homography(self.extrinsics_filename)
