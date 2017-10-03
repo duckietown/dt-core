@@ -147,4 +147,3 @@ class GroundProjection():
         cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
 
-    def estimate_homography(self, 
