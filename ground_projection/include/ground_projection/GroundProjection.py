@@ -1,9 +1,17 @@
+import cv2
+import numpy as np
+
+
+
 from duckietown_msgs.msg import (Pixel, Vector2D)
 from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
 import os.path
 from duckietown_utils import logger
+
+import rospy
+from sensor_msgs.msg import CameraInfo
 from geometry_msgs.msg import Point
 
 
@@ -14,11 +22,11 @@ class GroundProjection():
         self.robot_name = "shamrock"
         self.rectified_input = False
         
-        # read calibrations
+        # read extrinsic calibration
         self.extrinsics_filename = (get_ros_package_path('duckietown') +
                                "/config/baseline/calibration/camera_extrinsic/" +
                                self.robot_name + ".yaml")
-        if not os.path.isfile(extrinsics_filename):
+        if not os.path.isfile(self.extrinsics_filename):
             logger.warn("no robot specific extrinsic calibration, trying default")
             alternate_extrinsics_filename = (get_ros_package_path('duckietown') +
                                    "/config/baseline/calibration/camera_extrinsic/default.yaml")
@@ -30,18 +38,19 @@ class GroundProjection():
             self.H = self.load_homography(self.extrinsics_filename)
         self.H_inv = np.linalg.inv(self.H)
         
-        intrinsics_filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsics/" + self.robot_name + ".yaml")
-        if not os.path.isfile(intrinsics_filename):
+        # read intrinsic calibration
+        self.intrinsics_filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/" + self.robot_name + ".yaml")
+        if not os.path.isfile(self.intrinsics_filename):
             logger.warn("no robot specific  calibration, trying default")
-            intrinsics_filename = (get_ros_package_path('duckietown') +
-                                   "/config/baseline/calibration/camera_extrinsic/default.yaml")
-            if not os.path.isfile(extrinsics_filename):
+            self.intrinsics_filename = (get_ros_package_path('duckietown') +
+                                   "/config/baseline/calibration/camera_intrinsic/default.yaml")
+            if not os.path.isfile(self.extrinsics_filename):
                 logger.error("can't find default either, something's wrong")
 
                 
-        self.ci_ = self.load_camera_info(intrinsics_filename)
+        self.ci_ = self.load_camera_info(self.intrinsics_filename)
         self.pcm_ = PinholeCameraModel()
-        self.pcm_.fromCameraInfo(self.ci)
+        self.pcm_.fromCameraInfo(self.ci_)
         self.board = self.load_target_info()        
 
     def vector2pixel(self, vec):
@@ -112,7 +121,7 @@ class GroundProjection():
         cv_image_rectified = self.rectify(cv_image)
         logger.info("image rectified")
         
-        corners = cv2.findChessboardCorners(cv_image, (board['w'], board['h']))
+        corners = cv2.findChessboardCorners(cv_image, (board.width, board.height))
         if corners is None:
             logger.error("No corners found in image")
         criteria = (cv2.CV_TERMCRIT_EPS + cv2.CV_TERMCRIT_ITER,30,0.1)
@@ -145,7 +154,8 @@ class GroundProjection():
         cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
         cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
         cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.distortion_model = calib_data['distortion_model']
+        cam_info.distortion_model:w
+ = calib_data['distortion_model']
         return cam_info
 
     def load_target_info(self, filename=''):
@@ -154,8 +164,8 @@ class GroundProjection():
             filename = get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/default.yaml"
         target_data = yaml_load_file(filename)
         target_info = {
-            'w': target_data['board_w'],
-            'h': target_data['board_h'],
+            'width': target_data['board_w'],
+            'height': target_data['board_h'],
             'square_size': target_data['square_size'],
             'x_offset': target_data['x_offset'],
             'y_offset': target_data['y_offset'],
