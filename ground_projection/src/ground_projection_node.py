@@ -2,6 +2,7 @@
 
 import rospy
 import cv2
+from ground_projection.srv import EstimateHomography, GetGroundCoord, GetImageCoord
 from duckietown_msgs.msg import (Pixel, Vector2D, Segment, SegmentList)
 from sensor_msgs.msg import (Image, CameraInfo)
 from cv_bridge import CvBridge
@@ -17,10 +18,20 @@ class GroundProjectionNode(object):
         self.active = True
         self.bridge=CvBridge()
 
-        # Params 
+        robot_name = rospy.get_param("veh","shamrock")
+        
+        camera_info_topic = "/"+robot_name+"/camera_node/camera_info"
+        rospy.loginfo("camera info topic is " + camera_info_topic)
+        rospy.loginfo("waiting for camera info")
+        camera_info = rospy.wait_for_message(camera_info_topic,CameraInfo)
+        rospy.loginfo("camera info received")
 
-        gp.robot_name = rospy.get_param("robot_name","shamrock")
-        gp.rectified_input_ = rospy.get_param("rectified_input", False)
+        self.gp.initialize_pinhole_camera_model(camera_info)
+        # Params 
+        
+        
+        self.gp.robot_name = rospy.get_param("robot_name","shamrock")
+        self.gp.rectified_input_ = rospy.get_param("rectified_input", False)
         self.image_channel_name = "image_raw"
         
         # Subs and Pubs
@@ -30,8 +41,8 @@ class GroundProjectionNode(object):
         
         # TODO prepare services
         self.service_homog_ = rospy.Service("estimate_homography", EstimateHomography, self.estimate_homography_cb)
-        self.service_gnd_coord_ = rospy.Service("get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cv)
-        self.service_img_coord_ = rospy.Service("get_image_coordinate", GetImageCoord, self.get_image_coordinate_cv)
+        self.service_gnd_coord_ = rospy.Service("get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb)
+        self.service_img_coord_ = rospy.Service("get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
 
         
     def rectifyImage(self,img_msg):

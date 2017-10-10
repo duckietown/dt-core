@@ -25,16 +25,16 @@ class GroundProjection():
         self.H = self.load_homography()
         self.Hinv = np.linalg.inv(self.H)
 
-        # Load intrinsic parameters
-        self.ci_ = self.load_camera_info()
         self.pcm_ = PinholeCameraModel()
-        self.pcm_.fromCameraInfo(self.ci_)
-        # Manually correct the distortion coefficients
-        self.pcm_.D = self.ci_.D
 
         # Load checkerboard information
         self.board_ = self.load_board_info()
 
+    # wait until we have recieved the camera info message through ROS and then initialize
+    def initialize_pinhole_camera_model(self,camera_info):
+        self.pcm_.fromCameraInfo(camera_info)
+        print("pinhole camera model initialized")
+        
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = self.ci_.width
@@ -152,7 +152,7 @@ class GroundProjection():
 
     def load_camera_info(self):
         '''Load camera intrinsics'''
-        filename = os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
+        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
             filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
