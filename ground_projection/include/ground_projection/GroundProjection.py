@@ -10,9 +10,11 @@ from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
 import os.path
+import os
 from duckietown_utils import logger
 
 class GroundProjection():
+    
     def __init__(self, robot_name="shamrock"):
 
         # defaults overwritten by param
@@ -131,10 +133,10 @@ class GroundProjection():
 
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''
-        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/" + self.robot_name + ".yaml")
+        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/default.yaml")
+            filename = (os.environ['DUCKIEFLEET_ROOT'] + "calibrations/camera_extrinsic/default.yaml")
             if not os.path.isfile(filename):
                 logger.error("can't find default either, something's wrong")
             else:
@@ -150,10 +152,10 @@ class GroundProjection():
 
     def load_camera_info(self):
         '''Load camera intrinsics'''
-        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/" + self.robot_name + ".yaml")
+        filename = os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/default.yaml")
+            filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
             if not os.path.isfile(filename):
                 logger.error("can't find default either, something's wrong")
         calib_data = yaml_load_file(filename)
