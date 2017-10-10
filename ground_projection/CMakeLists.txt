@@ -13,7 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   image_geometry
-)
+  )
+
+catkin_python_setup()
+
 if ("$ENV{ROS_DISTRO}" STREQUAL "indigo")
   find_package(OpenCV 2.4.8 REQUIRED)
 elseif ("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
@@ -76,6 +79,9 @@ include_directories(
 )
 
 
+
+
+## Once Python version works let's get rid of this C++ stuff
 
 ## Declare a C++ executable
 add_executable(ground_projection
