@@ -26,7 +26,7 @@ class GroundProjectionNode(object):
         
         # Subs and Pubs
         self.pub_lineseglist_ = rospy.Publisher("lineseglist_out",SegmentList, queue_size=1)
-        self.sub_lineseglist) = rospy.Subscriber("lineseglist_in",SegmentList, self.lineseglist_cb)
+        self.sub_lineseglist_ = rospy.Subscriber("lineseglist_in",SegmentList, self.lineseglist_cb)
         
         
         # TODO prepare services
