@@ -2,12 +2,11 @@
 
 import rospy
 import cv2
-from duckietown_msgs import (Pixel, Vector2D, Segment, SegmentList)
-from ground_projection import (EstimateHomography, GetGroundCoord, GetImageCoord)
-from sensors_msgs import (Image, CameraInfo, image_encodings)
+from duckietown_msgs.msg import (Pixel, Vector2D, Segment, SegmentList)
+from sensor_msgs.msg import (Image, CameraInfo)
 from cv_bridge import CvBridge
 import numpy as np
-from ground_projection.GroundProjection import *
+from ground_projection.GroundProjection import GroundProjection
 
 
 class GroundProjectionNode(object):
