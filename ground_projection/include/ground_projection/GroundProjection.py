@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 
-
+import rospy
+from sensor_msgs.msg import CameraInfo
+from geometry_msgs.msg import Point
 
 from duckietown_msgs.msg import (Pixel, Vector2D)
 from image_geometry import PinholeCameraModel
@@ -10,55 +12,33 @@ from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
 import os.path
 from duckietown_utils import logger
 
-import rospy
-from sensor_msgs.msg import CameraInfo
-from geometry_msgs.msg import Point
-
-
 class GroundProjection():
-    def __init__(self):
+    def __init__(self, robot_name="shamrock"):
 
         # defaults overwritten by param
-        self.robot_name = "shamrock"
+        self.robot_name = robot_name
         self.rectified_input = False
-        
-        # read extrinsic calibration
-        self.extrinsics_filename = (get_ros_package_path('duckietown') +
-                               "/config/baseline/calibration/camera_extrinsic/" +
-                               self.robot_name + ".yaml")
-        if not os.path.isfile(self.extrinsics_filename):
-            logger.warn("no robot specific extrinsic calibration, trying default")
-            alternate_extrinsics_filename = (get_ros_package_path('duckietown') +
-                                   "/config/baseline/calibration/camera_extrinsic/default.yaml")
-            if not os.path.isfile(alternate_extrinsics_filename):
-                logger.warn("can't find default either, something's wrong")
-            else:
-                self.H = self.load_homography(alternate_extrinsics_filename)
-        else:
-            self.H = self.load_homography(self.extrinsics_filename)
-        self.H_inv = np.linalg.inv(self.H)
-        
-        # read intrinsic calibration
-        self.intrinsics_filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/" + self.robot_name + ".yaml")
-        if not os.path.isfile(self.intrinsics_filename):
-            logger.warn("no robot specific  calibration, trying default")
-            self.intrinsics_filename = (get_ros_package_path('duckietown') +
-                                   "/config/baseline/calibration/camera_intrinsic/default.yaml")
-            if not os.path.isfile(self.extrinsics_filename):
-                logger.error("can't find default either, something's wrong")
 
-                
-        self.ci_ = self.load_camera_info(self.intrinsics_filename)
+        # Load homography
+        self.H = self.load_homography()
+        self.Hinv = np.linalg.inv(self.H)
+
+        # Load intrinsic parameters
+        self.ci_ = self.load_camera_info()
         self.pcm_ = PinholeCameraModel()
         self.pcm_.fromCameraInfo(self.ci_)
-        self.board = self.load_target_info()        
+        # Manually correct the distortion coefficients
+        self.pcm_.D = self.ci_.D
+
+        # Load checkerboard information
+        self.board_ = self.load_board_info()
 
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = self.ci_.width
         ch = self.ci_.height
-        pixel.u = cw*vec.x
-        pixel.v = ch*vec.y
+        pixel.u = cw * vec.x
+        pixel.v = ch * vec.y
         if (pixel.u < 0): pixel.u = 0
         if (pixel.u > cw -1): pixel.u = cw - 1
         if (pixel.v < 0): pixel.v = 0
@@ -76,15 +56,16 @@ class GroundProjection():
         return self.pixel2ground(pixel)
 
     def ground2vector(self, point):
-        pixel = self.ground2image(point)
+        pixel = self.ground2pixel(point)
         return self.pixel2vector(pixel)
 
     def pixel2ground(self,pixel):
         uv_raw = np.array([pixel.u, pixel.v])
         if not self.rectified_input:
-            uv_raw = self.pcm.rectifyPoint(uv_raw)
-        uv_raw = [uv_raw, 1]
-        ground_point = self.H * uv_raw
+            uv_raw = self.pcm_.rectifyPoint(uv_raw)
+        #uv_raw = [uv_raw, 1]
+        uv_raw = np.append(uv_raw, np.array([1]))
+        ground_point = np.dot(self.H, uv_raw)
         point = Point()
         x = ground_point[0]
         y = ground_point[1]
@@ -95,62 +76,128 @@ class GroundProjection():
         return point
 
     def ground2pixel(self, point):
-        #TODO check whether z=0 or z=1.
+        # TODO check whether z=0 or z=1.
+        # I think z==1 (jmichaux)
         ground_point = np.array([point.x, point.y, 1.0])
         image_point = self.Hinv * ground_point
-        image_point /= image_point[2]
+        image_point = np.abs(image_point / image_point[2])
 
         pixel = Pixel()
         if not self.rectified_input:
-            distorted_pixel = self.pcm.project3dToPixel(image_point)
+            distorted_pixel = self.pcm_.project3dToPixel(image_point)
             pixel.u = distorted_pixel[0]
             pixel.v = distorted_pixel[1]
         else:
             pixel.u = image_point[0]
             pixel.v = image_point[1]
 
-    def _rectify(self, cv_image_raw):
-        # Change cvMat()
-        #cv_image_rectified = cvMat()
-        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
-        self.pcm_.rectifyImage(cv_image_raw, cv_image_rectified)
-        return cv_image_rectified
-
     def rectify(self, cv_image_raw):
         '''Undistort image'''
-        mapx = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
-        mapy = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32') 
-        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm_.K, self.ci_.D, self.pcm_.R, self.pcm_.P, (self.pcm_.width, self.pcm_.height), cv2.CV_32FC1, mapx, mapy)
-        return cv2.remap(cv_image_raw, mapx, mapy, cv2.INTER_CUBIC)
+        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+        mapx = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32')
+        mapy = np.ndarray(shape=(self.pcm_.height, self.pcm_.width, 1), dtype='float32')
+        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm_.K, self.pcm_.D, self.pcm_.R, self.pcm_.P, (self.pcm_.width, self.pcm_.height), cv2.CV_32FC1, mapx, mapy)
+        return cv2.remap(cv_image_raw, mapx, mapy, cv2.INTER_CUBIC, cv_image_rectified)
 
-    def estimate_homography(self,cv_image, board, offset):
+    def estimate_homography(self,cv_image):
+        '''Estimate ground projection using instrinsic camera calibration parameters'''
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         cv_image_rectified = self.rectify(cv_image)
         logger.info("image rectified")
-        
-        corners = cv2.findChessboardCorners(cv_image, (board.width, board.height))
-        if corners is None:
+
+        ret, corners = cv2.findChessboardCorners(cv_image_rectified, (self.board_['width'], self.board_['height']))
+        if ret == False:
             logger.error("No corners found in image")
-        criteria = (cv2.CV_TERMCRIT_EPS + cv2.CV_TERMCRIT_ITER,30,0.1)
-        cv2.cornerSubPix(cv_image,corners,cv2.Size(11,11),cv2.Size(-1,-1),criteria)
+            exit(1)
+        if len(corners) != self.board_['width'] * self.board_['height']:
+            logger.error("Not all corners found in image")
+            exit(2)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
+        corners2 = cv2.cornerSubPix(cv_image_rectified, corners, (11,11), (-1,-1), criteria)
 
         #TODO flip checks
+        src_pts = []
+        for r in range(self.board_['height']):
+        	for c in range(self.board_['width']):
+        		src_pts.append(np.array([r * self.board_['square_size'] , c * self.board_['square_size']] , dtype='float32') + self.board_['offset'])
+        # OpenCV labels corners left-to-right, top-to-bottom
+        # so we reverse the groud points
+        src_pts.reverse()
 
-        for r in range(board_h):
-            for c in range(board_w):
-                src_pts[r,c] = np.float32([r*square_size,c*square_size]) + offset
+        # Compute homography from image to ground
+        self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
+        self.write_homography(self.extrinsics_filename + "_test")
+        logger.info("Wrote ground projection to {}".format(self.extrinsics_filename + "_test"))
 
-        self.H, mask = cv2.findHomography(src_pts, corners, method=cv2.CV_RANSAC)
-        write_homography(self.extrinsics_filename)
-  
-    def load_homography(self, filename):
-        data = yaml_load_file(filename)
+    def load_homography(self):
+        '''Load homography (extrinsic parameters)'''
+        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/" + self.robot_name + ".yaml")
+        if not os.path.isfile(filename):
+            logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
+            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_extrinsic/default.yaml")
+            if not os.path.isfile(filename):
+                logger.error("can't find default either, something's wrong")
+            else:
+                data = yaml_load_file(filename)
+        else:
+            data = yaml_load_file(filename)
+        logger.info("Loaded homography for {}".format(os.path.basename(filename)))
         return np.array(data['homography']).reshape((3,3))
 
     def write_homography(self, filename):
-        ob = {'Homography':self.H.resize(9,1)}
+        ob = {'Homography': self.H.reshape(9,1)}
         yaml_write_to_file(ob,filename)
-        
-    def load_camera_info(self, filename):
+
+    def load_camera_info(self):
+        '''Load camera intrinsics'''
+        filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/" + self.robot_name + ".yaml")
+        if not os.path.isfile(filename):
+            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
+            filename = (get_ros_package_path('duckietown') + "/config/baseline/calibration/camera_intrinsic/default.yaml")
+            if not os.path.isfile(filename):
+                logger.error("can't find default either, something's wrong")
+        calib_data = yaml_load_file(filename)
+        #     logger.info(yaml_dump(calib_data))
+        cam_info = CameraInfo()
+        cam_info.width = calib_data['image_width']
+        cam_info.height = calib_data['image_height']
+        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
+        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
+        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
+        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
+        cam_info.distortion_model = calib_data['distortion_model']
+        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
+        return cam_info
+
+
+    def load_board_info(self, filename=''):
+        '''Load calibration checkerboard info'''
+        if not os.path.isfile(filename):
+            filename = get_ros_package_path('duckietown') + '/config/baseline/ground_projection/ground_projection/default.yaml'
+        target_data = yaml_load_file(filename)
+        target_info = {
+            'width': target_data['board_w'],
+            'height': target_data['board_h'],
+            'square_size': target_data['square_size'],
+            'x_offset': target_data['x_offset'],
+            'y_offset': target_data['y_offset'],
+            'offset': np.array([target_data['x_offset'], -target_data['y_offset']]),
+            'size': (target_data['board_w'], target_data['board_h']),
+          }
+        logger.info("Loaded checkerboard parameters")
+        return target_info
+
+#######################################################
+
+#                   OLD STUFF                         #
+
+#######################################################
+
+    def _load_homography(self, filename):
+        data = yaml_load_file(filename)
+        return np.array(data['homography']).reshape((3,3))
+
+    def _load_camera_info(self, filename):
         calib_data = yaml_load_file(filename)
         #     logger.info(yaml_dump(calib_data))
         cam_info = CameraInfo()
@@ -163,17 +210,10 @@ class GroundProjection():
         cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
 
-    def load_target_info(self, filename=''):
-        '''Load information about calibration checkerboard'''
-        if not os.path.isfile(filename):
-            filename = get_ros_package_path('duckietown') + '/config/baseline/ground_projection/ground_projection/default.yaml' 
-        target_data = yaml_load_file(filename)
-        target_info = {
-            'width': target_data['board_w'],
-            'height': target_data['board_h'],
-            'square_size': target_data['square_size'],
-            'x_offset': target_data['x_offset'],
-            'y_offset': target_data['y_offset'],
-            'size': (target_data['board_w'], target_data['board_h']),
-          }
-        return target_info
+    def _rectify(self, cv_image_raw):
+        '''old'''
+        #cv_image_rectified = cvMat()
+        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+        # TODO: debug PinholeCameraModel()
+        self.pcm_.rectifyImage(cv_image_raw, cv_image_rectified)
+        return cv_image_rectified
