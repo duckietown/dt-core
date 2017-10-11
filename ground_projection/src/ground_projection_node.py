@@ -58,7 +58,7 @@ class GroundProjectionNode(object):
             new_segment = Segment()
             new_segment.points[0] = self.gp.pixel2ground(received_segment.pixels_normalized[0])
             new_segment.points[1] = self.gp.pixel2ground(received_segment.pixels_normalized[1])
-            seglist_out.segments.push(new_segment)
+            seglist_out.segments.append(new_segment)
         pub_lineseglist.publish(seglist_out)
 
     def get_ground_coordinate_cb(self,req):
