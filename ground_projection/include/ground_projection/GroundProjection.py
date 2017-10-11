@@ -10,8 +10,7 @@ from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
 import os.path
-import os
-from duckietown_utils import logger
+from duckietown_utils import (logger, get_duckiefleet_root)
 
 class GroundProjection():
     
@@ -128,15 +127,16 @@ class GroundProjection():
 
         # Compute homography from image to ground
         self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
-        self.write_homography(self.extrinsics_filename + "_test")
-        logger.info("Wrote ground projection to {}".format(self.extrinsics_filename + "_test"))
+        extrinsics_filename = get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml"
+        self.write_homography(extrinsics_filename)
+        logger.info("Wrote ground projection to {}".format(extrinsics_filename))
 
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''
-        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
+        filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (os.environ['DUCKIEFLEET_ROOT'] + "calibrations/camera_extrinsic/default.yaml")
+            filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/default.yaml")
             if not os.path.isfile(filename):
                 logger.error("can't find default either, something's wrong")
             else:
@@ -147,7 +147,8 @@ class GroundProjection():
         return np.array(data['homography']).reshape((3,3))
 
     def write_homography(self, filename):
-        ob = {'Homography': self.H.reshape(9,1)}
+        ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
+        print ob
         yaml_write_to_file(ob,filename)
 
     def load_camera_info(self):
