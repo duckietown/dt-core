@@ -35,8 +35,8 @@ class GroundProjectionNode(object):
         self.image_channel_name = "image_raw"
         
         # Subs and Pubs
-        self.pub_lineseglist_ = rospy.Publisher("lineseglist_out",SegmentList, queue_size=1)
-        self.sub_lineseglist_ = rospy.Subscriber("lineseglist_in",SegmentList, self.lineseglist_cb)
+        self.pub_lineseglist_ = rospy.Publisher("~lineseglist_out",SegmentList, queue_size=1)
+        self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in",SegmentList, self.lineseglist_cb)
         
         
         # TODO prepare services
@@ -56,16 +56,16 @@ class GroundProjectionNode(object):
         seglist_out = SegmentList()
         for received_segment in seglist_msg:
             new_segment = Segment()
-            new_segment.points[0] = gp.pixel2ground(received_segment.pixels_normalized[0])
-            new_segment.points[1] = gp.pixel2ground(received_segment.pixels_normalized[1])
+            new_segment.points[0] = self.gp.pixel2ground(received_segment.pixels_normalized[0])
+            new_segment.points[1] = self.gp.pixel2ground(received_segment.pixels_normalized[1])
             seglist_out.segments.push(new_segment)
         pub_lineseglist.publish(seglist_out)
 
     def get_ground_coordinate_cb(self,req):
-        return GetGroundCoordResponse(gp.pixel2ground(req.normalized_uv))
+        return GetGroundCoordResponse(self.gp.pixel2ground(req.normalized_uv))
 
     def get_image_coordinate_cb(self,req):
-        return GetImageCoordResponse(gp.ground2pixel(req.gp))
+        return GetImageCoordResponse(self.gp.ground2pixel(req.gp))
 
     def estimate_homography_cb(self,req):
         rospy.loginfo("Estimating homography")      
