@@ -31,6 +31,7 @@ class GroundProjection():
 
     # wait until we have recieved the camera info message through ROS and then initialize
     def initialize_pinhole_camera_model(self,camera_info):
+        self.ci_=camera_info
         self.pcm_.fromCameraInfo(camera_info)
         print("pinhole camera model initialized")
         
