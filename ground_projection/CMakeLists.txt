@@ -73,28 +73,27 @@ catkin_package(
 )
 
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-)
-
-
-
-
 ## Once Python version works let's get rid of this C++ stuff
+## No longer building CPP node
+
+#include_directories(
+#  ${catkin_INCLUDE_DIRS}
+#  ${OpenCV_INCLUDE_DIRS}
+#)
+
 
 ## Declare a C++ executable
-add_executable(ground_projection
-  src/ground_projection.cpp
-)
+#add_executable(ground_projection
+#  src/ground_projection.cpp
+#)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(ground_projection ${ground_projection_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(ground_projection ${ground_projection_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(ground_projection
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
-  ${YAML_CPP_LIBRARIES}
-)
+#target_link_libraries(ground_projection
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBS}
+#  ${YAML_CPP_LIBRARIES}
+#)
