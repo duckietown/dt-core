@@ -151,26 +151,6 @@ class GroundProjection():
         print ob
         yaml_write_to_file(ob,filename)
 
-    def load_camera_info(self):
-        '''Load camera intrinsics'''
-        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
-        if not os.path.isfile(filename):
-            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
-            filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
-            if not os.path.isfile(filename):
-                logger.error("can't find default either, something's wrong")
-        calib_data = yaml_load_file(filename)
-        #     logger.info(yaml_dump(calib_data))
-        cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
-        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
-        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
-        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
-        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.distortion_model = calib_data['distortion_model']
-        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
-        return cam_info
 
 
     def load_board_info(self, filename=''):
@@ -195,6 +175,28 @@ class GroundProjection():
 #                   OLD STUFF                         #
 
 #######################################################
+
+    def load_camera_info(self):
+        '''Load camera intrinsics'''
+        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + self.robot_name + ".yaml")
+        if not os.path.isfile(filename):
+            logger.warn("no intrinsic calibration parameters for {}, trying default".format(self.robot_name))
+            filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
+            if not os.path.isfile(filename):
+                logger.error("can't find default either, something's wrong")
+        calib_data = yaml_load_file(filename)
+        #     logger.info(yaml_dump(calib_data))
+        cam_info = CameraInfo()
+        cam_info.width = calib_data['image_width']
+        cam_info.height = calib_data['image_height']
+        cam_info.K = np.array(calib_data['camera_matrix']['data']).reshape((3,3))
+        cam_info.D = np.array(calib_data['distortion_coefficients']['data']).reshape((1,5))
+        cam_info.R = np.array(calib_data['rectification_matrix']['data']).reshape((3,3))
+        cam_info.P = np.array(calib_data['projection_matrix']['data']).reshape((3,4))
+        cam_info.distortion_model = calib_data['distortion_model']
+        logger.info("Loaded camera calibration parameters for {} from {}".format(self.robot_name, os.path.basename(filename)))
+        return cam_info
+
 
     def _load_homography(self, filename):
         data = yaml_load_file(filename)
