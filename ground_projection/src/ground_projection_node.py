@@ -58,6 +58,8 @@ class GroundProjectionNode(object):
             new_segment = Segment()
             new_segment.points[0] = self.gp.vector2ground(received_segment.pixels_normalized[0])
             new_segment.points[1] = self.gp.vector2ground(received_segment.pixels_normalized[1])
+            new_segment.color = received_segment.color
+            # TODO what about normal and points
             seglist_out.segments.append(new_segment)
         self.pub_lineseglist_.publish(seglist_out)
 
