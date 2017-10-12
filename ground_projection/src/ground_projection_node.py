@@ -30,7 +30,7 @@ class GroundProjectionNode(object):
         # Params 
         
         
-        self.gp.robot_name = rospy.get_param("robot_name","shamrock")
+        self.gp.robot_name = self.robot_name
         self.gp.rectified_input_ = rospy.get_param("rectified_input", False)
         self.image_channel_name = "image_raw"
         
