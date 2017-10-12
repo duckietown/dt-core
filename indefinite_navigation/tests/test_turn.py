@@ -37,7 +37,6 @@ class IndefNavigationTurnNode(unittest.TestCase):
         self.pub_wheels = rospy.Publisher(wheels_cmd, Twist2DStamped, queue_size=1)
         self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane, queue_size=1)
         self.sub_done = rospy.Subscriber(done_topic, BoolStamped, self.cbDone, queue_size=1)
-        self.pubsubList = [self.publish_mode, self.pub_wheels, self.sub_lane, self.sub_done]
 
         rospy.wait_for_service(left_service)
         self.turn_left_serv = rospy.ServiceProxy(left_service, Empty)
@@ -100,6 +99,8 @@ class IndefNavigationTurnNode(unittest.TestCase):
             rospy.sleep(0.1)
         self.final = self.lane
         self.calculate()
+
+
     def calculate(self):
         init_d = 0.0
         init_phi = 0.0

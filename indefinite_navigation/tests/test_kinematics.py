@@ -1,51 +1,65 @@
 #!/usr/bin/env python
 import rospy, unittest, rostest
-from intersection_control.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 
 from duckietown_msgs.msg import LanePose, StopLineReading
-
-from std_msgs.msg import String #Imports msg
-from std_msgs.msg import Bool #Imports msg
 #from duckietown_msgs.msg import messages to command the wheels
 from duckietown_msgs.msg import Twist2DStamped
+import time
 
 class KinematicsTestNode(unittest.TestCase):
-    def __init__(self):
-        # Save the name of the node
-        self.node_name = rospy.get_name()
+    def __init__(self, *args):
+        super(KinematicsTestNode, self).__init__(*args)
+
+    def setup(self):
+
+        rospy.init_node('kinematics_test_node', anonymous=False)
+
         
-        rospy.loginfo("[%s] Initialzing." %(self.node_name))
-        veh_name= rospy.get_param("veh")['duckiebot_visualizer']['veh_name']
+        veh_name= rospy.get_param("~veh","")
         wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"
         stop_topic = "/" + veh_name + "/stop_line_filter_node/stop_line_reading"
 
+        rospy.loginfo("wheel topic = %s", wheel_topic)
+        rospy.loginfo("lane topic = %s", lane_topic)
+        rospy.loginfo("stop_topic = %s", stop_topic)
+        
         self.lane = None
         self.stop = None
+        self.lane_message_received=False
+        self.stop_message_received=False
+        
         self.forward_time = 4.8
 
         self.pub_wheels_cmd = rospy.Publisher(wheel_topic,Twist2DStamped, queue_size=1)
-        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane, queue_size=1) 
-        self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop, queue_size=1) 
+        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane) 
+        self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop)
 
-        rospy.loginfo("[%s] Initialzed." %(self.node_name))
-
-        self.rate = rospy.Rate(30) # 10hz
-
+        
+        timeout= time.time() + 10.0
+        while not (self.lane_message_received or self.stop_message_received) and not rospy.is_shutdown() and time.time()<timeout:
+            rospy.sleep(0.1)
+            
+        self.assert_(self.lane_message_received)
+        self.assert_(self.stop_message_received)
+            
     def cbLane(self, data):
+        self.lane_message_received = True
         self.lane = data
 
     def cbStop(self, data):
+        self.stop_message_received = True
         self.stop = data
 
     def test_drive_forward(self):
+        self.setup()
         #move forward
-        for i in range(3):
+        for i in range(100):
             if self.lane == None or self.stop == None:
                 rospy.loginfo("still waiting for lane and stop line")
                 rospy.sleep(1)
         if self.lane==None or self.stop == None:
             rospy.loginfo("could not subscribe to lane and stop line")
-            return
+            assertTrue(False)
         
         #Measured dist for stop as 146+8cm cm physically
         self.init = self.lane, -1.54
@@ -58,7 +72,7 @@ class KinematicsTestNode(unittest.TestCase):
             wheels_cmd_msg.omega = 0.0
             self.pub_wheels_cmd.publish(wheels_cmd_msg)    
             #rospy.loginfo("Moving?.")
-            self.rate.sleep()
+            rospy.sleep(0.1)
         self.final = self.lane, self.stop
         self.calculate()
 
@@ -115,8 +129,5 @@ class KinematicsTestNode(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # Initialize the node with rospy
-    rospy.init_node('kinematics_test_node', anonymous=False)
-
     rostest.rosrun('rostest_kinematics_calibration', 'kinematics_test_node', KinematicsTestNode)
 
