@@ -13,7 +13,7 @@ import os.path
 from duckietown_utils import (logger, get_duckiefleet_root)
 
 class GroundProjection():
-    
+
     def __init__(self, robot_name="shamrock"):
 
         # defaults overwritten by param
@@ -34,7 +34,7 @@ class GroundProjection():
         self.ci_=camera_info
         self.pcm_.fromCameraInfo(camera_info)
         print("pinhole camera model initialized")
-        
+
     def vector2pixel(self, vec):
         pixel = Pixel()
         cw = self.ci_.width
@@ -143,6 +143,7 @@ class GroundProjection():
             else:
                 data = yaml_load_file(filename)
         else:
+            rospy.loginfo("Using extrinsic calibration of " + self.robot_name)
             data = yaml_load_file(filename)
         logger.info("Loaded homography for {}".format(os.path.basename(filename)))
         return np.array(data['homography']).reshape((3,3))
