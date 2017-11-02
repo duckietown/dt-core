@@ -14,12 +14,12 @@ class GroundProjectionNode(object):
 
     def __init__(self):
         self.node_name="Ground Projection"
-        self.gp = GroundProjection()
         self.active = True
         self.bridge=CvBridge()
 
         self.robot_name = rospy.get_param("~config_file_name","robot_not_specified")
-        
+        self.gp = GroundProjection(self.robot_name)
+
         camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
         rospy.loginfo("camera info topic is " + camera_info_topic)
         rospy.loginfo("waiting for camera info")
@@ -27,24 +27,24 @@ class GroundProjectionNode(object):
         rospy.loginfo("camera info received")
 
         self.gp.initialize_pinhole_camera_model(camera_info)
-        # Params 
-        
-        
+        # Params
+
+
         self.gp.robot_name = self.robot_name
         self.gp.rectified_input_ = rospy.get_param("rectified_input", False)
         self.image_channel_name = "image_raw"
-        
+
         # Subs and Pubs
         self.pub_lineseglist_ = rospy.Publisher("~lineseglist_out",SegmentList, queue_size=1)
         self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in",SegmentList, self.lineseglist_cb)
-        
-        
+
+
         # TODO prepare services
         self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography, self.estimate_homography_cb)
         self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb)
         self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
 
-        
+
     def rectifyImage(self,img_msg):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(img_msg,desired_encoding="mono8")
@@ -70,7 +70,7 @@ class GroundProjectionNode(object):
         return GetImageCoordResponse(self.gp.ground2pixel(req.gp))
 
     def estimate_homography_cb(self,req):
-        rospy.loginfo("Estimating homography")      
+        rospy.loginfo("Estimating homography")
         rospy.loginfo("Waiting for raw image")
         img_msg = rospy.wait_for_message("/"+self.robot_name+"/camera_node/image/raw",Image)
         rospy.loginfo("Got raw image")
@@ -81,10 +81,10 @@ class GroundProjectionNode(object):
         self.gp.estimate_homography(cv_image)
         rospy.loginfo("wrote homography")
         return EstimateHomographyResponse()
-        
+
     def onShutdown(self):
         rospy.loginfo("[GroundProjectionNode] Shutdown.")
-        
+
 if __name__ == '__main__':
     rospy.init_node('ground_projection',anonymous=False)
     ground_projection_node = GroundProjectionNode()
