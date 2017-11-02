@@ -44,9 +44,7 @@ endif()
 include_directories(${YAML_CPP_INCLUDE_DIRS})
 
 
-
-
-## Generate services in the 'srv' folder
+ 
 add_service_files(
   FILES
   GetGroundCoord.srv
@@ -54,7 +52,6 @@ add_service_files(
   EstimateHomography.srv
 )
 
-## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   std_msgs
@@ -71,29 +68,3 @@ catkin_package(
   CATKIN_DEPENDS image_transport roscpp rospy duckietown_msgs sensor_msgs std_msgs geometry_msgs message_runtime cv_bridge image_geometry
 #  DEPENDS system_lib
 )
-
-
-## Once Python version works let's get rid of this C++ stuff
-## No longer building CPP node
-
-#include_directories(
-#  ${catkin_INCLUDE_DIRS}
-#  ${OpenCV_INCLUDE_DIRS}
-#)
-
-
-## Declare a C++ executable
-#add_executable(ground_projection
-#  src/ground_projection.cpp
-#)
-
-## Add cmake target dependencies of the executable
-## same as for the library above
-#add_dependencies(ground_projection ${ground_projection_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
-#target_link_libraries(ground_projection
-#  ${catkin_LIBRARIES}
-#  ${OpenCV_LIBS}
-#  ${YAML_CPP_LIBRARIES}
-#)

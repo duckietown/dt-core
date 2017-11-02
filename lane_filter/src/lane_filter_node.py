@@ -37,10 +37,6 @@ class LaneFilterNode(object):
         self.lanePose.d=self.mean_0[0]
         self.lanePose.phi=self.mean_0[1]
 
-        self.dwa = -(self.zero_val*self.l_peak**2 + self.zero_val*self.l_max**2 - self.l_max**2*self.peak_val - 2*self.zero_val*self.l_peak*self.l_max + 2*self.l_peak*self.l_max*self.peak_val)/(self.l_peak**2*self.l_max*(self.l_peak - self.l_max)**2)
-        self.dwb = (2*self.zero_val*self.l_peak**3 + self.zero_val*self.l_max**3 - self.l_max**3*self.peak_val - 3*self.zero_val*self.l_peak**2*self.l_max + 3*self.l_peak**2*self.l_max*self.peak_val)/(self.l_peak**2*self.l_max*(self.l_peak - self.l_max)**2)
-        self.dwc = -(self.zero_val*self.l_peak**3 + 2*self.zero_val*self.l_max**3 - 2*self.l_max**3*self.peak_val - 3*self.zero_val*self.l_peak*self.l_max**2 + 3*self.l_peak*self.l_max**2*self.peak_val)/(self.l_peak*self.l_max*(self.l_peak - self.l_max)**2)
-
 
         self.t_last_update = rospy.get_time()
         self.v_current = 0
@@ -82,12 +78,6 @@ class LaneFilterNode(object):
         self.linewidth_yellow = rospy.get_param("~linewidth_yellow",0.02)
         self.lanewidth        = rospy.get_param("~lanewidth",0.4)
         self.min_max = rospy.get_param("~min_max", 0.3) # nats
-        # For use of distance weighting (dw) function
-        self.use_distance_weighting = rospy.get_param("~use_distance_weighting",False)
-        self.zero_val    = rospy.get_param("~zero_val",1)
-        self.l_peak      = rospy.get_param("~l_peak",1)
-        self.peak_val    = rospy.get_param("~peak_val",10)
-        self.l_max       = rospy.get_param("~l_max",2)
 
         # For use of maximum segment distance
         self.use_max_segment_dist = rospy.get_param("~use_max_segment_dist",False)
@@ -131,13 +121,7 @@ class LaneFilterNode(object):
             i = floor((d_i - self.d_min)/self.delta_d)
             j = floor((phi_i - self.phi_min)/self.delta_phi)
 
-            if self.use_distance_weighting:           
-                dist_weight = self.dwa*l_i**3+self.dwb*l_i**2+self.dwc*l_i+self.zero_val
-                if dist_weight < 0:
-                    continue
-                measurement_likelihood[i,j] = measurement_likelihood[i,j] + dist_weight
-            else:
-                measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1/(l_i)
+            measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
 
 
         if np.linalg.norm(measurement_likelihood) == 0:
