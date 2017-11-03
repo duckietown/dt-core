@@ -67,6 +67,11 @@ class LaneFilterNode(object):
         if not self.active:
             return
 
+        if self.use_propagation:
+            current_time = rospy.get_time()
+            self.filter.propagate(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
+            self.t_last_update = current_time
+
         self.filter.update(segment_list_msg.segments)
 
         [d_max,phi_max] = self.filter.getMAPEstimate()
@@ -98,10 +103,6 @@ class LaneFilterNode(object):
 
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
-        if self.use_propagation:
-            current_time = rospy.get_time()
-            self.filter.propagate(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.w)
-            self.t_last_update = current_time
 
 
 

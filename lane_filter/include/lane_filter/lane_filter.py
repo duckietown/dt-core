@@ -13,8 +13,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     """LaneFilterHistogram"""
 
     def __init__(self,configuration):
-
-
         param_names = [
             'mean_d_0',
             'mean_phi_0',
@@ -53,6 +51,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         p_beliefRV = np.zeros(self.beliefRV.shape)
 
+        # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
         for i in range(self.beliefRV.shape[0]):
             for j in range(self.beliefRV.shape[1]):
                 if self.beliefRV[i,j] > 0:
@@ -63,7 +62,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     p_beliefRV[i_new,j_new] += self.beliefRV[i,j]
 
         s_beliefRV = np.zeros(self.beliefRV.shape)
-        gaussian_filter(100*p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
+        gaussian_filter(p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
 
         if np.sum(s_beliefRV) == 0:
             return
@@ -87,11 +86,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             i = int(floor((d_i - self.d_min)/self.delta_d))
             j = int(floor((phi_i - self.phi_min)/self.delta_phi))
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
-        if np.linalg.norm(measurement_likelihood) == 0:
-            
+        if np.linalg.norm(measurement_likelihood) == 0:            
             return
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
-        self.beliefRV = measurement_likelihood
+
+        self.beliefRV = np.multiply(self.beliefRV,measurement_likelihood)
+        if np.sum(self.beliefRV) == 0:
+            self.beliefRV = measurement_likelihood
+        else:
+            self.beliefRV = self.beliefRV/np.sum(self.beliefRV)
 
 
     # currently not used        
