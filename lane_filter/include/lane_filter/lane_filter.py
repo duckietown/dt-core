@@ -71,14 +71,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def update(self, segments):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
-        self.belief = np.multiply(self.belief,measurement_likelihood)
-        if np.sum(self.belief) == 0:
-            self.belief = measurement_likelihood
-        else:
-            self.belief = self.belief/np.sum(self.belief)
+        if measurement_likelihood is not None:
+            self.belief = np.multiply(self.belief,measurement_likelihood)
+            if np.sum(self.belief) == 0:
+                self.belief = measurement_likelihood
+            else:
+                self.belief = self.belief/np.sum(self.belief)
 
-    def generate_measurement_likelihood(self, segments)
-    # initialize measurement likelihood to all zeros
+    def generate_measurement_likelihood(self, segments):
+        # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
             # we don't care about RED ones for now
