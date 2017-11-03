@@ -5,7 +5,7 @@ from .lane_filter_interface import LaneFilterInterface
 from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
 from math import floor, pi, sqrt
-
+import copy
 
 
 
@@ -14,37 +14,38 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def __init__(self,configuration):
 
-        self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
-        self.beliefRV=np.empty(self.d.shape)
-        self.initialize()
 
         param_names = [
-            'mean_d_0'
-            'mean_phi_0'
-            'sigma_d_0'
-            'sigma_phi_0'
-            'delta_d'
-            'delta_phi'
-            'd_max'
-            'd_min'
-            'phi_max'
-            'phi_min'
-            'cov_v'
-            'linewidth_white'
-            'linewidth_yellow'
-            'lanewidth'
-            'min_max'
-            'use_min_segs'
-            'sigma_d_mask'
-            'sigma_phi_mask'
+            'mean_d_0',
+            'mean_phi_0',
+            'sigma_d_0',
+            'sigma_phi_0',
+            'delta_d',
+            'delta_phi',
+            'd_max',
+            'd_min',
+            'phi_max',
+            'phi_min',
+            'cov_v',
+            'linewidth_white',
+            'linewidth_yellow',
+            'lanewidth',
+            'min_max',
+            'sigma_d_mask',
+            'sigma_phi_mask',
         ]
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
-        
+
+        self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
+        self.beliefRV=np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
+        self.initialize()
+        
+        
     def propagate(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v*delta_t*np.sin(self.phi)
@@ -107,7 +108,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def getMax(self):
         return self.beliefRV.max()
 
-        def initialize(self):
+    def initialize(self):
         pos = np.empty(self.d.shape + (2,))
         pos[:,:,0]=self.d
         pos[:,:,1]=self.phi
