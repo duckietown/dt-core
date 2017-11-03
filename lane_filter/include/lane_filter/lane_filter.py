@@ -1,10 +1,7 @@
-
-
-
-
 from duckietown_utils.parameters import Configurable
+from duckietown_msgs.msg import Segment
 import numpy as np
-from .lane_filter_interface import
+from .lane_filter_interface import LaneFilterInterface
 from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
 from math import floor, pi, sqrt
@@ -19,7 +16,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.beliefRV=np.empty(self.d.shape)
-        self.initializeBelief()
+        self.initialize()
 
         param_names = [
             'mean_d_0'
@@ -48,9 +45,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
-    def propagateBelief(self, dt, v, w):
+    def propagate(self, dt, v, w):
         delta_t = dt
-
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
@@ -73,42 +69,34 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.beliefRV = s_beliefRV/np.sum(s_beliefRV)
 
 
-    def update(self, segments)
-                # initialize measurement likelihood
+    def update(self, segments):
+        # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
-
-        for segment in segment_list_msg.segments:
+        for segment in segments:
+            # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
                 continue
+            # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-
             d_i,phi_i,l_i = self.generateVote(segment)
+            # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i>self.phi_max:
                 continue
-            if self.use_max_segment_dist and (l_i > self.max_segment_dist):
-                continue
-
             i = floor((d_i - self.d_min)/self.delta_d)
             j = floor((phi_i - self.phi_min)/self.delta_phi)
-
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
-
-
         if np.linalg.norm(measurement_likelihood) == 0:
+            
             return
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
-
-        if self.use_propagation:
-            self.updateBelief(measurement_likelihood)
-        else:
-            self.beliefRV = measurement_likelihood
+        self.beliefRV = measurement_likelihood
 
 
-            
+    # currently not used        
     def updateBelief(self,measurement_likelihood):
         self.beliefRV=np.multiply(self.beliefRV+1,measurement_likelihood+1)-1
-        self.beliefRV=self.beliefRV/np.sum(self.beliefRV)#np.linalg.norm(self.beliefRV)
+        self.beliefRV=self.beliefRV/np.sum(self.beliefRV)
 
     def getMAPEstimate(self):
         maxids = np.unravel_index(self.beliefRV.argmax(),self.beliefRV.shape)
@@ -118,3 +106,51 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def getMax(self):
         return self.beliefRV.max()
+
+        def initialize(self):
+        pos = np.empty(self.d.shape + (2,))
+        pos[:,:,0]=self.d
+        pos[:,:,1]=self.phi
+        self.cov_0
+        RV = multivariate_normal(self.mean_0,self.cov_0)
+        self.beliefRV=RV.pdf(pos)
+
+
+    def generateVote(self,segment):
+        p1 = np.array([segment.points[0].x, segment.points[0].y])
+        p2 = np.array([segment.points[1].x, segment.points[1].y])
+        t_hat = (p2-p1)/np.linalg.norm(p2-p1)
+        n_hat = np.array([-t_hat[1],t_hat[0]])
+        d1 = np.inner(n_hat,p1)
+        d2 = np.inner(n_hat,p2)
+        l1 = np.inner(t_hat,p1)
+        l2 = np.inner(t_hat,p2)
+        if (l1 < 0):
+            l1 = -l1;
+        if (l2 < 0):
+            l2 = -l2;
+        l_i = (l1+l2)/2
+        d_i = (d1+d2)/2
+        phi_i = np.arcsin(t_hat[1])
+        if segment.color == segment.WHITE: # right lane is white
+            if(p1[0] > p2[0]): # right edge of white lane
+                d_i = d_i - self.linewidth_white
+            else: # left edge of white lane
+                d_i = - d_i
+                phi_i = -phi_i
+            d_i = d_i - self.lanewidth/2
+
+        elif segment.color == segment.YELLOW: # left lane is yellow
+            if (p2[0] > p1[0]): # left edge of yellow lane
+                d_i = d_i - self.linewidth_yellow
+                phi_i = -phi_i
+            else: # right edge of white lane
+                d_i = -d_i
+            d_i =  self.lanewidth/2 - d_i
+
+        return d_i, phi_i, l_i
+
+    def getSegmentDistance(self, segment):
+        x_c = (segment.points[0].x + segment.points[1].x)/2
+        y_c = (segment.points[0].y + segment.points[1].y)/2
+        return sqrt(x_c**2 + y_c**2)
