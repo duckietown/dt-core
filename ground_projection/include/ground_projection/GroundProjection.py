@@ -78,11 +78,10 @@ class GroundProjection():
         return point
 
     def ground2pixel(self, point):
-        # TODO check whether z=0 or z=1.
-        # I think z==1 (jmichaux)
         ground_point = np.array([point.x, point.y, 1.0])
-        image_point = self.Hinv * ground_point
-        image_point = np.abs(image_point / image_point[2])
+        image_point = np.dot(self.Hinv, ground_point)
+        image_point = image_point / image_point[2]
+
 
         pixel = Pixel()
         if not self.rectified_input:
