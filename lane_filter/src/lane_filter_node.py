@@ -71,8 +71,7 @@ class LaneFilterNode(object):
 
         [d_max,phi_max] = self.filter.getMAPEstimate()
         max_val = self.filter.getMax()
-        # this is a big ugly hack - we should do more principled determination of if the output is good or not
-        in_lane = max_val > self.filter.min_max and np.linalg.norm(measurement_likelihood) != 0
+        in_lane = max_val > self.filter.min_max 
 
         
         # build lane pose message to send
@@ -85,7 +84,7 @@ class LaneFilterNode(object):
 
         # publish the belief image
         bridge = CvBridge()
-        belief_img = bridge.cv2_to_imgmsg((255*self.beliefRV).astype('uint8'), "mono8")
+        belief_img = bridge.cv2_to_imgmsg((255*self.filter.beliefRV).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         self.pub_lane_pose.publish(lanePose)

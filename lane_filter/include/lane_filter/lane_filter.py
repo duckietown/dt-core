@@ -58,8 +58,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 if self.beliefRV[i,j] > 0:
                     if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
                         continue
-                    i_new = floor((d_t[i,j] - self.d_min)/self.delta_d)
-                    j_new = floor((phi_t[i,j] - self.phi_min)/self.delta_phi)
+                    i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
+                    j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
                     p_beliefRV[i_new,j_new] += self.beliefRV[i,j]
 
         s_beliefRV = np.zeros(self.beliefRV.shape)
@@ -84,8 +84,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i>self.phi_max:
                 continue
-            i = floor((d_i - self.d_min)/self.delta_d)
-            j = floor((phi_i - self.phi_min)/self.delta_phi)
+            i = int(floor((d_i - self.d_min)/self.delta_d))
+            j = int(floor((phi_i - self.phi_min)/self.delta_phi))
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
         if np.linalg.norm(measurement_likelihood) == 0:
             
@@ -155,3 +155,4 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         x_c = (segment.points[0].x + segment.points[1].x)/2
         y_c = (segment.points[0].y + segment.points[1].y)/2
         return sqrt(x_c**2 + y_c**2)
+
