@@ -18,7 +18,6 @@ class StopLineFilterNode(object):
         self.stop_distance = self.setupParam("~stop_distance", 0.2) # distance from the stop line that we should stop 
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
         self.off_time      = self.setupParam("~off_time", 2)
-        self.lanewidth = 0 # updated continuously below
 
         self.state = "JOYSTICK_CONTROL"
         self.sleep = False
@@ -39,7 +38,6 @@ class StopLineFilterNode(object):
         return value
 
     def updateParams(self,event):
-        self.lanewidth = rospy.get_param("~lanewidth")
         self.stop_distance = rospy.get_param("~stop_distance")
         self.min_segs      = rospy.get_param("~min_segs")
         self.off_time      = rospy.get_param("~off_time")
@@ -92,7 +90,7 @@ class StopLineFilterNode(object):
         stop_line_point.x = stop_line_x_accumulator/good_seg_count
         stop_line_point.y = stop_line_y_accumulator/good_seg_count
         stop_line_reading_msg.stop_line_point = stop_line_point
-        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < self.lanewidth/4 
+        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5 
         self.pub_stop_line_reading.publish(stop_line_reading_msg)    
         if stop_line_reading_msg.at_stop_line:
             msg = BoolStamped()
