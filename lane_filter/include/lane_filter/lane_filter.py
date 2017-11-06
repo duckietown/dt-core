@@ -36,7 +36,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         Configurable.__init__(self,param_names,configuration)
 
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
-        self.beliefRV=np.empty(self.d.shape)
+        self.belief=np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
@@ -44,33 +44,41 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.initialize()
         
         
-    def propagate(self, dt, v, w):
+    def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-        p_beliefRV = np.zeros(self.beliefRV.shape)
+        p_belief = np.zeros(self.belief.shape)
 
         # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
-        for i in range(self.beliefRV.shape[0]):
-            for j in range(self.beliefRV.shape[1]):
-                if self.beliefRV[i,j] > 0:
+        for i in range(self.belief.shape[0]):
+            for j in range(self.belief.shape[1]):
+                if self.belief[i,j] > 0:
                     if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
                         continue
                     i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
                     j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
-                    p_beliefRV[i_new,j_new] += self.beliefRV[i,j]
+                    p_belief[i_new,j_new] += self.belief[i,j]
 
-        s_beliefRV = np.zeros(self.beliefRV.shape)
-        gaussian_filter(p_beliefRV, self.cov_mask, output=s_beliefRV, mode='constant')
+        s_belief = np.zeros(self.belief.shape)
+        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
-        if np.sum(s_beliefRV) == 0:
+        if np.sum(s_belief) == 0:
             return
-        self.beliefRV = s_beliefRV/np.sum(s_beliefRV)
+        self.belief = s_belief/np.sum(s_belief)
 
 
     def update(self, segments):
-        # initialize measurement likelihood to all zeros
+        measurement_likelihood = self.generate_measurement_likelihood(segments)
+        self.belief = np.multiply(self.belief,measurement_likelihood)
+        if np.sum(self.belief) == 0:
+            self.belief = measurement_likelihood
+        else:
+            self.belief = self.belief/np.sum(self.belief)
+
+    def generate_measurement_likelihood(self, segments)
+    # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
             # we don't care about RED ones for now
@@ -87,29 +95,18 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             j = int(floor((phi_i - self.phi_min)/self.delta_phi))
             measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
         if np.linalg.norm(measurement_likelihood) == 0:            
-            return
+            return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
-
-        self.beliefRV = np.multiply(self.beliefRV,measurement_likelihood)
-        if np.sum(self.beliefRV) == 0:
-            self.beliefRV = measurement_likelihood
-        else:
-            self.beliefRV = self.beliefRV/np.sum(self.beliefRV)
-
-
-    # currently not used        
-    def updateBelief(self,measurement_likelihood):
-        self.beliefRV=np.multiply(self.beliefRV+1,measurement_likelihood+1)-1
-        self.beliefRV=self.beliefRV/np.sum(self.beliefRV)
-
-    def getMAPEstimate(self):
-        maxids = np.unravel_index(self.beliefRV.argmax(),self.beliefRV.shape)
+        return measurement_likelihood
+        
+    def getEstimate(self):
+        maxids = np.unravel_index(self.belief.argmax(),self.belief.shape)
         d_max = self.d_min + maxids[0]*self.delta_d
         phi_max = self.phi_min + maxids[1]*self.delta_phi
         return [d_max,phi_max]
 
     def getMax(self):
-        return self.beliefRV.max()
+        return self.belief.max()
 
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))
@@ -117,7 +114,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         pos[:,:,1]=self.phi
         self.cov_0
         RV = multivariate_normal(self.mean_0,self.cov_0)
-        self.beliefRV=RV.pdf(pos)
+        self.belief=RV.pdf(pos)
 
 
     def generateVote(self,segment):
