@@ -7,7 +7,7 @@
 
     <!-- record all the file other -->
     <node pkg="rosbag" type="record" name="rosbag_record"
-          args="-e '/$(arg veh)/line_detector/*' -O $(arg bagout)"/>
+          args="-e '/line_detector_node/.*' -O $(arg bagout)"/>
 
     <remap from="/line_detector_node/image" to="/$(arg veh)/camera_node/image/compressed"/>
 
