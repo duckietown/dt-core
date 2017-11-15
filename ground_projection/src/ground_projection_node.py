@@ -54,6 +54,7 @@ class GroundProjectionNode(object):
 
     def lineseglist_cb(self,seglist_msg):
         seglist_out = SegmentList()
+        seglist_out.header = seglist_msg.header
         for received_segment in seglist_msg.segments:
             new_segment = Segment()
             new_segment.points[0] = self.gp.vector2ground(received_segment.pixels_normalized[0])
