@@ -101,7 +101,7 @@ class lane_controller(object):
         #self.pub_wheels_cmd.publish(wheels_cmd_msg)
 
     def cbPose(self, lane_pose_msg):
-        self.d_thres = 0.0
+
         self.lane_reading = lane_pose_msg
 
         # Calculating the delay image processing took
