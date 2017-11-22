@@ -12,6 +12,9 @@ class LEDEmitter(object):
     def __init__(self):
         self.led = RGB_LED()
         self.node_name = rospy.get_name()
+	
+	self.pattern = [[0,0,0]] * 5
+
         self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
         self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
         # self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
@@ -22,18 +25,19 @@ class LEDEmitter(object):
 
         # self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
-        self.pattern_off = [[0,0,0]] * 5
-        self.pattern_on  = [[1,1,1]] * 10
+        self.pattern_off = [[0,0,0]]
+        self.pattern_on  = [[1,1,1]]
 
-        self.pattern = self.pattern_off
+	#for i in range(5):
+        #    self.pattern[i] = self.pattern_off
 
         # scale = 0.5
         # for _, c in self.protocol['colors'].items():
         #    for i in range(3):
         #        c[i] = c[i]  * scale
 
-        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(.1), self.cycleTimer)
-        self.current_pattern_name = None
+        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.cycleTimer)
+        self.current_pattern_name = 'ON'
         self.changePattern_('ON')
 
     # def cbSwitch(self, switch_msg): # active/inactive switch from FSM
@@ -44,7 +48,7 @@ class LEDEmitter(object):
         if not self.active:
             return
         for i in range(5):
-            self.led.setRGB(i, self.pattern[i])
+            self.led.setRGB(i, [self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
 
         # if self.is_on:
         #    for i in range(5):
@@ -59,7 +63,7 @@ class LEDEmitter(object):
         self.changePattern_(msg.data)
 
     def changePattern_(self, pattern_name):
-        if pattern_name:
+	if pattern_name:
             if (self.current_pattern_name == pattern_name):
                 return
             else:
@@ -70,12 +74,12 @@ class LEDEmitter(object):
             # self.cycle = self.protocol['signals'][pattern_name]['frequency']
             # print("color: %s, freq (Hz): %s "%(color, self.cycle))
 
-	    if self.current_pattern_name is 'ON':
-             for i in range(5):
-                self.pattern[i] = self.pattern_on
-             else:
-                for i in range(5):
-                    self.pattern[i] = self.pattern_off
+	    if self.current_pattern_name == 'ON':
+		print('on')
+                self.pattern = [[1,1,1]]*5
+            else:
+		print('off')
+                self.pattern = [[0,0,0]]*5
 
             #self.pattern = [[0,0,0]] * 5
             #self.pattern[2] = self.protocol['colors'][color]

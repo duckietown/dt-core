@@ -13,8 +13,15 @@
 
 	<!-- Run on remote (vehicle) -->
 	<include unless="$(arg local)" file="$(find duckietown)/machines"/>
-	<node unless="$(arg local)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
-	</node>	
+	<node unless="$(arg local)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="$(arg node_name).py" name="led_joy_mapper_node" output="screen" clear_params="true" required="true">
+	</node>
+
+    <node ns="$(arg veh)" if="$(arg local)" pkg="joy" type="joy_node" name="joy" output="screen">
+        <rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy/joy_node/$(arg param_file_name).yaml"/>
+    </node>
+    <node ns="$(arg veh)" unless="$(arg local)" machine="$(arg veh)" pkg="joy" type="joy_node" name="joy" output="screen">
+        <rosparam command="load" file="$(find duckietown)/config/$(arg config)/joy/joy_node/$(arg param_file_name).yaml"/>
+    </node>	
 
 	<!-- Subscribe Topics -->
 	<!-- "joy": sensor_msgs/Joy. The command read from joystick -->
