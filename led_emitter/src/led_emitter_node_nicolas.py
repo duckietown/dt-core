@@ -25,8 +25,8 @@ class LEDEmitter(object):
 
         # self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
-        self.pattern_off = [[0,0,0]]
-        self.pattern_on  = [[1,1,1]]
+        # self.pattern_off = [[0,0,0]]
+        # self.pattern_on  = [[1,1,1]]
 
 	#for i in range(5):
         #    self.pattern[i] = self.pattern_off
@@ -75,10 +75,10 @@ class LEDEmitter(object):
             # print("color: %s, freq (Hz): %s "%(color, self.cycle))
 
 	    if self.current_pattern_name == 'ON':
-		print('on')
+		rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[1,1,1]]*5
             else:
-		print('off')
+		rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
 
             #self.pattern = [[0,0,0]] * 5
