@@ -21,12 +21,12 @@ class AntiInstagramPerformanceTest(unittest.TestCase):
 
             for Params.shape in shapes:
                 res = self.applyTransformOnRandomImg()
-                #logger.info('algo: %d Shape: %s   -> %1.f ms' % (i, str(Params.shape), 1000*res))
+                logger.info('algo: %d Shape: %s   -> %1.f ms' % (i, str(Params.shape), 1000*res))
                 # self.assertLess(res, 0.05)  # Calculate in less than 0.05
 
         for Params.shape in shapes:
             res = self.calcuateTransformOnRandomImg()
-            #logger.info('Shape: %s   -> %1.f ms' % (str(Params.shape), 1000*res))
+            logger.info('Shape: %s   -> %1.f ms' % (str(Params.shape), 1000*res))
             # self.assertLess(res, 0.5)   # Calculate in less than 0.5 seconds
 
     def applyTransformOnRandomImg(self):
@@ -36,7 +36,7 @@ class AntiInstagramPerformanceTest(unittest.TestCase):
                            number=n
                            )
         t = tn / n
-        #logger.info("Average Apply Transform Took: %.1f ms " % (t * 1000))
+        logger.info("Average Apply Transform Took: %.1f ms " % (t * 1000))
         return t
 
     def calcuateTransformOnRandomImg(self):
@@ -46,7 +46,7 @@ class AntiInstagramPerformanceTest(unittest.TestCase):
                            number=n)
 
         t = tn / n
-        #logger.info("Average Calculate Transform Took: %.1f ms" % (t * 1000))
+        logger.info("Average Calculate Transform Took: %.1f ms" % (t * 1000))
         return t
 
 if __name__ == '__main__':
