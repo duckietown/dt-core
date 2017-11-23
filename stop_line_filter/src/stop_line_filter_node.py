@@ -15,12 +15,13 @@ class StopLineFilterNode(object):
         self.lane_pose = LanePose()
 
         ## params
-        self.stop_distance = self.setupParam("~stop_distance", 0.2) # distance from the stop line that we should stop 
+        self.stop_distance = self.setupParam("~stop_distance", 0.25) # distance from the stop line that we should stop
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
         self.off_time      = self.setupParam("~off_time", 2)
 
         self.state = "JOYSTICK_CONTROL"
         self.sleep = False
+
         ## publishers and subscribers
         self.sub_segs      = rospy.Subscriber("~segment_list", SegmentList, self.processSegments)
         self.sub_lane      = rospy.Subscriber("~lane_pose",LanePose, self.processLanePose)
@@ -28,6 +29,7 @@ class StopLineFilterNode(object):
         self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
         self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
 
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch)
 
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
@@ -44,15 +46,23 @@ class StopLineFilterNode(object):
 
     def processStateChange(self, msg):
         if self.state == "INTERSECTION_CONTROL" and (msg.state == "LANE_FOLLOWING" or msg.state == "PARALLEL_AUTONOMY"):
-            rospy.loginfo("stop line sleep start")
-            self.sleep = True
-            rospy.sleep(self.off_time)
-            self.sleep = False
-            rospy.loginfo("stop line sleep end")
+            self.afterIntersectionWork()
         self.state=msg.state
+
+    def afterIntersectionWork(self):
+        rospy.loginfo("stop line sleep start")
+        self.sleep = True
+        rospy.sleep(self.off_time)
+        self.sleep = False
+        rospy.loginfo("stop line sleep end")
+
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
+        if self.active and self.state == "INTERSECTION_CONTROL":
+            self.afterIntersectionWork()
+
+
 
     def processLanePose(self, lane_pose_msg):
         self.lane_pose = lane_pose_msg
@@ -60,13 +70,14 @@ class StopLineFilterNode(object):
     def processSegments(self, segment_list_msg):
         if not self.active or self.sleep:
             return
+
         good_seg_count=0
         stop_line_x_accumulator=0.0
         stop_line_y_accumulator=0.0
         for segment in segment_list_msg.segments:
             if segment.color != segment.RED:
                 continue
-            if segment.points[0].x < 0 or segment.points[1].x < 0: # the point is behind us 
+            if segment.points[0].x < 0 or segment.points[1].x < 0: # the point is behind us
                 continue
 
             p1_lane = self.to_lane_frame(segment.points[0])
@@ -84,20 +95,20 @@ class StopLineFilterNode(object):
             stop_line_reading_msg.at_stop_line = False
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
             return
-        
+
         stop_line_reading_msg.stop_line_detected = True
         stop_line_point = Point()
         stop_line_point.x = stop_line_x_accumulator/good_seg_count
         stop_line_point.y = stop_line_y_accumulator/good_seg_count
         stop_line_reading_msg.stop_line_point = stop_line_point
-        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5 
-        self.pub_stop_line_reading.publish(stop_line_reading_msg)    
+        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5
+        self.pub_stop_line_reading.publish(stop_line_reading_msg)
         if stop_line_reading_msg.at_stop_line:
             msg = BoolStamped()
             msg.header.stamp = stop_line_reading_msg.header.stamp
             msg.data = True
             self.pub_at_stop_line.publish(msg)
-   
+
     def to_lane_frame(self, point):
         p_homo = np.array([point.x,point.y,1])
         phi = self.lane_pose.phi
@@ -108,13 +119,12 @@ class StopLineFilterNode(object):
         p_new_homo = T.dot(p_homo)
         p_new = p_new_homo[0:2]
         return p_new
- 
+
     def onShutdown(self):
         rospy.loginfo("[StopLineFilterNode] Shutdown.")
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     rospy.init_node('stop_line_filter',anonymous=False)
     lane_filter_node = StopLineFilterNode()
     rospy.on_shutdown(lane_filter_node.onShutdown)
     rospy.spin()
-
