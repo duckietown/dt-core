@@ -4,8 +4,29 @@ import cv2
 import numpy as np
 
 class estimateError:
-    def __init__(self):
-        pass
+    """ This class evaluates the quality of an image, which was transformed by a certain color transformation """
+
+    # contains image to be analysed
+    image = []
+
+    # container for the polygons
+    # TODO possibility to add more than one polygon per color
+    polygon_black = Polygon()
+    polygon_white = Polygon()
+    polygon_yellow = Polygon()
+    polygon_red = Polygon()
+
+    # containers for pixels within polygons
+    pix_black = np.empty((0,0))
+    pix_white = np.empty((0,0))
+    pix_yellow = np.empty((0,0))
+    pix_red = np.empty((0,0))
+
+    # create instance with an image
+    def __init__(self, input_image):
+        self.image = input_image
+        print('created instance of estimateError!')
+
     def GetErrorEstimation(self, input_image, polygon):
         width, height = cv2.GetSize(input_image)
         arrayOfInPolygonPixels = np.empty((0,0))
@@ -15,8 +36,23 @@ class estimateError:
                 if(polygon.contains(point)):
                     arrayOfInPolygonPixels.append(input_image[i,j,:])
 
-    def createPolygon(self, array):
-        
+
+    # this function takes a dictionary containing the polygons for the colors and creates the internal polygons:
+    # input:
+    # - polygons: dictionary {'black' : [], 'white' : [], 'yellow' : [], 'red' : []}
+    def createPolygon(self, polygons):
+        self.polygon_black = Polygon(polygons['black'])
+        self.polygon_white = Polygon(polygons['white'])
+        self.polygon_yellow = Polygon(polygons['yellow'])
+        self.polygon_red = Polygon(polygons['red'])
+        print('Created Polygons with the following vertices:')
+        print('black: ' + str(self.polygon_black))
+        print('white: ' + str(self.polygon_white))
+        print('yellow: ' + str(self.polygon_yellow))
+        print('red: ' + str(self.polygon_red))
+
+    #def createPolygonByClick(self):
+
 
 
 
