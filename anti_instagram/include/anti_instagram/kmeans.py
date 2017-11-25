@@ -6,6 +6,14 @@ import numpy as np
 import sys
 import time
 
+# milansc: 
+# colors in bgr
+#[60,60,60] is dark grey
+#[60, 60, 240] is red
+#[50, 240, 240] is yellow
+#[240, 240, 240] is white
+
+
 CENTERS2 = np.array([[60, 60, 60],[60, 60, 240], [50, 240, 240], [240, 240, 240]]);
 CENTERS = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 # in HSV: [0,0,60], [127.5000  233.7500  240.0000],[0,0,240]

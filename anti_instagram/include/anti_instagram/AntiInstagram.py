@@ -20,7 +20,7 @@ def calculate_transform(image):
     centers4 = centers4[[0,2,3],:]
     centers3 = CENTERS
     trained3, counter3,score3 = runKMeans(image, num_colors=3, init=centers3)
-    decision34=(score3+3e7)>score4;
+    decision34=((score3+3e7)>score4)>score4;
     if (decision34):
         logger.info("picked 3 colors")
         trained=trained3
@@ -32,6 +32,17 @@ def calculate_transform(image):
         counter=counter4
         centers=centers4
  
+
+    # milansc: for debug reasons
+    print('Score for 3 colors: ' + str(score3))
+    print('Score for 4 colors: ' + str(score4))
+
+    print('...in calculate_transform: found centers:')
+    print(centers)
+    print('...in calculate_transform: found counter:')
+    print(counter)
+    print('...in calculate_transform: found trained centers:')
+    print(trained)
 
     mapping = identifyColors(trained, centers)
     r, g, b, cost = getparameters2(mapping, trained, counter, centers)
