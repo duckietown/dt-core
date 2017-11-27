@@ -123,7 +123,10 @@ class GroundProjection():
         		src_pts.append(np.array([r * self.board_['square_size'] , c * self.board_['square_size']] , dtype='float32') + self.board_['offset'])
         # OpenCV labels corners left-to-right, top-to-bottom
         # so we reverse the groud points
-        src_pts.reverse()
+
+        # only reverse order if first point is at bottom right corner
+        if (src_pts[0][0] > src_pts[self.board_['width']*self.board_['height']-1][0] and src_pts[0][1] > src_pts[self.board_['width']*self.board_['height']-1][1]):
+            src_pts.reverse()
 
         # Compute homography from image to ground
         self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
