@@ -15,8 +15,6 @@ class estimateError:
                 if(polygon.contains(point)):
                     arrayOfInPolygonPixels.append(input_image[i,j,:])
 
-    def createPolygon(self, array):
-        
 
 
 
