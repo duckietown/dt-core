@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+import sys
+import os
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import cv2
@@ -9,6 +12,12 @@ class estimateError:
     # contains image to be analysed
     image = []
     out_image = []
+
+    # hardcoded colors
+    black = [60,60,60]
+    red = [60, 60, 240]
+    yellow = [50, 240, 240]
+    white = [240, 240, 240]
 
     # container for the polygons
     # TODO possibility to add more than one polygon per color
@@ -86,21 +95,42 @@ class estimateError:
         print('red len = ' + str(len(self.pix_red)))
 
         average_black = np.average(self.pix_black, axis=0)
-        variance_black = np.var(self.pix_black, axis=0)
         average_white = np.average(self.pix_white, axis=0)
-        variance_white = np.var(self.pix_white, axis=0)
         average_yellow = np.average(self.pix_yellow, axis=0)
-        variance_yellow = np.var(self.pix_yellow, axis=0)
         average_red = np.average(self.pix_red, axis=0)
+
+        variance_black = np.var(self.pix_black, axis=0)
+        variance_white = np.var(self.pix_white, axis=0)
+        variance_yellow = np.var(self.pix_yellow, axis=0)
         variance_red = np.var(self.pix_red, axis=0)
 
-        print('average black = ' + str(average_black))
-        print('average white = ' + str(average_white))
-        print('average yellow = ' + str(average_yellow))
-        print('average red = ' + str(average_red))
-        print('variance black = ' + str(variance_black))
-        print('variance white = ' + str(variance_white))
+        dist_black = np.linalg.norm(average_black - self.black)
+        dist_white = np.linalg.norm(average_white - self.white)
+        dist_yellow = np.linalg.norm(average_yellow - self.yellow)
+        dist_red = np.linalg.norm(average_red - self.red)
+
+        print(' ')
+        print('summary:')
+        print(' ')
+        print(' ')
+        print('BLACK:')
+        print('average = ' + str(average_black))
+        print('distance = ' + str(dist_black))
+        print('variance = ' + str(variance_black))
+        print(' ')
+        print('WHITE')
+        print('average = ' + str(average_white))
+        print('distance = ' + str(dist_white))
+        print('variance = ' + str(variance_white))
+        print(' ')
+        print('YELLOW')
+        print('average = ' + str(average_yellow))
+        print('distance = ' + str(dist_yellow))
         print('variance yellow = ' + str(variance_yellow))
+        print(' ')
+        print('RED')
+        print('average = ' + str(average_red))
+        print('distance = ' + str(dist_red))
         print('variance red = ' + str(variance_red))
 
         self.printVertices(self.polygon_black)
@@ -127,34 +157,39 @@ class estimateError:
     #def createPolygonByClick(self):
 
 
+# the main function takes an image as argument, and calculates the estimated error
+def main():
+    # check number of arguments
+    if len(sys.argv) != 2:
+        print('This program takes an image file as an input.')
+        sys.exit(2)
 
+    # store input
+    file = sys.argv[1]
 
+    # check if file exists
+    if not os.path.isfile(file):
+        print('file not found')
+        sys.exit(2)
 
+    # read the image
+    img = cv2.imread(file, cv2.IMREAD_UNCHANGED)
 
+    #  polygons for pic3_smaller.jpg and pic2_smaller.jpg (hardcoded for now)
+    polygon_black = [(280, 570), (220, 760), (870, 750), (810, 580)]
+    polygon_white = [(900, 520), (1000, 640), (1060, 620), (970, 515)]
+    polygon_yellow = [(234, 430), (190, 485), (230, 490), (270, 430)]
+    polygon_red = [(285, 435), (250, 490), (830, 480), (800, 437)]
 
+    # create dictionary containing colors
+    polygons = {'black': polygon_black, 'white': polygon_white, 'yellow': polygon_yellow, 'red': polygon_red}
 
-'''
+    # initialize estimateError class
+    E = estimateError(img)
+    # set polygons
+    E.createPolygon(polygons)
+    # estimate error
+    E.GetErrorEstimation()
 
-import cv2
-import numpy as np
-
-# original image
-# -1 loads as-is so if it will be 3 or 4 channel as the original
-image = cv2.imread('image.png', -1)
-# mask defaulting to black for 3-channel and transparent for 4-channel
-# (of course replace corners with yours)
-mask = np.zeros(image.shape, dtype=np.uint8)
-roi_corners_red = np.array([[(10,10), (300,300), (10,300)]], dtype=np.int32)
-# fill the ROI so it doesn't get wiped out when the mask is applied
-channel_count = image.shape[2]  # i.e. 3 or 4 depending on your image
-ignore_mask_color = (255,)*channel_count
-cv2.fillPoly(mask, roi_corners, ignore_mask_color)
-# from Masterfool: use cv2.fillConvexPoly if you know it's convex
-
-# apply the mask
-masked_image = cv2.bitwise_and(image, mask)
-
-# save the result
-cv2.imwrite('image_masked.png', masked_image)
-
-'''
+if __name__ == "__main__":
+    sys.exit(main())
