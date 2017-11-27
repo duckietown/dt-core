@@ -4,8 +4,26 @@ import os
 import cv2
 import datetime
 from anti_instagram.AntiInstagram import *
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+import numpy as np
 
 
+def GetListOfPixelsInPolygon(self, input_image, polygon):
+    width, height = cv2.GetSize(input_image)
+    arrayOfInPolygonPixels = np.empty((0, 0))
+    for i in range(width):
+        for j in range(height):
+            point = Point(i, j)
+            if (polygon.contains(point)):
+                arrayOfInPolygonPixels.append(input_image[i, j, :])
+    return arrayOfInPolygonPixels
+
+
+yellowPolygon = Polygon([(356, 1298), (445, 1322), (286, 1540), (185, 1502)])
+redPolygon = Polygon([(681, 1045), (595, 1178), (2027, 1160), (1937, 1047)])
+whitePolygon = Polygon([(1988, 1040), (2130, 1216), (2284, 1194), (2152, 1050)])
+blackPolygon = Polygon([(1002, 744), (1484, 732), (1616,  948), (880, 918)])
 
 # check number of arguments 
 if len(sys.argv) !=3:
