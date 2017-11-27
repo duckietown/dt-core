@@ -18,10 +18,10 @@ class estimateError:
     polygon_red = Polygon()
 
     # containers for pixels within polygons
-    pix_black = np.empty((0,0))
-    pix_white = np.empty((0,0))
-    pix_yellow = np.empty((0,0))
-    pix_red = np.empty((0,0))
+    pix_black = []
+    pix_white = []
+    pix_yellow = []
+    pix_red = []
 
     # create instance with an image
     def __init__(self, input_image):
@@ -29,36 +29,86 @@ class estimateError:
         self.out_image = input_image
         print('created instance of estimateError!')
 
+    def printVertices(self, polygon):
+
+        # print black lines
+        cv2.line(self.out_image,
+                 (int(polygon.exterior.coords[0][0]), int(polygon.exterior.coords[0][1])),
+                 (int(polygon.exterior.coords[1][0]), int(polygon.exterior.coords[1][1])),
+                 (0, 0, 0))
+        cv2.line(self.out_image,
+                 (int(polygon.exterior.coords[1][0]), int(polygon.exterior.coords[1][1])),
+                 (int(polygon.exterior.coords[2][0]), int(polygon.exterior.coords[2][1])),
+                 (0, 0, 0))
+        cv2.line(self.out_image,
+                 (int(polygon.exterior.coords[2][0]), int(polygon.exterior.coords[2][1])),
+                 (int(polygon.exterior.coords[3][0]), int(polygon.exterior.coords[3][1])),
+                 (0, 0, 0))
+        cv2.line(self.out_image,
+                 (int(polygon.exterior.coords[3][0]), int(polygon.exterior.coords[3][1])),
+                 (int(polygon.exterior.coords[0][0]), int(polygon.exterior.coords[0][1])),
+                 (0, 0, 0))
+
+
+
 
 
     def GetErrorEstimation(self):
         height, width = self.image.shape[:2]
+        print(self.image.shape[:2])
         # loop over image
         for j in range(width):
             for i in range(height):
-                point = Point(i, j)
+                point = Point(j, i)
                 # check if current pixel is within black polygon
                 if(self.polygon_black.contains(point)):
-                    #self.pix_black.append(self.image[i,j,:])
-                    self.out_image[i,j] = (200, 200, 200)
+                    # store indices to pixel
+                    self.pix_black.append(self.image[i,j,:])
 
                 # check if current pixel is within white polygon
                 elif (self.polygon_white.contains(point)):
-                    #self.pix_white.append(self.image[i, j, :])
-                    a = 1+1
+                    # store indices to pixel
+                    self.pix_white.append(self.image[i,j,:])
 
                 # check if current pixel is within yellow polygon
                 elif (self.polygon_yellow.contains(point)):
-                    #self.pix_yellow.append(self.image[i, j, :])
-                    a = 1 + 1
+                    # store indices to pixel
+                    self.pix_yellow.append(self.image[i,j,:])
 
                 # check if current pixel is within red polygon
                 elif (self.polygon_red.contains(point)):
-                    #self.pix_red.append(self.image[i, j, :])
-                    a = 1 + 1
-        cv2.imshow('polygon', self.out_image)
-        cv2.waitKey(0)
+                    # store indices to pixel
+                    self.pix_red.append(self.image[i,j,:])
 
+        print('black len = ' + str(len(self.pix_black)))
+        print('white len = ' + str(len(self.pix_white)))
+        print('yellow len = ' + str(len(self.pix_yellow)))
+        print('red len = ' + str(len(self.pix_red)))
+
+        average_black = np.average(self.pix_black, axis=0)
+        variance_black = np.var(self.pix_black, axis=0)
+        average_white = np.average(self.pix_white, axis=0)
+        variance_white = np.var(self.pix_white, axis=0)
+        average_yellow = np.average(self.pix_yellow, axis=0)
+        variance_yellow = np.var(self.pix_yellow, axis=0)
+        average_red = np.average(self.pix_red, axis=0)
+        variance_red = np.var(self.pix_red, axis=0)
+
+        print('average black = ' + str(average_black))
+        print('average white = ' + str(average_white))
+        print('average yellow = ' + str(average_yellow))
+        print('average red = ' + str(average_red))
+        print('variance black = ' + str(variance_black))
+        print('variance white = ' + str(variance_white))
+        print('variance yellow = ' + str(variance_yellow))
+        print('variance red = ' + str(variance_red))
+
+        self.printVertices(self.polygon_black)
+        self.printVertices(self.polygon_white)
+        self.printVertices(self.polygon_yellow)
+        self.printVertices(self.polygon_red)
+        cv2.imshow('polygons', self.out_image)
+        cv2.waitKey(0)
 
     # this function takes a dictionary containing the polygons for the colors and creates the internal polygons:
     # input:
