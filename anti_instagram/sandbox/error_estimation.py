@@ -8,6 +8,7 @@ class estimateError:
 
     # contains image to be analysed
     image = []
+    out_image = []
 
     # container for the polygons
     # TODO possibility to add more than one polygon per color
@@ -25,16 +26,38 @@ class estimateError:
     # create instance with an image
     def __init__(self, input_image):
         self.image = input_image
+        self.out_image = input_image
         print('created instance of estimateError!')
 
-    def GetErrorEstimation(self, input_image, polygon):
-        width, height = cv2.GetSize(input_image)
-        arrayOfInPolygonPixels = np.empty((0,0))
-        for i in range(width):
-            for j in range(height):
+
+
+    def GetErrorEstimation(self):
+        height, width = self.image.shape[:2]
+        # loop over image
+        for j in range(width):
+            for i in range(height):
                 point = Point(i, j)
-                if(polygon.contains(point)):
-                    arrayOfInPolygonPixels.append(input_image[i,j,:])
+                # check if current pixel is within black polygon
+                if(self.polygon_black.contains(point)):
+                    #self.pix_black.append(self.image[i,j,:])
+                    self.out_image[i,j] = (200, 200, 200)
+
+                # check if current pixel is within white polygon
+                elif (self.polygon_white.contains(point)):
+                    #self.pix_white.append(self.image[i, j, :])
+                    a = 1+1
+
+                # check if current pixel is within yellow polygon
+                elif (self.polygon_yellow.contains(point)):
+                    #self.pix_yellow.append(self.image[i, j, :])
+                    a = 1 + 1
+
+                # check if current pixel is within red polygon
+                elif (self.polygon_red.contains(point)):
+                    #self.pix_red.append(self.image[i, j, :])
+                    a = 1 + 1
+        cv2.imshow('polygon', self.out_image)
+        cv2.waitKey(0)
 
 
     # this function takes a dictionary containing the polygons for the colors and creates the internal polygons:
