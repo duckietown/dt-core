@@ -1,0 +1,12 @@
+<launch>
+    <arg name="robot_name" default="scbb" doc="Name of the robot"/>
+    <arg name="pkg_name" value="camera_rectifier"/>
+    <arg name="node_name" default="camera_rectifier_node"/>
+    <arg name="local" default="1"/>
+    <group ns="$(arg robot_name)">
+        <!-- run local -->
+        <node if="$(arg local)" name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+          <param name="robot_name" value="$(arg robot_name)"/>
+        </node>
+    </group>
+</launch>
