@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import time
 
-# milansc: 
+# milansc:
 # colors in bgr
 #[60,60,60] is dark grey
 #[60, 60, 240] is red
@@ -183,50 +183,6 @@ def getparameters2(mapping, trained, weights, true):
     #print MIN_GREEN_a, MIN_GREEN_b
     #print("time: %f"%(t2-t1))
     return ([MIN_RED_a], MIN_RED_b), ([MIN_BLUE_a], MIN_BLUE_b), ([MIN_GREEN_a], MIN_GREEN_b),fitting_cost
-
-
-def getparameters(mapping, trained, true):
-    redX = np.zeros((3, 1))
-    redY = np.zeros((3, 1))
-    greenX = np.zeros((3, 1))
-    greenY = np.zeros((3, 1))
-    blueX = np.zeros((3, 1))
-    blueY = np.zeros((3, 1))
-    # print type(redY), redX
-    # print trained, true
-    for i, color in enumerate(true):
-        mapped = mapping[i]
-        # print i, color
-        for j, index in enumerate(color):
-            # print index, j
-            if j == 0:
-                redY[i] = index
-            if j == 1:
-                greenY[i] = index
-            if j == 2:
-                blueY[i] = index
-        for j2, index2 in enumerate(trained[mapped]):
-
-            if j2 == 0:
-                # print redX
-                redX[i] = index2
-            # print redX
-            if j2 == 1:
-                greenX[i] = index2
-            if j2 == 2:
-                blueX[i] = index2
-    # IPython.embed()
-    RED = linear_model.LinearRegression()
-    BLUE = linear_model.LinearRegression()
-    GREEN = linear_model.LinearRegression()
-    RED.fit(redX, redY)
-    BLUE.fit(blueX, blueY)
-    GREEN.fit(greenX, greenY)
-    fitting_cost=0 # should use score() from the regression
-    # print RED_a_, RED_b
-    # print BLUE_a_, BLUE_b
-    # print GREEN_a_, GREEN_b
-    return (RED.coef_, RED.intercept_), (BLUE.coef_, BLUE.intercept_), (GREEN.coef_, GREEN.intercept_),fitting_cost
 
 
 if __name__ == '__main__':
