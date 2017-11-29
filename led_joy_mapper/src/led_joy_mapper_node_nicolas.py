@@ -23,15 +23,15 @@ class LEDJoyMapper(object):
 
         self.button2patterns = {
              # 'a' is pressed
-            0: 'ON',
+            0: 'ON_WHITE',
             # 'b' is pressed
-            1: 'OFF',
+            1: 'ON_RED',
             # 'Y' is pressed
-            # 3: 'CAR_SIGNAL_C',
+            3: 'ON_GREEN',
             # 'X' is pressed
-            # 2: 'light_off',
+            2: 'ON_BLUE',
             # lb is pressed
-            # 4: 'traffic_light_go',
+            4: 'OFF',
             # rb is pressed
             # 5: 'traffic_light_stop',
             # logitek button is pressed

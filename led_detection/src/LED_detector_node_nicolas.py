@@ -20,7 +20,8 @@ class LEDDetectorNode(object):
         self.data = []
         
         self.node_name = rospy.get_name()
-        self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
+        #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
+        self.pub_detections = rospy.Publisher("~led_detection",string,queue_size=1)
         #self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name = rospy.get_namespace().strip("/")
 
@@ -104,6 +105,7 @@ class LEDDetectorNode(object):
         self.trigger = True
 
     def process_and_publish(self):
+        #print('Processing')
         # Get size of the image
         H, W, _ = self.data.shape
         # Analyze image
