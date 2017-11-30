@@ -7,6 +7,7 @@ from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDe
 from sensor_msgs.msg import CompressedImage
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
 import numpy as np
+import cv2
 
 class LEDDetectorNode(object):
     def __init__(self):
@@ -21,7 +22,7 @@ class LEDDetectorNode(object):
         
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
-        self.pub_detections = rospy.Publisher("~led_detection",string,queue_size=1)
+        self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
         #self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name = rospy.get_namespace().strip("/")
 
@@ -107,17 +108,64 @@ class LEDDetectorNode(object):
     def process_and_publish(self):
         #print('Processing')
         # Get size of the image
-        H, W, _ = self.data.shape
+        #H, W, _ = self.data.shape
         # Analyze image
-        for i in range(H):
-            for j in range(W):
-                if self.data[i][j][:] > [0.9, 0.9, 0.9]:
-                    rospy.loginfo('LED detected')
-                    self.pub_detections.publish('LED detected')
-                    return
+        #for i in range(H):
+        #    for j in range(W):
+        #        if self.data[i][j][:] > [0.9, 0.9, 0.9]:
+        #            rospy.loginfo('LED detected')
+        #            self.pub_detections.publish('LED detected')
+        #            return
         # No LED found
-        rospy.loginfo('No LED detected')
-        self.pub_detections.publish('No LED detected')
+        #rospy.loginfo('No LED detected')
+        #self.pub_detections.publish('No LED detected')
+
+        # Resize image
+        im = cv2.resize(self.data,(64*1,48*1))
+
+        # Get sizes
+        H,W,_ = im.shape
+
+        # Crop
+        # im = im[H/5:2*H/3,W/5:W,:]
+        im = im[H/10:2*H/3,W/8:W,:]
+
+        # Find RGB and gray images
+        im = cv2.cvtColor(im,cv2.COLOR_BGRA2RGB)
+        imGray = cv2.cvtColor(im,cv2.COLOR_RGB2GRAY)
+
+        # Detect
+        # Parameters
+        radius    = 1
+        desMax    = 2
+        threshold = 240
+        # Allocate space
+        maxValue = np.zeros((1,desMax))
+        # Images
+        imCircle = im.copy()
+        imGauss = cv2.GaussianBlur(imGray, (radius, radius), 0)
+        imIter = imGauss
+        # Get maxima and minima
+        for i in range(desMax):
+            # Find min and max
+            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imIter)
+            # Erase max
+            imIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
+            print maxLoc, maxVal
+            # Save max value
+            maxValue[i] = maxVal
+            # Add circle in image
+            cv2.circle(imCircle, maxLoc, radius, (255, 0, 0), 1)
+
+        if np.sum(maxValue > threshold) > 4:
+            rospy.loginfo('LED detected')
+            self.pub_detections.publish('LED detected')
+        else:
+            rospy.loginfo('No LED detected')
+            self.pub_detections.publish('No LED detected')
+
+        return
+
 
         #    ('timestamp', 'float'),
         #    ('rgb', 'uint8', (H, W, 3)),
