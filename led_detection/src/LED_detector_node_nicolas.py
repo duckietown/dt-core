@@ -5,6 +5,7 @@ from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped
 from sensor_msgs.msg import CompressedImage
+from std_msgs import String
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
 import numpy as np
 import cv2
@@ -23,7 +24,7 @@ class LEDDetectorNode(object):
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
         self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
-        #self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
+        self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name = rospy.get_namespace().strip("/")
 
         #self.protocol = rospy.get_param("~LED_protocol")
@@ -85,9 +86,9 @@ class LEDDetectorNode(object):
                 self.node_state = 1
                 rgb = numpy_from_ros_compressed(msg)
                 self.data = rgb
-                #rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
+                rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
                 #self.data.append({'timestamp': float_time, 'rgb': rgb[:,:,:]})
-                #debug_msg.capture_progress = 100.0*rel_time/self.capture_time
+                debug_msg.capture_progress = 100.0*rel_time/self.capture_time
 
             # Start processing
             elif not self.capture_finished and self.first_timestamp > 0:
@@ -106,28 +107,13 @@ class LEDDetectorNode(object):
         self.trigger = True
 
     def process_and_publish(self):
-        #print('Processing')
-        # Get size of the image
-        #H, W, _ = self.data.shape
-        # Analyze image
-        #for i in range(H):
-        #    for j in range(W):
-        #        if self.data[i][j][:] > [0.9, 0.9, 0.9]:
-        #            rospy.loginfo('LED detected')
-        #            self.pub_detections.publish('LED detected')
-        #            return
-        # No LED found
-        #rospy.loginfo('No LED detected')
-        #self.pub_detections.publish('No LED detected')
-
         # Resize image
-        im = cv2.resize(self.data,(64*1,48*1))
+        im = cv2.resize(self.data,(640*1,480*1))
 
         # Get sizes
         H,W,_ = im.shape
 
         # Crop
-        # im = im[H/5:2*H/3,W/5:W,:]
         im = im[H/10:2*H/3,W/8:W,:]
 
         # Find RGB and gray images
@@ -136,15 +122,20 @@ class LEDDetectorNode(object):
 
         # Detect
         # Parameters
-        radius    = 1
-        desMax    = 2
-        threshold = 240
+        radius         = 5
+        desMax         = 3
+        threshold      = 240
+        thresholdPixel = 50
+
         # Allocate space
-        maxValue = np.zeros((1,desMax))
+        maxValue    = np.zeros((1,desMax))
+        maxLocation = np.zeros((3,desMax))
+
         # Images
         imCircle = im.copy()
         imGauss = cv2.GaussianBlur(imGray, (radius, radius), 0)
         imIter = imGauss
+
         # Get maxima and minima
         for i in range(desMax):
             # Find min and max
@@ -153,19 +144,24 @@ class LEDDetectorNode(object):
             imIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
             print maxLoc, maxVal
             # Save max value
-            maxValue[i] = maxVal
+            maxValue[i]       = maxVal
+            maxLocation[i,:] = maxLoc
             # Add circle in image
             cv2.circle(imCircle, maxLoc, radius, (255, 0, 0), 1)
 
-        if np.sum(maxValue > threshold) > 4:
+        # Compute distance between LEDs
+        dist = np.zeros((desMax,desMax))
+        for i in range(desMax):
+            for j in range(desMax):
+                dist[i,j] = np.linalg.norm(maxLocation[i,:]-maxLocation[j,:])
+
+        # Find if tthere are LEDs
+        if np.sum(maxValue > threshold) > desMax-1 and np.amax(dist) < thresholdPixel:
             rospy.loginfo('LED detected')
             self.pub_detections.publish('LED detected')
         else:
             rospy.loginfo('No LED detected')
             self.pub_detections.publish('No LED detected')
-
-        return
-
 
         #    ('timestamp', 'float'),
         #    ('rgb', 'uint8', (H, W, 3)),
@@ -188,14 +184,14 @@ class LEDDetectorNode(object):
         #tac = time.time()-self.tinit
         #rospy.loginfo('[%s] Detection done. Processing Time: %.2f'%(self.node_name, toc))
         #print('[%s] Total Time taken: %.2f'%(self.node_name, tac))
-        #
-        #if(self.continuous):
-        #    self.trigger = True
-        #    self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
+
+        if(self.continuous):
+            self.trigger = True
+            self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
     
-    #def send_state(self, msg):
-    #    msg.state = self.node_state
-    #    self.pub_debug.publish(msg)
+    def send_state(self, msg):
+        msg.state = self.node_state
+        self.pub_debug.publish(msg)
 
 if __name__ == '__main__':
     rospy.init_node('LED_detector_node',anonymous=False)
