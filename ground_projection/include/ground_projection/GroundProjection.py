@@ -121,17 +121,24 @@ class GroundProjection():
         for r in range(self.board_['height']):
         	for c in range(self.board_['width']):
         		src_pts.append(np.array([r * self.board_['square_size'] , c * self.board_['square_size']] , dtype='float32') + self.board_['offset'])
-        # OpenCV labels corners left-to-right, top-to-bottom in most cases, but sometimes starts at bottom right
+        # OpenCV labels corners left-to-right, top-to-bottom
+        # We're having a problem with our pattern since it's not rotation-invariant
 
         # only reverse order if first point is at bottom right corner
-        if (src_pts[0][0] > src_pts[self.board_['width']*self.board_['height']-1][0] and src_pts[0][1] > src_pts[self.board_['width']*self.board_['height']-1][1]):
+        if ((corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][0] and (corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][1]):
+            rospy.loginfo("Reversing order of points.")
             src_pts.reverse()
+
 
         # Compute homography from image to ground
         self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
         extrinsics_filename = get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml"
         self.write_homography(extrinsics_filename)
         logger.info("Wrote ground projection to {}".format(extrinsics_filename))
+
+        # Check if specific point in matrix is larger than zero (this would definitly mean we're having a corrupted rotation matrix)
+        if(self.H[1][2] > 0):
+            rospy.logerr("WARNING: Homography could be corrupt!")
 
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''
