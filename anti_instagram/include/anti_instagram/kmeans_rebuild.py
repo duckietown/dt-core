@@ -28,9 +28,14 @@ def getimgdatapts(cv2img):
     return npdata
 
 
+def resizeImage(cv2image, factor):
+    return cv2.resize(cv2image, (0, 0), fx=factor, fy=factor)
+
+
 #priors
 def runKMeans(cv_img, num_colors, init):
 
+    # convert the image such that kMeans can be executed
     imgdata = getimgdatapts(cv_img[-100:,:,:]) # FIX ME: arbitrary cut off
     kmc = KMeans(n_clusters=num_colors, max_iter=25, n_init=10, init=init)
     t1 = time.time();
