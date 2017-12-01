@@ -2,6 +2,8 @@
 import sys
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 
 def getimgdatapts(cv2img):
@@ -34,16 +36,80 @@ def batchExtraction(image, batchSideLength):
     return newImage
 
 
-input_img = cv2.imread("test_images/pic1.jpg", cv2.IMREAD_UNCHANGED)
+input_img = cv2.imread("test_images/pic3.jpg", cv2.IMREAD_UNCHANGED)
 input_img_converted = getimgdatapts(input_img)
 print(input_img_converted.shape)
 width, height, channels = input_img.shape
 trial = cv2.resize(input_img, (0, 0), fx=0.1, fy=0.1)
 print(trial.shape)
-kmc = KMeans(n_clusters=10, init='k-means++', max_iter=20)
+kmc = KMeans(n_clusters=6, init='k-means++', max_iter=20)
+'''
 cv2.imshow('image', trial)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+'''
 trial_converted = getimgdatapts(trial)
 kmc.fit(trial_converted)
 print(kmc.cluster_centers_)
+print(kmc.cluster_centers_[1]/255)
+str0 = tuple([kmc.cluster_centers_[0,2],kmc.cluster_centers_[0,1],kmc.cluster_centers_[0,0]])
+str1 = tuple([kmc.cluster_centers_[1,2],kmc.cluster_centers_[1,1],kmc.cluster_centers_[1,0]])
+str2 = tuple([kmc.cluster_centers_[2,2],kmc.cluster_centers_[2,1],kmc.cluster_centers_[2,0]])
+str3 = tuple([kmc.cluster_centers_[3,2],kmc.cluster_centers_[3,1],kmc.cluster_centers_[3,0]])
+str4 = tuple([kmc.cluster_centers_[4,2],kmc.cluster_centers_[4,1],kmc.cluster_centers_[4,0]])
+str5 = tuple([kmc.cluster_centers_[5,2],kmc.cluster_centers_[5,1],kmc.cluster_centers_[5,0]])
+print(str1)
+image0 = np.zeros((200, 200, 3), np.uint8)
+image0[:] = str0
+image1 = np.zeros((200, 200, 3), np.uint8)
+image1[:] = str1
+image2 = np.zeros((200, 200, 3), np.uint8)
+image2[:] = str2
+image3 = np.zeros((200, 200, 3), np.uint8)
+image3[:] = str3
+image4 = np.zeros((200, 200, 3), np.uint8)
+image4[:] = str4
+image5 = np.zeros((200, 200, 3), np.uint8)
+image5[:] = str5
+
+labelArray = kmc.labels_
+
+num0 = np.sum(labelArray==0)
+num1 = np.sum(labelArray==1)
+num2 = np.sum(labelArray==2)
+num3 = np.sum(labelArray==3)
+num4 = np.sum(labelArray==4)
+num5 = np.sum(labelArray==5)
+
+
+
+f, axarr = plt.subplots(3, 2)
+axarr[0,0].imshow(image0)
+axarr[0,0].axis('off')
+axarr[0,0].set_title(str(num0))
+
+axarr[0,1].imshow(image1)
+axarr[0,1].axis('off')
+axarr[0,1].set_title(str(num1))
+
+axarr[1,0].imshow(image2)
+axarr[1,0].axis('off')
+axarr[1,0].set_title(str(num2))
+
+axarr[1,1].imshow(image3)
+axarr[1,1].axis('off')
+axarr[1,1].set_title(str(num3))
+
+axarr[2,0].imshow(image4)
+axarr[2,0].axis('off')
+axarr[2,0].set_title(str(num4))
+
+axarr[2,1].imshow(image5)
+axarr[2,1].axis('off')
+axarr[2,1].set_title(str(num5))
+
+
+plt.show()
+
+for i in range(kmc.n_clusters):
+    print(np.sum(labelArray==i))
