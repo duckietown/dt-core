@@ -3,6 +3,7 @@ import sys
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
+from collections import Counter
 
 def getimgdatapts(cv2img):
     x, y, p = cv2img.shape
@@ -34,16 +35,40 @@ def batchExtraction(image, batchSideLength):
     return newImage
 
 
-input_img = cv2.imread("test_images/pic1.jpg", cv2.IMREAD_UNCHANGED)
-input_img_converted = getimgdatapts(input_img)
-print(input_img_converted.shape)
+input_img = cv2.imread("test_images/pic3.jpg", cv2.IMREAD_UNCHANGED)
+#input_img_converted = getimgdatapts(input_img)
+#print(input_img_converted.shape)
+
 width, height, channels = input_img.shape
 trial = cv2.resize(input_img, (0, 0), fx=0.1, fy=0.1)
 print(trial.shape)
-kmc = KMeans(n_clusters=10, init='k-means++', max_iter=20)
-cv2.imshow('image', trial)
+
+# blur image using gaussian:
+blurG = cv2.GaussianBlur(trial, (5,5), 0)
+
+# blur image using median:
+blurM = cv2.medianBlur(trial, 5)
+
+# plot both blurred images
+blurBoth = np.concatenate((blurG, blurM), axis=1)
+cv2.namedWindow('blurred Images', cv2.WINDOW_NORMAL)
+cv2.imshow('blurred Images', blurBoth)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-trial_converted = getimgdatapts(trial)
+
+# apply kmeans on blurred image:
+
+# number of centers for kmeans
+n_centers = 6
+kmc = KMeans(n_clusters=n_centers, init='k-means++', max_iter=20)
+trial_converted = getimgdatapts(blurM)
 kmc.fit(trial_converted)
-print(kmc.cluster_centers_)
+trained_centers = kmc.cluster_centers_
+labels = kmc.labels_
+
+# print centers and counts
+labelcount = Counter()
+for i in np.arange(n_centers):
+    labelcount[i] = np.sum(labels == i)
+print(labelcount)
+print(trained_centers)
