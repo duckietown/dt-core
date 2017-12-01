@@ -18,7 +18,8 @@ CENTERS2 = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240
 CENTERS = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 # in HSV: [0,0,60], [127.5000  233.7500  240.0000],[0,0,240]
 
-
+# convert 3D image to 2D array in form of (n_samples, n_features)
+# So we need an array of the form (x*y, 3) for 3D color spaces
 def getimgdatapts(cv2img):
     x, y, p = cv2img.shape
     cv2_tpose = cv2img.transpose()
