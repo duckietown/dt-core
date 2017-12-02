@@ -25,7 +25,7 @@ class LEDJoyMapper(object):
              # 'a' is pressed
             0: 'ON_WHITE',
             # 'b' is pressed
-            1: 'OFF'
+            1: 'OFF'
 	    #1: 'ON_RED',
             # 'Y' is pressed
             #3: 'ON_GREEN',

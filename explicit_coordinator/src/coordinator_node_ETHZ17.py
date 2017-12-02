@@ -67,7 +67,7 @@ class VehicleCoordinator():
 # state of the clearance
         self.clearance_to_go_pub = rospy.Publisher('~clearance_to_go', CoordinationClearanceETHZ17, queue_size=10)
 # signal for the intersection
-        self.pub_intersection_go = rospy.Publisher('~intersection_go', BoolStamped, queue_size=1)
+        self.pub_intersection_go = rospy.Publisher('~intersection_go', BoolStampedETHZ17, queue_size=1)
         self.pub_coord_cmd = rospy.Publisher('~car_cmd', Twist2DStampedETHZ17, queue_size=1)
 
 # set the light to be off
@@ -131,7 +131,7 @@ class VehicleCoordinator():
         self.traffic_light = UNKNOWN
         #self.right_veh = UNKNOWN
         #self.opposite_veh = UNKNOWN
-	self.veh_detected = UNKNOWN
+	self.veh_detected = UNKNOWN
 	self.veh_not_detected = UNKNOWN
 
 # publishing the topics
@@ -169,7 +169,7 @@ class VehicleCoordinator():
         elif self.state == State.AT_STOP_CLEARING:
             #if self.right_veh != SignalsDetectionETHZ17.NO_CAR or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_B or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_C:
 	     if self.veh_detected == SignalsDetectionETHZ17.CARS:  # if we are seeing other cars (i.e. we cannot go)
-		self.roof_light = CoordinationSignalETHZ17.OFF
+		self.roof_light = CoordinationSignalETHZ17.OFF
  		self.random_delay = random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
                 self.set_state(State.CONFLICT)

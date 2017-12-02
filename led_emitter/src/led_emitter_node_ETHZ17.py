@@ -91,7 +91,7 @@ class LEDEmitter(object):
 				rospy.loginfo('changePattern(%r)' % pattern_name)
 				self.pattern = [[0,0,0]]*5
 
-			self.pub_state.publish(current_pattern_name)
+			self.pub_state.publish(self.current_pattern_name)
 
 			#self.pattern = [[0,0,0]] * 5
 			#self.pattern[2] = self.protocol['colors'][color]
