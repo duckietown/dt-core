@@ -4,28 +4,25 @@ import time
 from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped
-from sensor_msgs.msg import CompressedImage, Image
-from std_msgs.msg import String
+from sensor_msgs.msg import CompressedImage
+from std_msgs import String
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
 import numpy as np
 import cv2
-from cv_bridge import CvBridge, CvBridgeError
 
 class LEDDetectorNode(object):
     def __init__(self):
         self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active 
         self.first_timestamp = 0
-        self.capture_time = 0.1 #0.97 # capture time
+        self.capture_time = 0.97 # capture time
         self.capture_finished = True
         self.tinit = None
         self.trigger = True
         self.node_state = 0
-	self.bridge = CvBridge()
         self.data = []
         
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
-	self.pub_image = rospy.Publisher("~image_detection",Image,queue_size=1)
         self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
         self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name = rospy.get_namespace().strip("/")
@@ -69,7 +66,7 @@ class LEDDetectorNode(object):
 
         if self.trigger:
             rospy.loginfo('[%s] GOT TRIGGER! Starting...')
-            self.trigger = False
+            #self.trigger = False
             self.data = []
             self.capture_finished = False
             rospy.loginfo('[%s] Start capturing frames'%self.node_name)
@@ -125,20 +122,19 @@ class LEDDetectorNode(object):
 
         # Detect
         # Parameters
-        radius            = 5
-        desMax            = 3
-        threshold         = 237
-        thresholdPixelMax = 200
-	thresholdPixelMin = 0
+        radius         = 5
+        desMax         = 3
+        threshold      = 240
+        thresholdPixel = 50
 
         # Allocate space
-        maxValue    = np.zeros((desMax,1))
-        maxLocation = np.zeros((desMax,2))
+        maxValue    = np.zeros((1,desMax))
+        maxLocation = np.zeros((3,desMax))
 
         # Images
         imCircle = im.copy()
         imGauss = cv2.GaussianBlur(imGray, (radius, radius), 0)
-        imIter = imGauss.copy()
+        imIter = imGauss
 
         # Get maxima and minima
         for i in range(desMax):
@@ -148,17 +144,10 @@ class LEDDetectorNode(object):
             imIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
             print maxLoc, maxVal
             # Save max value
-            maxValue[i]      = maxVal
+            maxValue[i]       = maxVal
             maxLocation[i,:] = maxLoc
             # Add circle in image
-            cv2.circle(imCircle, maxLoc, radius, (0,0,255), 1)
-	
-		
-	# Publish image with circles
-	#cvImage = cv2.imdecode(imCircle,cv2.IMREAD_COLOR)
-	imCircle_msg = self.bridge.cv2_to_imgmsg(imCircle,encoding="passthrough")
-	# Publish image
-	self.pub_image.publish(imCircle_msg)
+            cv2.circle(imCircle, maxLoc, radius, (255, 0, 0), 1)
 
         # Compute distance between LEDs
         dist = np.zeros((desMax,desMax))
@@ -167,7 +156,7 @@ class LEDDetectorNode(object):
                 dist[i,j] = np.linalg.norm(maxLocation[i,:]-maxLocation[j,:])
 
         # Find if tthere are LEDs
-        if np.sum(maxValue > threshold) >= desMax and np.amax(dist) < thresholdPixelMax and np.amin(dist) >= thresholdPixelMin:
+        if np.sum(maxValue > threshold) > desMax-1 and np.amax(dist) < thresholdPixel:
             rospy.loginfo('LED detected')
             self.pub_detections.publish('LED detected')
         else:
