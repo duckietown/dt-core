@@ -14,10 +14,10 @@ def calculate_transform(image):
         parameters['shift']
     """
     centers4 = CENTERS2
-    trained4, counter4,score4 = runKMeans(image, num_colors=4, init=centers4)
-    trained4 = trained4[[0,2,3],:]
-    counter4 = [counter4[0],counter4[2],counter4[3]]
-    centers4 = centers4[[0,2,3],:]
+    trained4, counter4, score4 = runKMeans(image, num_colors=4, init=centers4)
+    trained4 = trained4[[0, 2, 3], :]
+    counter4 = [counter4[0], counter4[2], counter4[3]]
+    centers4 = centers4[[0, 2, 3], :]
     centers3 = CENTERS
     trained3, counter3,score3 = runKMeans(image, num_colors=3, init=centers3)
     decision34=((score3+3e7)>score4)>score4;
