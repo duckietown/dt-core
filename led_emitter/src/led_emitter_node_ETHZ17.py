@@ -12,15 +12,19 @@ class LEDEmitter(object):
 	def __init__(self):
 		self.led = RGB_LED()
 		self.node_name = rospy.get_name()
+		self.active = True
 		self.pattern = [[0,0,0]] * 5
-		self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
+		self.current_pattern_name = 'ON_WHITE'
+		self.changePattern_('ON_WHITE')
+
+		#self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
+		self.pub_state = rospy.Publisher("~current_led_state", String,queue_size=1)
 		self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
 
 		# self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
 		# self.cycle = None
 
 		# self.is_on = False
-		self.active = True
 
 		# self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
@@ -36,8 +40,6 @@ class LEDEmitter(object):
 		#        c[i] = c[i]  * scale
 
 		self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.cycleTimer)
-		self.current_pattern_name = 'ON'
-		self.changePattern_('ON')
 
 	# def cbSwitch(self, switch_msg): # active/inactive switch from FSM
 	#    self.active = switch_msg.data
@@ -63,7 +65,7 @@ class LEDEmitter(object):
 
 	def changePattern_(self, pattern_name):
 		if pattern_name:
-			if (self.current_pattern_name == pattern_name):
+			if self.current_pattern_name == pattern_name:
 				return
 			else:
 				self.current_pattern_name = pattern_name
@@ -89,10 +91,10 @@ class LEDEmitter(object):
 				rospy.loginfo('changePattern(%r)' % pattern_name)
 				self.pattern = [[0,0,0]]*5
 
+			self.pub_state.publish(current_pattern_name)
+
 			#self.pattern = [[0,0,0]] * 5
 			#self.pattern[2] = self.protocol['colors'][color]
-
-			# print(self.pattern)
 
 			# if pattern_name in ['traffic_light_go', 'traffic_light_stop']:
 				# self.pattern = [self.protocol['colors'][color]] * 5
