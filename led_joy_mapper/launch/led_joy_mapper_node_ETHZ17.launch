@@ -1,6 +1,6 @@
 <launch>
 	<arg name="pkg_name" value="led_joy_mapper"/>
-	<arg name="node_name" default="led_joy_mapper_node_nicolas"/>
+	<arg name="node_name" default="led_joy_mapper_node_ETHZ17"/>
 		
 	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
 	<arg name="local" default="false" doc="true for running on laptop. false for running on vehicle."/>

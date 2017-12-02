@@ -25,13 +25,14 @@ class LEDJoyMapper(object):
              # 'a' is pressed
             0: 'ON_WHITE',
             # 'b' is pressed
-            1: 'ON_RED',
+            1: 'OFF'
+	    #1: 'ON_RED',
             # 'Y' is pressed
-            3: 'ON_GREEN',
+            #3: 'ON_GREEN',
             # 'X' is pressed
-            4: 'ON_BLUE',
+            #4: 'ON_BLUE',
             # lb is pressed
-            5: 'OFF',
+            #5: 'OFF',
             # rb is pressed
             # 5: 'traffic_light_stop',
             # logitek button is pressed

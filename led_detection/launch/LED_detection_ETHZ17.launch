@@ -9,7 +9,7 @@
 	<arg name="continuous" default="True"/> <!-- manual trigger required if false [interactive mode] -->
 
 	<!-- Run detector on remote (vehicle) -->
-	<node ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node_nicolas.py" name="LED_detector_node" output="screen" clear_params="true" required="true">
+	<node ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node_ETHZ17.py" name="LED_detector_node" output="screen" clear_params="true" required="true">
 		<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 		<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
 		<param name="continuous" type="bool" value="$(arg continuous)" />
