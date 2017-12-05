@@ -73,20 +73,29 @@ class kMeanClass:
         plotRows = int(math.ceil(self.num_centers / 2.0))
         f, axarr = plt.subplots(plotRows, 2)
         for row in range(plotRows):
-            if row != plotRows - 1:
-                axarr[row, 0].imshow(self.color_image_array[2*row])
-                axarr[row, 0].axis('off')
-                axarr[row, 0].set_title(str(self.labelcount[2*row]))
-
-                axarr[row, 1].imshow(self.color_image_array[2*row + 1])
-                axarr[row, 1].axis('off')
-                axarr[row, 1].set_title(str(self.labelcount[2*row + 1]))
-            else:
+            if self.num_centers % 2 == 0:
                 axarr[row, 0].imshow(self.color_image_array[2 * row])
                 axarr[row, 0].axis('off')
                 axarr[row, 0].set_title(str(self.labelcount[2 * row]))
 
+                axarr[row, 1].imshow(self.color_image_array[2 * row + 1])
                 axarr[row, 1].axis('off')
+                axarr[row, 1].set_title(str(self.labelcount[2 * row + 1]))
+            else:
+                if row != plotRows - 1:
+                    axarr[row, 0].imshow(self.color_image_array[2*row])
+                    axarr[row, 0].axis('off')
+                    axarr[row, 0].set_title(str(self.labelcount[2*row]))
+
+                    axarr[row, 1].imshow(self.color_image_array[2*row + 1])
+                    axarr[row, 1].axis('off')
+                    axarr[row, 1].set_title(str(self.labelcount[2*row + 1]))
+                else:
+                    axarr[row, 0].imshow(self.color_image_array[2 * row])
+                    axarr[row, 0].axis('off')
+                    axarr[row, 0].set_title(str(self.labelcount[2 * row]))
+
+                    axarr[row, 1].axis('off')
         print(self.color_array)
         plt.show()
         cv2.waitKey(0)
