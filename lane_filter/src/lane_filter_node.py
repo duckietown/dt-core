@@ -19,7 +19,7 @@ class LaneFilterNode(object):
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_velocity = rospy.Subscriber("~velocity", Twist2DStamped, self.updateVelocity)
+        self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
         # Publishers
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
