@@ -8,29 +8,139 @@ import argparse
 from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
+import math
 
 
-class kMeans:
+class kMeanClass:
     """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
     input_image = []
+    resized_image = []
+    blurred_image = []
+    image_array = []
     num_centers = -1
+    blur_alg = []
+    fac_resize = -1
+    blur_kernel = -1
+    trained_centers = []
+    labels = []
+    labelcount = Counter()
+    color_array = []
+    color_image_array = []
 
-    def __init__(self, inputImage, numCenters):
-        self.input_image = inputImage
-        self.num_centers = numCenters
-        print('created instance of kMeans!')
+    # initialize
+    def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer):
+        # read the image
+        self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
+        self.num_centers = int(numCenters)
+        self.blur_alg = blurAlg
+        self.fac_resize = float(resize)
+        self.blur_kernel = int(blurKer)
+        # set up array for center colors
+        self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
+        print('created instance of kMeans with arguments:')
+        print('     input image = ' + str(inputImage))
+        print('     number of centers = ' + str(self.num_centers))
+        print('     blur algorithm = ' + str(self.blur_alg))
+        print('     resize factor = ' + str(self.fac_resize))
+        print('     blurring kernel size = ' + str(self.blur_kernel))
+
+    # re-shape input image for kMeans
+    def _getimgdatapts(self, cv2img):
+        x, y, p = cv2img.shape
+        cv2_tpose = cv2img.transpose()
+        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x * y])
+        npdata = np.transpose(cv2_arr_tpose)
+        return npdata
+
+    def _blurImg(self):
+        # blur image using median:
+        if self.blur_alg == 'median':
+            self.blurred_image = cv2.medianBlur(self.resized_image, self.blur_kernel)
+
+        # blur image using gaussian:
+        elif self.blur_alg == 'gaussian':
+            self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
+
+    def _plotColors(self):
+        # loop over all centers
+        for center in np.arange(self.num_centers):
+            # get color
+            color_i = tuple([self.trained_centers[center,2],self.trained_centers[center,1],self.trained_centers[center,0]])
+            self.color_array.append(color_i)
+
+            self.color_image_array[center, :] = color_i
+
+        plotRows = int(math.ceil(self.num_centers / 2.0))
+        f, axarr = plt.subplots(plotRows, 2)
+        for row in range(plotRows):
+            if row != plotRows - 1:
+                axarr[row, 0].imshow(self.color_image_array[2*row])
+                axarr[row, 0].axis('off')
+                axarr[row, 0].set_title(str(self.labelcount[2*row]))
+
+                axarr[row, 1].imshow(self.color_image_array[2*row + 1])
+                axarr[row, 1].axis('off')
+                axarr[row, 1].set_title(str(self.labelcount[2*row + 1]))
+            else:
+                axarr[row, 0].imshow(self.color_image_array[2 * row])
+                axarr[row, 0].axis('off')
+                axarr[row, 0].set_title(str(self.labelcount[2 * row]))
+
+                axarr[row, 1].axis('off')
+        print(self.color_array)
+        plt.show()
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+
+
+    # apply kMeans alg
+    def applyKM(self):
+        # resize image
+        self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
+        print('resized image!')
+
+        # blur image
+        self._blurImg()
+        print('blurred image!')
+
+        # prepare KMeans
+        kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
+
+        # prepare data points
+        self.image_array = self._getimgdatapts(self.blurred_image)
+
+        # run KMeans
+        kmc.fit(self.image_array)
+
+        # get centers, labels and labelcount from KMeans
+        self.trained_centers = kmc.cluster_centers_
+        self.labels = kmc.labels_
+        for i in np.arange(self.num_centers):
+            self.labelcount[i] = np.sum(self.labels == i)
+
+        # plot colors
+        self._plotColors()
+
 
 
 
 
 def main():
-    # define command line arguments
+    # define and parse command line arguments
     parser = argparse.ArgumentParser(
         description='Perform kMeans with n initial centers.')
     parser.add_argument('img_path', help='path to the image')
     parser.add_argument('n_centers', help='numbers of initial centers')
+    parser.add_argument('--resize', default='0.1',
+                        help='factor of downsampling the input image. DEFAULT = 0.1')
+    parser.add_argument('--blur', default='median',
+                        help="blur algorithm. 'median' or 'gaussian. DEFAULT = median")
+    parser.add_argument('--blur_kernel', default='5',
+                        help='size of kernel for blurring. DEFAULT = 5')
     parser.add_argument('--output_dir', default='./output_images',
-                        help='directory for the output images')
+                        help='directory for the output images. DEFAULT = ./output_images')
     args = parser.parse_args()
 
     # check if file exists
@@ -42,25 +152,40 @@ def main():
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
+    # check resize factor
+    if (args.resize < 1) or (args.resize <= 0):
+        print('resize factor between 0 and 1')
+        sys.exit(2)
+
+    # check blur alg
+    if not (args.blur == "median" or args.blur == "gaussian"):
+        print('blur alg must be median or gaussian')
+        sys.exit(2)
+
+    # check kernel size
+    print(args.blur_kernel)
+    if (int(args.blur_kernel) % 2 == 0):
+        print('kernel size must be odd')
+        sys.exit(2)
+
+    # create instance of kMeans
+    KM = kMeanClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
+    KM.applyKM()
+
+
+
 
 
 
 if __name__=='__main__':
     sys.exit(main())
 
-    fname = sys.argv[1]
-    img = cv2.imread(fname)
-    masks = processGeom(img, viz=True)
 
 
 
-def getimgdatapts(cv2img):
-    x, y, p = cv2img.shape
-    cv2_tpose = cv2img.transpose()
-    cv2_arr_tpose = np.reshape(cv2_tpose,[p,x*y])
-    npdata = np.transpose(cv2_arr_tpose);
-    return npdata
 
+
+"""
 def batchExtraction(image, batchSideLength):
     xSize, ySize, zSize = image.shape
     xSizeNew = int(xSize / batchSideLength)
@@ -188,3 +313,5 @@ for i in range(kmc.n_clusters):
     print(np.sum(labelArray==i))
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
+"""
