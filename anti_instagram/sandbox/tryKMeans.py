@@ -1,11 +1,58 @@
 #!/usr/bin/env python
 import sys
+import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
+
+
+class kMeans:
+    """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
+    input_image = []
+    num_centers = -1
+
+    def __init__(self, inputImage, numCenters):
+        self.input_image = inputImage
+        self.num_centers = numCenters
+        print('created instance of kMeans!')
+
+
+
+
+def main():
+    # define command line arguments
+    parser = argparse.ArgumentParser(
+        description='Perform kMeans with n initial centers.')
+    parser.add_argument('img_path', help='path to the image')
+    parser.add_argument('n_centers', help='numbers of initial centers')
+    parser.add_argument('--output_dir', default='./output_images',
+                        help='directory for the output images')
+    args = parser.parse_args()
+
+    # check if file exists
+    if not os.path.isfile(args.img_path):
+        print('file not found')
+        sys.exit(2)
+
+    # check if dir exists, create if not
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+
+
+
+
+if __name__=='__main__':
+    sys.exit(main())
+
+    fname = sys.argv[1]
+    img = cv2.imread(fname)
+    masks = processGeom(img, viz=True)
+
+
 
 def getimgdatapts(cv2img):
     x, y, p = cv2img.shape
