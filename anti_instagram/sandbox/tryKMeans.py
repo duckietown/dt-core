@@ -319,10 +319,4 @@ cv2.destroyAllWindows()
 
 for i in range(kmc.n_clusters):
     print(np.sum(labelArray==i))
-<<<<<<< HEAD
-=======
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
 """
->>>>>>> 2cb630b495b58214a633b4e09b43c5ba5fcecfeb
