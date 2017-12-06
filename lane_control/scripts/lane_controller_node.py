@@ -101,7 +101,15 @@ class lane_controller(object):
         #self.pub_wheels_cmd.publish(wheels_cmd_msg)
 
     def cbPose(self, lane_pose_msg):
+
         self.lane_reading = lane_pose_msg
+
+        # Calculating the delay image processing took
+        timestamp_now = rospy.Time.now()
+        image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
+
+        # delay from taking the image until now in seconds
+        image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
