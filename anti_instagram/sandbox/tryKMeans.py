@@ -54,9 +54,6 @@ blurM = cv2.medianBlur(trial, 5)
 
 # plot both blurred images
 blurBoth = np.concatenate((blurG, blurM), axis=1)
-cv2.namedWindow('blurred Images', cv2.WINDOW_NORMAL)
-cv2.imshow('blurred Images', blurBoth)
-cv2.waitKey(0)
 
 
 # apply kmeans on blurred image:
@@ -136,8 +133,9 @@ axarr[2,1].set_title(str(num5))
 
 
 plt.show()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 for i in range(kmc.n_clusters):
     print(np.sum(labelArray==i))
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+
