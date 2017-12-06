@@ -141,14 +141,15 @@ class kMeanClass:
         trueYellow = [50, 240, 240]
         trueWhite = [240, 240, 240]
 
-        errorBlack = np.zeros(trained_centers)
-        errorYellow = np.zeros(trained_centers)
-        errorWhite = np.zeros(trained_centers)
+        errorBlack = np.zeros(self.num_centers)
+        errorYellow = np.zeros(self.num_centers)
+        errorWhite = np.zeros(self.num_centers)
 
         if (withRed):
-            errorRed = np.zeros(trained_centers)
+            errorRed = np.zeros(self.num_centers)
 
         for i in range(self.num_centers):
+            print(trained_centers[i])
             errorBlack[i] = np.linalg.norm(trueBlack - trained_centers[i])
             errorYellow[i] = np.linalg.norm(trueYellow - trained_centers[i])
             errorWhite[i] = np.linalg.norm(trueWhite - trained_centers[i])
@@ -174,35 +175,71 @@ class kMeanClass:
         index = 0
         while (not centersFound):
 
-            if errorBlackSortedIdx[i] not in ListOfIndices and not blackIdxFound:
-                ListOfIndices.append(errorBlackSortedIdx[i])
+            if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
+                ListOfIndices.append(errorBlackSortedIdx[index])
                 blackIdxFound = True
-                idxBlack = errorBlackSortedIdx[i]
-            if errorWhiteSortedIdx[i] not in ListOfIndices and not whiteIdxFound:
-                ListOfIndices.append(errorWhiteSortedIdx[i])
+                idxBlack = errorBlackSortedIdx[index]
+            if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
+                ListOfIndices.append(errorWhiteSortedIdx[index])
                 whiteIdxFound = True
-                idxWhite = errorWhiteSortedIdx[i]
-            if errorYellowSortedIdx[i] not in ListOfIndices and not yellowIdxFound:
-                ListOfIndices.append(errorYellowSortedIdx[i])
+                idxWhite = errorWhiteSortedIdx[index]
+            if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
+                ListOfIndices.append(errorYellowSortedIdx[index])
                 yellowIdxFound = True
-                idxYellow = errorYellowSortedIdx[i]
+                idxYellow = errorYellowSortedIdx[index]
             if (withRed):
-                if errorBlackSortedIdx[i] not in ListOfIndices and not redIdxFound:
-                    ListOfIndices.append(errorRedSortedIdx[i])
+                if errorBlackSortedIdx[index] not in ListOfIndices and not redIdxFound:
+                    ListOfIndices.append(errorRedSortedIdx[index])
                     redIdxFound = True
-                    idxRed = errorRedSortedIdx[i]
+                    idxRed = errorRedSortedIdx[index]
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
             index = index + 1
+            print(index)
 
         if (withRed):
             return idxYellow, idxRed, idxWhite, idxBlack
         else:
             return idxYellow, idxWhite, idxBlack
 
-    def plotDeterminedCenters(self, centerBlack, centerYellow):
+    def plotDeterminedCenters(self, centerBlack, centerYellow, centerWhite, centerRed):
 
+        tupleBlack = tuple([centerBlack[2], centerBlack[1], centerBlack[1]])
+        tupleWhite = tuple([centerWhite[2], centerWhite[1], centerWhite[1]])
+        tupleYellow = tuple([centerYellow[2], centerYellow[1], centerYellow[1]])
+        tupleRed = tuple([centerRed[2], centerRed[1], centerRed[1]])
+
+        imageBlack = np.zeros((200, 200, 3), np.uint8)
+        imageBlack[:] = tupleBlack
+        imageWhite = np.zeros((200, 200, 3), np.uint8)
+        imageWhite[:] = tupleWhite
+        imageYellow = np.zeros((200, 200, 3), np.uint8)
+        imageYellow[:] = tupleYellow
+        imageRed = np.zeros((200, 200, 3), np.uint8)
+        imageRed[:] = tupleRed
+
+        f, axarr = plt.subplots(2, 2)
+
+        axarr[0, 0].imshow(imageBlack)
+        axarr[0, 0].axis('off')
+        axarr[0, 0].set_title("Black")
+
+        axarr[0, 1].imshow(imageWhite)
+        axarr[0, 1].axis('off')
+        axarr[0, 1].set_title("White")
+
+        axarr[1, 0].imshow(imageYellow)
+        axarr[1, 0].axis('off')
+        axarr[1, 0].set_title("Yellow")
+
+        axarr[1, 1].imshow(imageRed)
+        axarr[1, 1].axis('off')
+        axarr[1, 1].set_title("Red")
+
+        plt.show()
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 def main():
     # define and parse command line arguments
@@ -248,7 +285,9 @@ def main():
     # create instance of kMeans
     KM = kMeanClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
     KM.applyKM()
-
+    idxYellow, idxRed, idxWhite, idxBlack = KM.determineColor(True, KM.trained_centers)
+    KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
+                             KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
 
 if __name__ == '__main__':
     sys.exit(main())
