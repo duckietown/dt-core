@@ -109,6 +109,8 @@ class kMeanClass:
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
         print('resized image!')
+        cv2.imshow('img', self.resized_image)
+        cv2.waitKey(0)
 
         # blur image
         self._blurImg()
