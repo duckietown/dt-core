@@ -15,7 +15,7 @@ class estimateError:
     out_image = []
 
     # hardcoded colors
-    black = [60,60,60]
+    black = [60, 60, 60]
     red = [60, 60, 240]
     yellow = [50, 240, 240]
     white = [240, 240, 240]
