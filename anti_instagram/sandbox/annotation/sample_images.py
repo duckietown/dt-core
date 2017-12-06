@@ -27,11 +27,11 @@ if __name__ == '__main__':
         shutil.rmtree(args.output_dir, ignore_errors=True)
     os.makedirs(args.output_dir)
     rb = rosbag.Bag(args.bag_path)
-    n_msgs = rb.get_message_count(args.topic)
     n_imgs = float(args.n_imgs)
-    p = n_imgs / n_msgs
+    p = n_imgs / rb.get_message_count(args.topic)
     img_no = 0
     for msg in rb.read_messages(args.topic):
         if numpy.random.rand() < p:
-            cv2.imwrite(os.path.join(args.output_dir, 'sample_{{:0{}d}}.png'.format(int(np.floor(np.log10(n_imgs))) + 1).format(img_no)), duckietown_utils.rgb_from_ros(msg.message)[..., ::-1])
+            cv2.imwrite(os.path.join(args.output_dir, 'sample_{{:0{}d}}.png'.format(int(np.floor(
+                np.log10(n_imgs))) + 1).format(img_no)), duckietown_utils.rgb_from_ros(msg.message)[..., ::-1])
             img_no += 1
