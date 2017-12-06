@@ -31,31 +31,29 @@ class VehicleFilterNode(object):
 		self.loadConfig(self.cali_file)
 		
 		self.circlepattern_dist = 0.02
-		#self.circlepattern = np.array(self.circlepattern_dims[0], self.circlepattern_dims[1], Point32)
-		self.circlepattern = list()
-		
+		self.circlepattern = np.zeros([3, 21])
+		#self.circlepattern = list()
+		print(self.circlepattern)
 		for i in range(0, 7):
 			for j in range(0, 3):
-						point3D = Point32
-						point3D.x = self.circlepattern_dist*i
-						point3D.y = self.circlepattern_dist*j
-						point3D.z = 0
-						self.circlepattern.append(point3D)
-		print(self.circlepattern[1].x)
+# 						point3D = Point32()
+# 						point3D.x = self.circlepattern_dist*i
+# 						point3D.y = self.circlepattern_dist*j
+# 						point3D.z = 0
+# 						self.circlepattern[i+j]=point3D
+						self.circlepattern[0,i+j*7] = self.circlepattern_dist*i
+						self.circlepattern[1,i+j*7] = self.circlepattern_dist*j
+		print(self.circlepattern)
 		
-		#self.sub_corners = rospy.Subscriber("~corners", VehicleCorners, 
-		#		self.cbCorners, queue_size=1)
-		
-		self.sub_test = rospy.Subscriber("~corners", VehicleCorners, 
-				self.cbtest, queue_size=1)
-		
+		self.sub_corners = rospy.Subscriber("~corners", VehicleCorners, 
+				self.cbCorners, queue_size=1)
+				
 		self.pub_pose = rospy.Publisher("~pose", VehiclePose, queue_size=1)
 		self.sub_info = rospy.Subscriber("~camera_info", CameraInfo,
 				self.cbCameraInfo, queue_size=1)
 		self.pcm = PinholeCameraModel()
 		rospy.loginfo("[%s] Initialization completed" % (self.node_name))
 		self.lock = mutex()
-		print("done")
 
 	def setupParam(self,param_name,default_value):
 		value = rospy.get_param(param_name,default_value)
@@ -83,12 +81,6 @@ class VehicleFilterNode(object):
 			self.lock.unlock()
 
 	def cbCorners(self, vehicle_corners_msg):
-		print("now")
-		
-		if not self.active:
-			return
-		
-		print("now")
 		# Start a daemon thread to process the image
 		thread = threading.Thread(target=self.processCorners,
 				args=(vehicle_corners_msg,))
@@ -98,15 +90,14 @@ class VehicleFilterNode(object):
 
 	def processCorners(self, vehicle_corners_msg):
 		# do nothing - just relay the detection
-		print("now")
 		if self.lock.testandset():
 			points = []
 			for Point32 in vehicle_corners_msg.corners:
 				point = [Point32.x, Point32.y]
 				points.append(point)
 				
-			print(self.pcm)
-			#cv2.solvePnP(self.circlepattern, points, self)
+			print(self.pcm.distortionCoeffs())
+			cv2.solvePnP(self.circlepattern, points, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
 			pose_msg_out = VehiclePose()
 			pose_msg_out.rho.data = 0.0
 			pose_msg_out.theta.data = 0.0
@@ -117,9 +108,6 @@ class VehicleFilterNode(object):
 			self.lock.unlock()
 			return
 	
-	def cbtest(self, vehicle_corners_msg):
-		print("now")
-
 if __name__ == '__main__': 
 	rospy.init_node('vehicle_filter_node', anonymous=False)
 	vehicle_filter_node = VehicleFilterNode()
