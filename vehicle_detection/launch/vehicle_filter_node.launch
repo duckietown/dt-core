@@ -7,7 +7,7 @@
     <group ns="$(arg veh)">        
         <node if="$(arg local)" name="vehicle_filter_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen"/>
         <include unless="$(arg local)" file="$(find duckietown)/machines"/>
-        <node unless="$(arg local)" machine="$(arg veh)" name="virtual_mirror_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" />
+        <node unless="$(arg local)" machine="$(arg veh)" name="vehicle_filter_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" />
     </group>
 
     <!-- Publications -->
