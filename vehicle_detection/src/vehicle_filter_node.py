@@ -30,8 +30,8 @@ class VehicleFilterNode(object):
 					% (self.node_name, self.cali_file))
 		self.loadConfig(self.cali_file)
 		
-		self.circlepattern_dist = 0.02
-		self.circlepattern = np.zeros([3, 21])
+		self.circlepattern_dist = 0.015
+		self.circlepattern = np.zeros([21, 3])
 		#self.circlepattern = list()
 		print(self.circlepattern)
 		for i in range(0, 7):
@@ -41,8 +41,8 @@ class VehicleFilterNode(object):
 # 						point3D.y = self.circlepattern_dist*j
 # 						point3D.z = 0
 # 						self.circlepattern[i+j]=point3D
-						self.circlepattern[0,i+j*7] = self.circlepattern_dist*i
-						self.circlepattern[1,i+j*7] = self.circlepattern_dist*j
+						self.circlepattern[i+j*7,0] = self.circlepattern_dist*i - self.circlepattern_dist*3
+						self.circlepattern[i+j*7,1] = self.circlepattern_dist*j - self.circlepattern_dist
 		print(self.circlepattern)
 		
 		self.sub_corners = rospy.Subscriber("~corners", VehicleCorners, 
@@ -95,14 +95,20 @@ class VehicleFilterNode(object):
 			for Point32 in vehicle_corners_msg.corners:
 				point = [Point32.x, Point32.y]
 				points.append(point)
+			points = np.array(points)
+			#points = np.reshape(points, (2,-1))
+			#print(points)	
+			#print(self.pcm.distortionCoeffs())
+			(success, rotation_vector, translation_vector) = cv2.solvePnP(self.circlepattern, points, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
+			
+			if success:
+				print(translation_vector)
 				
-			print(self.pcm.distortionCoeffs())
-			cv2.solvePnP(self.circlepattern, points, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
-			pose_msg_out = VehiclePose()
-			pose_msg_out.rho.data = 0.0
-			pose_msg_out.theta.data = 0.0
-			pose_msg_out.psi.data = 0.0
-			pose_msg_out.detection.data = \
+				pose_msg_out = VehiclePose()
+				pose_msg_out.rho.data = np.linalg.norm(translation_vector)
+				pose_msg_out.theta.data = 0.0
+				pose_msg_out.psi.data = 0.0
+				pose_msg_out.detection.data = \
 					vehicle_corners_msg.detection.data
 			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
