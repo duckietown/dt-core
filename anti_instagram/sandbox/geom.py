@@ -32,15 +32,19 @@ def processGeom2(img, grad_th=50, contour_low=30, viz=False):
     l = np.sqrt(h * w)
     dx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
     dy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
-    grad = (np.sqrt(np.mean(dx**2 + dy**2, 2)) > grad_th).astype(np.uint8)
+    #grad = (np.sqrt(np.mean(dx**2 + dy**2, 2)) > grad_th).astype(np.uint8)
+    ks_dilate = int(round(l * 0.010))
+    grad = cv2.dilate((np.sqrt(np.mean(dx**2 + dy**2, 2)) > grad_th).astype(np.uint8),
+                      cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks_dilate, ks_dilate)))
+
 
     #filter out noise from gradient
     _, contours, _ = cv2.findContours(grad, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = [contour for contour in contours if contour.shape[0] >= contour_low]
     mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
-    #for co0ntour in contours:
-	#cv2.fillPoly(mask,[contour],1)
-    cv2.fillPoly(mask,contours,1)
+    for contour in contours:
+	cv2.fillPoly(mask,[contour],1)
+    #cv2.fillPoly(mask,contours,1)
     inds = np.array(np.nonzero(mask))
     ret = img[inds[0,:],inds[1,:],:]
     fillmask = np.pad(mask,1,mode='constant')
