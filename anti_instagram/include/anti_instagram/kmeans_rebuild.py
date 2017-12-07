@@ -1,209 +1,160 @@
-from collections import Counter
-from sklearn import linear_model
-from sklearn.cluster import KMeans
+#!/usr/bin/env python
+import sys
+import os
 import cv2
 import numpy as np
-import sys
-import time
-
-# milansc:
-# colors in bgr
-#[60,60,60] is dark grey
-#[60, 60, 240] is red
-#[50, 240, 240] is yellow
-#[240, 240, 240] is white
+import matplotlib.pyplot as plt
+import argparse
+from matplotlib.patches import Rectangle
+from sklearn.cluster import KMeans
+from collections import Counter
+import math
 
 
-CENTERS2 = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
-CENTERS = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
-# in HSV: [0,0,60], [127.5000  233.7500  240.0000],[0,0,240]
-
-# convert 3D image to 2D array in form of (n_samples, n_features)
-# So we need an array of the form (x*y, 3) for 3D color spaces
-def getimgdatapts(cv2img):
-    x, y, p = cv2img.shape
-    cv2_tpose = cv2img.transpose()
-    cv2_arr_tpose = np.reshape(cv2_tpose,[p,x*y])
-    npdata = np.transpose(cv2_arr_tpose);
-    return npdata
-
-
-def resizeImage(cv2image, factor):
-    return cv2.resize(cv2image, (0, 0), fx=factor, fy=factor)
-
-
-#priors
-def runKMeans(cv_img, num_colors, init):
-
-    # convert the image such that kMeans can be executed
-    imgdata = getimgdatapts(cv_img[-100:,:,:]) # FIX ME: arbitrary cut off ????
-    kmc = KMeans(n_clusters=num_colors, max_iter=25, n_init=10, init=init)
-    t1 = time.time();
-    kmc.fit_predict(imgdata)
-    t2 = time.time();
-    print("fit time: %f"%(t2-t1))
-    trained_centers = kmc.cluster_centers_
-    # print trained_centers
-    labels = kmc.labels_
+class kMeansClass:
+    """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
+    input_image = []
+    resized_image = []
+    blurred_image = []
+    image_array = []
+    num_centers = -1
+    blur_alg = []
+    fac_resize = -1
+    blur_kernel = -1
+    trained_centers = []
+    labels = []
     labelcount = Counter()
-    t1 = time.time();
-    # IPython.embed()
-    # for pixel in labels:
-    # 	labelcount[pixel] += 1
-    for i in np.arange(num_colors):
-        labelcount[i]=np.sum(labels==i)
+    color_array = []
+    color_image_array = []
 
-    t2 = time.time();
-    print("counting labels time: %f"%(t2-t1))
-    # print labelcount
-    # IPython.embed()
-    score=kmc.score(imgdata)
-    return trained_centers, labelcount, score
+    # initialize
+    def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer):
+        # read the image
+        self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
+        self.num_centers = int(numCenters)
+        self.blur_alg = blurAlg
+        self.fac_resize = float(resize)
+        self.blur_kernel = int(blurKer)
+        # set up array for center colors
+        self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
 
+    # re-shape input image for kMeans
+    def _getimgdatapts(self, cv2img):
+        x, y, p = cv2img.shape
+        cv2_tpose = cv2img.transpose()
+        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x * y])
+        npdata = np.transpose(cv2_arr_tpose)
+        return npdata
 
-def identifyColors(trained, true):
-    # print trained
-    # print np.size(trained)
-    numcolors, _ = np.shape(trained)
-    # print numcolors
-    matching = np.zeros((numcolors, numcolors))
-    # print matching
-    for i, color in enumerate(trained):
-        # print color
-        for j, truecolor in enumerate(true):
-            matching[i][j] = np.linalg.norm(color - truecolor)  # determine error of each trained center
-            #  to each "true" center
+    def _blurImg(self):
+        # blur image using median:
+        if self.blur_alg == 'median':
+            self.blurred_image = cv2.medianBlur(self.resized_image, self.blur_kernel)
 
-    # print matching
-    colormap = {}
-    for i, color in enumerate(matching):
-        colormap[i] = np.argmin(color)  # get least error index
-    # colormap[2] = 1
-    # print colormap
-    colormap = checkMapping(colormap)
-    return colormap
+        # blur image using gaussian:
+        elif self.blur_alg == 'gaussian':
+            self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
 
+    # apply kMeans alg
+    def applyKM(self):
+        # resize image
+        self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
 
-def checkMapping(mymap):
-    maplist = []
-    clearmap = {}
-    for color, mapping in mymap.iteritems():
-        if mapping not in maplist:
-            clearmap[color] = mapping
-            maplist += mapping
-    # print clearmap
-    return clearmap
+        # blur image
+        self._blurImg()
 
+        # prepare KMeans
+        kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
 
-def getparameters2(mapping, trained, weights, true):
-    redX = np.zeros((3, 1))
-    redY = np.zeros((3, 1))
-    greenX = np.zeros((3, 1))
-    greenY = np.zeros((3, 1))
-    blueX = np.zeros((3, 1))
-    blueY = np.zeros((3, 1))
-    prior_redX = np.zeros((3, 1))
-    prior_redY = np.zeros((3, 1))
-    prior_greenX = np.zeros((3, 1))
-    prior_greenY = np.zeros((3, 1))
-    prior_blueX = np.zeros((3, 1))
-    prior_blueY = np.zeros((3, 1))
-    # print type(redY), redX
-    # print trained, true
-    prior_trained=np.array([[255, 0, 0],[0, 255, 0],[0, 0, 255]])
-    prior_true=np.array([[255, 0, 0],[0, 255, 0],[0, 0, 255]])
-    diagonal_prior_weight=300 # the coefficients along the diagonal should be close to each other - i.e close to "white" light
-    a_prior_weight=0.2 # a should be close to 1
-    INFEASIBILITY_PENALTY=1000000
+        # prepare data points
+        self.image_array = self._getimgdatapts(self.blurred_image)
 
-    min_fitting_cost=np.inf
-    t1=time.time()
+        # run KMeans
+        kmc.fit(self.image_array)
 
-    # perms=itertools.permutations([0,1,2])
-    perms=[[0,1,2]]
-    for perm in perms:
-        redY[:,0]=true[:,0]# BGR..
-        greenY[:,0]=true[:,1]
-        blueY[:,0]=true[:,2]
-        prior_redY[:,0]=prior_true[:,0]# BGR..
-        prior_greenY[:,0]=prior_true[:,1]
-        prior_blueY[:,0]=prior_true[:,2]
-        redX[:,0]=trained[:,perm[0]]
-        greenX[:,0]=trained[:,perm[1]]
-        blueX[:,0]=trained[:,perm[2]]
+        # get centers, labels and labelcount from KMeans
+        self.trained_centers = kmc.cluster_centers_
+        self.labels = kmc.labels_
+        for i in np.arange(self.num_centers):
+            self.labelcount[i] = np.sum(self.labels == i)
 
+    def determineColor(self, withRed, trained_centers):
 
-        prior_redX[:,0]=prior_trained[:,perm[0]]
-        prior_greenX[:,0]=prior_trained[:,perm[1]]
-        prior_blueX[:,0]=prior_trained[:,perm[2]]
-        redY2=np.concatenate((redY,prior_redY),axis=0)
-        greenY2=np.concatenate((greenY,prior_greenY),axis=0)
-        blueY2=np.concatenate((blueY,prior_blueY),axis=0)
-        redX2=np.concatenate((redX,prior_redX),axis=0)
-        greenX2=np.concatenate((greenX,prior_greenX),axis=0)
-        blueX2=np.concatenate((blueX,prior_blueX),axis=0)
-        sumweights=np.double(np.sum([weights[0],weights[1],weights[2]]))
-        weightsMTX=np.double(np.diagflat([weights[0],weights[1],weights[2]]))
-        weightsMTX=weightsMTX/sumweights
-        # color fitting terms
-        A1=np.concatenate((np.dot(weightsMTX,np.concatenate((redX,np.ones(np.shape(redX)),redX*0,redX*0,redX*0,redX*0),1)),np.dot(weightsMTX,np.concatenate((greenX*0,greenX*0,greenX,np.ones(np.shape(greenX)),greenX*0,greenX*0),1)),np.dot(weightsMTX,np.concatenate((blueX*0,blueX*0,blueX*0,blueX*0,blueX,np.ones(np.shape(blueX))),1))),0)
-        b1=np.concatenate((np.dot(weightsMTX,redY),np.dot(weightsMTX,greenY),np.dot(weightsMTX,blueY)),0)
-        # favoring the scale of each color to be similar
-        A2=np.array([[1.,0.,-1.,0.,0.,0.],[0.,0.,1.,0.,-1.,0.],[1.,0.,0.,0.,-1.,0.]])*diagonal_prior_weight
-        b2=np.array([[0.0],[0.0],[0.0]])*diagonal_prior_weight
-        # prior on scale,shift to be a,b
-        A3=np.array([[1.,0.,0.,0.,0.,0.],[0.,0.,1.,0.,0.,0.],[0.,0.,0.,0.,1.,0.]])*a_prior_weight
-        b3=np.array([[1.0],[1.0],[1.0]])*a_prior_weight
-        # build matrices
-        A=np.concatenate((A1,A2,A3),0)
-        b=np.concatenate((b1,b2,b3),0)
-        # solve equations
-        # t1=time.time()
-        p,residuals,rank,s=np.linalg.lstsq(A,b);
-        # t2=time.time()
-        # print("least-squares time: %f"%(t2-t1))
-        fitting_cost=residuals
-        RED_a=p[0]
-        GREEN_a=p[2]
-        BLUE_a=p[4]
-        if (RED_a<0 or GREEN_a<0 or BLUE_a<0):
-            fitting_cost=fitting_cost+INFEASIBILITY_PENALTY
+        # define the true centers. This color is preset. The color transformation
+        # tries to transform a picture such that the black areas will become true black.
+        # The same applies for yellow, white and (if valid) red.
+        trueBlack = [60, 60, 60]
+        trueYellow = [50, 240, 240]
+        trueWhite = [240, 240, 240]
+        if (withRed):
+            trueRed = [60, 60, 240]
 
-        # Take the best solution if there were several permuations
-        if (fitting_cost<min_fitting_cost):
-            min_fitting_cost=fitting_cost
-            #print("perm: %s, fitting cost: %s"% (perm,fitting_cost))
-            MIN_RED_a=p[0]
-            MIN_GREEN_a=p[2]
-            MIN_BLUE_a=p[4]
-            MIN_RED_b=p[1]
-            MIN_GREEN_b=p[3]
-            MIN_BLUE_b=p[5]
-            min_perm=perm
-    t2=time.time()
-    # IPython.embed()
+        # initialize arrays which save the errors to each true center
+        # later the minimal error cluster center will be defined as this color
+        errorBlack = np.zeros(self.num_centers)
+        errorYellow = np.zeros(self.num_centers)
+        errorWhite = np.zeros(self.num_centers)
+        if (withRed):
+            errorRed = np.zeros(self.num_centers)
 
+        # determine the error for each trained cluster center to all true centers
+        for i in range(self.num_centers):
+            errorBlack[i] = np.linalg.norm(trueBlack - trained_centers[i])
+            errorYellow[i] = np.linalg.norm(trueYellow - trained_centers[i])
+            errorWhite[i] = np.linalg.norm(trueWhite - trained_centers[i])
+            if (withRed):
+                errorRed[i] = np.linalg.norm(trueRed - trained_centers[i])
 
-    #print MIN_RED_a, MIN_RED_b
-    #print MIN_BLUE_a, MIN_BLUE_b
-    #print MIN_GREEN_a, MIN_GREEN_b
-    #print("time: %f"%(t2-t1))
-    return ([MIN_RED_a], MIN_RED_b), ([MIN_BLUE_a], MIN_BLUE_b), ([MIN_GREEN_a], MIN_GREEN_b),fitting_cost
+        nTrueCenters = 3
 
+        # sort the error arrays and save the corresponding index of the original array
+        # in the following array. This allows us to determine the index of the cluster.
+        errorBlackSortedIdx = np.argsort(errorBlack)
+        errorYellowSortedIdx = np.argsort(errorYellow)
+        errorWhiteSortedIdx = np.argsort(errorWhite)
+        if (withRed):
+            errorRedSortedIdx = np.argsort(errorRed)
+        if (withRed):
+            nTrueCenters = 4
+        ListOfIndices = []
 
-if __name__ == '__main__':
-    img_filename="test2.jpg"
-    if (len(sys.argv)>1):
-        img_filename=sys.argv[1]
-        print(img_filename)
-    cv_img = cv2.imread(img_filename)
-    t1 = time.clock()
-    testdata = getimgdatapts(cv_img)
-    t2 = time.clock()
-    print("Time taken:")
-    print(t2-t1)
+        # boolean variables to determine whether the minimal error index has been found
+        blackIdxFound = False
+        whiteIdxFound = False
+        yellowIdxFound = False
+        if (withRed):
+            redIdxFound = False
+        centersFound = False
+        index = 0
 
-    trained = runKMeans(testdata)
-    from anti_instagram import AntiInstagram
-    mapping = identifyColors(trained[0], CENTERS)
-    getparameters(mapping, trained[0], CENTERS)
+        # find for every true center the corresponding trained center.
+        while (not centersFound):
+
+            if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
+                ListOfIndices.append(errorBlackSortedIdx[index])
+                blackIdxFound = True
+                idxBlack = errorBlackSortedIdx[index]
+            if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
+                ListOfIndices.append(errorWhiteSortedIdx[index])
+                whiteIdxFound = True
+                idxWhite = errorWhiteSortedIdx[index]
+            if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
+                ListOfIndices.append(errorYellowSortedIdx[index])
+                yellowIdxFound = True
+                idxYellow = errorYellowSortedIdx[index]
+            if withRed:
+                if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
+                    ListOfIndices.append(errorRedSortedIdx[index])
+                    redIdxFound = True
+                    idxRed = errorRedSortedIdx[index]
+                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+
+            else:
+                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+            index = index + 1
+
+        # return the minimal error indices for the trained centers.
+        if (withRed):
+            return idxBlack, idxRed, idxYellow, idxWhite,
+        else:
+            return idxBlack, idxYellow, idxWhite
