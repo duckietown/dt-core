@@ -8,6 +8,7 @@ import argparse
 from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
+from anti_instagram.geom import processGeom2
 import math
 
 
@@ -28,23 +29,32 @@ class kMeansClass:
     color_image_array = []
 
     # initialize
-    def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer):
+    def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer, fancyGeom=False):
         # read the image
         self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
         self.num_centers = int(numCenters)
         self.blur_alg = blurAlg
         self.fac_resize = float(resize)
         self.blur_kernel = int(blurKer)
+	self.fancyGeom = fancyGeom
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
 
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img):
         x, y, p = cv2img.shape
-        img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
-        x_new, y_new, p = img_geom.shape
-        cv2_tpose = img_geom.transpose()
-        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
+	if not self.fancyGeom:
+            img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
+	    x_new, y_new, p = img_geom.shape
+	    cv2_tpose = img_geom.transpose()
+	    cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
+	else:
+	    mask = processGeom2(cv2img)
+	    img_geom = np.expand_dims(mask,axis=-1)*cv2img
+	    mask = mask.transpose()
+	    inds = np.array(np.nonzero(mask))
+	    cv2_tpose = np.transpose(img_geom)
+	    cv2_arr_tpose = cv2_tpose[:,inds[0,:],inds[1,:]]
         npdata = np.transpose(cv2_arr_tpose)
         return npdata
 

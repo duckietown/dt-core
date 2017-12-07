@@ -37,6 +37,8 @@ def main():
                         help='size of kernel for blurring. DEFAULT = 5')
     parser.add_argument('--output_dir', default='./output_images',
                         help='directory for the output images. DEFAULT = ./output_images')
+    parser.add_argument('--fancyGeom', default=False, action='store_true',
+			help='use the contour detector to find regions of interest')
     args = parser.parse_args()
 
     # check if file exists
@@ -66,7 +68,7 @@ def main():
 
 
     # create instance of kMeans
-    KM = kMeansClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
+    KM = kMeansClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel, args.fancyGeom)
 
     # apply KMeans
     KM.applyKM()

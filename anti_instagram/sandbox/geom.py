@@ -20,6 +20,46 @@ hsv_red2 = np.array([12, 255, 255])
 hsv_red3 = np.array([165, 120, 100])
 hsv_red4 = np.array([180, 255, 255])
 
+#color independent version, works first by finding lane surface, then by identifying line edge pixels to transform later
+#this is probably a better method than processGeom because it works in low lighting
+def processGeom2(img, grad_th=50, contour_low=30, viz=False):
+    orig = img
+    #find lane surface
+    img, _ = identifyLaneSurface(img)
+
+    #use gradients as binary mask, line edges correspond to high gradient values
+    h, w = img.shape[:2]
+    l = np.sqrt(h * w)
+    dx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
+    dy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
+    grad = (np.sqrt(np.mean(dx**2 + dy**2, 2)) > grad_th).astype(np.uint8)
+
+    #filter out noise from gradient
+    _, contours, _ = cv2.findContours(grad, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours = [contour for contour in contours if contour.shape[0] >= contour_low]
+    mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+    #for co0ntour in contours:
+	#cv2.fillPoly(mask,[contour],1)
+    cv2.fillPoly(mask,contours,1)
+    inds = np.array(np.nonzero(mask))
+    ret = img[inds[0,:],inds[1,:],:]
+    fillmask = np.pad(mask,1,mode='constant')
+    disp = np.expand_dims(mask,axis=-1)*orig
+    #cv2.floodFill(disp,fillmask,(img.shape[0]-1,img.shape[2]),0, flags=cv2.FLOODFILL_MASK_ONLY)
+    
+    if viz:
+	cv2.imshow('img',orig)
+	cv2.waitKey(0)
+	cv2.imshow('img',img)
+	cv2.waitKey(0)
+	cv2.imshow('img',grad*255)
+	cv2.waitKey(0)
+	cv2.imshow('img',mask*255)
+	cv2.waitKey(0)
+	cv2.imshow('img',disp)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
+    return mask
 
 def processGeom(img, viz=False):
     # first narrow scope to surface of lane to avoid extraneous info
@@ -182,3 +222,4 @@ if __name__ == '__main__':
     fname = sys.argv[1]
     img = cv2.imread(fname)
     masks = processGeom(img, viz=True)
+    mask = processGeom2(img, grad_th=70, contour_low=30, viz=True)
