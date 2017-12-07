@@ -29,21 +29,21 @@ class kMeansClass:
     color_image_array = []
 
     # initialize
-    def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer, fancyGeom=False):
+    def __init__(self, numCenters, blurAlg, resize, blurKer):
         # read the image
-        self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
+        #self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
+	self.input_image = None
         self.num_centers = int(numCenters)
         self.blur_alg = blurAlg
         self.fac_resize = float(resize)
         self.blur_kernel = int(blurKer)
-	self.fancyGeom = fancyGeom
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
 
     # re-shape input image for kMeans
-    def _getimgdatapts(self, cv2img):
+    def _getimgdatapts(self, cv2imgi, fancyGeom=False):
         x, y, p = cv2img.shape
-	if not self.fancyGeom:
+	if not fancyGeom:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
 	    x_new, y_new, p = img_geom.shape
 	    cv2_tpose = img_geom.transpose()
@@ -68,7 +68,8 @@ class kMeansClass:
             self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
 
     # apply kMeans alg
-    def applyKM(self):
+    def applyKM(self, img):
+	self.input_image = img
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
 
