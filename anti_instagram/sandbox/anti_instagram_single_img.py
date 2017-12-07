@@ -9,6 +9,7 @@ from anti_instagram.AntiInstagram import *
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+from geom import identifyLaneSurface
 
 
 def GetListOfPixelsInPolygon(self, input_image, polygon):
@@ -50,6 +51,11 @@ if not os.path.exists(outdir):
 # read the image
 input_img = cv2.imread(file, cv2.IMREAD_UNCHANGED)
 
+#lets do the masking!
+#surf = identifyLaneSurface(input_img, use_hsv=False, grad_thresh=20)
+#input_img = np.expand_dims(surf, -1) * input_img
+#cv2.imshow('mask', input_img)
+#cv2.waitKey(0)
 
 # create instance of AntiInstagram
 ai = AntiInstagram()
