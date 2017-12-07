@@ -177,20 +177,24 @@ class kMeanClass:
 
             if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
                 ListOfIndices.append(errorBlackSortedIdx[index])
+                print(errorBlack[index])
                 blackIdxFound = True
                 idxBlack = errorBlackSortedIdx[index]
             if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
                 ListOfIndices.append(errorWhiteSortedIdx[index])
+                print(errorWhite[index])
                 whiteIdxFound = True
                 idxWhite = errorWhiteSortedIdx[index]
             if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
                 ListOfIndices.append(errorYellowSortedIdx[index])
                 yellowIdxFound = True
+                print(errorYellow[index])
                 idxYellow = errorYellowSortedIdx[index]
             if (withRed):
                 if errorBlackSortedIdx[index] not in ListOfIndices and not redIdxFound:
                     ListOfIndices.append(errorRedSortedIdx[index])
                     redIdxFound = True
+                    print(errorRed[index])
                     idxRed = errorRedSortedIdx[index]
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
             else:

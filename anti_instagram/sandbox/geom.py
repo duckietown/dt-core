@@ -75,12 +75,12 @@ def identifyLaneSurface(img, use_hsv=False, visualize=False, grad_thresh=30):
     mask[0, :] = 0
     mask = mask[:, 1:-1]
     mask_ = np.zeros((h + 4, w + 2), np.uint8)
-    cv2.floodFill(mask, mask_, (0, 0), 0, flags=cv2.FLOODFILL_MASK_ONLY)
+    cv2.floodFill(mask, mask_, (0, 0), 0, flags=cv2.FLOODFILL_MASK_ONLY) # determines the "floor" surface.
     mask = 1 - mask_[2:-2, 1:-1]
 
     #added to get rid of wall artifacts post filling
     m = np.zeros_like(mask)
-    m[mask.shape[0]/3:,:] = 1
+    m[mask.shape[0]/3:, :] = 1
     mask *= m
     return mask
 
@@ -136,7 +136,7 @@ def detectColor(bw, color):
     for i in range(r.shape[0]):
 	y,x = r[i,0],r[i,1]
         mask[y-h:y+h,x-w:x+w] = 1
-    mask = cv2.bitwise_and(bw,mask)
+    mask = cv2.bitwise_and(bw, mask)
     return mask
 
 #not used
