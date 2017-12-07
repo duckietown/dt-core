@@ -59,6 +59,7 @@ class calcTransform:
     scale = []
     shift = []
     residuals = []
+    residualNorm = -1
 
     # initialize
     def __init__(self, numOcenters, found):
@@ -88,6 +89,8 @@ class calcTransform:
 
         print('created instance of calcTransform!')
 
+    def returnResidualNorm(self):
+        return self.residualNorm
 
     def calcTransform(self):
         # loop over the three color channels
@@ -99,5 +102,5 @@ class calcTransform:
             self.residuals[channel] = r
         print('scale: ' + str(self.scale))
         print('shift: ' + str(self.shift))
-        resNorm = np.linalg.norm(self.residuals)
-        print('residuals: ' + str(resNorm))
+        self.residualNorm = np.linalg.norm(self.residuals)
+        print('residuals: ' + str(self.residualNorm))

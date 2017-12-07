@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 
-from anti_instagram.AntiInstagram import *
+#from anti_instagram.AntiInstagram import *
 from anti_instagram.scale_and_shift import *
 from anti_instagram.calcLstsqTransform import *
 from anti_instagram.kmeans_rebuild import *
@@ -10,6 +10,17 @@ import os
 import matplotlib.pyplot as plt
 import argparse
 
+"""
+This function does three things:
+
+1)  It calls the Kmeans alg. with the desired number of initial centers. Other parameters can be tweaked, see -h option.
+
+2)  The function passes the centers trained by the KMeans alg. to the calcTransform function. It then calculates
+    a transform once based on three centers and once based on four centers (without and with the color red)
+
+3)  It takes the transform with the better result (most frequent three centers) and applies the transform on the
+    input image.
+"""
 
 
 def main():
@@ -53,35 +64,50 @@ def main():
         print('kernel size must be odd')
         sys.exit(2)
 
+
     # create instance of kMeans
     KM = kMeansClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
-    KM.applyKM()
-    idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
-    #KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
-     #                        KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
 
-    trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed], KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+    # apply KMeans
+    KM.applyKM()
+
+    # get the indices of the matched centers
+    idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
+
+    # get centers with red
+    trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed],
+                                KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+
+    # get centers w/o red
     trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                                 KM.trained_centers[idxWhite]])
 
     print(trained_centers)
+
+    # calculate transform with 4 centers
     T4 = calcTransform(4, trained_centers)
     T4.calcTransform()
+
+    # calculate transform with 3 centers
     T3 = calcTransform(3, trained_centers_woRed)
     T3.calcTransform()
 
-    corrected_img_4c = scaleandshift2(KM.input_image, T4.scale, T4.shift)
-    corrected_image_4c_cv2 = np.clip(
-        corrected_img_4c, 0, 255).astype(np.uint8)
+    # compare residuals
+    # TODO verify if we can compare the residuals like this
+    if T4.returnResidualNorm() >= T3.returnResidualNorm():
+        shift = T4.shift
+        scale = T4.scale
+    else:
+        shift = T3.shift
+        scale = T3.scale
 
-    corrected_img_3c = scaleandshift2(KM.input_image, T3.scale, T3.shift)
-    corrected_image_3c_cv2 = np.clip(
-        corrected_img_3c, 0, 255).astype(np.uint8)
-
-    combinedImg = np.concatenate((corrected_image_4c_cv2, corrected_image_3c_cv2), axis=1)
+    # apply transform
+    corrected_img = scaleandshift2(KM.input_image, scale, shift)
+    corrected_image_cv2 = np.clip(
+        corrected_img, 0, 255).astype(np.uint8)
 
     cv2.namedWindow('corrected', flags=cv2.WINDOW_NORMAL)
-    cv2.imshow('corrected', combinedImg)
+    cv2.imshow('corrected', corrected_image_cv2)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
