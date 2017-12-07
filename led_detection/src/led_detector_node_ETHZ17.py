@@ -143,11 +143,11 @@ class LEDDetectorNode(object):
         maxLocationFront = np.zeros((desMax,2))
 
         # Images
-        imRightCircle = im.copy()
+        imRightCircle = imRight.copy()
         imRightGauss  = cv2.GaussianBlur(imRightGray, (radius, radius), 0)
         imRightIter   = imRightGauss.copy()
 
-        imFrontCircle = im.copy()
+        imFrontCircle = imFront.copy()
         imFrontGauss  = cv2.GaussianBlur(imFrontGray, (radius, radius), 0)
         imFrontIter   = imFrontGauss.copy()
 
