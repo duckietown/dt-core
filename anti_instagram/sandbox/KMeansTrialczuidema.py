@@ -312,9 +312,11 @@ def main():
                              KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
 
     trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed], KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+    trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
+                                KM.trained_centers[idxWhite]])
 
     print(trained_centers)
-    T = calcTransform(4, trained_centers)
+    T = calcTransform(3, trained_centers_woRed)
     T.calcTransform()
 
     corrected_img = scaleandshift2(KM.input_image, T.scale, T.shift)
