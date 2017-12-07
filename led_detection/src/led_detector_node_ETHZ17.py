@@ -13,27 +13,28 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class LEDDetectorNode(object):
     def __init__(self):
-        self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active 
+        self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
         self.first_timestamp = 0
         self.capture_time = 0.1 #0.97 # capture time
         self.capture_finished = True
         self.tinit = None
         self.trigger = True
         self.node_state = 0
-	self.bridge = CvBridge()
+        self.bridge = CvBridge()
         self.data = []
-        
+
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
-	self.pub_image = rospy.Publisher("~image_detection",Image,queue_size=1)
-        self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
-        self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
-        self.veh_name = rospy.get_namespace().strip("/")
+        self.pub_image_right = rospy.Publisher("~image_detection_right",Image,queue_size=1)
+        self.pub_image_front = rospy.Publisher("~image_detection_front", Image, queue_size=1)
+        self.pub_detections  = rospy.Publisher("~led_detection",String,queue_size=1)
+        self.pub_debug       = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
+        self.veh_name        = rospy.get_namespace().strip("/")
 
         #self.protocol = rospy.get_param("~LED_protocol")
         self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
         self.capture_time = rospy.get_param("~capture_time")
-        self.cell_size = rospy.get_param("~cell_size")
+        self.cell_size  = rospy.get_param("~cell_size")
         self.continuous = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
         #self.frequencies = self.protocol['frequencies'].values()
@@ -45,7 +46,7 @@ class LEDDetectorNode(object):
             # syntax is: rosrun <pkg> <node> _veh:=<bot-id>
             if rospy.has_param('~veh'):
                 self.veh_name = rospy.get_param('~veh')
-              
+
         if not self.veh_name:
             raise ValueError('Vehicle name is not set.')
 
@@ -65,7 +66,7 @@ class LEDDetectorNode(object):
             return
 
         float_time = msg.header.stamp.to_sec()
-        debug_msg = LEDDetectionDebugInfo()
+        debug_msg  = LEDDetectionDebugInfo()
 
         if self.trigger:
             rospy.loginfo('[%s] GOT TRIGGER! Starting...')
@@ -81,7 +82,7 @@ class LEDDetectorNode(object):
             rospy.loginfo('[%s] Waiting for trigger...' %self.node_name)
 
         if self.first_timestamp > 0:
-            # TODO sanity check rel_time positive, restart otherwise 
+            # TODO sanity check rel_time positive, restart otherwise
             rel_time = float_time - self.first_timestamp
 
             # Capturing
@@ -99,7 +100,7 @@ class LEDDetectorNode(object):
                 self.node_state = 2
                 self.capture_finished = True
                 self.first_timestamp = 0
-                self.sub_cam.unregister() # IMPORTANT! Explicitly ignore messages  
+                self.sub_cam.unregister() # IMPORTANT! Explicitly ignore messages
                                           # while processing, accumulates delay otherwise!
                 self.send_state(debug_msg)
                 self.process_and_publish()
@@ -113,15 +114,19 @@ class LEDDetectorNode(object):
         # Resize image
         im = cv2.resize(self.data,(640*1,480*1))
 
+        # Find RGB and gray images
+        im = cv2.cvtColor(im,cv2.COLOR_BGRA2RGB)
+
         # Get sizes
         H,W,_ = im.shape
 
-        # Crop
-        im = im[H/10:2*H/3,W/8:W,:]
+        # Crop image right
+        imRight     = im[H/10:2*H/3,3*W/5:W,:]
+        imRightGray = cv2.cvtColor(imRight,cv2.COLOR_RGB2GRAY)
 
-        # Find RGB and gray images
-        im = cv2.cvtColor(im,cv2.COLOR_BGRA2RGB)
-        imGray = cv2.cvtColor(im,cv2.COLOR_RGB2GRAY)
+        # Crop image front
+        imFront     = im[H/10:H/2,W/8:W/2,:]
+        imFrontGray = cv2.cvtColor(imFront,cv2.COLOR_RGB2GRAY)
 
         # Detect
         # Parameters
@@ -132,73 +137,88 @@ class LEDDetectorNode(object):
         thresholdPixelMin = 0
 
         # Allocate space
-        maxValue    = np.zeros((desMax,1))
-        maxLocation = np.zeros((desMax,2))
+        maxValueRight    = np.zeros((desMax,1))
+        maxLocationRight = np.zeros((desMax,2))
+        maxValueFront    = np.zeros((desMax,1))
+        maxLocationFront = np.zeros((desMax,2))
 
         # Images
-        imCircle = im.copy()
-        imGauss = cv2.GaussianBlur(imGray, (radius, radius), 0)
-        imIter = imGauss.copy()
+        imRightCircle = im.copy()
+        imRightGauss  = cv2.GaussianBlur(imRightGray, (radius, radius), 0)
+        imRightIter   = imRightGauss.copy()
 
-        # Get maxima and minima
+        imFrontCircle = im.copy()
+        imFrontGauss  = cv2.GaussianBlur(imFrontGray, (radius, radius), 0)
+        imFrontIter   = imFrontGauss.copy()
+
+        # Get maxima and minima on the right
         for i in range(desMax):
             # Find min and max
-            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imIter)
+            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imRightIter)
             # Erase max
-            imIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
-            print maxLoc, maxVal
+            imRightIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
+            # print maxLoc, maxVal
             # Save max value
-            maxValue[i]      = maxVal
-            maxLocation[i,:] = maxLoc
+            maxValueRight[i]      = maxVal
+            maxLocationRight[i,:] = maxLoc
             # Add circle in image
-            cv2.circle(imCircle, maxLoc, radius, (0,0,255), 1)
-	
-		
-	    # Publish image with circles
-	    imCircle_msg = self.bridge.cv2_to_imgmsg(imCircle,encoding="passthrough")
-	    # Publish image
-	    self.pub_image.publish(imCircle_msg)
+            cv2.circle(imRightCircle, maxLoc, radius, (0,0,255), 1)
+
+        # Get maxima and minima front
+        for i in range(desMax):
+            # Find min and max
+            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imFrontIter)
+            # Erase max
+            imFrontIter[(maxLoc[1] - radius):(maxLoc[1] + radius), (maxLoc[0] - radius):(maxLoc[0] + radius)] = 0
+            # print maxLoc, maxVal
+            # Save max value
+            maxValueFront[i]       = maxVal
+            maxLocationFront[i, :] = maxLoc
+            # Add circle in image
+            cv2.circle(imFrontCircle, maxLoc, radius, (0, 0, 255), 1)
+
+        #  Publish image with circles
+        imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRightCircle,encoding="passthrough")
+        imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFrontCircle,encoding="passthrough")
+
+        # Publish image
+        self.pub_image_right.publish(imRightCircle_msg)
+        self.pub_image_front.publish(imFrontCircle_msg)
 
         # Compute distance between LEDs
-        dist = np.zeros((desMax,desMax))
+        distRight = np.zeros((desMax,desMax))
+        distFront = np.zeros((desMax, desMax))
         for i in range(desMax):
             for j in range(desMax):
-                dist[i,j] = np.linalg.norm(maxLocation[i,:]-maxLocation[j,:])
+                distRight[i,j] = np.linalg.norm(maxLocationRight[i,:] - maxLocationRight[j,:])
+                distFront[i,j] = np.linalg.norm(maxLocationFront[i,:] - maxLocationFront[j,:])
 
-        # Find if tthere are LEDs
-        if np.sum(maxValue > threshold) >= desMax and np.amax(dist) < thresholdPixelMax and np.amin(dist) >= thresholdPixelMin:
-            rospy.loginfo('LED detected')
+        # Find if there are LEDs (right)
+        if np.sum(maxValueRight > threshold) >= desMax and np.amax(distRight) < thresholdPixelMax and np.amin(distRight) >= thresholdPixelMin:
+            rospy.loginfo('LED detected (right)')
+            LEDDetectedRight = True
+        else:
+            rospy.loginfo('No LED detected (right)')
+            LEDDetectedRight = False
+
+        # Find if there are LEDs (front)
+        if np.sum(maxValueFront > threshold) >= desMax and np.amax(distFront) < thresholdPixelMax and np.amin(distFront) >= thresholdPixelMin:
+            rospy.loginfo('LED detected (front)')
+            LEDDetectedFront = True
+        else:
+            rospy.loginfo('No LED detected (front)')
+            LEDDetectedFront = False
+
+        if LEDDetectedRight or LEDDetectedFront:
             self.pub_detections.publish('LED detected')
         else:
-            rospy.loginfo('No LED detected')
             self.pub_detections.publish('No LED detected')
 
-        #    ('timestamp', 'float'),
-        #    ('rgb', 'uint8', (H, W, 3)),
-        #]
-        #images = np.zeros((n,), dtype=dtype)
-        #for i, v in enumerate(self.data):
-        #    images[i]['timestamp'] = v['timestamp']
-        #    images[i]['rgb'][:] = v['rgb']
- 	
-	       
-
-        #det = LEDDetector(False, False, False, self.pub_debug)
-        #rgb0 = self.data[0]['rgb']
-        #mask = np.ones(dtype='bool', shape=rgb0.shape)
-        #tic = time.time()
-        #result = det.detect_led(images, self.frequencies, self.cell_size, self.crop_rect_normalized)
-        #self.pub_detections.publish(result)
-
-        #toc = time.time()-tic
-        #tac = time.time()-self.tinit
-        #rospy.loginfo('[%s] Detection done. Processing Time: %.2f'%(self.node_name, toc))
-        #print('[%s] Total Time taken: %.2f'%(self.node_name, tac))
-
+        # Keep going
         if(self.continuous):
             self.trigger = True
             self.sub_cam = rospy.Subscriber("camera_node/image/compressed",CompressedImage, self.camera_callback)
-    
+
     def send_state(self, msg):
         msg.state = self.node_state
         self.pub_debug.publish(msg)
