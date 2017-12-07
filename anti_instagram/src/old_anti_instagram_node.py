@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 import rospy
-#from anti_instagram.AntiInstagram import *
-from anti_instagram.kmeans_rebuild import *
-from anti_instagram.calcLstsqTransform import *
-from anti_instagram.scale_and_shift import *
+from anti_instagram.AntiInstagram import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
@@ -48,21 +45,9 @@ class AntiInstagramNode():
         self.transform = AntiInstagramTransform()
         # FIXME: read default from configuration and publish it
 
-	# create instance of kMeans
-	self.fancyGeom = rospy.get_param("~fancyGeom", "")
-        self.n_centers = rospy.get_param("~n_centers", "")
-	self.blur = rospy.get_param("~blur","")
-	self.resize = rospy.get_param("~resize","")
-	self.blur_kernel = rospy.get_param("~blur_kernel")
-        n_centers, blur, resize, blur_kernel = 4, 'gaussian', 1, 5
-        KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
-	self.fancyGeom=True
-
+        self.ai = AntiInstagram()
         self.corrected_image = Image()
         self.bridge = CvBridge()
-	self.scale = np.array([1, 1, 1])
-	self.shift = np.array([0, 0, 0])
-	self.ai_health = 0.1
 
         self.image_msg = None
         self.click_on = False
@@ -71,15 +56,17 @@ class AntiInstagramNode():
         # memorize image
         self.image_msg = image_msg
 
-        if True:
+        if self.image_pub_switch:
             tk = TimeKeeper(image_msg)
             cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
-	    corrected_image_cv2 = scaleandshift2(cv_image, self.scale, self.shift)
+            corrected_image_cv2 = self.ai.applyTransform(cv_image)
             tk.completed('applyTransform')
 
-    	    corrected_image_cv2 = np.clip(corrected_img, 0, 255).astype(np.uint8)
-	    self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
+            corrected_image_cv2 = np.clip(
+                corrected_image_cv2, 0, 255).astype(np.uint8)
+            self.corrected_image = self.bridge.cv2_to_imgmsg(
+                corrected_image_cv2, "bgr8")
 
             tk.completed('encode')
 
@@ -123,50 +110,21 @@ class AntiInstagramNode():
             return
 
         tk.completed('converted')
-	
-        # apply KMeans
-    	KM.applyKM(cv_image, fancyGeom=self.fancyGeom)
 
-    	# get the indices of the matched centers
-    	idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
-
-    	# get centers with red
-    	trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed],
-                                KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
-
-    	# get centers w/o red
-    	trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
-                                KM.trained_centers[idxWhite]])
-
-    	# calculate transform with 4 centers
-    	T4 = calcTransform(4, trained_centers)
-    	T4.calcTransform()
-
-    	# calculate transform with 3 centers
-    	T3 = calcTransform(3, trained_centers_woRed)
-    	T3.calcTransform()
-
-    	# compare residuals
-    	# TODO verify if we can compare the residuals like this
-    	if T4.returnResidualNorm() >= T3.returnResidualNorm():
-            self.shift = T4.shift
-            self.scale = T4.scale
-    	else:
-      	    self.shift = T3.shift
-            self.scale = T3.scale	
+        self.ai.calculateTransform(cv_image)
 
         tk.completed('calculateTransform')
 
         # if health is much below the threshold value, do not update the color correction and log it.
-        if self.ai_health <= 0.001:
+        if self.ai.health <= 0.001:
             # health is not good
 
             rospy.loginfo("Health is not good")
 
         else:
-            self.health.J1 = self.ai_health
-            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.shift
-            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.scale
+            self.health.J1 = self.ai.health
+            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
             self.pub_health.publish(self.health)
             self.pub_transform.publish(self.transform)
