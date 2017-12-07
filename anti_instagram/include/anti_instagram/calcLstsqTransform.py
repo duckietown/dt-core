@@ -58,6 +58,7 @@ class calcTransform:
     vectors_b = []          # 3 x n array, containing the 'true' colors for each channel
     scale = []
     shift = []
+    residuals = []
 
     # initialize
     def __init__(self, numOcenters, found):
@@ -71,6 +72,7 @@ class calcTransform:
         self.found_centers = found
         self.scale = np.zeros(3, np.float64)
         self.shift = np.zeros(3, np.float64)
+        self.residuals = np.zeros((3, 3), np.float64)
         self.valueArrayBGR = np.zeros((3, self.num_centers), np.uint8)
         for k in range(3): self.valueArrayBGR[k,:] = self.found_centers[:,k]
 
@@ -91,8 +93,11 @@ class calcTransform:
         # loop over the three color channels
         for channel in range(3):
             # calculate least squares
-            X = np.linalg.lstsq(self.matrices_A[channel],self.vectors_b[channel])[0]
+            X, r, rank, s = np.linalg.lstsq(self.matrices_A[channel],self.vectors_b[channel])
             self.scale[channel] = X[0]
             self.shift[channel] = X[1]
-        print(self.scale)
-        print(self.shift)
+            self.residuals[channel] = r
+        print('scale: ' + str(self.scale))
+        print('shift: ' + str(self.shift))
+        resNorm = np.linalg.norm(self.residuals)
+        print('residuals: ' + str(resNorm))
