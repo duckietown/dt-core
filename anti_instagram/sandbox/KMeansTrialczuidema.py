@@ -216,9 +216,9 @@ class kMeanClass:
 
         print idxRed, idxWhite, idxYellow, idxBlack
         if (withRed):
-            return idxYellow, idxRed, idxWhite, idxBlack
+            return idxBlack, idxRed, idxYellow, idxWhite,
         else:
-            return idxYellow, idxWhite, idxBlack
+            return idxBlack, idxYellow, idxWhite
 
     def plotDeterminedCenters(self, centerBlack, centerYellow, centerWhite, centerRed):
 
@@ -302,7 +302,7 @@ def main():
     # create instance of kMeans
     KM = kMeanClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
     KM.applyKM()
-    idxYellow, idxRed, idxWhite, idxBlack = KM.determineColor(True, KM.trained_centers)
+    idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
     KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                              KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
 
