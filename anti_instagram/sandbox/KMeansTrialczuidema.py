@@ -9,6 +9,11 @@ from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
 import math
+from calcTransform import calcTransform
+from anti_instagram.AntiInstagram import *
+from anti_instagram.scale_and_shift import *
+#from .scale_and_shift import scaleandshift
+#from .scale_and_shift import scaleandshift2
 
 
 class kMeanClass:
@@ -216,7 +221,7 @@ class kMeanClass:
 
         print idxRed, idxWhite, idxYellow, idxBlack
         if (withRed):
-            return idxBlack, idxRed, idxYellow, idxWhite,
+            return idxBlack, idxRed, idxYellow, idxWhite
         else:
             return idxBlack, idxYellow, idxWhite
 
@@ -305,6 +310,22 @@ def main():
     idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
     KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                              KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
+
+    trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed], KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+
+    print(trained_centers)
+    T = calcTransform(4, trained_centers)
+    T.calcTransform()
+
+    corrected_img = scaleandshift2(KM.input_image, T.scale, T.shift)
+    corrected_image_cv2 = np.clip(
+        corrected_img, 0, 255).astype(np.uint8)
+
+    cv2.namedWindow('corrected', flags=cv2.WINDOW_NORMAL)
+    cv2.imshow('corrected', corrected_image_cv2)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     sys.exit(main())
