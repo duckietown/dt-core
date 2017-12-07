@@ -52,8 +52,10 @@ class kMeanClass:
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img):
         x, y, p = cv2img.shape
-        cv2_tpose = cv2img.transpose()
-        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x * y])
+        img_geom = cv2img[int(x*0.3):(x-1), :, :]
+        x_new, y_new, p = img_geom.shape
+        cv2_tpose = img_geom.transpose()
+        cv2_arr_tpose = np.reshape(cv2_tpose, [p, x_new * y_new])
         npdata = np.transpose(cv2_arr_tpose)
         return npdata
 
