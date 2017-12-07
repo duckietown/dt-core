@@ -156,6 +156,10 @@ class kMeanClass:
             if (withRed):
                 errorRed[i] = np.linalg.norm(trueRed - trained_centers[i])
 
+        print "black error:" + str(errorBlack)
+        print "yellow error:" + str(errorYellow)
+        print "white error:" + str(errorWhite)
+        print "red error:" + str(errorRed)
         nTrueCenters = 3
         errorBlackSortedIdx = np.argsort(errorBlack)
         errorYellowSortedIdx = np.argsort(errorYellow)
@@ -173,35 +177,44 @@ class kMeanClass:
             redIdxFound = False
         centersFound = False
         index = 0
+
+        print "errorBlackSortedIdx: " + str(errorBlackSortedIdx)
+        print "errorYellowSortedIdx: " + str(errorYellowSortedIdx)
+        print "errorWhiteSortedIdx: " + str(errorWhiteSortedIdx)
+        print "errorRedSortedIdx: " + str(errorRedSortedIdx)
         while (not centersFound):
 
             if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
                 ListOfIndices.append(errorBlackSortedIdx[index])
-                print(errorBlack[index])
+                print str(index) + " in black " + str(ListOfIndices)
                 blackIdxFound = True
                 idxBlack = errorBlackSortedIdx[index]
             if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
                 ListOfIndices.append(errorWhiteSortedIdx[index])
-                print(errorWhite[index])
+                print str(index) + " in white " + str(ListOfIndices)
                 whiteIdxFound = True
                 idxWhite = errorWhiteSortedIdx[index]
             if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
                 ListOfIndices.append(errorYellowSortedIdx[index])
+                print str(index) + " in yellow " + str(ListOfIndices)
                 yellowIdxFound = True
-                print(errorYellow[index])
                 idxYellow = errorYellowSortedIdx[index]
-            if (withRed):
-                if errorBlackSortedIdx[index] not in ListOfIndices and not redIdxFound:
+            if withRed:
+                if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
                     ListOfIndices.append(errorRedSortedIdx[index])
                     redIdxFound = True
-                    print(errorRed[index])
+                    print str(index) + "in red" + str(ListOfIndices)
                     idxRed = errorRedSortedIdx[index]
+                print "True?: " + str(redIdxFound) + str(yellowIdxFound) + str(whiteIdxFound) + str(blackIdxFound)
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+                print "centersFound: " + str(centersFound)
+
             else:
                 centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
             index = index + 1
-            print(index)
+            print "End of while loop. Index: " + str(index)
 
+        print idxRed, idxWhite, idxYellow, idxBlack
         if (withRed):
             return idxYellow, idxRed, idxWhite, idxBlack
         else:
@@ -209,10 +222,10 @@ class kMeanClass:
 
     def plotDeterminedCenters(self, centerBlack, centerYellow, centerWhite, centerRed):
 
-        tupleBlack = tuple([centerBlack[2], centerBlack[1], centerBlack[1]])
-        tupleWhite = tuple([centerWhite[2], centerWhite[1], centerWhite[1]])
-        tupleYellow = tuple([centerYellow[2], centerYellow[1], centerYellow[1]])
-        tupleRed = tuple([centerRed[2], centerRed[1], centerRed[1]])
+        tupleBlack = tuple([centerBlack[2], centerBlack[1], centerBlack[0]])
+        tupleWhite = tuple([centerWhite[2], centerWhite[1], centerWhite[0]])
+        tupleYellow = tuple([centerYellow[2], centerYellow[1], centerYellow[0]])
+        tupleRed = tuple([centerRed[2], centerRed[1], centerRed[0]])
 
         imageBlack = np.zeros((200, 200, 3), np.uint8)
         imageBlack[:] = tupleBlack
