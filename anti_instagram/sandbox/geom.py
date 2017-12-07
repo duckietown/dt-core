@@ -79,8 +79,7 @@ def identifyLaneSurface(img, grad_th=50, visualize=False):
     cv2.floodFill(grad, mask, (0, y_keep), 0, flags=cv2.FLOODFILL_MASK_ONLY)
     mask = mask[:-1, 1:-1]
     mask[0, :] = 0
-<<<<<<< HEAD
-=======
+
     ks_close = int(round(l * 0.03))
     mask[1:, :] = cv2.morphologyEx(
         mask[1:, :], cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks_close, ks_close)))
@@ -104,7 +103,6 @@ def identifyLaneSurface(img, grad_th=50, visualize=False):
 
 # taken out of line_detector1.py, thresh should be a numpy array of shape (n,3), this is to provide previous estimates
 
->>>>>>> ffd25a3aa0db9c024ee72d100d5c11cec9ce7e1e
 
 def colorFilter(img, color, thresh=None):
     # threshold colors in HSV space
@@ -158,11 +156,8 @@ def detectColor(bw, color):
     r = contigRegion(bw, w, h, n)
     mask = np.zeros(bw.shape, dtype=np.uint8)
     for i in range(r.shape[0]):
-<<<<<<< HEAD
-=======
         y, x = r[i, 0], r[i, 1]
         mask[y - h:y + h, x - w:x + w] = 1
->>>>>>> ffd25a3aa0db9c024ee72d100d5c11cec9ce7e1e
     mask = cv2.bitwise_and(bw, mask)
     return mask
 
