@@ -75,15 +75,17 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     
     def update(self, segments, range_min, range_max):
-        measurement_likelihood = self.generate_measurement_likelihood(segments)
-        if measurement_likelihood is not None:
-            self.belief = np.multiply(self.belief,measurement_likelihood)
-            if np.sum(self.belief) == 0:
-                self.belief = measurement_likelihood
-            else:
-                self.belief = self.belief/np.sum(self.belief)
+        range_delta = (range_max - range_min)/self.num_belief
+        for i in range(self.num_belief):
+            measurement_likelihood = self.generate_measurement_likelihood(segments, i * range_delta, (i+1) * range_delta)
+            if measurement_likelihood is not None:
+                self.beliefArray[i] = np.multiply(self.belief,measurement_likelihood)
+                if np.sum(self.beliefArray[i]) == 0:
+                    self.beliefArray[i] = measurement_likelihood
+                else:
+                    self.beliefArray[i] = self.beliefArray[i]/np.sum(self.beliefArray[i])
 
-    def generate_measurement_likelihood(self, segments):
+    def generate_measurement_likelihood(self, segments, range_min, range_max):
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
@@ -92,6 +94,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 continue
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
+                continue
+            point_range = np.norm((segment.points[0]+segment.points[1])/2)
+            # only consider points in a certain range from the Duckiebot
+            if point_range < range_min or point_range > range_min:
                 continue
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
@@ -106,13 +112,16 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         return measurement_likelihood
         
     def getEstimate(self):
-        maxids = np.unravel_index(self.belief.argmax(),self.belief.shape)
-        d_max = self.d_min + maxids[0]*self.delta_d
-        phi_max = self.phi_min + maxids[1]*self.delta_phi
+        d_max = np.zeros(self.num_belief)
+        phi_max = np.zeros(self.num_belief)
+        for i in range(self.num_belief):
+            maxids = np.unravel_index(self.beliefArray[i].argmax(),self.belief.shape)
+            d_max[i] = self.d_min + maxids[0]*self.delta_d
+            phi_max[i] = self.phi_min + maxids[1]*self.delta_phi
         return [d_max,phi_max]
 
     def getMax(self):
-        return self.belief.max()
+        return self.beliefArray[0].max()
 
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))
