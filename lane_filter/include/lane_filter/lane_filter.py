@@ -72,7 +72,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
 
     
-    def update(self, segments, range_min, range_max):
+    def update(self, segments):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief,measurement_likelihood)
