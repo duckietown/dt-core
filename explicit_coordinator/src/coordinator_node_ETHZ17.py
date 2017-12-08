@@ -59,7 +59,8 @@ class VehicleCoordinator():
         # self.opposite_veh = UNKNOWN
 
 # Initializing the unknown presence of a car
-	self.detected_car = UNKNOWN
+	#self.detected_car = UNKNOWN
+	self.veh_detected = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetectionETHZ17, self.process_signals_detection) # see below for the def. of process_signals_detection
 
         # Publishing
