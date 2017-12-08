@@ -37,10 +37,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.num_belief = 3
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
-        self.beliefArray = [np.empty(self.d.shape)] * num_belief
         self.belief = np.empty(self.d.shape)
-        #for i in range(self.num_belief):
-        #    self.beliefArray.append(belief)
+        self.beliefArray = [self.belief] * num_belief
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]  
@@ -75,14 +73,14 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def update(self, segments, range_min, range_max):
         range_delta = (range_max - range_min)/self.num_belief
-        for belief in self.beliefArray:
+        for i in range(len(self.beliefArray)):
             measurement_likelihood = self.generate_measurement_likelihood(segments, i * range_delta, (i+1) * range_delta)
             if measurement_likelihood is not None:
-                self.beliefArray.belief = np.multiply(self.belief,measurement_likelihood)
-                if np.sum(self.beliefArray.belief) == 0:
-                    self.beliefArray.belief = measurement_likelihood
+                self.beliefArray[i] = np.multiply(self.belief,measurement_likelihood)
+                if np.sum(self.beliefArray[i]) == 0:
+                    self.beliefArray[i] = measurement_likelihood
                 else:
-                    self.beliefArray.belief = self.beliefArray.belief/np.sum(self.beliefArray.belief)
+                    self.beliefArray[i] = self.beliefArray[i]/np.sum(self.beliefArray[i])
 
     def generate_measurement_likelihood(self, segments, range_min, range_max):
         # initialize measurement likelihood to all zeros
