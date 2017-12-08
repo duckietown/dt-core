@@ -40,13 +40,21 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
+        k_Id = 1
+        k_Iphi = 0
+        self.cross_track_integral = 0
+        self.heading_integral = 0
+
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         # FIXME: AC aug'17: are these inverted?
-        self.k_d = self.setupParameter("~k_d",k_theta) # P gain for theta
-        self.k_theta = self.setupParameter("~k_theta",k_d) # P gain for d
-        self.d_thres = self.setupParameter("~d_thres",theta_thres) # Cap for error in d
-        self.theta_thres = self.setupParameter("~theta_thres",d_thres) # Maximum desire theta
+        self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
+        self.k_theta = self.setupParameter("~k_theta",k_theta) # P gain for d
+        self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
+        self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
+
+        self.k_Id = self.setupParameter("~k_Id", k_Id)
+        self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -56,8 +64,14 @@ class lane_controller(object):
         theta_thres = rospy.get_param("~theta_thres")
         d_offset = rospy.get_param("~d_offset")
 
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset)
+        k_Id = rospy.get_param("~k_Id")
+
+        if self.k_Id != k_Id:
+            rospy.loginfo("ADJUSTED I GAIN")
+            self.cross_track_integral = 0
+            self.k_Id = k_Id
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -69,6 +83,7 @@ class lane_controller(object):
             self.d_thres = d_thres
             self.theta_thres = theta_thres
             self.d_offset = d_offset
+            self.k_Id = k_Id
 
 
     def custom_shutdown(self):
@@ -114,14 +129,28 @@ class lane_controller(object):
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
 
+        if self.cross_track_integral > 4:
+            rospy.loginfo("you're greater 5")
+            self.cross_track_integral = 4
+        if self.cross_track_integral < -4:
+            rospy.loginfo("youre smaller -5")
+            self.cross_track_integral = -4
+
+        self.cross_track_integral += cross_track_err
+        self.heading_integral += heading_err
+
+
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(cross_track_err) > self.d_thres:
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err #*self.steer_gain #Right stick H-axis. Right is negative
-
+        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
+        rospy.loginfo("P-Control: " + str(car_control_msg.omega))
+        rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
+        car_control_msg.omega -= self.k_Id * self.cross_track_integral #*self.steer_gain #Right stick H-axis. Right is negative
+        rospy.loginfo(str(self.k_Id))
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
         # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
