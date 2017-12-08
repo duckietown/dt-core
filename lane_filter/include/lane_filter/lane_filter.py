@@ -111,9 +111,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         return measurement_likelihood
         
     def getEstimate(self):
-        maxids = np.unravel_index(self.beliefArray[0].argmax(),self.belief.shape)
-        d_max = self.d_min + maxids[0]*self.delta_d
-        phi_max = self.phi_min + maxids[1]*self.delta_phi
+        d_max = np.zeros(self.num_belief)
+        phi_max = np.zeros(self.num_belief)
+        for i in range(self.num_belief):
+            maxids = np.unravel_index(self.beliefArray[i].argmax(),self.belief.shape)
+            d_max[i] = self.d_min + maxids[0]*self.delta_d
+            phi_max[i] = self.phi_min + maxids[1]*self.delta_phi
         return [d_max,phi_max]
 
     def getMax(self):
