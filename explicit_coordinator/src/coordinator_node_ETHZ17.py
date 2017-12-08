@@ -31,7 +31,7 @@ class VehicleCoordinator():
         rospy.loginfo('The Coordination Mode has Started')
 
 # Determine the state of the bot
-        self.state = State.LANE_FOLLOWING
+        self.state = State.AT_STOP_CLEARING
         self.last_state_transition = time()
         self.random_delay = 0
 
@@ -41,7 +41,7 @@ class VehicleCoordinator():
 
         # Parameters
 
-# Are we in a situation with traffic lights? Initially always false.
+	# Are we in a situation with traffic lights? Initially always false.
         if rospy.get_param("~intersectionType") == "trafficLight":
             self.traffic_light_intersection = True
         else:
@@ -57,38 +57,39 @@ class VehicleCoordinator():
 
    	# self.right_veh = UNKNOWN
         # self.opposite_veh = UNKNOWN
+	self.veh_detected = UNKNOWN
 
-# Initializing the unknown presence of a car
+	# Initializing the unknown presence of a car
 	self.detected_car = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetectionETHZ17, self.process_signals_detection) # see below for the def. of process_signals_detection
 
         # Publishing
         self.clearance_to_go = CoordinationClearanceETHZ17.NA
-# state of the clearance
+	# state of the clearance
         self.clearance_to_go_pub = rospy.Publisher('~clearance_to_go', CoordinationClearanceETHZ17, queue_size=10)
-# signal for the intersection
+	# signal for the intersection
         self.pub_intersection_go = rospy.Publisher('~intersection_go', BoolStampedETHZ17, queue_size=1)
         self.pub_coord_cmd = rospy.Publisher('~car_cmd', Twist2DStampedETHZ17, queue_size=1)
 
-# set the light to be off
+	# set the light to be off
         self.roof_light = CoordinationSignalETHZ17.OFF
-# publish that
+	# publish that
         self.roof_light_pub = rospy.Publisher('~change_color_pattern', String, queue_size=10)
-
         self.coordination_state_pub = rospy.Publisher('~coordination_state', String, queue_size=10)
 
         while not rospy.is_shutdown():
             self.loop()
             rospy.sleep(0.1)
+
 #############################################################################################################
     def set_state(self, state):
         self.state = state
         self.last_state_transition = time()
 
         if self.state == State.AT_STOP_CLEARING:
-           self.reset_signals_detection()
+   	    self.reset_signals_detection()
            # self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
-#after setting everything to unknown, we turn on the light
+	   #after setting everything to unknown, we turn on the light
 	   self.roof_light = CoordinationSignalETHZ17.ON
         elif self.state == State.AT_STOP_CLEAR:
 	   self.roof_light = CoordinationSignalETHZ17.ON	
@@ -110,15 +111,15 @@ class VehicleCoordinator():
 
         rospy.logdebug('[coordination_node_ETHZ17] Transitioned to state' + self.state)
 #################################################################################################################
-
-# Define the time at this current state
+	
+    # Define the time at this current state
     def time_at_current_state(self):
         return time() - self.last_state_transition
 
     def set(self, name, value):
         self.__dict__[name] = value
 
-# Definition of each signal detection
+    # Definition of each signal detection
     def process_signals_detection(self, msg):
         self.set('traffic_light', msg.traffic_light_state)
         #self.set('right_veh', msg.right)
@@ -126,7 +127,7 @@ class VehicleCoordinator():
 	self.set('veh_detected', msg.led_detected)
 	self.set('veh_not_detected',msg.no_led_detected)
 
-# definition which resets everything we know
+    # definition which resets everything we know
     def reset_signals_detection(self):
         self.traffic_light = UNKNOWN
         #self.right_veh = UNKNOWN
@@ -134,7 +135,7 @@ class VehicleCoordinator():
 	self.veh_detected = UNKNOWN
 	self.veh_not_detected = UNKNOWN
 
-# publishing the topics
+    # publishing the topics
     def publish_topics(self):
         now = rospy.Time.now()
         self.clearance_to_go_pub.publish(CoordinationClearanceETHZ17(status=self.clearance_to_go))
@@ -151,7 +152,8 @@ class VehicleCoordinator():
         car_cmd_msg.header.stamp = now
         self.pub_coord_cmd.publish(car_cmd_msg)
         self.coordination_state_pub.publish(data=self.state)
-# definition of the loop
+
+    # definition of the loop
     def loop(self):
         self.reconsider()
         self.publish_topics()
@@ -163,7 +165,7 @@ class VehicleCoordinator():
                 if self.traffic_light_intersection:
                     self.set_state(State.TL_SENSING)
                 else:
-# our standard case: setting at stop clearing!
+		    # our standard case: setting at stop clearing!
                     self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.AT_STOP_CLEARING:
