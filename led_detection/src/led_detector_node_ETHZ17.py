@@ -129,7 +129,7 @@ class LEDDetectorNode(object):
         desMax            = 3
         threshold         = 237
         thresholdPixelMax = 200
-	thresholdPixelMin = 0
+        thresholdPixelMin = 0
 
         # Allocate space
         maxValue    = np.zeros((desMax,1))
@@ -154,11 +154,10 @@ class LEDDetectorNode(object):
             cv2.circle(imCircle, maxLoc, radius, (0,0,255), 1)
 	
 		
-	# Publish image with circles
-	#cvImage = cv2.imdecode(imCircle,cv2.IMREAD_COLOR)
-	imCircle_msg = self.bridge.cv2_to_imgmsg(imCircle,encoding="passthrough")
-	# Publish image
-	self.pub_image.publish(imCircle_msg)
+	    # Publish image with circles
+	    imCircle_msg = self.bridge.cv2_to_imgmsg(imCircle,encoding="passthrough")
+	    # Publish image
+	    self.pub_image.publish(imCircle_msg)
 
         # Compute distance between LEDs
         dist = np.zeros((desMax,desMax))
