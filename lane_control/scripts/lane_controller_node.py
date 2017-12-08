@@ -40,8 +40,8 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
-        k_Id = 1
-        k_Iphi = 0
+        k_Id = 0.2
+        k_Iphi = 0.1
         self.cross_track_integral = 0
         self.heading_integral = 0
 
@@ -65,18 +65,18 @@ class lane_controller(object):
         d_offset = rospy.get_param("~d_offset")
 
         k_Id = rospy.get_param("~k_Id")
-
+        k_Iphi = rospy.get_param("~k_Iphi")
         if self.k_Id != k_Id:
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
-            rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
-            rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
+            #rospy.loginfo("old gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_old))
+            #rospy.loginfo("new gains, v_var %f, k_d %f, k_theta %f, theta_thres %f, d_thres %f, d_offset %f" %(params_new))
             self.v_bar = v_bar
             self.k_d = k_d
             self.k_theta = k_theta
@@ -84,6 +84,8 @@ class lane_controller(object):
             self.theta_thres = theta_thres
             self.d_offset = d_offset
             self.k_Id = k_Id
+            self.k_Iphi = k_Iphi
+
 
 
     def custom_shutdown(self):
@@ -129,6 +131,14 @@ class lane_controller(object):
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
 
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header = lane_pose_msg.header
+        car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
+
+        if math.fabs(cross_track_err) > self.d_thres:
+            rospy.logerr("inside threshold ")
+            cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
+
         if self.cross_track_integral > 4:
             rospy.loginfo("you're greater 5")
             self.cross_track_integral = 4
@@ -139,18 +149,21 @@ class lane_controller(object):
         self.cross_track_integral += cross_track_err
         self.heading_integral += heading_err
 
+        if self.heading_integral < -15:
+            self.heading_integral = -15
+        if self.heading_integral > 15:
+            self.heading_integral = 15
 
-        car_control_msg = Twist2DStamped()
-        car_control_msg.header = lane_pose_msg.header
-        car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
-
-        if math.fabs(cross_track_err) > self.d_thres:
-            cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
         rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
-        car_control_msg.omega -= self.k_Id * self.cross_track_integral #*self.steer_gain #Right stick H-axis. Right is negative
-        rospy.loginfo(str(self.k_Id))
+        car_control_msg.omega -= self.k_Id * self.cross_track_integral
+        car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
+        rospy.loginfo("kid : " + str(self.k_Id))
+        rospy.loginfo("Kd : " + str(self.k_d))
+        rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
+        rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
+        rospy.loginfo("Ktheta : " + str(self.k_theta))
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
         # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
