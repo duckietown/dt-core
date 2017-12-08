@@ -55,7 +55,7 @@ class LaneFilterNode(object):
         # Step 2: update
         range_max = 0.6  # range to consider edges in general
         range_min = 0
-        self.filter.update(segment_list_msg.segments)
+        self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()

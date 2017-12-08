@@ -38,7 +38,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.num_belief = 3
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.belief = np.empty(self.d.shape)
-        #self.beliefArray = [self.belief] * num_belief
+        self.beliefArray = [self.belief] * num_belief
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]  
@@ -72,7 +72,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
 
     
-    def update(self, segments):
+    def update(self, segments, range_min, range_max):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief,measurement_likelihood)
