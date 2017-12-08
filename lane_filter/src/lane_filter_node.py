@@ -53,12 +53,14 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        range_max = 2  # range to consider edges in general
+        range_max = 10  # range to consider edges in general
         range_min = 0
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
+        print "d_max = ", d_max
+        print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
