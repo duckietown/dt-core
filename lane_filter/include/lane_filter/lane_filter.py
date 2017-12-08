@@ -69,7 +69,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.belief = s_belief/np.sum(s_belief)
 
 
-    def update(self, segments):
+    def update(self, segments, range_min, range_max):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief,measurement_likelihood)
@@ -78,7 +78,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             else:
                 self.belief = self.belief/np.sum(self.belief)
 
-    def generate_measurement_likelihood(self, segments):
+    def generate_measurement_likelihood(self, segments, range_min, range_max):
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
@@ -87,6 +87,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 continue
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
+                continue
+            point_range = np.norm((segment.points[0]+segment.points[1])/2)
+            # only consider points in a certain range from the Duckiebot
+            if point_range < range_min or point_range > range_min:
                 continue
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it

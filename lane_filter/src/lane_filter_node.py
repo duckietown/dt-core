@@ -53,7 +53,9 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        self.filter.update(segment_list_msg.segments)
+        range_min = 0
+        range_max = 10
+        self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
