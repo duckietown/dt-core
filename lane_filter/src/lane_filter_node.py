@@ -73,7 +73,7 @@ class LaneFilterNode(object):
 
         # publish the belief image
         bridge = CvBridge()
-        belief_img = bridge.cv2_to_imgmsg((255*self.filter.beliefArray[0]).astype('uint8'), "mono8")
+        belief_img = bridge.cv2_to_imgmsg((255*self.filter.belief).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         self.pub_lane_pose.publish(lanePose)
