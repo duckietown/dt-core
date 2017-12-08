@@ -90,7 +90,7 @@ class VehicleCoordinator():
    	    self.reset_signals_detection()
            # self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
 	   #after setting everything to unknown, we turn on the light
-	   self.roof_light = CoordinationSignalETHZ17.ON
+	    self.roof_light = CoordinationSignalETHZ17.ON
         elif self.state == State.AT_STOP_CLEAR:
 	   self.roof_light = CoordinationSignalETHZ17.ON	
            #self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
@@ -121,7 +121,7 @@ class VehicleCoordinator():
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
-        self.set('traffic_light', msg.traffic_light_state)
+        #self.set('traffic_light', msg.traffic_light_state)
         #self.set('right_veh', msg.right)
         #self.set('opposite_veh', msg.front)
 	self.set('veh_detected', msg.led_detected)

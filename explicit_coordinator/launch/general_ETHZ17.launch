@@ -13,13 +13,13 @@
     <!-- run local -->
 
     <group ns="$(arg veh)">
-<!-- Run coordination node -->
+	<!-- Run coordination node -->
         <node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17.py" output="screen" clear_params="true" required="true">
             <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
             <param name="verbose" value="false"/>
             <param name="intersectionType" value="trafficLight"/>
             <!-- Input to coordination node -->
-            <remap from="~signals_detection" to="led_detector_node/led_detection" unless="$(arg joystick)"/>
+            <remap from="~signals_detection" to="led_detector_node/led_detection"/>
         </node>
 
         <!-- Run with detection node (Giulia)-->
@@ -37,7 +37,7 @@
             <!-- other -->
             <rosparam command="load" file="$(find duckietown)/config/baseline/led_interpreter/LED_protocol.yaml"/>
             <!-- Input from coordination node -->
-          	<!--<remap from="~change_color_pattern" to="coordinator_node/change_color_pattern" unless="$(arg joystick)"/>-->
+            <remap from="~change_color_pattern" to="coordinator_node/change_color_pattern"/>
         </node>
 
 
@@ -46,6 +46,7 @@
           <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
           <param name="verbose" value="false"/>
           <param name="intersectionType" value="trafficLight"/>
+	  <remap from="~signals_detection" to="led_detector_node/led_detection"/>
       </node>
 
       <!-- Run with detection node (Giulia)-->
@@ -65,7 +66,7 @@
           <!-- remap -->
           <!--<remap from="~current_led_state" to="led_emitter/current_led_state"/>-->
           <!-- Run with coordination node -->
-          <remap from="~change_color_pattern" to="explicit_coordination/change_color_pattern" unless="$(arg joystick)"/>
+          <remap from="~change_color_pattern" to="coordinator_node/change_color_pattern"/>
       </node>
 
     </group>
