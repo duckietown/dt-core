@@ -121,6 +121,7 @@ class kMeansClass:
             if (withRed):
                 errorRed[i] = np.linalg.norm(trueRed - trained_centers[i])
 
+
         nTrueCenters = 3
 
         # sort the error arrays and save the corresponding index of the original array
@@ -128,8 +129,11 @@ class kMeansClass:
         errorBlackSortedIdx = np.argsort(errorBlack)
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
-        if (withRed):
+	errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
+        print(errorSorted)
+	if (withRed):
             errorRedSortedIdx = np.argsort(errorRed)
+	    errorSorted = np.vstack((errorSorted,errorRed))
         if (withRed):
             nTrueCenters = 4
         ListOfIndices = []
@@ -143,31 +147,59 @@ class kMeansClass:
         centersFound = False
         index = 0
 
+	w,h = errorSorted.shape
+	errorList = np.reshape(errorSorted,(w*h))
         # find for every true center the corresponding trained center.
+	#this code considers the global minimum for assigning clusters,
+	#instead of assigning first black, then white, yellow and red
         while (not centersFound):
+	    ind = np.argmin(errorList)
+	    xi,yi = ind//h, ind%h
+	    if xi==0 and not blackIdxFound:
+		ListOfIndices.append(yi)
+		blackIdxFound = True
+		idxBlack = yi
+	    if xi==1 and not whiteIdxFound:
+	        ListOfIndices.append(yi)
+		whiteIdxFound = True
+		idxWhite = yi
+	    if xi==2 and not yellowIdxFound:
+	        ListOfIndices.append(yi)
+		yellowIdxFound = True
+		idxYellow = yi
+	    if (withRed):
+		if xi==3 and not redIdxFound:
+		    ListOfIndices.append(yi)
+		    redIdxFound = True
+		    idxRed = yi
+		centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
+	    else:
+		centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+	    errorSorted[xi,:] = np.max(errorSorted)
+	    errorSorted[:,yi] = np.max(errorSorted)
+	    errorList = np.reshape(errorSorted,(w*h))
+            #if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
+            #    ListOfIndices.append(errorBlackSortedIdx[index])
+            #    blackIdxFound = True
+            #    idxBlack = errorBlackSortedIdx[index]
+            #if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
+            #    ListOfIndices.append(errorWhiteSortedIdx[index])
+            #    whiteIdxFound = True
+            #    idxWhite = errorWhiteSortedIdx[index]
+            #if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
+            #    ListOfIndices.append(errorYellowSortedIdx[index])
+            #    yellowIdxFound = True
+            #    idxYellow = errorYellowSortedIdx[index]
+            #if withRed:
+            #    if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
+            #        ListOfIndices.append(errorRedSortedIdx[index])
+            #        redIdxFound = True
+            #        idxRed = errorRedSortedIdx[index]
+            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
 
-            if errorBlackSortedIdx[index] not in ListOfIndices and not blackIdxFound:
-                ListOfIndices.append(errorBlackSortedIdx[index])
-                blackIdxFound = True
-                idxBlack = errorBlackSortedIdx[index]
-            if errorWhiteSortedIdx[index] not in ListOfIndices and not whiteIdxFound:
-                ListOfIndices.append(errorWhiteSortedIdx[index])
-                whiteIdxFound = True
-                idxWhite = errorWhiteSortedIdx[index]
-            if errorYellowSortedIdx[index] not in ListOfIndices and not yellowIdxFound:
-                ListOfIndices.append(errorYellowSortedIdx[index])
-                yellowIdxFound = True
-                idxYellow = errorYellowSortedIdx[index]
-            if withRed:
-                if errorRedSortedIdx[index] not in ListOfIndices and not redIdxFound:
-                    ListOfIndices.append(errorRedSortedIdx[index])
-                    redIdxFound = True
-                    idxRed = errorRedSortedIdx[index]
-                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound and redIdxFound
-
-            else:
-                centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
-            index = index + 1
+            #else:
+            #    centersFound = blackIdxFound and whiteIdxFound and yellowIdxFound
+            #index = index + 1
 
         # return the minimal error indices for the trained centers.
         if (withRed):

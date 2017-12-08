@@ -145,14 +145,17 @@ class AntiInstagramNode():
     	T3.calcTransform()
 
     	# compare residuals
-    	# TODO verify if we can compare the residuals like this
+	#in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
+	#causing a serious red shift in any image that has only 3 colors
     	if T4.returnResidualNorm() >= T3.returnResidualNorm():
             self.shift = T4.shift
             self.scale = T4.scale
     	else:
       	    self.shift = T3.shift
             self.scale = T3.scale	
-
+	
+	self.shift = T3.shift
+	self.scale = T3.scale
         tk.completed('calculateTransform')
 
         # if health is much below the threshold value, do not update the color correction and log it.
