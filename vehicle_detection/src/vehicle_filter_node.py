@@ -5,6 +5,7 @@ from geometry_msgs.msg import Point32
 from image_geometry import PinholeCameraModel
 from mutex import mutex
 from sensor_msgs.msg import CameraInfo
+from math import sqrt
 import cv2
 import numpy as np
 import os
@@ -29,22 +30,7 @@ class VehicleFilterNode(object):
 			rospy.logwarn("[%s] Can't find calibration file: %s.\n" 
 					% (self.node_name, self.cali_file))
 		self.loadConfig(self.cali_file)
-		
-		self.circlepattern_dist = 0.015
-		self.circlepattern = np.zeros([21, 3])
-		#self.circlepattern = list()
-		print(self.circlepattern)
-		for i in range(0, 7):
-			for j in range(0, 3):
-# 						point3D = Point32()
-# 						point3D.x = self.circlepattern_dist*i
-# 						point3D.y = self.circlepattern_dist*j
-# 						point3D.z = 0
-# 						self.circlepattern[i+j]=point3D
-						self.circlepattern[i+j*7,0] = self.circlepattern_dist*i - self.circlepattern_dist*3
-						self.circlepattern[i+j*7,1] = self.circlepattern_dist*j - self.circlepattern_dist
-		print(self.circlepattern)
-		
+				
 		self.sub_corners = rospy.Subscriber("~corners", VehicleCorners, 
 				self.cbCorners, queue_size=1)
 				
@@ -91,6 +77,7 @@ class VehicleFilterNode(object):
 	def processCorners(self, vehicle_corners_msg):
 		# do nothing - just relay the detection
 		if self.lock.testandset():
+			self.calcCirclePattern(vehicle_corners_msg.H, vehicle_corners_msg.W)
 			points = []
 			for Point32 in vehicle_corners_msg.corners:
 				point = [Point32.x, Point32.y]
@@ -102,17 +89,26 @@ class VehicleFilterNode(object):
 			(success, rotation_vector, translation_vector) = cv2.solvePnP(self.circlepattern, points, self.pcm.intrinsicMatrix(), self.pcm.distortionCoeffs())
 			
 			if success:
-				print(translation_vector)
+				#print(translation_vector)
 				
 				pose_msg_out = VehiclePose()
+				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
 				pose_msg_out.rho.data = np.linalg.norm(translation_vector)
-				pose_msg_out.theta.data = 0.0
-				pose_msg_out.psi.data = 0.0
-				pose_msg_out.detection.data = \
-					vehicle_corners_msg.detection.data
+				pose_msg_out.theta.data = np.arctan2(sqrt(translation_vector[0] ** 2 + translation_vector[1] ** 2), translation_vector[2])
+				pose_msg_out.psi.data = np.arctan2(translation_vector[1], translation_vector[0])
+				pose_msg_out.detection.data = vehicle_corners_msg.detection.data
 			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
 			return
+		
+	def calcCirclePattern(self, height, width):
+		self.circlepattern_dist = self.distance_between_centers
+		self.circlepattern = np.zeros([height*width, 3])
+		for i in range(0, width):
+			for j in range(0, height):
+				self.circlepattern[i+j*width,0] = self.circlepattern_dist*i - self.circlepattern_dist*(width-1)/2
+				self.circlepattern[i+j*width,1] = self.circlepattern_dist*j - self.circlepattern_dist*(height-1)/2
+		#print(self.circlepattern)
 	
 if __name__ == '__main__': 
 	rospy.init_node('vehicle_filter_node', anonymous=False)
