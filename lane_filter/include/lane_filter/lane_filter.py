@@ -95,7 +95,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            point_range = np.norm((segment.points[0]+segment.points[1])/2)
+            point_range = np.linalg.norm((segment.points[0]+segment.points[1])/2)
             # only consider points in a certain range from the Duckiebot
             if point_range < range_min or point_range > range_min:
                 continue
