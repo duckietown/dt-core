@@ -39,7 +39,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.belief = np.empty(self.d.shape)
         self.beliefArray = np.empty(self.d.shape)
-        for i in range(num_belief - 1):
+        for i in range(self.num_belief - 1):
             self.beliefArray.append(self.belief)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
