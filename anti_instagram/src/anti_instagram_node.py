@@ -54,9 +54,7 @@ class AntiInstagramNode():
 	self.blur = rospy.get_param("~blur","")
 	self.resize = rospy.get_param("~resize","")
 	self.blur_kernel = rospy.get_param("~blur_kernel")
-        n_centers, blur, resize, blur_kernel = 4, 'gaussian', 1, 5
-        KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
-	self.fancyGeom=True
+        self.KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
 
         self.corrected_image = Image()
         self.bridge = CvBridge()
@@ -71,7 +69,7 @@ class AntiInstagramNode():
         # memorize image
         self.image_msg = image_msg
 
-        if True:
+        if False:
             tk = TimeKeeper(image_msg)
             cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
@@ -125,18 +123,18 @@ class AntiInstagramNode():
         tk.completed('converted')
 	
         # apply KMeans
-    	KM.applyKM(cv_image, fancyGeom=self.fancyGeom)
+    	self.KM.applyKM(cv_image, fancyGeom=self.fancyGeom)
 
     	# get the indices of the matched centers
-    	idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
+    	idxBlack, idxRed, idxYellow, idxWhite  = self.KM.determineColor(True, self.KM.trained_centers)
 
     	# get centers with red
-    	trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed],
-                                KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+    	trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
+                                self.KM.trained_centers[idxYellow], self.KM.trained_centers[idxWhite]])
 
     	# get centers w/o red
-    	trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
-                                KM.trained_centers[idxWhite]])
+    	trained_centers_woRed = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxYellow],
+                                self.KM.trained_centers[idxWhite]])
 
     	# calculate transform with 4 centers
     	T4 = calcTransform(4, trained_centers)

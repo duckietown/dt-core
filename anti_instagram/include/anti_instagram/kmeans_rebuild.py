@@ -41,7 +41,7 @@ class kMeansClass:
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
 
     # re-shape input image for kMeans
-    def _getimgdatapts(self, cv2imgi, fancyGeom=False):
+    def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
 	if not fancyGeom:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
@@ -66,9 +66,12 @@ class kMeansClass:
         # blur image using gaussian:
         elif self.blur_alg == 'gaussian':
             self.blurred_image = cv2.GaussianBlur(self.resized_image, (self.blur_kernel, self.blur_kernel), 0)
+	
+	else:
+	    self.blurred_image = self.resized_image
 
     # apply kMeans alg
-    def applyKM(self, img):
+    def applyKM(self, img, fancyGeom=False):
 	self.input_image = img
         # resize image
         self.resized_image = cv2.resize(self.input_image, (0, 0), fx=self.fac_resize, fy=self.fac_resize)
@@ -80,7 +83,7 @@ class kMeansClass:
         kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
 
         # prepare data points
-        self.image_array = self._getimgdatapts(self.blurred_image)
+        self.image_array = self._getimgdatapts(self.blurred_image, fancyGeom=fancyGeom)
 
         # run KMeans
         kmc.fit(self.image_array)
