@@ -3,7 +3,7 @@ import rospy
 import time
 from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
-from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped
+from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped, SignalsDetectionETHZ17
 from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import String
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
@@ -25,11 +25,19 @@ class LEDDetectorNode(object):
 
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
+<<<<<<< HEAD
         self.pub_image_right = rospy.Publisher("~image_detection_right",Image,queue_size=1)
         self.pub_image_front = rospy.Publisher("~image_detection_front", Image, queue_size=1)
         self.pub_detections  = rospy.Publisher("~led_detection",String,queue_size=1)
         self.pub_debug       = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name        = rospy.get_namespace().strip("/")
+=======
+	self.pub_image = rospy.Publisher("~image_detection",Image,queue_size=1)
+        #self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
+	self.pub_detections = rospy.Publisher("~led_detection",SignalsDetectionETHZ17,queue_size=1)
+        self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
+        self.veh_name = rospy.get_namespace().strip("/")
+>>>>>>> devel-explicit-coord
 
         #self.protocol = rospy.get_param("~LED_protocol")
         self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
@@ -193,6 +201,7 @@ class LEDDetectorNode(object):
                 distRight[i,j] = np.linalg.norm(maxLocationRight[i,:] - maxLocationRight[j,:])
                 distFront[i,j] = np.linalg.norm(maxLocationFront[i,:] - maxLocationFront[j,:])
 
+<<<<<<< HEAD
         # Find if there are LEDs (right)
         if np.sum(maxValueRight > threshold) >= desMax and np.amax(distRight) < thresholdPixelMax and np.amin(distRight) >= thresholdPixelMin:
             rospy.loginfo('LED detected (right)')
@@ -213,6 +222,17 @@ class LEDDetectorNode(object):
             self.pub_detections.publish('LED detected')
         else:
             self.pub_detections.publish('No LED detected')
+=======
+        # Find if tthere are LEDs
+        if np.sum(maxValue > threshold) >= desMax and np.amax(dist) < thresholdPixelMax and np.amin(dist) >= thresholdPixelMin:
+            rospy.loginfo('LED detected')
+	    #self.pub_detections.publish('LED detected')
+            self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.CARS))
+        else:
+            rospy.loginfo('No LED detected')
+            #self.pub_detections.publish('No LED detected')
+	    self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.NO_CARS))
+>>>>>>> devel-explicit-coord
 
         # Keep going
         if(self.continuous):
