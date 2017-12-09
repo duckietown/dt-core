@@ -9,119 +9,132 @@ from duckietown_msgs.msg import BoolStamped, CoordinationSignalETHZ17
 
 
 class LEDEmitter(object):
-	def __init__(self):
-		self.led = RGB_LED()
-		self.node_name = rospy.get_name()
-		self.active = True
-		self.pattern = [[0,0,0]] * 5
-		self.current_pattern_name = 'ON_WHITE'
-		self.changePattern_('ON_WHITE')
+    def __init__(self):
+        self.led = RGB_LED()
+        self.node_name = rospy.get_name()
+        self.active = True
+        self.pattern = [[0,0,0]] * 5
+        self.current_pattern_name = 'ON_WHITE'
+        self.changePattern_('ON_WHITE')
 
-		#self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
-		self.pub_state = rospy.Publisher("~current_led_state", String,queue_size=1)
-		self.sub_pattern = rospy.Subscriber("~change_color_pattern", String, self.changePattern)
+        # Parameters
+        self.intensity = 1
 
-		# self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
-		# self.cycle = None
+        # Publish
+        #self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
+        self.pub_state = rospy.Publisher("~current_led_state",String,queue_size=1)
 
-		# self.is_on = False
+        # Subscribe
+        self.sub_pattern = rospy.Subscriber("~change_color_pattern",String,self.changePattern)
 
-		# self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
+        # self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
+        # self.cycle = None
 
-		# self.pattern_off = [[0,0,0]]
-		# self.pattern_on  = [[1,1,1]]
+        # self.is_on = False
 
-		#for i in range(5):
-		#    self.pattern[i] = self.pattern_off
+        # self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
-		# scale = 0.5
-		# for _, c in self.protocol['colors'].items():
-		#    for i in range(3):
-		#        c[i] = c[i]  * scale
+        # self.pattern_off = [[0,0,0]]
+        # self.pattern_on  = [[1,1,1]]
 
-		self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.cycleTimer)
+        #for i in range(5):
+        #    self.pattern[i] = self.pattern_off
 
-	# def cbSwitch(self, switch_msg): # active/inactive switch from FSM
-	#    self.active = switch_msg.data
+        # scale = 0.5
+        # for _, c in self.protocol['colors'].items():
+        #    for i in range(3):
+        #        c[i] = c[i]  * scale
+
+        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.cycleTimer)
+
+    # def cbSwitch(self, switch_msg): # active/inactive switch from FSM
+    #    self.active = switch_msg.data
 
 
-	def cycleTimer(self,event):
-		if not self.active:
-			return
-		for i in range(5):
-			self.led.setRGB(i, [self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
+    def cycleTimer(self,event):
+        if not self.active:
+            return
+        for i in range(5):
+            self.led.setRGB(i,[self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
 
-		# if self.is_on:
-		#    for i in range(5):
-		#        self.led.setRGB(i, [0, 0, 0])
-		#        self.is_on = False
-		# else:
-		#    for i in range(5):
-		#        self.led.setRGB(i, self.pattern[i])
-		#        self.is_on = True
+        # To emit frequencies
+        # if self.is_on:
+        #    for i in range(5):
+        #        self.led.setRGB(i, [0, 0, 0])
+        #        self.is_on = False
+        # else:
+        #    for i in range(5):
+        #        self.led.setRGB(i, self.pattern[i])
+        #        self.is_on = True
 
-	def changePattern(self, msg):
-		self.changePattern_(msg.data)
+    def changePattern(self, msg):
+        self.changePattern_(msg.data)
 
-	def changePattern_(self, pattern_name):
-		if pattern_name:
-			if self.current_pattern_name == pattern_name:
-				return
-			else:
-				self.current_pattern_name = pattern_name
-	
-			# rospy.loginfo('changePattern(%r)' % pattern_name)
-			# color = self.protocol['signals'][pattern_name]['color']
-			# self.cycle = self.protocol['signals'][pattern_name]['frequency']
-			# print("color: %s, freq (Hz): %s "%(color, self.cycle))
+    def changePattern_(self, pattern_name):
+        if pattern_name:
+            if self.current_pattern_name == pattern_name:
+                return
+            else:
+                self.current_pattern_name = pattern_name
 
-			if self.current_pattern_name == 'ON_WHITE':
-				rospy.loginfo('changePattern(%r)' % pattern_name)
-				self.pattern = [[1,1,1]]*5
-			elif self.current_pattern_name == 'ON_RED':
-				rospy.loginfo('changePattern(%r)' % pattern_name)
-				self.pattern = [[1,0,0]] * 5
-			elif self.current_pattern_name == 'ON_BLUE':
-				rospy.loginfo('changePattern(%r)' % pattern_name)
-				self.pattern = [[0,0,1]] * 5
-			elif self.current_pattern_name == 'ON_GREEN':
-				rospy.loginfo('changePattern(%r)' % pattern_name)
-				self.pattern = [[0,1,0]] * 5
-			else:
-				rospy.loginfo('changePattern(%r)' % pattern_name)
-				self.pattern = [[0,0,0]]*5
-		       
-			if self.current_pattern_name == CoordinationSignalETHZ17.ON:
-                                rospy.loginfo('changePattern(%r)' % pattern_name)
-                                self.pattern = [[1,1,1]]*5
-			elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
-                                rospy.loginfo('changePattern(%r)' % pattern_name)
-                                self.pattern = [[0,0,0]]*5
+            # rospy.loginfo('changePattern(%r)' % pattern_name)
+            # color = self.protocol['signals'][pattern_name]['color']
+            # self.cycle = self.protocol['signals'][pattern_name]['frequency']
+            # print("color: %s, freq (Hz): %s "%(color, self.cycle))
 
-			self.pub_state.publish(self.current_pattern_name)
+            # With joystick
+            if self.current_pattern_name == 'ON_WHITE':
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[1,1,1]]*5
+            elif self.current_pattern_name == 'ON_RED':
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[1,0,0]] * 5
+            elif self.current_pattern_name == 'ON_BLUE':
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[0,0,1]] * 5
+            elif self.current_pattern_name == 'ON_GREEN':
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[0,1,0]] * 5
+            else:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[0,0,0]]*5
 
-			#self.pattern = [[0,0,0]] * 5
-			#self.pattern[2] = self.protocol['colors'][color]
+            # With coordination
+            if self.current_pattern_name == CoordinationSignalETHZ17.ON:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[1,1,1]]*5
+            elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[0,0,0]]*5
 
-			# if pattern_name in ['traffic_light_go', 'traffic_light_stop']:
-				# self.pattern = [self.protocol['colors'][color]] * 5
+            # Set intensity
+            self.pattern = self.intensity*self.pattern
 
-			# self.changeFrequency()
+            # Publish current pattern
+            self.pub_state.publish(self.current_pattern_name)
 
-	#def changeFrequency(self):
-	#    try:
-	#        #self.cycle = msg.data
-	#        self.cycle_timer.shutdown()
-	#        #below, convert to hz
-	#        d = 1.0/(2.0*self.cycle)
-	#        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(d), self.cycleTimer)
-	#    except ValueError as e:
-	#        self.cycle = None
-	#        self.current_pattern_name = None
-	#    self.pub_state.publish(float(self.cycle))
+            #self.pattern = [[0,0,0]] * 5
+            #self.pattern[2] = self.protocol['colors'][color]
+
+            # if pattern_name in ['traffic_light_go', 'traffic_light_stop']:
+                # self.pattern = [self.protocol['colors'][color]] * 5
+
+            # self.changeFrequency()
+
+    #def changeFrequency(self):
+    #    try:
+    #        #self.cycle = msg.data
+    #        self.cycle_timer.shutdown()
+    #        #below, convert to hz
+    #        d = 1.0/(2.0*self.cycle)
+    #        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(d), self.cycleTimer)
+    #    except ValueError as e:
+    #        self.cycle = None
+    #        self.current_pattern_name = None
+    #    self.pub_state.publish(float(self.cycle))
 
 if __name__ == '__main__':
-	rospy.init_node('led_emitter',anonymous=False)
-	node = LEDEmitter()
-	rospy.spin()
+    rospy.init_node('led_emitter',anonymous=False)
+    node = LEDEmitter()
+    rospy.spin()
 
