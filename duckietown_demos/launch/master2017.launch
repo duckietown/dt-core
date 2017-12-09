@@ -218,7 +218,8 @@
 		<include file="$(find fsm)/launch/fsm_node.launch">
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
-			<arg name="param_file_name" value="$(arg fsm_file_name)"/>        
+			<!-- <arg name="param_file_name" value="$(arg fsm_file_name)"/> -->
+			<arg name="param_file_name" value="default2017" />
 		</include>
 
 		<!-- car_cmd_switch_node -->
@@ -228,7 +229,9 @@
 		<include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<!-- <arg name="param_file_name" value="$(arg param_file_name)"/>-->
+			<arg name="param_file_name" value="default2017" />
+
 		</include>
 
 		<include file="$(find fsm)/launch/logic_gate_node.launch">
@@ -485,9 +488,11 @@
 	<group if="$(arg coordination)">
 		<!-- Vehicle Coordinator-->
 		<remap from="coordinator_node/mode" to="fsm_node/mode" />
-		<remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />
+		<remap from="simple_coordinator_node/intersection_go" to="coordinator_node/intersection_go" />
+		<remap from="simple_coordinator_node/car_cmd" to="coordinator_node/car_cmd" />
+		<!--<remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />-->
 		<!--the following remap is done through led_patter_switch_node -->
-        <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+       	 	<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<include file="$(find explicit_coordinator)/launch/general_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
