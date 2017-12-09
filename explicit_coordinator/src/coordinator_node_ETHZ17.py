@@ -24,8 +24,8 @@ class State:
 class VehicleCoordinator():
     # Parameters
     T_MAX_RANDOM = 0.0 + 4.0  # seconds
-    T_CROSS      = 5.0 + 6.0  # seconds
-    T_SENSE      = 1.0 + 2.0  # seconds
+    T_CROSS      = 0.0 + 6.0  # seconds
+    T_SENSE      = 0.0 + 2.0  # seconds
 
     # We communicate that the coordination mode has started
     def __init__(self):
@@ -176,8 +176,9 @@ class VehicleCoordinator():
                 self.random_delay = random() * self.T_MAX_RANDOM
                 print("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)
                 self.set_state(State.CONFLICT)
-            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
-            #    self.set_state(State.AT_STOP_CLEAR)
+            elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
+               	# TODO: What can't we go here if no vehicles are detected?
+		self.set_state(State.AT_STOP_CLEAR)
 
         elif self.state == State.AT_STOP_CLEAR:
             # if self.right_veh != SignalsDetectionETHZ17.NO_CAR or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_B or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_C:
