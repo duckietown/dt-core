@@ -191,7 +191,7 @@ class LEDDetectorNode(object):
             maxValueFront[i]      = maxVal
             maxLocationFront[i,:] = maxLoc
             # Add circle in image
-            cv2.circle(imFrontCircle, maxLoc, radius, (0, 0, 255), 1)
+            cv2.circle(imFrontCircle, maxLoc, radius, (0,0,255), 1)
 
         #  Publish image with circles
         imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRightCircle,encoding="passthrough")
@@ -203,7 +203,8 @@ class LEDDetectorNode(object):
 
         # Compute distance between LEDs
         distRight = np.zeros((desMax,desMax))
-        distFront = np.zeros((desMax, desMax))
+        distFront = np.zeros((desMax,desMax))
+
         for i in range(desMax):
             for j in range(desMax):
                 distRight[i,j] = np.linalg.norm(maxLocationRight[i,:] - maxLocationRight[j,:])
@@ -229,7 +230,7 @@ class LEDDetectorNode(object):
         if LEDDetectedRight or LEDDetectedFront:
             self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.CARS))
         else:
-            self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.CARS))
+            self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.NO_CARS))
 
         # Keep going
         if self.continuous:
