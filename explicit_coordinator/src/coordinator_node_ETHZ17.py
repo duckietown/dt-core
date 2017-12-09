@@ -32,7 +32,8 @@ class VehicleCoordinator():
         rospy.loginfo('The Coordination Mode has Started')
 
         # Determine the state of the bot
-        self.state = State.AT_STOP_CLEARING
+        #self.state = State.AT_STOP_CLEARING
+	self.state = State.LANE_FOLLOWING
         self.last_state_transition = time()
         self.random_delay = 0
 
@@ -47,6 +48,7 @@ class VehicleCoordinator():
             self.traffic_light_intersection = True
         else:
             self.traffic_light_intersection = False
+	self.traffic_light_intersection = False
 
         rospy.loginfo('[simple_coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
