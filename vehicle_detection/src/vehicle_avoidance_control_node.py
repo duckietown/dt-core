@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose
+from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose, Pose2DStamped
 
 import os
 import rospkg
@@ -7,30 +7,34 @@ import rospy
 import yaml
 import time
 from twisted.words.protocols.oscar import CAP_SERV_REL
+from math import sqrt, sin, cos
 
 class VehicleAvoidanceControlNode(object):
 
 	def __init__(self):
 		self.node_name = rospy.get_name()
 		rospack = rospkg.RosPack()
-		self.car_cmd_pub = rospy.Publisher("~car_cmd_update",
+		self.car_cmd_pub = rospy.Publisher("~car_cmd",
 				Twist2DStamped, queue_size = 1)
 		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
 				BoolStamped, queue_size=1)
 		self.subscriber = rospy.Subscriber("~detection",
 				BoolStamped, self.callback,  queue_size=1)
 		self.sub_vehicle_pose = rospy.Subscriber("~vehicle_pose", VehiclePose, self.cbPose, queue_size=1)
-		self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.cbCarCmd, queue_size=1)
+		self.sub_car_cmd = rospy.Subscriber("~car_cmd_in", Twist2DStamped, self.cbCarCmd, queue_size=1)
 		
 		self.v_gain = 1
 		self.vehicle_pose_msg_temp = VehiclePose()
+		#self.vehicle_pose_msg_temp = Pose2DStamped()
 		self.vehicle_pose_msg_temp.header.stamp = rospy.Time.now()
+		#self.time_temp = rospy.Time.now()
 		self.v_rel = 0
 		self.v = 0
 		self.detection = False
 		self.v_error_temp = 0
 		self.I = 0
 		self.v_follower = 0
+		self.rho_temp = 0
 
 	def setupParam(self, param_name, default_value):
 		value = rospy.get_param(param_name, default_value)
@@ -56,37 +60,51 @@ class VehicleAvoidanceControlNode(object):
 		
 	def cbPose(self, vehicle_pose_msg):
 		d_desired = 0.2
-		distance_error_tolerance = 0.04
-		d_min = 0.3
-		Kp = 0.2
+		#distance_error_tolerance = 0.04
+		d_min = 0.2
+		Kp = 0.5
 		Ki = 0.0
-		Kd = 0.0
+		Kd = 0.00
+		
+		time = rospy.Time.now()
+		
+		#rho = sqrt(vehicle_pose_msg.x**2 + vehicle_pose_msg.y**2)
 		
 		Ts = (vehicle_pose_msg.header.stamp - self.vehicle_pose_msg_temp.header.stamp).to_sec()
+		#Ts2 = (time - self.time_temp).to_sec()
+# 		print("-----")
+# 		print(Ts)
+# 		print(Ts2)
 		self.vehicle_pose_msg_temp.header.stamp = vehicle_pose_msg.header.stamp
 		#print(Ts)
 		if Ts > 3:
 			self.v_rel = 0
 			self.v = 0
-			self.vehicle_pose_msg_temp.rho.data = vehicle_pose_msg.rho.data
+			self.vehicle_pose_msg_temp = vehicle_pose_msg
+			#self.rho_temp = rho
 			self.v_error_temp = 0
 			self.I = 0
 		else:
 			self.v_rel = (vehicle_pose_msg.rho.data - self.vehicle_pose_msg_temp.rho.data)/Ts
 			v_leader = self.v_follower + self.v_rel
-			if (vehicle_pose_msg.rho.data - d_desired) > distance_error_tolerance:
-				delta_v = (vehicle_pose_msg.rho.data - d_desired)/Ts
-			else:
-				delta_v = 0
+			#if (vehicle_pose_msg.rho.data - d_desired) > distance_error_tolerance:
+			delta_v = (vehicle_pose_msg.rho.data - d_desired)/Ts
+			#else:
+			#	delta_v = 0
 			v_des = v_leader + delta_v
-			print("v leader")
-			print(v_leader)
-			print("v follower")
-			print(self.v_follower)
-			print("delta v")
-			print(delta_v)
-			print("v_rel")
-			print(self.v_rel)
+			
+# 			print("v leader")
+# 			print(v_leader)
+# 			print("v follower")
+# 			print(self.v_follower)
+# 			print("delta v")
+# 			print(delta_v)
+# 			print("v_rel")
+# 			print(self.v_rel)
+# 			print("rho")
+# 			print(vehicle_pose_msg.rho)
+# 			print("psi")
+# 			print(vehicle_pose_msg.psi)
 			
 			v_error = v_des - self.v_follower
 
@@ -95,9 +113,16 @@ class VehicleAvoidanceControlNode(object):
 			self.D = Kd * (v_error + self.v_error_temp)/Ts 
 			self.v = self.P + self.I + self.D
 			
-			self.vehicle_pose_msg_temp.rho.data = vehicle_pose_msg.rho.data
+			if self.v < 0:
+				self.v = 0
+			
+			#self.rho_temp = rho
 			self.v_error_temp = v_error
+			self.v_temp = self.v
+			self.vehicle_pose_msg_temp = vehicle_pose_msg
 			#print(self.v)
+			
+			#self.time_temp = time
 				
 # 		v_gain_max = 1.5
 # 		if d_min > vehicle_pose_msg.rho.data:
@@ -110,7 +135,6 @@ class VehicleAvoidanceControlNode(object):
 	def cbCarCmd(self, car_cmd_msg):
 		car_cmd_msg_current = Twist2DStamped()
 		car_cmd_msg_current = car_cmd_msg
-		self.v_follower = car_cmd_msg_current.v
 		#car_cmd_msg_current.v = self.v_gain * car_cmd_msg_current.v
 		if self.detection:
 			car_cmd_msg_current.v = self.v

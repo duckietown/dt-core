@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import VehicleCorners, VehiclePose
+from duckietown_msgs.msg import VehicleCorners, VehiclePose, Pose2DStamped
 from geometry_msgs.msg import Point32
 from image_geometry import PinholeCameraModel
 from mutex import mutex
@@ -91,12 +91,21 @@ class VehicleFilterNode(object):
 			if success:
 				#print(translation_vector)
 				
+				(R, jac) = cv2.Rodrigues(rotation_vector)
+				R_inv = np.transpose(R)
+				translation_vector = -np.dot(R_inv, translation_vector)
 				pose_msg_out = VehiclePose()
 				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
-				pose_msg_out.rho.data = np.linalg.norm(translation_vector)
-				pose_msg_out.theta.data = np.arctan2(sqrt(translation_vector[0] ** 2 + translation_vector[1] ** 2), translation_vector[2])
-				pose_msg_out.psi.data = np.arctan2(translation_vector[1], translation_vector[0])
+				pose_msg_out.rho.data = sqrt(translation_vector[2] ** 2 + translation_vector[0] ** 2)
+				pose_msg_out.theta.data = np.arctan2(translation_vector[0], translation_vector[2])
+				pose_msg_out.psi.data = np.arctan2(-R_inv[2,0], sqrt(R_inv[2,1]**2 + R_inv[2,2]**2))
 				pose_msg_out.detection.data = vehicle_corners_msg.detection.data
+				
+# 				pose_msg_out = Pose2DStamped()
+# 				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
+# 				pose_msg_out.x = translation_vector[2]
+# 				pose_msg_out.y = translation_vector[0]
+				#pose_msg_out.theta = np.arctan2(translation_vector[0], translation_vector[2])
 			self.pub_pose.publish(pose_msg_out)
 			self.lock.unlock()
 			return
