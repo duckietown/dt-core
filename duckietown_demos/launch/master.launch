@@ -56,6 +56,7 @@
 
 	<arg name="vehicle_avoidance" default="false"/>
 	<arg name="/vehicle_avoidance/detection" default="true" />
+	<arg name="/vehicle_avoidance/filter" default="true" />
 	<arg name="/vehicle_avoidance/control" default="true"/>
 
 	<arg name="apriltags" default="false"/>
@@ -358,9 +359,19 @@
 				<arg name="veh" value="$(arg veh)"/>
 			</include>
 		</group>
+		<!-- Vehicle Filter Node -->
+		<remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
+		<remap from="vehicle_filter_node/corners" to="vehicle_detection_node/corners" />
+		<group if="$(arg /vehicle_avoidance/filter)">
+			<include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+			</include>
+		</group>
 		<!-- Vehicle Control Node -->
 		<group if="$(arg /vehicle_avoidance/control)">
 			<remap from="vehicle_avoidance_control_node/detection" to="vehicle_detection_node/detection"/>
+			<remap from="vehicle_avoidance_control_node/vehicle_pose" to="vehicle_filter_node/pose"/>
+			<remap from="vehicle_avoidance_control_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
 			<include file="$(find vehicle_detection)/launch/vehicle_avoidance_control_node.launch" >
 				<arg name="veh" value="$(arg veh)"/>
 			</include>
