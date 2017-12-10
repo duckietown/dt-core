@@ -2,7 +2,7 @@
 import rospy
 import math
 from duckietown_msgs.msg import Twist2DStamped, LanePose
-
+####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
@@ -18,7 +18,8 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-
+        #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
+        #####JULIEN self.k_forward = 0.0
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -32,6 +33,8 @@ class lane_controller(object):
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
+
+
     def setGains(self):
         v_bar = 0.5 # nominal speed, 0.5m/s
         k_theta = -2.0
@@ -40,10 +43,13 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
+        incurvature = False
+        curve_inner = False
         k_Id = 0.2
         k_Iphi = 0.1
         self.cross_track_integral = 0
         self.heading_integral = 0
+        self.time_start_curve = 0
 
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         # FIXME: AC aug'17: are these inverted?
@@ -55,6 +61,8 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
+        self.incurvature = self.setupParameter("~incurvature",incurvature)
+        self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -64,14 +72,22 @@ class lane_controller(object):
         theta_thres = rospy.get_param("~theta_thres")
         d_offset = rospy.get_param("~d_offset")
 
+        #FeedForward
+        self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
+        self.omega_to_rad_per_s = 0.45
+        self.curvature_outer = 1 / (0.39)
+        self.curvature_inner = 1 / 0.175
+        incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
+        curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
+
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
         if self.k_Id != k_Id:
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.incurvature, self.curve_inner)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, incurvature, curve_inner)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -85,6 +101,13 @@ class lane_controller(object):
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
+
+            if incurvature != self.incurvature and incurvature:
+                self.time_start_curve = rospy.Time.now().secs
+
+            self.incurvature = incurvature
+            self.curve_inner = curve_inner
+
 
 
 
@@ -116,6 +139,16 @@ class lane_controller(object):
 
         self.pub_car_cmd.publish(car_cmd_msg)
         #self.pub_wheels_cmd.publish(wheels_cmd_msg)
+
+##JULIEN
+    #def cbCurve(self, msg):
+    #    curvetype = msg.curvetype
+    #    if curvetype == LaneCurvature.LEFT:
+    #        self.k_forward = ...
+    #    if curvetype == LaneCurvature.RIGHT:
+    #        self.k_forward = ...
+    #    if curvetype == LaneCurvature.STRAIGHT:
+    #        self.k_forward = 0.0
 
     def cbPose(self, lane_pose_msg):
 
@@ -154,16 +187,42 @@ class lane_controller(object):
         if self.heading_integral > 15:
             self.heading_integral = 15
 
+        if self.curve_inner:
+            self.curvature  = self.curvature_inner
+        else:
+            self.curvature = self.curvature_outer
+        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * self.curvature * 2 * math.pi
+
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
         rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
-        car_control_msg.omega -= self.k_Id * self.cross_track_integral
-        car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
+
+        if not self.incurvature:
+            if heading_err > 0.3:
+                self.incurvature = True
+                rospy.set_param('~incurvature',True)
+            car_control_msg.omega -= self.k_Id * self.cross_track_integral
+            car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
+        else:
+            if self.curve_inner:
+                time_incurve = 1
+            else:
+                time_incurve = 3
+            if (rospy.Time.now().secs - self.time_start_curve) > time_incurve:   #TODO fix 5 to a time in curvature with v and d
+                rospy.set_param('~incurvature',False)
+                self.incurvature = False
+            rospy.loginfo("incurvature : ")
+            car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
         rospy.loginfo("kid : " + str(self.k_Id))
         rospy.loginfo("Kd : " + str(self.k_d))
-        rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
+        #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
         rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
         rospy.loginfo("Ktheta : " + str(self.k_theta))
+        rospy.loginfo("incurvature : " + str(self.incurvature))
+        rospy.loginfo("cross_track_err : " + str(cross_track_err))
+        rospy.loginfo("heading_err : " + str(heading_err))
+        #rospy.loginfo("Ktheta : Versicherung")
+
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
         # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
