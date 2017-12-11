@@ -37,10 +37,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.num_belief = 3
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
-        self.belief = np.empty(self.d.shape)
         self.beliefArray = []
         for i in range(self.num_belief):
-            self.beliefArray.append(self.belief)
+            self.beliefArray.append(np.empty(self.d.shape))
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]  
@@ -53,11 +52,11 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-        p_belief = np.zeros(self.belief.shape)
+        p_belief = np.zeros(self.beliefArray[0].shape)
 
         # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
-        for i in range(self.belief.shape[0]):
-            for j in range(self.belief.shape[1]):
+        for i in range(self.beliefArray[0].shape[0]):
+            for j in range(self.beliefArray[0].shape[1]):
                 if self.beliefArray[0][i,j] > 0:
                     if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
                         continue
@@ -65,7 +64,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
                     p_belief[i_new,j_new] += self.beliefArray[0][i,j]
 
-        s_belief = np.zeros(self.belief.shape)
+        s_belief = np.zeros(self.beliefArry[0].shape)
         gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
         if np.sum(s_belief) == 0:
@@ -79,7 +78,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         for i in range(self.num_belief):
             measurement_likelihood = self.generate_measurement_likelihood(segments, i * range_delta, (i+1) * range_delta)
             if measurement_likelihood is not None:
-                self.beliefArray[i] = np.multiply(self.belief,measurement_likelihood)
+                self.beliefArray[i] = np.multiply(self.beliefArray[i],measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
                     self.beliefArray[i] = measurement_likelihood
                 else:
@@ -132,7 +131,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         pos[:,:,1]=self.phi
         self.cov_0
         RV = multivariate_normal(self.mean_0,self.cov_0)
-        self.belief=RV.pdf(pos)
+        for i in range(self.num_belief):
+            self.beliefArray[i]=RV.pdf(pos)
 
 
     def generateVote(self,segment):
