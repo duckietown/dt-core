@@ -43,8 +43,7 @@ class kMeansClass:
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
-<<<<<<< HEAD
-=======
+
 	if not fancyGeom:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
 	    x_new, y_new, p = img_geom.shape
@@ -57,7 +56,6 @@ class kMeansClass:
 	    inds = np.array(np.nonzero(mask))
 	    cv2_tpose = np.transpose(img_geom)
 	    cv2_arr_tpose = cv2_tpose[:,inds[0,:],inds[1,:]]
->>>>>>> 0b00abdf0d972c2588e9807988d1a7a5b8a7d051
         npdata = np.transpose(cv2_arr_tpose)
         return npdata
 
