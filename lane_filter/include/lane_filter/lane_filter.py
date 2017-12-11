@@ -64,7 +64,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
                     p_belief[i_new,j_new] += self.beliefArray[0][i,j]
 
-        s_belief = np.zeros(self.beliefArry[0].shape)
+        s_belief = np.zeros(self.beliefArray[0].shape)
         gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
         if np.sum(s_belief) == 0:
