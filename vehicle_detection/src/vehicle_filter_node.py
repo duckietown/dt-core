@@ -5,7 +5,7 @@ from geometry_msgs.msg import Point32
 from image_geometry import PinholeCameraModel
 from mutex import mutex
 from sensor_msgs.msg import CameraInfo
-from math import sqrt
+from math import sqrt, sin, cos
 import cv2
 import numpy as np
 import os
@@ -97,9 +97,13 @@ class VehicleFilterNode(object):
 				pose_msg_out = VehiclePose()
 				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
 				pose_msg_out.rho.data = sqrt(translation_vector[2] ** 2 + translation_vector[0] ** 2)
-				pose_msg_out.theta.data = np.arctan2(translation_vector[0], translation_vector[2])
 				pose_msg_out.psi.data = np.arctan2(-R_inv[2,0], sqrt(R_inv[2,1]**2 + R_inv[2,2]**2))
 				pose_msg_out.detection.data = vehicle_corners_msg.detection.data
+				R2 = np.array([[cos(pose_msg_out.psi.data), -sin(pose_msg_out.psi.data)],[sin(pose_msg_out.psi.data), cos(pose_msg_out.psi.data)]])
+				translation_vector = -np.array([translation_vector[2],translation_vector[0]])
+                                translation_vector = np.dot(np.transpose(R2), translation_vector)
+                                pose_msg_out.theta.data = np.arctan2(translation_vector[1] , translation_vector[0])
+				print(translation_vector)
 				
 # 				pose_msg_out = Pose2DStamped()
 # 				pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
