@@ -488,17 +488,27 @@
 	<group if="$(arg coordination)">
 		<!-- Vehicle Coordinator-->
 		<remap from="coordinator_node/mode" to="fsm_node/mode" />
-		<remap from="simple_coordinator_node/intersection_go" to="coordinator_node/intersection_go" />
-		<remap from="simple_coordinator_node/car_cmd" to="coordinator_node/car_cmd" />
-		<!--<remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />-->
+		<!-- <remap from="simple_coordinator_node/intersection_go" to="coordinator_node/intersection_go" /> -->
+		<!-- <remap from="simple_coordinator_node/car_cmd" to="coordinator_node/car_cmd" /> -->
+		<!-- <remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />-->
 		<!--the following remap is done through led_patter_switch_node -->
        	 	<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+       	<!-- First approach -->
 		<include file="$(find explicit_coordinator)/launch/general_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>        
 			<arg name="config" value="$(arg config)"/>        
 			<arg name="param_file_name" value="$(arg param_file_name)"/>    
             <arg name="intersectionType" value="$(arg intersectionType)" />    
 		</include>
+		<!--
+		<!-- Second approach -->
+		<include file="$(find explicit_coordinator)/launch/general.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+            <arg name="intersectionType" value="$(arg intersectionType)" />
+		</include>
+		-->
 	</group>
 
 	<group unless="$(arg coordination)">
