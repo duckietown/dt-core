@@ -14,8 +14,8 @@ class LEDEmitter(object):
         self.node_name = rospy.get_name()
         self.active = True
         self.pattern = [[0,0,0]] * 5
-        self.current_pattern_name = 'ON_WHITE'
-        self.changePattern_('ON_WHITE')
+        self.current_pattern_name = 'OFF'
+        self.changePattern_(self.current_pattern_name)
 
         # Parameter to scale the intensity
         self.intensity = 1
@@ -24,9 +24,9 @@ class LEDEmitter(object):
         self.onOff = True
 
         if self.onOff:
-            self.frequency   = 10
+            self.dt          = 0.1
             self.is_on       = False
-            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.frequency), self.cycleTimer)
+            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.dt),self.cycleTimer)
 
         # Publish
         #self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
@@ -54,7 +54,7 @@ class LEDEmitter(object):
     def cbSwitch(self, switch_msg): # active/inactive switch from FSM
         self.active = switch_msg.data
 
-    def cycleTimer(self):
+    def cycleTimer(self,event):
         if not self.active:
             return
         elif not self.onOff:
@@ -66,11 +66,11 @@ class LEDEmitter(object):
             if self.is_on:
                 for i in range(5):
                     self.led.setRGB(i,[0,0,0])
-                    self.is_on = False
+                self.is_on = False
             else:
                 for i in range(5):
                     self.led.setRGB(i,[self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
-                    self.is_on = True
+                self.is_on = True
 
     def changePattern(self, msg):
         self.changePattern_(msg.data)
@@ -116,7 +116,8 @@ class LEDEmitter(object):
             self.pattern = self.intensity*self.pattern
 
             # Change LEDs
-            self.cycleTimer()
+	    if not self.onOff:
+            	self.cycleTimer([])
 
             # Publish current pattern
             self.pub_state.publish(self.current_pattern_name)
