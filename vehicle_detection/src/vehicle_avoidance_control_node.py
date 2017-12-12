@@ -51,7 +51,12 @@ class VehicleAvoidanceControlNode(object):
 # 			vehicle_too_close.data = True
 # 		self.publishCmd(data.header.stamp)
 # 		self.vehicle_detected_pub.publish(vehicle_too_close)
+		vehicle_detected_msg_out = BoolStamped()
+		vehicle_detected_msg_out.header.stamp = data.header.stamp
+		vehicle_detected_msg_out.data = data.data
+		self.vehicle_detected_pub.publish(vehicle_detected_msg_out)
 		self.detection = data.data
+		
 		if  not data.data:
 			self.v_gain = 1
 			self.P = 0
@@ -61,7 +66,7 @@ class VehicleAvoidanceControlNode(object):
 	def cbPose(self, vehicle_pose_msg):
 		d_desired = 0.2
 		#distance_error_tolerance = 0.04
-		d_min = 0.2
+		d_min = 0.3
 		Kp = 0.5
 		Ki = 0.0
 		Kd = 0.00
@@ -138,8 +143,9 @@ class VehicleAvoidanceControlNode(object):
 		#car_cmd_msg_current.v = self.v_gain * car_cmd_msg_current.v
 		if self.detection:
 			car_cmd_msg_current.v = self.v
-			#print(self.v)
+			print(self.v)
 		self.v_follower = car_cmd_msg_current.v	
+		#car_cmd_msg_current.omega = 0.0
 		self.car_cmd_pub.publish(car_cmd_msg_current)
 		#print(self.v_gain)
 		
