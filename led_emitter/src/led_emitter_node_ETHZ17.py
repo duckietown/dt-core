@@ -17,8 +17,16 @@ class LEDEmitter(object):
         self.current_pattern_name = 'ON_WHITE'
         self.changePattern_('ON_WHITE')
 
-        # Parameters
+        # Parameter to scale the intensity
         self.intensity = 1
+
+        # If True, the LED turn on and off. Else, they are always on
+        self.onOff = True
+
+        if self.onOff:
+            self.frequency   = 10
+            self.is_on       = False
+            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.frequency), self.cycleTimer)
 
         # Publish
         #self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
@@ -29,8 +37,6 @@ class LEDEmitter(object):
 
         # self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
         # self.cycle = None
-
-        # self.is_on = False
 
         # self.protocol = rospy.get_param("~LED_protocol") #should be a list of tuples
 
@@ -45,27 +51,26 @@ class LEDEmitter(object):
         #    for i in range(3):
         #        c[i] = c[i]  * scale
 
-        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.cycleTimer)
+    def cbSwitch(self, switch_msg): # active/inactive switch from FSM
+        self.active = switch_msg.data
 
-    # def cbSwitch(self, switch_msg): # active/inactive switch from FSM
-    #    self.active = switch_msg.data
-
-
-    def cycleTimer(self,event):
+    def cycleTimer(self):
         if not self.active:
             return
-        for i in range(5):
-            self.led.setRGB(i,[self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
-
-        # To emit frequencies
-        # if self.is_on:
-        #    for i in range(5):
-        #        self.led.setRGB(i, [0, 0, 0])
-        #        self.is_on = False
-        # else:
-        #    for i in range(5):
-        #        self.led.setRGB(i, self.pattern[i])
-        #        self.is_on = True
+        elif not self.onOff:
+            # No oscillation
+            for i in range(5):
+                self.led.setRGB(i,[self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
+        else:
+            # Oscillate
+            if self.is_on:
+                for i in range(5):
+                    self.led.setRGB(i,[0,0,0])
+                    self.is_on = False
+            else:
+                for i in range(5):
+                    self.led.setRGB(i,[self.pattern[i][0],self.pattern[i][1],self.pattern[i][2]])
+                    self.is_on = True
 
     def changePattern(self, msg):
         self.changePattern_(msg.data)
@@ -109,6 +114,9 @@ class LEDEmitter(object):
 
             # Set intensity
             self.pattern = self.intensity*self.pattern
+
+            # Change LEDs
+            self.cycleTimer()
 
             # Publish current pattern
             self.pub_state.publish(self.current_pattern_name)
