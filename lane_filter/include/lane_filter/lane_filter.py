@@ -52,24 +52,25 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-        p_belief = np.zeros(self.beliefArray[0].shape)
+        for k in range(self.num_belief)
+            p_belief = np.zeros(self.beliefArray[0].shape)
 
-        # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
-        for i in range(self.beliefArray[0].shape[0]):
-            for j in range(self.beliefArray[0].shape[1]):
-                if self.beliefArray[0][i,j] > 0:
-                    if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
-                        continue
-                    i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
-                    j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
-                    p_belief[i_new,j_new] += self.beliefArray[0][i,j]
+            # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
+            for i in range(self.beliefArray[i].shape[0]):
+                for j in range(self.beliefArray[i].shape[1]):
+                    if self.beliefArray[i][i,j] > 0:
+                        if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
+                            continue
+                        i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
+                        j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
+                        p_belief[i_new,j_new] += self.beliefArray[0][i,j]
 
-        s_belief = np.zeros(self.beliefArray[0].shape)
-        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
+            s_belief = np.zeros(self.beliefArray[i].shape)
+            gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
-        if np.sum(s_belief) == 0:
-            return
-        self.beliefArray[0] = s_belief/np.sum(s_belief)
+            if np.sum(s_belief) == 0:
+                return
+            self.beliefArray[i] = s_belief/np.sum(s_belief)
 
 
     
