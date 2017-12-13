@@ -126,11 +126,11 @@ class VehicleCoordinator():
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
-        #self.set('traffic_light', msg.traffic_light_state)
-        #self.set('right_veh', msg.right)
-        #self.set('opposite_veh', msg.front)
-	self.set('veh_detected', msg.led_detected)
-	self.set('veh_not_detected',msg.no_led_detected)
+        self.set('traffic_light', msg.traffic_light_state)
+        self.set('right_veh', msg.right)
+        self.set('opposite_veh', msg.front)
+	#self.set('veh_detected', msg.led_detected)
+	#self.set('veh_not_detected',msg.no_led_detected)
 
     # definition which resets everything we know
     def reset_signals_detection(self):
@@ -175,7 +175,7 @@ class VehicleCoordinator():
 
         elif self.state == State.AT_STOP_CLEARING:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
-	    if self.veh_detected == SignalsDetection.CARS:  # if we are seeing other cars (i.e. we cannot go)
+	    if self.right != SignalsDetection.NO_CAR or self.front != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
