@@ -87,11 +87,12 @@ class VehicleCoordinator():
 
 #############################################################################################################
     def set_state(self, state):
-        self.state = state
-        self.last_state_transition = time()
+        if self.state != state:
+            self.last_state_transition = time()
+	self.state = state
 
         if self.state == State.AT_STOP_CLEARING:
-   	    self.reset_signals_detection()
+   	   # self.reset_signals_detection()
            # self.roof_light = CoordinationSignal.SIGNAL_A
 
 	   #after setting everything to unknown, we turn on the light
@@ -160,6 +161,7 @@ class VehicleCoordinator():
 
     # definition of the loop
     def loop(self):
+	print(self.time_at_current_state())
         self.reconsider()
         self.publish_topics()
 
@@ -175,6 +177,8 @@ class VehicleCoordinator():
 
         elif self.state == State.AT_STOP_CLEARING:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
+	    print(self.right_veh)
+	    print(self.opposite_veh)
 	    if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = random() * self.T_MAX_RANDOM
