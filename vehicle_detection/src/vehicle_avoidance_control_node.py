@@ -35,6 +35,7 @@ class VehicleAvoidanceControlNode(object):
 		self.I = 0
 		self.v_follower = 0
 		self.rho_temp = 0
+		self.omega = 0
 
 	def setupParam(self, param_name, default_value):
 		value = rospy.get_param(param_name, default_value)
@@ -64,10 +65,11 @@ class VehicleAvoidanceControlNode(object):
 			
 		
 	def cbPose(self, vehicle_pose_msg):
-		d_desired = 0.2
+		d_desired = 0.3
 		#distance_error_tolerance = 0.04
-		d_min = 0.3
-		Kp = 0.5
+		d_min = 0.2
+		Kp = 0.7
+		Kp_delta_v = 0.8
 		Ki = 0.0
 		Kd = 0.00
 		
@@ -92,8 +94,11 @@ class VehicleAvoidanceControlNode(object):
 		else:
 			self.v_rel = (vehicle_pose_msg.rho.data - self.vehicle_pose_msg_temp.rho.data)/Ts
 			v_leader = self.v_follower + self.v_rel
+			#if v_leader < 0.2:
+			#	v_leader = 0
+			print(v_leader)
 			#if (vehicle_pose_msg.rho.data - d_desired) > distance_error_tolerance:
-			delta_v = (vehicle_pose_msg.rho.data - d_desired)/Ts
+			delta_v = (vehicle_pose_msg.rho.data - d_desired)/Ts * Kp_delta_v
 			#else:
 			#	delta_v = 0
 			v_des = v_leader + delta_v
@@ -118,8 +123,9 @@ class VehicleAvoidanceControlNode(object):
 			self.D = Kd * (v_error + self.v_error_temp)/Ts 
 			self.v = self.P + self.I + self.D
 			
-			if self.v < 0:
+			if self.v < 0 or vehicle_pose_msg.rho.data < d_min:
 				self.v = 0
+				#self.omega = 0
 			
 			#self.rho_temp = rho
 			self.v_error_temp = v_error
@@ -143,7 +149,9 @@ class VehicleAvoidanceControlNode(object):
 		#car_cmd_msg_current.v = self.v_gain * car_cmd_msg_current.v
 		if self.detection:
 			car_cmd_msg_current.v = self.v
-			print(self.v)
+			if self.v == 0:
+				car_cmd_msg_current.omega = 0
+			#print(self.v)
 		self.v_follower = car_cmd_msg_current.v	
 		#car_cmd_msg_current.omega = 0.0
 		self.car_cmd_pub.publish(car_cmd_msg_current)
