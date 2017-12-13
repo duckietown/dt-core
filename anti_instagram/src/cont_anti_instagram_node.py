@@ -24,15 +24,23 @@ class ContAntiInstagramNode():
         # Initialize publishers and subscribers
         self.pub_trafo = rospy.Publisher(
             "~transform", AntiInstagramTransform, queue_size=1)
+        self.pub_health = rospy.Publisher(
+            "~health", AntiInstagramHealth, queue_size=1, latch=True)
 
         self.sub_image = rospy.Subscriber(
-            "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            #"/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 
         # TODO verify name of parameter
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose', True)
+
+        # Read parameters
+        self.interval = self.setupParameter("~ai_interval", 10)
+
+        # Initialize health message
+        self.health = AntiInstagramHealth()
 
         # Initialize transform message
         self.transform = AntiInstagramTransform()
@@ -44,16 +52,54 @@ class ContAntiInstagramNode():
         self.image_msg = None
 
         # timer for continuous image process
-        self.timer = rospy.Timer(rospy.Duration(10), self.processImage)
+        self.timer = rospy.Timer(rospy.Duration(self.interval), self.processImage)
 
+    def setupParameter(self, param_name, default_value):
+        value = rospy.get_param(param_name, default_value)
+        rospy.set_param(param_name, value)#Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        return value
 
     def cbNewImage(self, image_msg):
         # memorize image
         self.image_msg = image_msg
 
 
-    def processImage(self):
+    def processImage(self, event):
         print('processImg called!')
+
+        # if we have seen an image:
+        if self.image_msg is not None:
+            rospy.loginfo('ai: Computing color transform...')
+            tk = TimeKeeper(self.image_msg)
+
+            try:
+                cv_image = image_cv_from_jpg(self.image_msg.data)
+            except ValueError as e:
+                rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
+                return
+
+            tk.completed('converted')
+
+            self.ai.calculateTransform(cv_image)
+
+            tk.completed('calculateTransform')
+
+            # if health is much below the threshold value, do not update the color correction and log it.
+            if self.ai.health <= 0.001:
+                # health is not good
+
+                rospy.loginfo("Health is not good")
+
+            else:
+                self.health.J1 = self.ai.health
+                self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+                self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+
+                self.pub_health.publish(self.health)
+                self.pub_transform.publish(self.transform)
+                rospy.loginfo('ai: Color transform published.')
+
 
 
 if __name__ == '__main__':

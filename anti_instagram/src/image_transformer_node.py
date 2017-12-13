@@ -30,7 +30,7 @@ class ImageTransformerNode():
             "~corrected_image", Image, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
-            "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             #"/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
@@ -53,7 +53,7 @@ class ImageTransformerNode():
 
 
     def cbNewImage(self, image_msg):
-        #print('image received!')
+        print('image received!')
         # memorize image
         self.image_msg = image_msg
 

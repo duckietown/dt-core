@@ -1,12 +1,19 @@
 <launch>
+
 	<arg name="veh"/>
+	<arg name="ai_interval" default="10" doc="time interval after which the ai algorithm should be re-performed"/>
 
 	<group ns="$(arg veh)">
-	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen"/>
 
-        <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen"/>
 
-        <!--node name="anti_instagram_node" pkg="anti_instagram" type="anti_instagram_node.py" output="screen"/-->
+	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
+            <remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" />
+        </node>
+
+        <!--node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">
+            <param name="~ai_interval" value="$(arg ai_interval)"/>
+        </node-->
+
     </group>
 
 </launch>
