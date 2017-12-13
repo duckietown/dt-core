@@ -95,7 +95,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            pont_range = self.getSegmentDistance(segment)
+            point_range = self.getSegmentDistance(segment)
             # print "Point range: ", point_range 
 
             # only consider points in a certain range from the Duckiebot
