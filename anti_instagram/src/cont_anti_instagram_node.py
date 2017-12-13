@@ -56,3 +56,14 @@ class ContAntiInstagramNode():
         print('processImg called!')
 
 
+if __name__ == '__main__':
+    # Initialize the node with rospy
+    rospy.init_node('cont_anti_instagram_node', anonymous=False)
+
+    # Create the NodeName object
+    node = ContAntiInstagramNode()
+
+    # Setup proper shutdown behavior
+    #rospy.on_shutdown(node.on_shutdown)
+    # Keep it spinning to keep the node alive
+    rospy.spin()
