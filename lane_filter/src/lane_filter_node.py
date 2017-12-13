@@ -53,7 +53,7 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        range_max = 4  # range to consider edges in general
+        range_max = 1  # range to consider edges in general
         range_min = 0
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
