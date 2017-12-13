@@ -59,8 +59,8 @@ class LaneFilterNode(object):
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
-        print "d_max = ", d_max
-        print "phi_max = ", phi_max
+        # print "d_max = ", d_max
+        # print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
