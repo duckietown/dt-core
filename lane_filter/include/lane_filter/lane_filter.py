@@ -56,8 +56,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             p_belief = np.zeros(self.beliefArray[0].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
-            for i in range(self.beliefArray[i].shape[0]):
-                for j in range(self.beliefArray[i].shape[1]):
+            for i in range(self.beliefArray[0].shape[0]):
+                for j in range(self.beliefArray[0].shape[1]):
                     if self.beliefArray[i][i,j] > 0:
                         if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
                             continue
