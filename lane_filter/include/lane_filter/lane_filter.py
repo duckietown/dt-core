@@ -52,7 +52,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-        for k in range(self.num_belief)
+        for k in range(self.num_belief):
             p_belief = np.zeros(self.beliefArray[0].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
