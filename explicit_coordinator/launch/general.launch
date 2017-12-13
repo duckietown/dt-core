@@ -15,9 +15,9 @@
 
 		<!-- Run coordination node -->
 		<node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light.py" output="screen" clear_params="true" required="true">
-			<!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/veh_coordinator/$(arg param_file_name).yaml"/> -->
+			<!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/veh_coordinator/simple_coordinator_node/$(arg param_file_name).yaml"/> -->
 			<param name="verbose" value="false"/>
-			<param name="intersectionType" value="trafficLight"/>
+			<param name="intersectionType" value="$(arg intersectionType)"/>
 			<!-- Input to coordination node -->
 			<remap from="~signals_detection" to="led_detector_node/led_detection"/>
 		</node>
@@ -34,6 +34,7 @@
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/location_config.yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
+                        <param name="intersectionType" value="$(arg intersectionType)" />
 			<remap from="led_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 		</node>
 
@@ -51,9 +52,9 @@
 
 	    <!-- Run coordination node -->
 		<node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light.py" output="screen" clear_params="true" required="true">
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/ve_coordinator/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/veh_coordinator/simple_coordinator_node/$(arg param_file_name).yaml"/>
 			<param name="verbose" value="false"/>
-			<param name="intersectionType" value="trafficLight"/>
+			<param name="intersectionType" value="$(arg intersectionType)"/>
 			<!-- Input to coordination node -->
 			<remap from="~signals_detection" to="led_detector_node/led_detection"/>
 		</node>
@@ -70,6 +71,7 @@
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/location_config.yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
+			<param name="intersectionType" value="$(arg intersectionType)" />
 			<remap from="led_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 		</node>
 

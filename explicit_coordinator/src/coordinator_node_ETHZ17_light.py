@@ -60,14 +60,11 @@ class VehicleCoordinator():
         # self.opposite_veh = UNKNOWN
 	self.veh_detected = UNKNOWN
 
-<<<<<<< HEAD
-# Initializing the unknown presence of a car
+	# Initializing the unknown presence of a car
 	#self.detected_car = UNKNOWN
 	self.veh_detected = UNKNOWN
-=======
 	# Initializing the unknown presence of a car
 	self.detected_car = UNKNOWN
->>>>>>> 391fcc8bdf02d43c67e64bf5f7cf67d81bab9896
         rospy.Subscriber('~signals_detection', SignalsDetectionETHZ17, self.process_signals_detection) # see below for the def. of process_signals_detection
 
         # Publishing
@@ -106,7 +103,7 @@ class VehicleCoordinator():
             #self.roof_light = CoordinationSignalETHZ17.SIGNAL_B
         elif self.state == State.CONFLICT:
             #self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
-	     self.roof_light = CoordinationSignalETHZ17.OFF
+	    self.roof_light = CoordinationSignalETHZ17.OFF
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignalETHZ17.ON
        # else:
@@ -178,7 +175,7 @@ class VehicleCoordinator():
 
         elif self.state == State.AT_STOP_CLEARING:
             #if self.right_veh != SignalsDetectionETHZ17.NO_CAR or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_B or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_C:
-	     if self.veh_detected == SignalsDetectionETHZ17.CARS:  # if we are seeing other cars (i.e. we cannot go)
+	    if self.veh_detected == SignalsDetectionETHZ17.CARS:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignalETHZ17.OFF
  		self.random_delay = random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
