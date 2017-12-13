@@ -44,7 +44,7 @@ class ContAntiInstagramNode():
         self.image_msg = None
 
         # timer for continuous image process
-        self.timer = rospy.Timer(rospy.Duration(10), processImage)
+        self.timer = rospy.Timer(rospy.Duration(10), self.processImage)
 
 
     def cbNewImage(self, image_msg):
