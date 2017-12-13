@@ -63,7 +63,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                             continue
                         i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
                         j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
-                        p_belief[i_new,j_new] += self.beliefArray[0][i,j]
+                        p_belief[i_new,j_new] += self.beliefArray[i][i,j]
 
             s_belief = np.zeros(self.beliefArray[i].shape)
             gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
