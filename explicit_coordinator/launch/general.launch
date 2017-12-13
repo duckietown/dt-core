@@ -14,8 +14,8 @@
 		<!-- Run local -->
 
 		<!-- Run coordination node -->
-		<node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17.py" output="screen" clear_params="true" required="true">
-			<!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
+		<node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light.py" output="screen" clear_params="true" required="true">
+			<!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/veh_coordinator/$(arg param_file_name).yaml"/> -->
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="trafficLight"/>
 			<!-- Input to coordination node -->
@@ -23,16 +23,16 @@
 		</node>
 
 		<!-- Run with detection node-->
-		<node if="$(arg local)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node.py" name="led_detector_node" output="screen" clear_params="true" required="true">
+		<node if="$(arg local)" pkg="led_detection" type="LED_detector_node.py" name="led_detector_node" output="screen" clear_params="true" required="true">
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/led_detection/$(arg param_file_name).yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
 		</node>
 
 		<!-- Run with interpreter node-->
-		<node if="$(arg local)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node.py" name="led_interpreter_node" output="screen" clear_params="true" required="true">
+		<node if="$(arg local)"  pkg="led_interpreter" type="LED_interpreter_node.py" name="led_interpreter_node" output="screen" clear_params="true" required="true">
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/led_interpreter/$(arg param_file_name).yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
 			<remap from="led_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 		</node>
@@ -40,7 +40,7 @@
 		<!-- Run with emitter node -->
 		<node if="$(arg local)" pkg="led_emitter" type="led_emitter_node.py"  name="led_emitter_node" output="screen" clear_params="true" required="true">
 			<!-- other -->
-			<rosparam command="load" file="$(find duckietown)/config/baseline/led_interpreter/LED_protocol.yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/baseline/led_emitter/LED_protocol.yaml"/>
 			<!-- Input from coordination node -->
 			<remap from="~change_color_pattern" to="coordinator_node/change_color_pattern"/>
 		</node>
@@ -50,8 +50,8 @@
 	    <!-- run on vehicle -->
 
 	    <!-- Run coordination node -->
-		<node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17.py" output="screen" clear_params="true" required="true">
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/>
+		<node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light.py" output="screen" clear_params="true" required="true">
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/ve_coordinator/$(arg param_file_name).yaml"/>
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="trafficLight"/>
 			<!-- Input to coordination node -->
@@ -59,16 +59,16 @@
 		</node>
 
 		<!-- Run with detection node-->
-		<node unless="$(arg local)" machine="$(arg veh)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node.py" name="led_detector_node" output="screen" clear_params="true" required="true">
+		<node unless="$(arg local)"  machine="$(arg veh)" pkg="led_detection" type="LED_detector_node.py" name="led_detector_node" output="screen" clear_params="true" required="true">
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/led_detection/$(arg param_file_name).yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
 		</node>
 
 		<!-- Run with interpreter node-->
-		<node unless="$(arg local)" machine="$(arg veh)" ns="$(arg veh)" machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node.py" name="led_interpreter_node" output="screen" clear_params="true" required="true">
+		<node unless="$(arg local)" machine="$(arg veh)" pkg="led_interpreter" type="LED_interpreter_node.py" name="led_interpreter_node" output="screen" clear_params="true" required="true">
 			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
-			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/led_interpreter/$(arg param_file_name).yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
 			<remap from="led_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 		</node>

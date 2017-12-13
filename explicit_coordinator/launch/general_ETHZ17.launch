@@ -14,7 +14,7 @@
 
     <group ns="$(arg veh)">
 	    <!-- Run coordination node -->
-        <node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17.py" output="screen" clear_params="true" required="true">
+        <node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_light.py" output="screen" clear_params="true" required="true">
             <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
             <param name="verbose" value="false"/>
             <param name="intersectionType" value="trafficLight"/>
