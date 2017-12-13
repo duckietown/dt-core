@@ -70,7 +70,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             if np.sum(s_belief) == 0:
                 return
-            self.beliefArray[i] = s_belief/np.sum(s_belief)
+            self.beliefArray[k] = s_belief/np.sum(s_belief)
 
 
     
