@@ -22,8 +22,8 @@ class ImageTransformerNode():
         self.node_name = rospy.get_name()
 
         # TODO verify if required?
-        #self.active = True
-        #self.locked = False
+        self.active = True
+        self.locked = False
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -31,6 +31,8 @@ class ImageTransformerNode():
 
         self.sub_image = rospy.Subscriber(
             "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            #"/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+
         self.sub_trafo = rospy.Subscriber(
             "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
 
@@ -51,11 +53,19 @@ class ImageTransformerNode():
 
 
     def cbNewImage(self, image_msg):
+        #print('image received!')
         # memorize image
         self.image_msg = image_msg
 
         tk = TimeKeeper(image_msg)
-        cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        #cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        try:
+            cv_image = image_cv_from_jpg(image_msg.data)
+        except ValueError as e:
+            rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
+            return
+
+        tk.completed('converted')
         corrected_image_cv2 = self.ai.applyTransform(cv_image)
         tk.completed('applyTransform')
 
