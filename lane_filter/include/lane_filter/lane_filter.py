@@ -97,9 +97,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 continue
             pont_range = getSegmentDistance(self, segment)
             # print "Point range: ", point_range 
-            
+
             # only consider points in a certain range from the Duckiebot
-            if point_range < range_min or point_range > range_min:
+            if point_range < range_min or point_range > range_max:
                 continue
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
