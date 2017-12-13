@@ -12,7 +12,7 @@ UNKNOWN = 'UNKNOWN'
 class State:
     LANE_FOLLOWING = 'LANE_FOLLOWING'
     AT_STOP_CLEARING = 'AT_STOP_CLEARING'
-    AT_STOP_CLEAR = 'AT_STOP_CLEAR'
+    #AT_STOP_CLEAR = 'AT_STOP_CLEAR'
     RESERVING = 'RESERVING'
     CONFLICT = 'CONFLICT'
     GO = 'GO'
@@ -54,6 +54,7 @@ class VehicleCoordinator():
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
 
         self.traffic_light = UNKNOWN
+	# Do we detect a vehicle?
 
    	# self.right_veh = UNKNOWN
         # self.opposite_veh = UNKNOWN
@@ -95,10 +96,11 @@ class VehicleCoordinator():
         if self.state == State.AT_STOP_CLEARING:
    	    self.reset_signals_detection()
            # self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
+
 	   #after setting everything to unknown, we turn on the light
 	    self.roof_light = CoordinationSignalETHZ17.ON
-        elif self.state == State.AT_STOP_CLEAR:
-	   self.roof_light = CoordinationSignalETHZ17.ON	
+        #elif self.state == State.AT_STOP_CLEAR:
+	   #self.roof_light = CoordinationSignalETHZ17.ON	
            #self.roof_light = CoordinationSignalETHZ17.SIGNAL_A
         #elif self.state == State.RESERVING:
             #self.roof_light = CoordinationSignalETHZ17.SIGNAL_B
@@ -184,10 +186,10 @@ class VehicleCoordinator():
            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
             #    self.set_state(State.AT_STOP_CLEAR)
 
-        elif self.state == State.AT_STOP_CLEAR:
+       # elif self.state == State.AT_STOP_CLEAR:
             #if self.right_veh != SignalsDetectionETHZ17.NO_CAR or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_B or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_C:
- 	    if self.veh_detected == SignalsDetectionETHZ17.CARS:  # if we are seeing other cars (i.e. we cannot go)
-                self.set_state(State.AT_STOP_CLEARING)
+ 	#    if self.veh_detected == SignalsDetectionETHZ17.CARS:  # if we are seeing other cars (i.e. we cannot go)
+         #       self.set_state(State.AT_STOP_CLEARING)
             else:
                 self.set_state(State.GO)
 
@@ -210,7 +212,7 @@ class VehicleCoordinator():
             #if self.right_veh != SignalsDetectionETHZ17.NO_CAR or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_B or self.opposite_veh == SignalsDetectionETHZ17.SIGNAL_C:
                # self.set_state(State.AT_STOP_CLEARING)
             if self.time_at_current_state() > self.random_delay:
-                self.set_state(State.AT_STOP_CLEAR)
+                self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.TL_SENSING:
             if self.traffic_light == SignalsDetectionETHZ17.GO:

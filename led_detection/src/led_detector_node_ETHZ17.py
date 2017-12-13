@@ -3,7 +3,7 @@ import rospy
 import time
 from led_detection.LEDDetector import LEDDetector
 from std_msgs.msg import Byte
-from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped
+from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo, BoolStamped, SignalsDetectionETHZ17
 from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import String
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
@@ -26,7 +26,8 @@ class LEDDetectorNode(object):
         self.node_name = rospy.get_name()
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
 	self.pub_image = rospy.Publisher("~image_detection",Image,queue_size=1)
-        self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
+        #self.pub_detections = rospy.Publisher("~led_detection",String,queue_size=1)
+	self.pub_detections = rospy.Publisher("~led_detection",SignalsDetectionETHZ17,queue_size=1)
         self.pub_debug = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
         self.veh_name = rospy.get_namespace().strip("/")
 
@@ -168,10 +169,12 @@ class LEDDetectorNode(object):
         # Find if tthere are LEDs
         if np.sum(maxValue > threshold) >= desMax and np.amax(dist) < thresholdPixelMax and np.amin(dist) >= thresholdPixelMin:
             rospy.loginfo('LED detected')
-            self.pub_detections.publish('LED detected')
+	    #self.pub_detections.publish('LED detected')
+            self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.CARS))
         else:
             rospy.loginfo('No LED detected')
-            self.pub_detections.publish('No LED detected')
+            #self.pub_detections.publish('No LED detected')
+	    self.pub_detections.publish(SignalsDetectionETHZ17(led_detected=SignalsDetectionETHZ17.NO_CARS))
 
         #    ('timestamp', 'float'),
         #    ('rgb', 'uint8', (H, W, 3)),
