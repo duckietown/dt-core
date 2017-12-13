@@ -16,6 +16,7 @@
 	<arg name="intersectionType" value="stopSign" /> 
     <arg name="coordination" default="true" />
 
+<arg name="/LED/detector" value="true" />
 	  
 	</include>
 </launch>
