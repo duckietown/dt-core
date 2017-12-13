@@ -56,13 +56,13 @@ class VehicleCoordinator():
         self.traffic_light = UNKNOWN
 	# Do we detect a vehicle?
 
-   	# self.right_veh = UNKNOWN
-        # self.opposite_veh = UNKNOWN
-	self.veh_detected = UNKNOWN
+   	self.right_veh = UNKNOWN
+        self.opposite_veh = UNKNOWN
+	# self.veh_detected = UNKNOWN
 
 	# Initializing the unknown presence of a car
 	#self.detected_car = UNKNOWN
-	self.veh_detected = UNKNOWN
+	# self.veh_detected = UNKNOWN
 	# Initializing the unknown presence of a car
 	self.detected_car = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
@@ -135,10 +135,10 @@ class VehicleCoordinator():
     # definition which resets everything we know
     def reset_signals_detection(self):
         self.traffic_light = UNKNOWN
-        #self.right_veh = UNKNOWN
-        #self.opposite_veh = UNKNOWN
-	self.veh_detected = UNKNOWN
-	self.veh_not_detected = UNKNOWN
+        self.right_veh = UNKNOWN
+        self.opposite_veh = UNKNOWN
+	#self.veh_detected = UNKNOWN
+	#self.veh_not_detected = UNKNOWN
 
     # publishing the topics
     def publish_topics(self):
