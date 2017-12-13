@@ -53,19 +53,19 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         phi_t = self.phi + w*delta_t
 
         for k in range(self.num_belief):
-            p_belief = np.zeros(self.beliefArray[0].shape)
+            p_belief = np.zeros(self.beliefArray[k].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
-            for i in range(self.beliefArray[0].shape[0]):
-                for j in range(self.beliefArray[0].shape[1]):
-                    if self.beliefArray[i][i,j] > 0:
+            for i in range(self.beliefArray[k].shape[0]):
+                for j in range(self.beliefArray[k].shape[1]):
+                    if self.beliefArray[k][i,j] > 0:
                         if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
                             continue
                         i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
                         j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
-                        p_belief[i_new,j_new] += self.beliefArray[i][i,j]
+                        p_belief[i_new,j_new] += self.beliefArray[k][i,j]
 
-            s_belief = np.zeros(self.beliefArray[i].shape)
+            s_belief = np.zeros(self.beliefArray[k].shape)
             gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
             if np.sum(s_belief) == 0:
