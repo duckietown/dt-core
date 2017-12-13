@@ -4,6 +4,7 @@
 	<group ns="$(arg veh)">
 	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen"/>
 
+        <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen"/>
 
         <!--node name="anti_instagram_node" pkg="anti_instagram" type="anti_instagram_node.py" output="screen"/-->
     </group>
