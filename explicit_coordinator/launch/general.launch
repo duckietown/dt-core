@@ -19,7 +19,7 @@
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="$(arg intersectionType)"/>
 			<!-- Input to coordination node -->
-			<remap from="~signals_detection" to="led_interpreter_node/signalsDetection"/>
+			<remap from="~signals_detection" to="led_interpreter_node/signals_detection"/>
 		</node>
 
 		<!-- Run with detection node-->
@@ -56,7 +56,7 @@
 			<param name="verbose" value="false"/>
 			<param name="intersectionType" value="$(arg intersectionType)"/>
 			<!-- Input to coordination node -->
-			<remap from="~signals_detection" to="led_interpreter_node/signalsDetection"/>
+			<remap from="~signals_detection" to="led_interpreter_node/signals_detection"/>
 		</node>
 
 		<!-- Run with detection node-->
