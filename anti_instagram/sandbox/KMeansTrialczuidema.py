@@ -15,6 +15,7 @@ from anti_instagram.scale_and_shift import *
 # from .scale_and_shift import scaleandshift
 # from .scale_and_shift import scaleandshift2
 from simpleColorBalance import *
+from colorBalanceKMeans import *
 
 class kMeanClass:
     """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
@@ -40,6 +41,9 @@ class kMeanClass:
         self.blur_alg = blurAlg
         self.fac_resize = float(resize)
         self.blur_kernel = int(blurKer)
+        self.shiftB = None
+        self.shiftG = None
+        self.shiftR = None
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
         print('created instance of kMeans with arguments:')
@@ -118,7 +122,7 @@ class kMeanClass:
         # blur image
         self._blurImg()
         print('blurred image!')
-
+        self.blurred_image, self.shiftB, self.shiftG, self.shiftR = blackBalance(self.blurred_image)
         # prepare KMeans
         kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
 
@@ -338,7 +342,8 @@ def main():
     T = calcTransform(3, trained_centers_woRed)
     T.calcTransform()
 
-    corrected_img = scaleandshift2(KM.input_image, T.scale, T.shift)
+    corr_img1 = scaleandshift2(KM.input_image, [1, 1, 1], [KM.shiftB, KM.shiftG, KM.shiftR])
+    corrected_img = scaleandshift2(corr_img1, T.scale, T.shift)
     corrected_image_cv2 = np.clip(
         corrected_img, 0, 255).astype(np.uint8)
 

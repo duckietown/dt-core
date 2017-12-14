@@ -7,29 +7,48 @@ import numpy as np
 from anti_instagram.scale_and_shift import *
 from anti_instagram.kmeans_rebuild import *
 
-def determineWhiteCluster(trained_centers):
+def determineErrorCluster(trained_centers, true_cluster):
     num_centers = len(trained_centers)
     errorWhite = np.zeros(num_centers)
-    trueWhite = [255, 255, 255]
     for i in range(num_centers):
         print(trained_centers[i])
-        errorWhite[i] = np.linalg.norm(trueWhite - trained_centers[i])
+        errorWhite[i] = np.linalg.norm(true_cluster - trained_centers[i])
 
-    whiteClusterIdx = np.argmin(errorWhite)
+    lowestErrorIdx = np.argmin(errorWhite)
 
-    return whiteClusterIdx
+    return lowestErrorIdx
 
-def estimateScale(whiteCenter):
-    trueWhite = [255, 255, 255]
-    scaleB = 255 / whiteCenter[0]
-    scaleG = 255 / whiteCenter[1]
-    scaleR = 255 / whiteCenter[2]
+def estimateScale(centers, true_cluster):
+    scaleB = true_cluster[0] / centers[0]
+    scaleG = true_cluster[1] / centers[1]
+    scaleR = true_cluster[2] / centers[2]
 
     return scaleB, scaleG, scaleR
+
+def estimateShift(centers, true_cluster):
+    shiftB = true_cluster[0] - centers[0]
+    shiftG = true_cluster[1] - centers[1]
+    shiftR = true_cluster[2] - centers[2]
+
+    return shiftB, shiftG, shiftR
 
 def scalePicture(img, scaleB, scaleG, scaleR):
     out = scaleandshift2(img, [scaleB, scaleG, scaleR], [0, 0, 0])
     return out
+
+def shiftPicture(img, shiftB, shiftG, shiftR):
+    out = scaleandshift2(img, [1, 1, 1], [shiftB, shiftG, shiftR])
+    return out
+
+def blackBalance(img):
+    true_cluster = [60, 60, 60]
+    KM = kMeansClass(4, 'median', 0.1, 5)
+    KM.applyKM(img)
+    lowErrorIdx = determineErrorCluster(KM.trained_centers, true_cluster)
+    shiftB, shiftG, shiftR = estimateShift(KM.trained_centers[lowErrorIdx], true_cluster)
+    outShifted = shiftPicture(img, shiftB, shiftG, shiftR)
+    outShifted_clipped = np.clip(outShifted, 0, 255).astype(np.uint8)
+    return outShifted_clipped, shiftB, shiftG, shiftR
 
 def main():
     # define input arguments
@@ -74,19 +93,25 @@ def main():
         sys.exit(2)
 
     img = cv2.imread(args.img_path, cv2.IMREAD_UNCHANGED)
-
+    true_cluster = [60, 60, 60]
     KM = kMeansClass(args.n_centers, args.blur, args.resize, args.blur_kernel)
     KM.applyKM(img)
-    whiteIdx = determineWhiteCluster(KM.trained_centers)
-    print "The determined white cluster is: " + str(KM.trained_centers[whiteIdx])
-    scaleB, scaleG, scaleR = estimateScale(KM.trained_centers[whiteIdx])
+    lowErrorIdx = determineErrorCluster(KM.trained_centers, true_cluster)
+    print "The determined white cluster is: " + str(KM.trained_centers[lowErrorIdx])
+    scaleB, scaleG, scaleR = estimateScale(KM.trained_centers[lowErrorIdx], true_cluster)
+    shiftB, shiftG, shiftR = estimateShift(KM.trained_centers[lowErrorIdx], true_cluster)
     print "The scales BGR are: " + str(scaleB) + ", " + str(scaleG) + ", " + str(scaleR)
-    out = scalePicture(img, scaleB, scaleG, scaleR)
 
-    out_clipped = np.clip(out, 0, 255).astype(np.uint8)
+    outScaled = scalePicture(img, scaleB, scaleG, scaleR)
+    outShifted = shiftPicture(img, shiftB, shiftG, shiftR)
 
-    cv2.namedWindow('corrected', flags=cv2.WINDOW_NORMAL)
-    cv2.imshow('corrected', out_clipped)
+    outScaled_clipped = np.clip(outScaled, 0, 255).astype(np.uint8)
+    outShifted_clipped = np.clip(outShifted, 0, 255).astype(np.uint8)
+
+    cv2.namedWindow('scaled', flags=cv2.WINDOW_NORMAL)
+    cv2.imshow('scaled', outScaled_clipped)
+    cv2.namedWindow('shifted', flags=cv2.WINDOW_NORMAL)
+    cv2.imshow('shifted', outShifted_clipped)
     cv2.namedWindow('original', flags=cv2.WINDOW_NORMAL)
     cv2.imshow('original', img)
     cv2.waitKey(0)
