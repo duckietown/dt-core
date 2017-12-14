@@ -1,10 +1,12 @@
+from duckietown_utils import (
+    get_file_from_url, get_md5, image_cv_from_jpg_fn, write_jpgs_to_dir)
 from duckietown_utils.cli import D8App
-from duckietown_utils.image_writing import write_jpgs_to_dir
-from duckietown_utils.download import get_file_from_url
-from duckietown_utils.jpg import image_cv_from_jpg_fn
-from complete_image_pipeline.pipeline import run_pipeline
-from duckietown_utils.test_hash import get_md5
 
+from .pipeline import run_pipeline
+
+__all__ = [
+    'SingleImagePipeline',
+]
 
 class SingleImagePipeline(D8App):
     """ 

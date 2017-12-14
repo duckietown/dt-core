@@ -7,7 +7,7 @@ from duckietown_msgs.msg import (Pixel, Vector2D, Segment, SegmentList)
 from sensor_msgs.msg import (Image, CameraInfo)
 from cv_bridge import CvBridge
 import numpy as np
-from ground_projection.GroundProjection import GroundProjection
+from ground_projection import ground_projection_interface.GroundProjection
 
 
 class GroundProjectionNode(object):
@@ -18,7 +18,7 @@ class GroundProjectionNode(object):
         self.bridge=CvBridge()
 
         self.robot_name = rospy.get_param("~config_file_name","robot_not_specified")
-        self.gp = GroundProjection(self.robot_name)
+        self.gp = grond_projection_imp(self.robot_name)
 
         camera_info_topic = "/"+self.robot_name+"/camera_node/camera_info"
         rospy.loginfo("camera info topic is " + camera_info_topic)
