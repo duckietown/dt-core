@@ -103,6 +103,7 @@ class calcTransform:
 #[60, 60, 240] is red
 #[50, 240, 240] is yellow
 #[240, 240, 240] is white
+'''
 true = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]])
 found_centers = np.array([[50, 50, 50], [50, 50, 230], [40, 230, 230], [230, 230, 230]])
 onlyScale = true[:] * 0.2
@@ -110,3 +111,5 @@ onlyScale = true[:] * 0.2
 
 T = calcTransform(4, onlyScale)
 T.calcTransform()
+
+'''

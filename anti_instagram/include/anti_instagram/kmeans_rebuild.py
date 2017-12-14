@@ -43,7 +43,6 @@ class kMeansClass:
     # re-shape input image for kMeans
     def _getimgdatapts(self, cv2img, fancyGeom=False):
         x, y, p = cv2img.shape
-
 	if not fancyGeom:
             img_geom = cv2img[int(x * 0.3):(x - 1), :, :]
 	    x_new, y_new, p = img_geom.shape

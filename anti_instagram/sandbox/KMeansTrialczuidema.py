@@ -9,12 +9,12 @@ from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
 import math
-from calcTransform import calcTransform
+from anti_instagram.calcLstsqTransform import calcTransform
 from anti_instagram.AntiInstagram import *
 from anti_instagram.scale_and_shift import *
-#from .scale_and_shift import scaleandshift
-#from .scale_and_shift import scaleandshift2
-
+# from .scale_and_shift import scaleandshift
+# from .scale_and_shift import scaleandshift2
+from simpleColorBalance import *
 
 class kMeanClass:
     """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
@@ -122,9 +122,18 @@ class kMeanClass:
         # prepare KMeans
         kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
 
+
+        # try out color balance first
+        # self.blurred_image = simplest_cb(self.blurred_image, 1) # percentages around 1% are normal
+        cv2.namedWindow('blurred', flags=cv2.WINDOW_NORMAL)
+        cv2.imshow('blurred', self.blurred_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         # prepare data points
         self.image_array = self._getimgdatapts(self.blurred_image)
 
+        # debug
+        print(self.image_array.shape)
         # run KMeans
         kmc.fit(self.image_array)
 
@@ -301,13 +310,19 @@ def main():
         sys.exit(2)
 
     # check kernel size
-    print(args.blur_kernel)
+    print "kernel: " + str(args.blur_kernel)
     if (int(args.blur_kernel) % 2 == 0):
         print('kernel size must be odd')
         sys.exit(2)
 
     # create instance of kMeans
+    print("all arguments have been read.")
+
     KM = kMeanClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
+    cv2.namedWindow('input', flags=cv2.WINDOW_NORMAL)
+    cv2.imshow('input', KM.input_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     KM.applyKM()
     idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
     KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
@@ -318,6 +333,8 @@ def main():
                                 KM.trained_centers[idxWhite]])
 
     print(trained_centers)
+
+    print("transform instance will be created!")
     T = calcTransform(3, trained_centers_woRed)
     T.calcTransform()
 
