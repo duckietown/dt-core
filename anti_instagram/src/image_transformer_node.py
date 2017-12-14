@@ -30,15 +30,19 @@ class ImageTransformerNode():
             "~corrected_image", Image, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            #"/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            #"/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
-            "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            #"~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+
+
 
         # TODO verify name of parameter
         # Verbose option
-        self.verbose = rospy.get_param('line_detector_node/verbose', True)
+        self.verbose = rospy.get_param('line_detector_node/verbose', False)
 
         # Initialize transform message
         self.transform = AntiInstagramTransform()
@@ -49,6 +53,10 @@ class ImageTransformerNode():
         self.bridge = CvBridge()
 
         self.image_msg = None
+
+        # TODO write to file within git folder
+        self.file = open('/home/milan/output_image_transform_node.txt', 'a+')
+        self.file.write('\nIMAGE_TRANSFORM_NODE:\n')
 
 
 
@@ -83,12 +91,20 @@ class ImageTransformerNode():
             rospy.loginfo('ai:\n' + tk.getall())
 
     def cbNewTrafo(self, trafo_msg):
+        # testwise write to file
+        self.file.write('received new trafo\n')
+
+        if self.verbose:
+            rospy.loginfo('image transformer: received new trafo!')
+
         # memorize transform message
         self.transform = trafo_msg
 
         # store transform to the Anti-Instagram instance
         self.ai.shift = trafo_msg.s[0:3]         #copied from line_detector2 ldn.py
         self.ai.scale = trafo_msg.s[3:6]
+
+
 
 if __name__ == '__main__':
     # Initialize the node with rospy

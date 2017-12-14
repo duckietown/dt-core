@@ -10,7 +10,12 @@ from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
 import rospy
+import os
 
+"""
+This node subscribed to the uncorrected images from the camera. Within a certain time interval (defined from
+    commandline) this node calculates and publishes the trafo based on the old anti instagram method.
+"""
 
 
 class ContAntiInstagramNode():
@@ -29,7 +34,8 @@ class ContAntiInstagramNode():
 
         self.sub_image = rospy.Subscriber(
             #"/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 
         # TODO verify name of parameter
@@ -53,6 +59,10 @@ class ContAntiInstagramNode():
 
         # timer for continuous image process
         self.timer = rospy.Timer(rospy.Duration(self.interval), self.processImage)
+
+        # TODO write to file within git folder
+        self.file = open('/home/milan/output_cont_ai_node.txt', 'a+')
+        self.file.write('\nCONT_ANTI_INSTAGRAM_NODE:\n')
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -97,8 +107,12 @@ class ContAntiInstagramNode():
                 self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
                 self.pub_health.publish(self.health)
-                self.pub_transform.publish(self.transform)
+                self.pub_trafo.publish(self.transform)
                 rospy.loginfo('ai: Color transform published.')
+
+                # write latest trafo to file
+                self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n'  + str(self.ai.scale) + '\nhealth:\n' + str(self.ai.health) + '\n \n')
+
 
 
 

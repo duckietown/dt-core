@@ -10,9 +10,9 @@
             <remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" />
         </node>
 
-        <!--node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">
+        <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">
             <param name="~ai_interval" value="$(arg ai_interval)"/>
-        </node-->
+        </node>
 
     </group>
 
