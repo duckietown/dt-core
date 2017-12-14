@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
-from anti_instagram.AntiInstagram import *
+from anti_instagram.AntiInstagram_rebuild import *
+from anti_instagram.kmeans_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
@@ -44,6 +45,11 @@ class ContAntiInstagramNode():
 
         # Read parameters
         self.interval = self.setupParameter("~ai_interval", 10)
+        self.fancyGeom = self.setupParameter("~fancyGeom", False)
+        self.n_centers = self.setupParameter("~n_centers", 6)
+        self.blur = self.setupParameter("~blur", 'none')
+        self.resize = self.setupParameter("~resize", 1)
+        self.blur_kernel = self.setupParameter("~blur_kernel", 5)
 
         # Initialize health message
         self.health = AntiInstagramHealth()
@@ -53,6 +59,7 @@ class ContAntiInstagramNode():
         # FIXME: read default from configuration and publish it
 
         self.ai = AntiInstagram()
+        self.ai.setupKM(self.n_centers, self.blur, self.resize, self.blur_kernel)
         self.bridge = CvBridge()
 
         self.image_msg = None
@@ -95,6 +102,17 @@ class ContAntiInstagramNode():
 
             tk.completed('calculateTransform')
 
+            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+
+            self.pub_trafo.publish(self.transform)
+            rospy.loginfo('ai: Color transform published.')
+
+            # write latest trafo to file
+            self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n' + str(self.ai.scale) + '\n \n')
+
+            # milansc: health is not supported yet
+            """
             # if health is much below the threshold value, do not update the color correction and log it.
             if self.ai.health <= 0.001:
                 # health is not good
@@ -112,7 +130,7 @@ class ContAntiInstagramNode():
 
                 # write latest trafo to file
                 self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n'  + str(self.ai.scale) + '\nhealth:\n' + str(self.ai.health) + '\n \n')
-
+            """
 
 
 

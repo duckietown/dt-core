@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from anti_instagram.AntiInstagram import *
+from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
@@ -77,9 +77,6 @@ class ImageTransformerNode():
         corrected_image_cv2 = self.ai.applyTransform(cv_image)
         tk.completed('applyTransform')
 
-        # TODO integrate clipping into ai?
-        corrected_image_cv2 = np.clip(
-            corrected_image_cv2, 0, 255).astype(np.uint8)
         self.corrected_image = self.bridge.cv2_to_imgmsg(
             corrected_image_cv2, "bgr8")
         tk.completed('encode')

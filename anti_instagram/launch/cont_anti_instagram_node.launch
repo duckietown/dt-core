@@ -2,6 +2,11 @@
 
 	<arg name="veh"/>
 	<arg name="ai_interval" default="10" doc="time interval after which the ai algorithm should be re-performed"/>
+	<arg name="geom" default="false" doc="use geometry considerations with true just bottom 0.6 of image with false"/>
+    <arg name="cents" default="6" doc="number of cluster centers for kmeans"/>
+    <arg name="blur" default="none" doc="type of blurring applied to image as preprocessing"/>
+    <arg name="resize" default="1" doc="resizing factor to scale the image down or up"/>
+    <arg name="ker" default="5" doc="size of blur kernel"/>
 
 	<group ns="$(arg veh)">
 
@@ -12,6 +17,11 @@
 
         <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">
             <param name="~ai_interval" value="$(arg ai_interval)"/>
+            <param name="~n_centers" type="int" value="$(arg cents)"/>
+	        <param name="~fancyGeom" type="boolean" value="$(arg geom)"/>
+	        <param name="~blur" type="str" value="$(arg blur)"/>
+	        <param name="~resize" type="double" value="$(arg resize)"/>
+	        <param name="~blur_kernel" type="int" value="$(arg ker)"/>
         </node>
 
     </group>
