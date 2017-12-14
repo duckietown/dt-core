@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
-from anti_instagram.kmeans import CENTERS, CENTERS2
+from anti_instagram.kmeans_rebuild import CENTERS_BRYW, CENTERS_BYW
 
 """
 This class calculates the optimal transform parameters based on the least squares optimization.
@@ -45,8 +45,8 @@ The outputs:
 class calcTransform:
 
     # hardcoded centers from anti_instagram.kmeans
-    centers_BYW = CENTERS
-    centers_BRYW = CENTERS2
+    centers_BYW = CENTERS_BYW
+    centers_BRYW = CENTERS_BRYW
 
     centers = []            # n x 3 array, containing n 'true' centers in BGR
     num_centers = -1        # n
