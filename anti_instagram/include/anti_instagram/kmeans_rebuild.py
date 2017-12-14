@@ -11,6 +11,9 @@ from collections import Counter
 from anti_instagram.geom import processGeom2
 import math
 
+CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
+CENTERS_BYW = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
+
 
 class kMeansClass:
     """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
