@@ -90,8 +90,8 @@ class LaneFilterNode(object):
         delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
         
         if len(self.d_median) >= 5:
-            self.d_median.pop()
-            self.phi_median.pop()
+            self.d_median.pop(0)
+            self.phi_median.pop(0)
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
 
