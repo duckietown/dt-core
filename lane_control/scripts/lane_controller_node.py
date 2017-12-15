@@ -43,8 +43,8 @@ class lane_controller(object):
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
 
-        incurvature = False
-        curve_inner = False
+        # incurvature = False
+        # curve_inner = False
         k_Id = 0.2
         k_Iphi = 0.1
         self.cross_track_integral = 0
@@ -77,8 +77,8 @@ class lane_controller(object):
         self.omega_to_rad_per_s = 0.45
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
-        incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
-        curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
+        # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
+        # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -102,8 +102,8 @@ class lane_controller(object):
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
 
-            if incurvature != self.incurvature and incurvature:
-                self.time_start_curve = rospy.Time.now().secs
+            # if incurvature != self.incurvature and incurvature:
+            #     self.time_start_curve = rospy.Time.now().secs
 
             self.incurvature = incurvature
             self.curve_inner = curve_inner
@@ -172,6 +172,9 @@ class lane_controller(object):
             rospy.logerr("inside threshold ")
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
 
+        self.cross_track_integral += cross_track_err
+        self.heading_integral += heading_err
+
         if self.cross_track_integral > 4:
             rospy.loginfo("you're greater 5")
             self.cross_track_integral = 4
@@ -179,40 +182,41 @@ class lane_controller(object):
             rospy.loginfo("youre smaller -5")
             self.cross_track_integral = -4
 
-        self.cross_track_integral += cross_track_err
-        self.heading_integral += heading_err
-
         if self.heading_integral < -15:
             self.heading_integral = -15
         if self.heading_integral > 15:
             self.heading_integral = 15
 
-        if self.curve_inner:
-            self.curvature  = self.curvature_inner
-        else:
-            self.curvature = self.curvature_outer
-        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * self.curvature * 2 * math.pi
+        # if self.curve_inner:
+        #     self.curvature  = self.curvature_inner
+        # else:
+        #     self.curvature = self.curvature_outer
+        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature * 2 * math.pi
 
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
         rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
+        car_control_msg.omega -= self.k_Id * self.cross_track_integral
+        car_control_msg.omega -= self.k_Iphi * self.heading_integral
+        car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        if not self.incurvature:
-            if heading_err > 0.3:
-                self.incurvature = True
-                rospy.set_param('~incurvature',True)
-            car_control_msg.omega -= self.k_Id * self.cross_track_integral
-            car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
-        else:
-            if self.curve_inner:
-                time_incurve = 1
-            else:
-                time_incurve = 3
-            if (rospy.Time.now().secs - self.time_start_curve) > time_incurve:   #TODO fix 5 to a time in curvature with v and d
-                rospy.set_param('~incurvature',False)
-                self.incurvature = False
-            rospy.loginfo("incurvature : ")
-            car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
+
+        # if not self.incurvature:
+        #     if heading_err > 0.3:
+        #         self.incurvature = True
+        #         rospy.set_param('~incurvature',True)
+        #     car_control_msg.omega -= self.k_Id * self.cross_track_integral
+        #     car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
+        # else:
+        #     if self.curve_inner:
+        #         time_incurve = 1
+        #     else:
+        #         time_incurve = 3
+        #     if (rospy.Time.now().secs - self.time_start_curve) > time_incurve:   #TODO fix 5 to a time in curvature with v and d
+        #         rospy.set_param('~incurvature',False)
+        #         self.incurvature = False
+        #     rospy.loginfo("incurvature : ")
+        #     car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
         rospy.loginfo("kid : " + str(self.k_Id))
         rospy.loginfo("Kd : " + str(self.k_d))
         #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
