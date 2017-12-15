@@ -32,7 +32,7 @@ class LineDetectorHSV(Configurable, LineDetectorInterface):
             'hough_min_line_length',
             'hough_max_line_gap',
         ]
-        configuration = copy.deepcopy(configuration)
+
         Configurable.__init__(self, param_names, configuration)
 
     def _colorFilter(self, color):

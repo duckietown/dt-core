@@ -1,18 +1,22 @@
-from duckietown_utils.parameters import Configurable
-from duckietown_msgs.msg import Segment
-import numpy as np
-from .lane_filter_interface import LaneFilterInterface
-from scipy.stats import multivariate_normal
+from math import floor
+
 from scipy.ndimage.filters import gaussian_filter
-from math import floor, pi, sqrt
-import copy
+from scipy.stats import multivariate_normal
+
+import duckietown_utils as dtu
+import numpy as np
+
+from .lane_filter_interface import LaneFilterInterface
 
 
+__all__ = [
+    'LaneFilterHistogram',
+]
 
-class LaneFilterHistogram(Configurable, LaneFilterInterface):
-    """LaneFilterHistogram"""
+class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
+    """ """
 
-    def __init__(self,configuration):
+    def __init__(self, configuration):
         param_names = [
             'mean_d_0',
             'mean_phi_0',
@@ -32,17 +36,26 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             'sigma_d_mask',
             'sigma_phi_mask',
         ]
-        configuration = copy.deepcopy(configuration)
-        Configurable.__init__(self,param_names,configuration)
+        
+        dtu.Configurable.__init__(self, param_names, configuration)
 
-        self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
-        self.belief=np.empty(self.d.shape)
+        self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
+                                   self.phi_min:self.phi_max:self.delta_phi]
+        self.belief = np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
         self.initialize()
-        
+
+    def initialize(self):
+        pos = np.empty(self.d.shape + (2,))
+        pos[:, :, 0] = self.d
+        pos[:, :, 1] = self.phi
+        # XXX: statement with no effect
+        # self.cov_0
+        RV = multivariate_normal(self.mean_0, self.cov_0)
+        self.belief = RV.pdf(pos)
         
     def predict(self, dt, v, w):
         delta_t = dt
@@ -51,23 +64,31 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         p_belief = np.zeros(self.belief.shape)
 
-        # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
+        # there has got to be a better/cleaner way to do this - just applying 
+        # the process model to translate each cell value
         for i in range(self.belief.shape[0]):
             for j in range(self.belief.shape[1]):
                 if self.belief[i,j] > 0:
-                    if d_t[i,j] > self.d_max or d_t[i,j] < self.d_min or phi_t[i,j] < self.phi_min or phi_t[i,j] > self.phi_max:
+                    if d_t[i,j] > self.d_max or \
+                        d_t[i,j] < self.d_min or \
+                        phi_t[i,j] < self.phi_min or \
+                        phi_t[i,j] > self.phi_max:
                         continue
                     i_new = int(floor((d_t[i,j] - self.d_min)/self.delta_d))
                     j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
-                    p_belief[i_new,j_new] += self.belief[i,j]
+                    p_belief[i_new, j_new] += self.belief[i,j]
 
         s_belief = np.zeros(self.belief.shape)
         gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
         if np.sum(s_belief) == 0:
             return
-        self.belief = s_belief/np.sum(s_belief)
+        
+        self.belief = s_belief / np.sum(s_belief)
 
+    def get_status(self):
+        # TODO: Detect abnormal states (@liam)
+        return LaneFilterInterface.GOOD
 
     def update(self, segments):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
@@ -76,7 +97,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
-                self.belief = self.belief/np.sum(self.belief)
+                self.belief = self.belief / np.sum(self.belief)
 
     def generate_measurement_likelihood(self, segments):
         # initialize measurement likelihood to all zeros
@@ -88,45 +109,39 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            d_i,phi_i,l_i = self.generateVote(segment)
+            d_i, phi_i, l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
-            if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i>self.phi_max:
+            if d_i > self.d_max or \
+                d_i < self.d_min or \
+                phi_i < self.phi_min or \
+                phi_i > self.phi_max:
                 continue
-            i = int(floor((d_i - self.d_min)/self.delta_d))
-            j = int(floor((phi_i - self.phi_min)/self.delta_phi))
-            measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
-        if np.linalg.norm(measurement_likelihood) == 0:            
+            i = int(floor((d_i - self.d_min) / self.delta_d))
+            j = int(floor((phi_i - self.phi_min) / self.delta_phi))
+            measurement_likelihood[i,j] += 1 
+        if np.linalg.norm(measurement_likelihood) == 0:
             return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
         
     def getEstimate(self):
-        maxids = np.unravel_index(self.belief.argmax(),self.belief.shape)
+        maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
         d_max = self.d_min + maxids[0]*self.delta_d
         phi_max = self.phi_min + maxids[1]*self.delta_phi
-        return [d_max,phi_max]
+        return [d_max, phi_max]
 
     def getMax(self):
         return self.belief.max()
 
-    def initialize(self):
-        pos = np.empty(self.d.shape + (2,))
-        pos[:,:,0]=self.d
-        pos[:,:,1]=self.phi
-        self.cov_0
-        RV = multivariate_normal(self.mean_0,self.cov_0)
-        self.belief=RV.pdf(pos)
-
-
     def generateVote(self,segment):
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
-        t_hat = (p2-p1)/np.linalg.norm(p2-p1)
+        t_hat = (p2-p1) / np.linalg.norm(p2-p1)
         n_hat = np.array([-t_hat[1],t_hat[0]])
-        d1 = np.inner(n_hat,p1)
-        d2 = np.inner(n_hat,p2)
-        l1 = np.inner(t_hat,p1)
-        l2 = np.inner(t_hat,p2)
+        d1 = np.inner(n_hat, p1)
+        d2 = np.inner(n_hat, p2)
+        l1 = np.inner(t_hat, p1)
+        l2 = np.inner(t_hat, p2)
         if (l1 < 0):
             l1 = -l1;
         if (l2 < 0):
@@ -152,8 +167,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         return d_i, phi_i, l_i
 
-    def getSegmentDistance(self, segment):
-        x_c = (segment.points[0].x + segment.points[1].x)/2
-        y_c = (segment.points[0].y + segment.points[1].y)/2
-        return sqrt(x_c**2 + y_c**2)
+    
+    # not used
+#     def getSegmentDistance(self, segment):
+#         x_c = (segment.points[0].x + segment.points[1].x)/2
+#         y_c = (segment.points[0].y + segment.points[1].y)/2
+#         return sqrt(x_c**2 + y_c**2)
 

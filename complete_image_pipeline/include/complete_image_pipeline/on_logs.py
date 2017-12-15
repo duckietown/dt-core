@@ -1,4 +1,5 @@
 from quickapp import QuickApp
+
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8AppWithLogs
 from ground_projection import GroundProjection
@@ -25,21 +26,24 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
                           help="Which line detector to use", group=g)
         params.add_string('image_prep', default='prep_200_100', 
                           help="Which image prep to use", group=g)
+        params.add_string('lane_filter', default='baseline',
+                          help="Which lane filter to use", group=g)
         
     def define_jobs_context(self, context):
         db = self.get_easy_logs_db() 
         query = self.options.log
         line_detector = self.options.line_detector
         image_prep = self.options.image_prep
+        lane_filter = self.options.lane_filter
     
         logs = db.query(query)
      
         for _, log in logs.items():
             context.comp(look_at, log, self.options.output,
-                         line_detector, image_prep)
+                         line_detector, image_prep, lane_filter)
             
             
-def look_at(log, output, line_detector, image_prep):
+def look_at(log, output, line_detector, image_prep, lane_filter):
     filename = log.filename
     
     bag = rosbag.Bag(filename) 
@@ -56,13 +60,14 @@ def look_at(log, output, line_detector, image_prep):
     image_cv = res[0]['rgb']
     
     dtu.logger.debug(dtu.describe_value(image_cv))
-            
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
     res  = run_pipeline(image_cv_bgr, gp=gp,
                         line_detector_name=line_detector, 
-                        image_prep_name=image_prep)
+                        image_prep_name=image_prep,
+                        lane_filter_name=lane_filter)
 
+    res = dtu.resize_small_images(res)
          
     dtu.write_jpgs_to_dir(res, output)
     

@@ -1,30 +1,37 @@
-from duckietown_msgs.msg import Pixel, Segment, SegmentList  # @UnresolvedImport
+
 from collections import OrderedDict
-import copy
 
 import cv2
 
-from anti_instagram.AntiInstagram import AntiInstagram
+from anti_instagram import AntiInstagram
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection
 from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 import numpy as np
+from lane_filter import FAMILY_LANE_FILTER
+from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
+from reprep.graphics.filter_scale import scale
+from ground_projection.segment import rectify_segments
 
 
 @dtu.contract(gp=GroundProjection)
-def run_pipeline(image, gp, line_detector_name, image_prep_name):
+def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
+                 all_details=False):
     """ 
         Image: numpy (H,W,3) == BGR
         Returns a dictionary, res with the following fields:
             
             res['input_image']
     """
+    
+    
     res = OrderedDict()
     res['image_input'] = image
     algo_db = get_easy_algo_db()
-    line_detector = algo_db.create_instance('line_detector', line_detector_name)
+    line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
+    lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
     image_prep = algo_db.create_instance('image_prep', image_prep_name)
 
     context = FakeContext()
@@ -50,9 +57,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name):
     res['segments_on_image_input_transformed_resized'] = \
         vs_fancy_display(image_prep.image_resized, segment_list2)
 
-    res['grid'] = get_grid(image.shape[:2])
-    
-    res['grid_remapped'] = gp.rectify(res['grid'])
+    grid = get_grid(image.shape[:2])
+    if all_details:
+        res['grid'] = grid
+
+    res['grid_remapped'] = gp.rectify(grid)
         
     res['image_input_rect'] = gp.rectify(res['image_input'])
     
@@ -62,8 +71,20 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name):
     res['segments rectified on image rectified'] = \
         vs_fancy_display(res['image_input_rect'], segment_list2_rect)
 
+    # Project to ground
+    sg = gp.find_ground_coordinates(segment_list2_rect)
     
+    lane_filter.initialize()
+    lane_filter.update(sg.segments)
+
+    status = lane_filter.get_status()
+
+    belief_image = scale(-lane_filter.belief)
     
+    res['belief (%s)' % status] = belief_image
+#     
+#         belief_img = bridge.cv2_to_imgmsg((255*self.filter.belief).astype('uint8'), "mono8")
+
     return res
 
 def get_grid(shape, L=32):
@@ -77,41 +98,5 @@ def get_grid(shape, L=32):
             col = {0: (255,0,0), 1: (0,255,0)}
             res[i,j,:] = col[coli]
     return res
-
-def rectify_segment(gp, s1):
-    s2 = Segment()
-    for i in range(2):
-        # normalized coordinated
-        nc = s1.pixels_normalized[i]
-        # get pixel coordinates
-        pixels = gp.gpc.vector2pixel(nc)
-        uv = [pixels.u, pixels.v]
-        # rectify
-        pr = gp.rectify_point(uv)
-        # recompute normalized
-        t = Pixel()
-        t.u = pr[0]
-        t.v = pr[1]
-        s = ' i %d  p = %s   pr = %s  normalized = %s' % (i, pr, nc, t)
-        dtu.logger.info(s.replace('\n', ' '))
-        s2.pixels_normalized[i] = gp.gpc.pixel2vector(t)
-    return s2
-
-    
-def rectify_segments(gp, segment_list):
-    S2 = SegmentList()
-    
-#     segment_list = copy.deepcopy(segment_list)
-    
-    for k, segment in enumerate(segment_list.segments):
-        dtu.logger.info('%s - %s before' % (k, segment))
-        
-        s2 = rectify_segment(gp, segment)
-            
-        dtu.logger.debug('%s - %s after' % (k, s2))
-        
-        S2.segments.append(s2)
-        
-    return S2
 
     

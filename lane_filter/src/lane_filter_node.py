@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import rospy
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import SegmentList,   LanePose, BoolStamped, Twist2DStamped
 from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
@@ -24,8 +24,8 @@ class LaneFilterNode(object):
         # Publishers
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
-        self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
-        self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
+        self.pub_entropy    = rospy.Publisher("~entropy", Float32, queue_size=1)
+        self.pub_in_lane    = rospy.Publisher("~in_lane", BoolStamped, queue_size=1)
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -49,7 +49,11 @@ class LaneFilterNode(object):
 
         # Step 1: predict
         current_time = rospy.get_time()
-        self.filter.predict(dt=current_time-self.t_last_update, v = self.velocity.v, w = self.velocity.omega)
+        dt = current_time - self.t_last_update 
+        v = self.velocity.v 
+        w = self.velocity.omega
+
+        self.filter.predict(dt=dt, v=v, w=w)
         self.t_last_update = current_time
 
         # Step 2: update
@@ -60,13 +64,13 @@ class LaneFilterNode(object):
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
-        
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
         lanePose.d = d_max
         lanePose.phi = phi_max
         lanePose.in_lane = in_lane
+        # XXX: is it always NORMAL?
         lanePose.status = lanePose.NORMAL
 
         # publish the belief image
@@ -88,7 +92,6 @@ class LaneFilterNode(object):
 
     def onShutdown(self):
         rospy.loginfo("[LaneFilterNode] Shutdown.")
-
 
     def loginfo(self, s):
         rospy.loginfo('[%s] %s' % (self.node_name, s))

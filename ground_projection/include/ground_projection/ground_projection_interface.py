@@ -1,5 +1,7 @@
 import os.path
 
+from duckietown_msgs.msg import Segment, SegmentList  # @UnresolvedImport
+
 import cv2
 
 import duckietown_utils as dtu
@@ -93,6 +95,26 @@ class GroundProjection(object):
     def write_homography(self, filename):
         ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
         dtu.yaml_write_to_file(ob,filename)
+
+    @dtu.contract(sl=SegmentList, returns=SegmentList)
+    def find_ground_coordinates(self, sl):
+        """ Creates a new segment list with the ground coordinates set """
+        
+        sl2 = SegmentList()
+        sl2.header = sl.header
+        
+        # Get ground truth of segmentList
+        for s1 in sl.segments:
+            s2 = Segment()
+            s2.points[0] = self.vector2ground(s1.pixels_normalized[0])
+            s2.points[1] = self.vector2ground(s1.pixels_normalized[1])
+            s2.pixels_normalized[0] = s1.pixels_normalized[0]
+            s2.pixels_normalized[1] = s1.pixels_normalized[1] 
+            s2.color = s1.color
+            # TODO what about normal and points
+            sl2.segments.append(s2)
+        return sl2
+
 
 def load_board_info(filename=None):
     '''Load calibration checkerboard info'''

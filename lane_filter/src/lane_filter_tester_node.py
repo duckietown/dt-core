@@ -15,7 +15,6 @@ class LaneFilterTesterNode(object):
         seg.points[1].y = rospy.get_param("~y2")
         color = rospy.get_param("~color")
 
-
         if color=="white":
             seg.color=seg.WHITE
         elif color=="yellow":
