@@ -213,10 +213,10 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
-	     self.random_delay = 2
-                if self.time_at_current_state() > self.random_delay:
-            if self.mode == 'LANE_FOLLOWING':
-                self.set_state(State.LANE_FOLLOWING)
+	    self.random_delay = 2
+            if self.time_at_current_state() > self.random_delay:
+            	if self.mode == 'LANE_FOLLOWING':
+		    self.set_state(State.LANE_FOLLOWING)
 
         elif self.state == State.CONFLICT:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
