@@ -87,12 +87,12 @@ class LaneFilterNode(object):
         delta_dmax = d_max[0] - np.median(d_max[1:])
         delta_phimax = phi_max[0] - np.median(phi_max[1:])
 
-        print "Delta dmax", delta_dmax
-        print "Delta phimax", delta_phimax
-        #if delta_dmax < -0.05 and delta_phimax > 0.5:
-        #    print "left curve"
-        #elif delta_dmax > 0.05 and delta_phimax < -0.5:
-        #    print "right curve"
+        #print "Delta dmax", delta_dmax
+        #print "Delta phimax", delta_phimax
+        if delta_phimax < 0.3:
+            print "left curve"
+        elif delta_dmax > 0.3:
+            print "right curve"
         #else:
         #      print "straight line"
         
