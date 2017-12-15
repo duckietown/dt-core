@@ -16,6 +16,8 @@ class LaneFilterNode(object):
         
         self.t_last_update = rospy.get_time()
         self.velocity = Twist2DStamped()
+        self.d_median = []
+        self.phi_median = []
         
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
@@ -86,12 +88,17 @@ class LaneFilterNode(object):
 
         delta_dmax = np.median(d_max[1:]) # - d_max[0]
         delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
+        
+        if len(self.d_median >= 5):
+            self.d_median.pop()
+        self.d_median.append(delta_dmax)
+        self.phi_median.append(delta_phimax)
 
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
-        if delta_phimax < -0.3 and delta_dmax > 0.05:
+        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
             print "left curve"
-        elif delta_phimax > 0.2 and delta_dmax < -0.0:
+        elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
             print "right curve"
         else:
               print "straight line"
