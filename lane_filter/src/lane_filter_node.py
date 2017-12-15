@@ -54,26 +54,45 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
+        range_arr = np.zeros(self.num_belief+1)
         range_max = 0.75  # range to consider edges in general
         range_min = 0.35
-        self.filter.update(segment_list_msg.segments, range_min, range_max)
+        range_diff = (range_max - range_min)/(self.num_belief - 1)
+        
+        for i in range(1,self.num_belief):
+            range_arr[i] = range_min + (i-1)*range_diff
+
+        self.filter.update(segment_list_msg.segments, range_arr)
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
-        print "d_max = ", d_max
-        print "phi_max = ", phi_max
+        #print "d_max = ", d_max
+        #print "phi_max = ", phi_max
+        sum_phi_l = np.sum(phi_max[1:self.num_belief])
+        sum_d_l   = np.sum(d_max[1:self.num_belief])
+        av_phi_l  = np.average(phi_max[1:self.num_belief])
+        av_d_l    = np.average(d_max[1:self.num_belief])
+
+
         max_val = self.filter.getMax()
-        in_lane = max_val > self.filter.min_max 
+        in_lane = max_val > self.filter.min_max
 
-        delta_dmax = d_max[0] - np.median(d_max[1:])
-        delta_phimax = phi_max[0] - np.median(phi_max[1:])
-
-        if delta_dmax < -0.05 and delta_phimax > 0.5:
-            print "left curve"
-        elif delta_dmax > 0.05 and delta_phimax < -0.5:
-            print "right curve"
+        if (sum_phi_l<-1.6 and av_d_l>0.05):
+            print "I see a left curve"
+        elif (sum_phi_l>1.6 and av_d_l <-0.05):
+            print "I see a right curve"
         else:
-            print "straight line"
+            print "I am on a straight line" 
+
+        #delta_dmax = d_max[0] - np.median(d_max[1:])
+        #delta_phimax = phi_max[0] - np.median(phi_max[1:])
+
+        #if delta_dmax < -0.05 and delta_phimax > 0.5:
+        #    print "left curve"
+        #elif delta_dmax > 0.05 and delta_phimax < -0.5:
+        #    print "right curve"
+        #else:
+        #      print "straight line"
         
         # build lane pose message to send
         lanePose = LanePose()
