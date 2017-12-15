@@ -56,7 +56,7 @@ class LaneFilterNode(object):
         # Step 2: update
         range_arr = np.zeros(self.filter.num_belief+1)
         range_max = 1  # range to consider edges in general
-        range_min = 0.3
+        range_min = 0.2
         range_diff = (range_max - range_min)/(self.filter.num_belief - 1)
         
         for i in range(1,self.filter.num_belief + 1):
@@ -89,9 +89,9 @@ class LaneFilterNode(object):
 
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
-        if delta_phimax > 0.5:
+        if delta_phimax > 0.3 and delta_dmax < 0:
             print "left curve"
-        elif delta_dmax < -0.5:
+        elif delta_dmax < -0.3 and delta_dmax > 0:
             print "right curve"
         else:
               print "straight line"
