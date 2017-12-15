@@ -15,6 +15,7 @@ class State:
     #AT_STOP_CLEAR = 'AT_STOP_CLEAR'
     RESERVING = 'RESERVING'
     CONFLICT = 'CONFLICT'
+    SOLVING_UNKNOWN = 'SOLVING_UNKNOWN'
     GO = 'GO'
     TL_SENSING = 'TL_SENSING'
     INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
@@ -25,6 +26,7 @@ class VehicleCoordinator():
     T_MAX_RANDOM = 4.0 # seconds
     T_CROSS = 6.0  # seconds
     T_SENSE = 2.0      # seconds
+    T_UNKNOWN = 1.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -179,11 +181,16 @@ class VehicleCoordinator():
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
 	    print(self.right_veh)
 	    print(self.opposite_veh)
-	    if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
+	    if self.right_veh = UNKNOWN or self.opposite_veh = UNKNOWN: #if first measurement not seen yet 
+                self.roof_light = CoordinationSignal.OFF
+	        self.random_delay = random() * self.T_UNKNOWN
+	        self.set_state(State.SOLVING_UNKNOWN)
+	    elif self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh != SignalsDetection.NO_CAR:  # if we are seeing other cars (i.e. we cannot go)
 		self.roof_light = CoordinationSignal.OFF
  		self.random_delay = random() * self.T_MAX_RANDOM
  		print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)	
                 self.set_state(State.CONFLICT)
+            
            # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
             #    self.set_state(State.AT_STOP_CLEAR)
 
@@ -213,6 +220,10 @@ class VehicleCoordinator():
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
                # self.set_state(State.AT_STOP_CLEARING)
             if self.time_at_current_state() > self.random_delay:
+                self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
+
+        elif self.state == State.SOLVING_UNKNOWN:
+        if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.TL_SENSING:
