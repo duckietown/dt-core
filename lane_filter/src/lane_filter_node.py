@@ -89,12 +89,12 @@ class LaneFilterNode(object):
 
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
-        if delta_phimax > 0.3:
+        if delta_phimax > 0.5:
             print "left curve"
-        elif delta_dmax < -0.3:
+        elif delta_dmax < -0.5:
             print "right curve"
-        #else:
-        #      print "straight line"
+        else:
+              print "straight line"
         
         # build lane pose message to send
         lanePose = LanePose()
