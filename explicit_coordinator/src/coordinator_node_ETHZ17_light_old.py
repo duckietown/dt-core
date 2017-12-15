@@ -199,9 +199,7 @@ class VehicleCoordinator():
  	#    if self.veh_detected == SignalsDetection.CARS:  # if we are seeing other cars (i.e. we cannot go)
          #       self.set_state(State.AT_STOP_CLEARING)
             else:
-		self.random_delay = 3
-                if self.time_at_current_state() > self.random_delay:
-                   self.set_state(State.GO)
+                 self.set_state(State.GO)
 
         #elif self.state == State.RESERVING:
           #  if self.right_veh != SignalsDetection.NO_CAR:
@@ -215,6 +213,8 @@ class VehicleCoordinator():
                 #    self.set_state(State.GO)
 
         elif self.state == State.GO:
+	     self.random_delay = 2
+                if self.time_at_current_state() > self.random_delay:
             if self.mode == 'LANE_FOLLOWING':
                 self.set_state(State.LANE_FOLLOWING)
 
