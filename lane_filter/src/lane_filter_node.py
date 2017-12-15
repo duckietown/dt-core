@@ -27,7 +27,7 @@ class LaneFilterNode(object):
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
-
+      
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
@@ -60,21 +60,20 @@ class LaneFilterNode(object):
 
         # Step 3: build messages and publish things
         [d_max,phi_max] = self.filter.getEstimate()
-        #print "delta d_max = ", d_max[0] - np.median(d_max[1:])
-        #print "delta phi_max = ", phi_max[0] - np.median(phi_max[1:])
+        print "d_max = ", d_max
+        print "phi_max = ", phi_max
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
-        delta_dmax = d_max[0] - np.median(d_max[1:])
-        delta_phimax = phi_max[0] - np.median(phi_max[1:])
+        #delta_dmax = d_max[0] - np.median(d_max[1:])
+        #delta_phimax = phi_max[0] - np.median(phi_max[1:])
 
-        if delta_dmax < -0.05 and delta_phimax > 0.5:
-            print "left curve"
-        elif delta_dmax > 0.1 and delta_phimax < -0.5:
-            print "right curve"
-        else:
-            print "straight line"
-        #    print "I don't know where I am"
+        #if delta_dmax < -0.05 and delta_phimax > 0.5:
+        #    print "left curve"
+        #elif delta_dmax > 0.1 and delta_phimax < -0.5:
+        #    print "right curve"
+        #else:
+        #    print "straight line"
         
         # build lane pose message to send
         lanePose = LanePose()

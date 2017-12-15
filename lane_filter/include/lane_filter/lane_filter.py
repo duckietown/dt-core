@@ -35,7 +35,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self,param_names,configuration)
 
-        self.num_belief = 5
+        self.num_belief = 7
         self.d,self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,self.phi_min:self.phi_max:self.delta_phi]
         self.beliefArray = []
         for i in range(self.num_belief):
