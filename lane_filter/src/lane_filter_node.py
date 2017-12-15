@@ -54,8 +54,8 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        range_max = 1  # range to consider edges in general
-        range_min = 0.35
+        range_max = 0.75  # range to consider edges in general
+        range_min = 0.25
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
