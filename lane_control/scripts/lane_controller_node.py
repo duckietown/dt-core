@@ -61,8 +61,8 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
-        self.incurvature = self.setupParameter("~incurvature",incurvature)
-        self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
+        # self.incurvature = self.setupParameter("~incurvature",incurvature)
+        # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -86,8 +86,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.incurvature, self.curve_inner)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, incurvature, curve_inner)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -105,8 +105,8 @@ class lane_controller(object):
             # if incurvature != self.incurvature and incurvature:
             #     self.time_start_curve = rospy.Time.now().secs
 
-            self.incurvature = incurvature
-            self.curve_inner = curve_inner
+            # self.incurvature = incurvature
+            # self.curve_inner = curve_inner
 
 
 
@@ -222,7 +222,7 @@ class lane_controller(object):
         #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
         rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
         rospy.loginfo("Ktheta : " + str(self.k_theta))
-        rospy.loginfo("incurvature : " + str(self.incurvature))
+        # rospy.loginfo("incurvature : " + str(self.incurvature))
         rospy.loginfo("cross_track_err : " + str(cross_track_err))
         rospy.loginfo("heading_err : " + str(heading_err))
         #rospy.loginfo("Ktheta : Versicherung")

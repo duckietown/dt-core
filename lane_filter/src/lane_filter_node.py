@@ -94,6 +94,14 @@ class LaneFilterNode(object):
             self.phi_median.pop(0)
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
+        
+        # build lane pose message to send
+        lanePose = LanePose()
+        lanePose.header.stamp = segment_list_msg.header.stamp
+        lanePose.d = d_max[0]
+        lanePose.phi = phi_max[0]
+        lanePose.in_lane = in_lane
+        lanePose.status = lanePose.NORMAL
 
         #print "Delta dmax", delta_dmax
         #print "Delta phimax", delta_phimax
@@ -106,14 +114,6 @@ class LaneFilterNode(object):
         else:
             print "straight line"
             lanePose.curvature = 0.0
-        
-        # build lane pose message to send
-        lanePose = LanePose()
-        lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max[0]
-        lanePose.phi = phi_max[0]
-        lanePose.in_lane = in_lane
-        lanePose.status = lanePose.NORMAL
 
         # publish the belief image
         bridge = CvBridge()
