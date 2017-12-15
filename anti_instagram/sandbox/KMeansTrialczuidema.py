@@ -240,6 +240,7 @@ class kMeanClass:
         else:
             return idxBlack, idxYellow, idxWhite
 
+
     def plotDeterminedCenters(self, centerBlack, centerYellow, centerWhite, centerRed):
 
         tupleBlack = tuple([centerBlack[2], centerBlack[1], centerBlack[0]])

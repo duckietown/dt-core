@@ -12,7 +12,7 @@
 
 
 	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
-            <remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" />
+            <!--remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" /-->
         </node>
 
         <node name="cont_anti_instagram_node" pkg="anti_instagram" type="cont_anti_instagram_node.py" output="screen">

@@ -52,7 +52,7 @@ class calcTransform:
     num_centers = -1        # n
     found_centers = []      # n x 3 array, containing n found centers in BGR
     valueArrayBGR = []
-    matrices_A = []         # 3 x n x 2 array, containing for each channel the found colol values   |R1   1|
+    matrices_A = []         # 3 x n x 2 array, containing for each channel the found color values   |R1   1|
                             #                                                                       |  ... |
                             #                                                                       |Rn   1|
     vectors_b = []          # 3 x n array, containing the 'true' colors for each channel
@@ -96,7 +96,7 @@ class calcTransform:
         # loop over the three color channels
         for channel in range(3):
             # calculate least squares
-            X, r, rank, s = np.linalg.lstsq(self.matrices_A[channel],self.vectors_b[channel])
+            X, r, rank, s = np.linalg.lstsq(self.matrices_A[channel], self.vectors_b[channel])
             self.scale[channel] = X[0]
             self.shift[channel] = X[1]
             self.residuals[channel] = r

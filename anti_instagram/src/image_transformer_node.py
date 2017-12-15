@@ -30,13 +30,13 @@ class ImageTransformerNode():
             "~corrected_image", Image, queue_size=1)
 
         self.sub_image = rospy.Subscriber(
-            #"/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
+            # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            # "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
-            #"~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
-            "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+            "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
 
 
