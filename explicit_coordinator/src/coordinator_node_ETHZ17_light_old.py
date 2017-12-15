@@ -12,9 +12,7 @@ UNKNOWN = 'UNKNOWN'
 class State:
     LANE_FOLLOWING = 'LANE_FOLLOWING'
     AT_STOP_CLEARING = 'AT_STOP_CLEARING'
-    #AT_STOP_CLEAR = 'AT_STOP_CLEAR'
-    RESERVING = 'RESERVING'
-    CONFLICT = 'CONFLICT'
+    SACRIFICE = 'SACRIFICE'
     SOLVING_UNKNOWN = 'SOLVING_UNKNOWN'
     GO = 'GO'
     TL_SENSING = 'TL_SENSING'
@@ -24,9 +22,9 @@ class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
 
     T_MAX_RANDOM = 4.0 # seconds
-    T_CROSS = 6.0  # seconds
+    T_CROSS = 6.0      # seconds
     T_SENSE = 2.0      # seconds
-    T_UNKNOWN = 1.0 # seconds
+    T_UNKNOWN = 1.0    # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -44,6 +42,7 @@ class VehicleCoordinator():
         # Parameters
 
 	# Are we in a situation with traffic lights? Initially always false.
+
         if rospy.get_param("~intersectionType") == "trafficLight":
             self.traffic_light_intersection = True
         else:
@@ -52,10 +51,12 @@ class VehicleCoordinator():
         rospy.loginfo('[simple_coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
         # Subscriptions
+
         self.mode = 'LANE_FOLLOWING'
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
 
         self.traffic_light = UNKNOWN
+
 	# Do we detect a vehicle?
 
    	self.right_veh = UNKNOWN
@@ -64,9 +65,6 @@ class VehicleCoordinator():
 
 	# Initializing the unknown presence of a car
 	#self.detected_car = UNKNOWN
-	# self.veh_detected = UNKNOWN
-	# Initializing the unknown presence of a car
-	self.detected_car = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
 
         # Publishing
@@ -89,16 +87,18 @@ class VehicleCoordinator():
 
 #############################################################################################################
     def set_state(self, state):
+
+	# update only when changing state
         if self.state != state:
             self.last_state_transition = time()
 	self.state = state
 
         if self.state == State.AT_STOP_CLEARING:
    	   # self.reset_signals_detection()
-           # self.roof_light = CoordinationSignal.SIGNAL_A
+           self.roof_light = CoordinationSignal.SIGNAL_A
 
 	   #after setting everything to unknown, we turn on the light
-	    self.roof_light = CoordinationSignal.ON
+	    #self.roof_light = CoordinationSignal.ON
         #elif self.state == State.AT_STOP_CLEAR:
 	   #self.roof_light = CoordinationSignal.ON	
            #self.roof_light = CoordinationSignal.SIGNAL_A
@@ -108,7 +108,8 @@ class VehicleCoordinator():
             #self.roof_light = CoordinationSignal.SIGNAL_A
 	    self.roof_light = CoordinationSignal.OFF
         elif self.state == State.GO and not self.traffic_light_intersection:
-            self.roof_light = CoordinationSignal.ON
+            #self.roof_light = CoordinationSignal.ON
+	     self.roof_light = CoordinationSignal.SIGNAL_A
        # else:
            # self.roof_light = CoordinationSignal.OFF
 
