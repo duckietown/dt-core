@@ -55,7 +55,7 @@ class LaneFilterNode(object):
 
         # Step 2: update
         range_max = 1  # range to consider edges in general
-        range_min = 0.25
+        range_min = 0.35
         self.filter.update(segment_list_msg.segments, range_min, range_max)
 
         # Step 3: build messages and publish things
@@ -65,11 +65,15 @@ class LaneFilterNode(object):
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max 
 
+        delta_dmax = d_max[0] - np.median(d_max[1:])
+        delta_phimax = phi_max[0] - np.median(phi_max[1:])
 
-
-        #if (d_max[1] - d_max[0] > 0.1 and phi_max[1] - phi_max[0] < -0.03):
-        #    print "I see a left curve"
-        #else:
+        if delta_demax < -0.1:
+            print "left curve"
+        else if: delta_dmax > 0.1:
+            print "right curve"
+        else:
+            print "straight line"
         #    print "I don't know where I am"
         
         # build lane pose message to send
