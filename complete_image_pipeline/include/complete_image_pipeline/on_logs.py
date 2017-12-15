@@ -69,5 +69,5 @@ def look_at(log, output, line_detector, image_prep, lane_filter):
 
     res = dtu.resize_small_images(res)
          
-    dtu.write_jpgs_to_dir(res, output)
+    dtu.write_bgr_images_as_jpgs(res, output)
     

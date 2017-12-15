@@ -14,6 +14,8 @@ from lane_filter import FAMILY_LANE_FILTER
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from reprep.graphics.filter_scale import scale
 from ground_projection.segment import rectify_segments
+from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+from lane_filter.visualization import plot_phi_d_diagram_bgr
 
 
 @dtu.contract(gp=GroundProjection)
@@ -78,7 +80,13 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     lane_filter.update(sg.segments)
 
     status = lane_filter.get_status()
-
+    estimate = lane_filter.get_estimate()
+    phi = estimate['phi']
+    d = estimate['d']
+    
+    res['plot'] = plot_phi_d_diagram_bgr(lane_filter, phi=phi, d=d)
+    
+    
     belief_image = scale(-lane_filter.belief)
     
     res['belief (%s)' % status] = belief_image

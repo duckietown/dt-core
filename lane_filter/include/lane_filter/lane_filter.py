@@ -41,6 +41,19 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                    self.phi_min:self.phi_max:self.delta_phi]
+        # these are the bounds you would give to pcolor
+        # there is one row and one column more
+        # self.d, self.phi are the lower corners
+        
+        # Each cell captures this area:
+#         (X[i,   j],   Y[i,   j]),
+#         (X[i,   j+1], Y[i,   j+1]),
+#         (X[i+1, j],   Y[i+1, j]),
+#         (X[i+1, j+1], Y[i+1, j+1])
+        self.d_pcolor, self.phi_pcolor= \
+                        np.mgrid[self.d_min:(self.d_max+self.delta_d):self.delta_d,
+                                 self.phi_min:(self.phi_max+self.delta_phi):self.delta_phi]
+
         self.belief = np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
@@ -93,7 +106,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
     def update(self, segments):
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
-            self.belief = np.multiply(self.belief,measurement_likelihood)
+            self.belief = np.multiply(self.belief, measurement_likelihood)
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
@@ -124,11 +137,27 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
         
-    def getEstimate(self):
+    def get_estimate(self):
         maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
-        d_max = self.d_min + maxids[0]*self.delta_d
-        phi_max = self.phi_min + maxids[1]*self.delta_phi
-        return [d_max, phi_max]
+        
+        # Bug! we want the center of the cell
+        # d_max = self.d_min + maxids[0]*self.delta_d
+        # phi_max = self.phi_min + maxids[1]*self.delta_phi
+        
+        # add 0.5 to get mid-cell 
+        d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
+        phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
+        
+        res = np.zeros((), dtype=LaneFilterInterface.ESTIMATE_DATATYPE)
+        res['d'] = d_max
+        res['phi'] = phi_max
+        return res
+    
+    @dtu.deprecated("use get_estimate")
+    def getEstimate(self):
+        """ Returns a list with two elements: (d, phi) """
+        res = self.get_estimate()
+        return [res['d'], res['phi']]
 
     def getMax(self):
         return self.belief.max()

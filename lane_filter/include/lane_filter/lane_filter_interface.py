@@ -1,9 +1,11 @@
 from abc import ABCMeta, abstractmethod
-
+import numpy as np
 
 __all__ = [
     'LaneFilterInterface',
 ]
+
+
 
 
 class LaneFilterInterface(object):
@@ -16,6 +18,9 @@ class LaneFilterInterface(object):
     
     POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
  
+    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'), 
+                                  ('d', 'float64')])
+    
     @abstractmethod
     def initialize(self):
         pass
@@ -32,12 +37,11 @@ class LaneFilterInterface(object):
     
     @abstractmethod
     def get_status(self):
-        """ Returns one of the status above """
-    
-    # not sure exactly
-#     @abstractmethod
-#     def get_belief(self):
-#         pass
-    
-
+        """ Returns one of the statuses above """
+        
+    @abstractmethod
+    def get_estimate(self):
+        """ Returns a numpy array of datatype ESTIMATE_DATATYPE """
+        
+            
     
