@@ -26,7 +26,7 @@ class VehicleCoordinator():
     T_MAX_RANDOM = 4.0 # seconds
     T_CROSS = 6.0  # seconds
     T_SENSE = 2.0      # seconds
-    T_UNKNOWN = 1.0 # seconds
+    T_UNKNOWN = 1.0 # seconds
 
 # We communicate that the coordination mode has started
     def __init__(self):
@@ -181,7 +181,7 @@ class VehicleCoordinator():
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
 	    print(self.right_veh)
 	    print(self.opposite_veh)
-	    if self.right_veh = UNKNOWN or self.opposite_veh = UNKNOWN: #if first measurement not seen yet 
+	    if self.right_veh == UNKNOWN or self.opposite_veh == UNKNOWN: #if first measurement not seen yet 
                 self.roof_light = CoordinationSignal.OFF
 	        self.random_delay = random() * self.T_UNKNOWN
 	        self.set_state(State.SOLVING_UNKNOWN)
@@ -223,7 +223,7 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.SOLVING_UNKNOWN:
-        if self.time_at_current_state() > self.random_delay:
+            if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.TL_SENSING:
