@@ -102,7 +102,7 @@ class LaneFilterNode(object):
             lanePose.curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
             print "right curve"
-            lanePose.curvature = 0.054
+            lanePose.curvature = -0.054
         else:
             print "straight line"
             lanePose.curvature = 0.0
