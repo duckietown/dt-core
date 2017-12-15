@@ -55,11 +55,11 @@ class LaneFilterNode(object):
 
         # Step 2: update
         range_arr = np.zeros(self.filter.num_belief+1)
-        range_max = 0.75  # range to consider edges in general
-        range_min = 0.35
+        range_max = 1  # range to consider edges in general
+        range_min = 0.2
         range_diff = (range_max - range_min)/(self.filter.num_belief - 1)
         
-        for i in range(1,self.filter.num_belief):
+        for i in range(1,self.filter.num_belief + 1):
             range_arr[i] = range_min + (i-1)*range_diff
 
         self.filter.update(segment_list_msg.segments, range_arr)
