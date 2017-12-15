@@ -103,8 +103,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         
     def getEstimate(self):
         maxids = np.unravel_index(self.belief.argmax(),self.belief.shape)
-        d_max = self.d_min + maxids[0]*self.delta_d
-        phi_max = self.phi_min + maxids[1]*self.delta_phi
+        # add 0.5 because we want the center of the cell
+        d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
+        phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
         return [d_max,phi_max]
 
     def getMax(self):
