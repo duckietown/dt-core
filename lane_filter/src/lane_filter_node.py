@@ -70,7 +70,7 @@ class LaneFilterNode(object):
 
         if delta_dmax < -0.05 and delta_phimax > 0.5:
             print "left curve"
-        elif delta_dmax > 0.1 and delta_phimax < -0.5:
+        elif delta_dmax > 0.05 and delta_phimax < -0.5:
             print "right curve"
         else:
             print "straight line"
