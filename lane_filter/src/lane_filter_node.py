@@ -2,7 +2,7 @@
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
-from numpy as np
+import numpy as np
 from std_msgs.msg import Float32
 from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
 from duckietown_utils.instantiate_utils import instantiate
