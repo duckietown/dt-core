@@ -77,12 +77,12 @@ class LaneFilterNode(object):
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
 
-        if (sum_phi_l<-1.6 and av_d_l>0.05):
-            print "I see a left curve"
-        elif (sum_phi_l>1.6 and av_d_l <-0.05):
-            print "I see a right curve"
-        else:
-            print "I am on a straight line" 
+        #if (sum_phi_l<-1.6 and av_d_l>0.05):
+        #    print "I see a left curve"
+        #elif (sum_phi_l>1.6 and av_d_l <-0.05):
+        #    print "I see a right curve"
+        #else:
+        #    print "I am on a straight line" 
 
         delta_dmax = d_max[0] - np.median(d_max[1:])
         delta_phimax = phi_max[0] - np.median(phi_max[1:])
