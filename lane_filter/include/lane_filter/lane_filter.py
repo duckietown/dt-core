@@ -93,6 +93,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
             # only consider points in a certain range from the Duckiebot
+            point_range = self.getSegmentDistance(segment)            
             if point_range < range_min or point_range > range_max:
                 continue
             # we don't care about RED ones for now
@@ -101,7 +102,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            point_range = self.getSegmentDistance(segment)
             # print "Point range: ", point_range 
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
