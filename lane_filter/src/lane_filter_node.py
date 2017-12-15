@@ -99,10 +99,13 @@ class LaneFilterNode(object):
         #print "Delta phimax", delta_phimax
         if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
             print "left curve"
+            lanePose.curvature = 0.025
         elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
             print "right curve"
+            lanePose.curvature = 0.054
         else:
-              print "straight line"
+            print "straight line"
+            lanePose.curvature = 0.0
         
         # build lane pose message to send
         lanePose = LanePose()
