@@ -81,7 +81,7 @@ class ScaleAndShift():
 
 
 
-class AntiInstagram():
+class AntiInstagram(object):
 
     def __init__(self):
         self.scale = [1.0, 1.0, 1.0]

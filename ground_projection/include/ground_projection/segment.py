@@ -15,6 +15,7 @@ def rectify_segment(gp, s1):
         t.u = pr[0]
         t.v = pr[1]
         s2.pixels_normalized[i] = gp.gpc.pixel2vector(t)
+    s2.color = s1.color
     return s2
 
 

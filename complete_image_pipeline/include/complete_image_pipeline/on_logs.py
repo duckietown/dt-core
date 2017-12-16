@@ -6,6 +6,7 @@ from ground_projection import GroundProjection
 import rosbag  # @UnresolvedImport
 
 from .pipeline import run_pipeline
+import os
 
 
 __all__ = [
@@ -38,11 +39,11 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
     
         logs = db.query(query)
      
-        for _, log in logs.items():
-            context.comp(look_at, log, self.options.output,
+        for k, log in logs.items():
+            d = os.path.join(self.options.output, k)
+            context.comp(look_at, log, d,
                          line_detector, image_prep, lane_filter)
-            
-            
+
 def look_at(log, output, line_detector, image_prep, lane_filter):
     filename = log.filename
     
@@ -59,7 +60,7 @@ def look_at(log, output, line_detector, image_prep, lane_filter):
     
     image_cv = res[0]['rgb']
     
-    dtu.logger.debug(dtu.describe_value(image_cv))
+#     dtu.logger.debug(dtu.describe_value(image_cv))
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
     res  = run_pipeline(image_cv_bgr, gp=gp,

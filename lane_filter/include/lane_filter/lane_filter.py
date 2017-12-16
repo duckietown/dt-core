@@ -46,13 +46,13 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         # self.d, self.phi are the lower corners
         
         # Each cell captures this area:
-#         (X[i,   j],   Y[i,   j]),
-#         (X[i,   j+1], Y[i,   j+1]),
-#         (X[i+1, j],   Y[i+1, j]),
-#         (X[i+1, j+1], Y[i+1, j+1])
+        #         (X[i,   j],   Y[i,   j]),
+        #         (X[i,   j+1], Y[i,   j+1]),
+        #         (X[i+1, j],   Y[i+1, j]),
+        #         (X[i+1, j+1], Y[i+1, j+1])
         self.d_pcolor, self.phi_pcolor= \
-                        np.mgrid[self.d_min:(self.d_max+self.delta_d):self.delta_d,
-                                 self.phi_min:(self.phi_max+self.delta_phi):self.delta_phi]
+            np.mgrid[self.d_min:(self.d_max+self.delta_d):self.delta_d,
+                     self.phi_min:(self.phi_max+self.delta_phi):self.delta_phi]
 
         self.belief = np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
@@ -131,7 +131,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                 continue
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i,j] += 1 
+            measurement_likelihood[i, j] += 1 
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
@@ -162,11 +162,17 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
     def getMax(self):
         return self.belief.max()
 
-    def generateVote(self,segment):
+    def generateVote(self, segment):
+        """
+        
+            return d_i, phi_i, l_i
+            
+            XXX: What is l_i? 
+        """
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
-        t_hat = (p2-p1) / np.linalg.norm(p2-p1)
-        n_hat = np.array([-t_hat[1],t_hat[0]])
+        t_hat = (p2 - p1) / np.linalg.norm(p2 - p1)
+        n_hat = np.array([-t_hat[1], t_hat[0]])
         d1 = np.inner(n_hat, p1)
         d2 = np.inner(n_hat, p2)
         l1 = np.inner(t_hat, p1)
@@ -175,8 +181,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             l1 = -l1;
         if (l2 < 0):
             l2 = -l2;
-        l_i = (l1+l2)/2
-        d_i = (d1+d2)/2
+        l_i = (l1 + l2)/2
+        d_i = (d1 + d2)/2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE: # right lane is white
             if(p1[0] > p2[0]): # right edge of white lane
@@ -192,7 +198,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                 phi_i = -phi_i
             else: # right edge of white lane
                 d_i = -d_i
-            d_i =  self.lanewidth/2 - d_i
+            d_i = self.lanewidth/2 - d_i
 
         return d_i, phi_i, l_i
 
