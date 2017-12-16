@@ -90,9 +90,8 @@ class GroundProjection(object):
             rospy.loginfo("Reversing order of points.")
             src_pts.reverse()
 
-
         # Compute homography from image to ground
-        self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
+        self.H, _mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
         extrinsics_filename = dtu.get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml"
         self.write_homography(extrinsics_filename)
         dtu.logger.info("Wrote ground projection to {}".format(extrinsics_filename))
