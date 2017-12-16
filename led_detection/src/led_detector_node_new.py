@@ -29,6 +29,9 @@ class LEDDetectorNode(object):
 
         # Node name
         self.node_name = rospy.get_name()
+	
+	# Traffic light
+	self.traffic_light_state = SignalsDetection.NO_TRAFFIC_LIGHT
 
         # Publish
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
@@ -39,7 +42,7 @@ class LEDDetectorNode(object):
         self.veh_name        = rospy.get_namespace().strip("/")
 
         # Subscribed
-        self.sub_cam = rospy.Subscriber("camera_node/image/compressed", CompressedImage, self.camera_callback)
+        self.sub_cam    = rospy.Subscriber("camera_node/image/compressed", CompressedImage, self.camera_callback)
         self.sub_trig   = rospy.Subscriber("~trigger",Byte, self.trigger_callback)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped,self.cbSwitch)
 
@@ -110,7 +113,7 @@ class LEDDetectorNode(object):
                 if np.size(self.data) == 0:
                     self.data = rgb
                 else:
-                    np.dstack((self.data,rgb))
+                    self.data = np.dstack((self.data,rgb))
                 #self.data.append({'timestamp': float_time, 'rgb': rgb[:,:]})
                 debug_msg.capture_progress = 100.0*rel_time/self.capture_time
 
@@ -167,7 +170,7 @@ class LEDDetectorNode(object):
         params.minInertiaRatio = 0.05
 
         # Create a detector with the parameters
-        detector = cv2.SimpleBlobDetector(params)
+        detector = cv2.SimpleBlobDetector_create(params)
 
         # Tolerance
         DTOL = 25
@@ -189,7 +192,7 @@ class LEDDetectorNode(object):
             im_with_keypoints = cv2.drawKeypoints(imRight[:, :, t], keypoints, np.array([]), (0, 0, 255),
                                                   cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             im_with_keypoints = cv2.resize(im_with_keypoints, (640*4/6*2, 480))
-            cv2.imshow("Keypoints", im_with_keypoints)
+            # cv2.imshow("Keypoints", im_with_keypoints)
             # print(len(keypoints))
 
             for n in range(len(keypoints)):
@@ -226,7 +229,7 @@ class LEDDetectorNode(object):
             im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255),
                                                   cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
-            cv2.imshow("Keypoints", im_with_keypoints)
+            # cv2.imshow("Keypoints", im_with_keypoints)
             # print(len(keypoints))
 
             for n in range(len(keypoints)):
@@ -279,6 +282,9 @@ class LEDDetectorNode(object):
             if BlobsFront[i]['N']/NIm < 0.8 and BlobsFront[i]['N']/NIm > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
+	
+	# Left bot (also UNKNOWN)
+	self.left = "UNKNOWN"
 
         # Publish results
         self.publish(imPublishRight,imPublishFront)
@@ -301,17 +307,17 @@ class LEDDetectorNode(object):
         if self.right != SignalsDetection.NO_CAR:
             rospy.loginfo('LED detected (right)')
         else:
-            rospy.loginfo('LED detected (right)')
+            rospy.loginfo('No LED detected (right)')
 
         # Loginfo (front)
         if self.front != SignalsDetection.NO_CAR:
             rospy.loginfo('LED detected (front)')
         else:
-            rospy.loginfo('LED detected (front)')
+            rospy.loginfo('No LED detected (front)')
 
         # Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light_state))
-        self.pub_interpret.publish(SignalsDetection(front=self.front, right=self.right, left=self.left,traffic_light_state=self.traffic_light_state))
+        self.pub_detections.publish(SignalsDetection(front=self.front, right=self.right, left=self.left,traffic_light_state=self.traffic_light_state))
 
     def send_state(self, msg):
         msg.state = self.node_state
