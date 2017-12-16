@@ -1,9 +1,8 @@
 import os.path
 
-from duckietown_msgs.msg import Segment, SegmentList  # @UnresolvedImport
-
 import cv2
 
+from duckietown_msgs.msg import Segment, SegmentList  # @UnresolvedImport
 import duckietown_utils as dtu
 import numpy as np
 from pi_camera import get_camera_info_for_robot
@@ -69,11 +68,12 @@ class GroundProjection(object):
 
         ret, corners = cv2.findChessboardCorners(cv_image_rectified, (self.board_['width'], self.board_['height']))
         if ret == False:
-            dtu.logger.error("No corners found in image")
-            exit(1)
+            msg = "No corners found in image"
+            dtu.logger.error(msg)
+            exit(1) # XXX
         if len(corners) != self.board_['width'] * self.board_['height']:
             dtu.logger.error("Not all corners found in image")
-            exit(2)
+            exit(2) # XXX
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
         corners2 = cv2.cornerSubPix(cv_image_rectified, corners, (11,11), (-1,-1), criteria)
 
@@ -83,15 +83,24 @@ class GroundProjection(object):
             for c in range(self.board_['width']):
                 src_pts.append(np.array([r * self.board_['square_size'] , c * self.board_['square_size']] , dtype='float32') + self.board_['offset'])
         # OpenCV labels corners left-to-right, top-to-bottom
-        # so we reverse the groud points
-        src_pts.reverse()
+        # We're having a problem with our pattern since it's not rotation-invariant
+
+        # only reverse order if first point is at bottom right corner
+        if ((corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][0] and (corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][1]):
+            rospy.loginfo("Reversing order of points.")
+            src_pts.reverse()
+
 
         # Compute homography from image to ground
         self.H, mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
         extrinsics_filename = dtu.get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml"
         self.write_homography(extrinsics_filename)
         dtu.logger.info("Wrote ground projection to {}".format(extrinsics_filename))
- 
+
+        # Check if specific point in matrix is larger than zero (this would definitly mean we're having a corrupted rotation matrix)
+        if(self.H[1][2] > 0):
+            dtu.logger.error("WARNING: Homography could be corrupt!")
+            
     def write_homography(self, filename):
         ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
         dtu.yaml_write_to_file(ob,filename)

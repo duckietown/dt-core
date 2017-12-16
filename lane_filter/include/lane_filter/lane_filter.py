@@ -36,7 +36,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             'sigma_d_mask',
             'sigma_phi_mask',
         ]
-        
+
         dtu.Configurable.__init__(self, param_names, configuration)
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
@@ -44,7 +44,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         # these are the bounds you would give to pcolor
         # there is one row and one column more
         # self.d, self.phi are the lower corners
-        
+
         # Each cell captures this area:
         #         (X[i,   j],   Y[i,   j]),
         #         (X[i,   j+1], Y[i,   j+1]),
@@ -69,7 +69,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         # self.cov_0
         RV = multivariate_normal(self.mean_0, self.cov_0)
         self.belief = RV.pdf(pos)
-        
+
     def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v*delta_t*np.sin(self.phi)
@@ -77,7 +77,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
         p_belief = np.zeros(self.belief.shape)
 
-        # there has got to be a better/cleaner way to do this - just applying 
+        # there has got to be a better/cleaner way to do this - just applying
         # the process model to translate each cell value
         for i in range(self.belief.shape[0]):
             for j in range(self.belief.shape[1]):
@@ -96,7 +96,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
         if np.sum(s_belief) == 0:
             return
-        
+
         self.belief = s_belief / np.sum(s_belief)
 
     def get_status(self):
@@ -104,13 +104,16 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         return LaneFilterInterface.GOOD
 
     def update(self, segments):
+        """ Returns the likelihood """
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief, measurement_likelihood)
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
-                self.belief = self.belief / np.sum(self.belief)
+
+                self.belief = self.belief/np.sum(self.belief)
+        return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments):
         # initialize measurement likelihood to all zeros
@@ -131,28 +134,28 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                 continue
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i, j] += 1 
+            measurement_likelihood[i, j] += 1
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
-        
+
     def get_estimate(self):
         maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
-        
+
         # Bug! we want the center of the cell
         # d_max = self.d_min + maxids[0]*self.delta_d
         # phi_max = self.phi_min + maxids[1]*self.delta_phi
-        
-        # add 0.5 to get mid-cell 
+
+        # add 0.5 because we want the center of the cell
         d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
         phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
-        
+
         res = np.zeros((), dtype=LaneFilterInterface.ESTIMATE_DATATYPE)
         res['d'] = d_max
         res['phi'] = phi_max
         return res
-    
+
     @dtu.deprecated("use get_estimate")
     def getEstimate(self):
         """ Returns a list with two elements: (d, phi) """
@@ -164,10 +167,10 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     def generateVote(self, segment):
         """
-        
+
             return d_i, phi_i, l_i
-            
-            XXX: What is l_i? 
+
+            XXX: What is l_i?
         """
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
@@ -202,10 +205,9 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
         return d_i, phi_i, l_i
 
-    
+
     # not used
 #     def getSegmentDistance(self, segment):
 #         x_c = (segment.points[0].x + segment.points[1].x)/2
 #         y_c = (segment.points[0].y + segment.points[1].y)/2
 #         return sqrt(x_c**2 + y_c**2)
-
