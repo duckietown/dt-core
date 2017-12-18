@@ -87,6 +87,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                     self.beliefArray[i] = measurement_likelihood
                 else:
                     self.beliefArray[i] = self.beliefArray[i]/np.sum(self.beliefArray[i])
+        return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments, range_min, range_max):
         # initialize measurement likelihood to all zeros

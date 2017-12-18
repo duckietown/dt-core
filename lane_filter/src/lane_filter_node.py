@@ -27,6 +27,7 @@ class LaneFilterNode(object):
         # Publishers
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
+        self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
       
@@ -129,6 +130,12 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
+    def getDistributionImage(self,mat,stamp):
+        bridge = CvBridge()
+        img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
+        img.header.stamp = stamp
+        return img
+        
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
 
