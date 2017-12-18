@@ -52,6 +52,7 @@ class lane_controller(object):
         self.time_start_curve = 0
         turn_off_feedforward_part = False
 
+        # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         # FIXME: AC aug'17: are these inverted?
         self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
@@ -191,9 +192,9 @@ class lane_controller(object):
         if self.heading_integral > 15:
             self.heading_integral = 15
 
-        if abs(cross_track_err) <= 1e-9:
+        if abs(cross_track_err) <= 0.011:
             self.cross_track_integral = 0
-        if heading_err == 0:
+        if abs(heading_err) <= 0.051:
             self.heading_integral = 0
 
         # if velocity_of_actual_motor_comand == 0:       # TODO: get this velocity that is actually sent to the motors and plug in here
