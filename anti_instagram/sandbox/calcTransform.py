@@ -47,6 +47,8 @@ class calcTransform:
     # hardcoded centers from anti_instagram.kmeans
     centers_BYW = CENTERS
     centers_BRYW = CENTERS2
+    centers_RYW = np.array([[60, 60, 240], [50, 240, 240], [240, 240, 240]])
+    centers_YW = np.array([[50, 240, 240], [240, 240, 240]])
 
     centers = []            # n x 3 array, containing n 'true' centers in BGR
     num_centers = -1        # n
@@ -66,13 +68,16 @@ class calcTransform:
         if self.num_centers == 4:
             self.centers = self.centers_BRYW
         elif self.num_centers == 3:
-            self.centers = self.centers_BYW
+            self.centers = self.centers_RYW  # changed to RYW !!! ###########################
+        elif self.num_centers == 2:
+            self.centers = self.centers_YW  # changed ##################################
 
         self.found_centers = found
         self.scale = np.zeros(3, np.float64)
         self.shift = np.zeros(3, np.float64)
         self.valueArrayBGR = np.zeros((3, self.num_centers), np.uint8)
-        for k in range(3): self.valueArrayBGR[k,:] = self.found_centers[:,k]
+        for k in range(3):
+            self.valueArrayBGR[k, :] = self.found_centers[:, k]
 
         self.matrices_A = np.zeros((3, self.num_centers, 2), np.uint8)
         self.vectors_b = np.zeros((3, self.num_centers), np.uint8)
