@@ -192,9 +192,9 @@ class lane_controller(object):
         if self.heading_integral > 15:
             self.heading_integral = 15
 
-        if abs(cross_track_err) <= 0.011:
+        if abs(cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
-        if abs(heading_err) <= 0.051:
+        if abs(heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.heading_integral = 0
 
         # if velocity_of_actual_motor_comand == 0:       # TODO: get this velocity that is actually sent to the motors and plug in here
