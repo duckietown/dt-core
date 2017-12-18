@@ -191,6 +191,16 @@ class lane_controller(object):
         if self.heading_integral > 15:
             self.heading_integral = 15
 
+        if abs(cross_track_err) <= 1e-9:
+            self.cross_track_integral = 0
+        if heading_err == 0:
+            self.heading_integral = 0
+
+        # if velocity_of_actual_motor_comand == 0:       # TODO: get this velocity that is actually sent to the motors and plug in here
+        #     self.cross_track_integral = 0
+        #     self.heading_integral = 0
+
+
         # if self.curve_inner:
         #     self.curvature  = self.curvature_inner
         # else:
@@ -200,8 +210,8 @@ class lane_controller(object):
             omega_feedforward = 0
 
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
-        rospy.loginfo("P-Control: " + str(car_control_msg.omega))
-        rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
+        # rospy.loginfo("P-Control: " + str(car_control_msg.omega))
+        # rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
         car_control_msg.omega -= self.k_Id * self.cross_track_integral
         car_control_msg.omega -= self.k_Iphi * self.heading_integral
         car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
@@ -232,6 +242,10 @@ class lane_controller(object):
         # rospy.loginfo("cross_track_err : " + str(cross_track_err))
         # rospy.loginfo("heading_err : " + str(heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
+        rospy.loginfo("heading_err: " + str(heading_err))
+        rospy.loginfo("heading_integral: " + str(self.heading_integral))
+        rospy.loginfo("cross_track_err: " + str(cross_track_err))
+        rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
 
         # controller mapping issue
