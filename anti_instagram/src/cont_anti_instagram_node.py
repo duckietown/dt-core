@@ -68,8 +68,8 @@ class ContAntiInstagramNode():
         self.timer = rospy.Timer(rospy.Duration(self.interval), self.processImage)
 
         # TODO write to file within git folder
-        self.file = open('/home/milan/output_cont_ai_node.txt', 'a+')
-        self.file.write('\nCONT_ANTI_INSTAGRAM_NODE:\n')
+        #self.file = open('/home/milan/output_cont_ai_node.txt', 'a+')
+        #self.file.write('\nCONT_ANTI_INSTAGRAM_NODE:\n')
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -109,7 +109,7 @@ class ContAntiInstagramNode():
             rospy.loginfo('ai: Color transform published.')
 
             # write latest trafo to file
-            self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n' + str(self.ai.scale) + '\n \n')
+            #self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n' + str(self.ai.scale) + '\n \n')
 
             # milansc: health is not supported yet
             """

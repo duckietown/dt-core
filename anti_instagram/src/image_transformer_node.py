@@ -55,8 +55,8 @@ class ImageTransformerNode():
         self.image_msg = None
 
         # TODO write to file within git folder
-        self.file = open('/home/milan/output_image_transform_node.txt', 'a+')
-        self.file.write('\nIMAGE_TRANSFORM_NODE:\n')
+        #self.file = open('/home/milan/output_image_transform_node.txt', 'a+')
+        #self.file.write('\nIMAGE_TRANSFORM_NODE:\n')
 
 
 
@@ -89,7 +89,7 @@ class ImageTransformerNode():
 
     def cbNewTrafo(self, trafo_msg):
         # testwise write to file
-        self.file.write('received new trafo\n')
+        # self.file.write('received new trafo\n')
 
         if self.verbose:
             rospy.loginfo('image transformer: received new trafo!')
