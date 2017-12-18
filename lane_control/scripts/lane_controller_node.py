@@ -61,6 +61,7 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
+        self.turn_off_feedforward_part = False
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
 
@@ -79,6 +80,7 @@ class lane_controller(object):
         self.curvature_inner = 1 / 0.175
         # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
         # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
+        turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -86,8 +88,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -192,6 +194,8 @@ class lane_controller(object):
         # else:
         #     self.curvature = self.curvature_outer
         omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature * 2 * math.pi
+        if self.turn_off_feedforward_part:
+            omega_feedforward = 0
 
         car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
         rospy.loginfo("P-Control: " + str(car_control_msg.omega))
@@ -217,15 +221,16 @@ class lane_controller(object):
         #         self.incurvature = False
         #     rospy.loginfo("incurvature : ")
         #     car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
-        rospy.loginfo("kid : " + str(self.k_Id))
-        rospy.loginfo("Kd : " + str(self.k_d))
+        # rospy.loginfo("kid : " + str(self.k_Id))
+        # rospy.loginfo("Kd : " + str(self.k_d))
         #rospy.loginfo("k_Iphi * heading : " + str(self.k_Iphi * self.heading_integral))
-        rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
-        rospy.loginfo("Ktheta : " + str(self.k_theta))
+        # rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
+        # rospy.loginfo("Ktheta : " + str(self.k_theta))
         # rospy.loginfo("incurvature : " + str(self.incurvature))
-        rospy.loginfo("cross_track_err : " + str(cross_track_err))
-        rospy.loginfo("heading_err : " + str(heading_err))
+        # rospy.loginfo("cross_track_err : " + str(cross_track_err))
+        # rospy.loginfo("heading_err : " + str(heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
+        rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
