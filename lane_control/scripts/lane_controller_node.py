@@ -50,6 +50,7 @@ class lane_controller(object):
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
+        turn_off_feedforward_part = False
 
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         # FIXME: AC aug'17: are these inverted?
@@ -61,7 +62,7 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
-        self.turn_off_feedforward_part = False
+        self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
 
@@ -103,6 +104,7 @@ class lane_controller(object):
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
+            self.turn_off_feedforward_part = turn_off_feedforward_part
 
             # if incurvature != self.incurvature and incurvature:
             #     self.time_start_curve = rospy.Time.now().secs
