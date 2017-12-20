@@ -74,7 +74,7 @@ class ImageTransformerNode():
     def cbNewImage(self, image_msg):
         if not self.thread_lock.acquire(False):
             return
-        start = time.time()
+        #start = time.time() #with this you can measure the time,..
         #print('image received!')
         # memorize image
         self.image_msg = image_msg
@@ -97,9 +97,9 @@ class ImageTransformerNode():
 
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
-        end = time.time()
-        print "GOING THROUGH TOOK: s"
-        print(end - start)
+        #end = time.time()   #with this you can measure the time,..
+        #print "GOING THROUGH TOOK: s"  #with this you can measure the time,..
+        #print(end - start)  #with this you can measure the time,..
         
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
