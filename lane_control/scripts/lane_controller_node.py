@@ -2,12 +2,13 @@
 import rospy
 import math
 from duckietown_msgs.msg import Twist2DStamped, LanePose
+import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
         self.lane_reading = None
-
+        self.last_ms = None
         self.pub_counter = 0
 
         # Setup parameters
@@ -177,20 +178,24 @@ class lane_controller(object):
             rospy.logerr("inside threshold ")
             cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
 
-        self.cross_track_integral += cross_track_err
-        self.heading_integral += heading_err
+        currentMillis = int(round(time.time() * 1000))
 
-        if self.cross_track_integral > 4:
-            rospy.loginfo("you're greater 5")
-            self.cross_track_integral = 4
-        if self.cross_track_integral < -4:
-            rospy.loginfo("youre smaller -5")
-            self.cross_track_integral = -4
+        if self.last_ms is not None:
+            dt = (currentMillis - self.last_ms) / 1000.0
+            self.cross_track_integral += cross_track_err * dt
+            self.heading_integral += heading_err * dt
 
-        if self.heading_integral < -15:
-            self.heading_integral = -15
-        if self.heading_integral > 15:
-            self.heading_integral = 15
+        if self.cross_track_integral > 0.3:
+            rospy.loginfo("you're greater 0.3")
+            self.cross_track_integral = 0.3
+        if self.cross_track_integral < -0.3:
+            rospy.loginfo("youre smaller -0.3")
+            self.cross_track_integral = -0.3
+
+        if self.heading_integral < -1.2:
+            self.heading_integral = -1.2
+        if self.heading_integral > 1.2:
+            self.heading_integral = 1.2
 
         if abs(cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
@@ -254,6 +259,7 @@ class lane_controller(object):
         # print "controls: speed %f, steering %f" % (car_control_msg.speed, car_control_msg.steering)
         # self.pub_.publish(car_control_msg)
         self.publishCmd(car_control_msg)
+        self.last_ms = currentMillis
 
         # debuging
         # self.pub_counter += 1
