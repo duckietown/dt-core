@@ -122,7 +122,7 @@ class LEDEmitter(object):
                 self.pattern = [[0,0,0]]*5
 
             # Set intensity
-            self.pattern = self.intensity*self.pattern
+            # self.pattern = self.intensity*self.pattern
 
             # Change LEDs
             if not self.onOff:
