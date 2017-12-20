@@ -27,6 +27,7 @@ class ImageTransformerNode():
         self.active = True
         self.locked = False
         self.thread_lock = threading.Lock()
+        self.r = rospy.Rate(4) # Rate in Hz
 
         robot_name = rospy.get_param("~veh", "")
 
@@ -102,7 +103,8 @@ class ImageTransformerNode():
         
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
-            
+
+        self.r.sleep()
         self.thread_lock.release()
 
     def cbNewTrafo(self, trafo_msg):
