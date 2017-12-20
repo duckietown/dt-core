@@ -108,6 +108,7 @@ class LEDDetectorNode(object):
                 rgb = numpy_from_ros_compressed(msg)
                 rgb = cv2.cvtColor(rgb,cv2.COLOR_BGRA2GRAY)
                 rgb = cv2.resize(rgb, (640 * 1, 480 * 1))
+		rgb = 255 - rgb
                 rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
                 # Save image to data
                 if np.size(self.data) == 0:
@@ -154,7 +155,7 @@ class LEDDetectorNode(object):
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 100
+        params.minArea = 50
         params.maxArea = 400
 
         # Filter by Circularity
@@ -189,9 +190,8 @@ class LEDDetectorNode(object):
             # Detect blobs.
             keypoints = detector.detect(imRight[:, :, t])
             FrameRight.append(np.zeros((2, len(keypoints))))
-            im_with_keypoints = cv2.drawKeypoints(imRight[:, :, t], keypoints, np.array([]), (0, 0, 255),
-                                                  cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            im_with_keypoints = cv2.resize(im_with_keypoints, (640*4/6*2, 480))
+            # im_with_keypoints = cv2.drawKeypoints(imRight[:, :, t], keypoints, np.array([]), (0, 0, 255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            # im_with_keypoints = cv2.resize(im_with_keypoints, (640*4/6*2, 480))
             # cv2.imshow("Keypoints", im_with_keypoints)
             # print(len(keypoints))
 
@@ -216,19 +216,13 @@ class LEDDetectorNode(object):
                         BlobsRight.append({'p': FrameRight[t][:, n], 'N': 1, 'Signal': np.zeros(imRight.shape[2])})
                         BlobsRight[-1]['Signal'][t] = 1
 
-        for i in range(len(BlobsRight)):
-            if BlobsRight[i]['N']/NIm < 0.8 and BlobsRight[i]['N']/NIm > 0.2:
-                rospy.loginfo('LED detected (right)')
-                LEDDetectedRight = True
-
         # Iterate Front
         for t in range(imFront.shape[2]):
             # Detect blobs.
             keypoints = detector.detect(imFront[:, :, t])
             FrameFront.append(np.zeros((2, len(keypoints))))
-            im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255),
-                                                  cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
+            # im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            # im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
             # cv2.imshow("Keypoints", im_with_keypoints)
             # print(len(keypoints))
 
@@ -273,13 +267,15 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
-            if BlobsRight[i]['N']/NIm < 0.8 and BlobsRight[i]['N']/NIm > 0.2:
+	    print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
+            if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
-            if BlobsFront[i]['N']/NIm < 0.8 and BlobsFront[i]['N']/NIm > 0.2:
+	    print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
+            if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 	
@@ -327,4 +323,5 @@ if __name__ == '__main__':
     rospy.init_node('LED_detector_node',anonymous=False)
     node = LEDDetectorNode()
     rospy.spin()
+
 

@@ -25,7 +25,7 @@ class LEDDetectorNode(object):
         self.bridge = CvBridge()
 
         # Parameters
-        self.capture_time = 0.1 #0.97 # capture time
+        self.capture_time = 0.1  #0.97 # capture time
 
         # Node name
         self.node_name = rospy.get_name()
