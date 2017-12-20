@@ -5,7 +5,7 @@ import sys
 import time
 from std_msgs.msg import Float32, Int8, String
 from rgb_led import RGB_LED
-from duckietown_msgs.msg import BoolStamped, CoordinationSignalETHZ17
+from duckietown_msgs.msg import BoolStamped, CoordinationSignalETHZ17, CoordinationSignal
 
 
 class LEDEmitter(object):
@@ -112,12 +112,21 @@ class LEDEmitter(object):
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
 
+
+            # With coordination (new)
+            if self.current_pattern_name == CoordinationSignalETHZ17.CAR_SIGNAL_A:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[1,1,1]]*5
+            elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[0,0,0]]*5
+
             # Set intensity
             self.pattern = self.intensity*self.pattern
 
             # Change LEDs
-	    if not self.onOff:
-            	self.cycleTimer([])
+            if not self.onOff:
+                self.cycleTimer([])
 
             # Publish current pattern
             self.pub_state.publish(self.current_pattern_name)
