@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import rospy
+import time
+import threading
 from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
@@ -24,6 +26,9 @@ class ImageTransformerNode():
         # TODO verify if required?
         self.active = True
         self.locked = False
+        self.thread_lock = threading.Lock()
+
+        robot_name = rospy.get_param("~veh", "")
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -31,11 +36,12 @@ class ImageTransformerNode():
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/image_transformer_node/uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.callbackImage, queue_size=1)
             # "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
 
         self.sub_trafo = rospy.Subscriber(
-            "~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            #"~transform", AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+            '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
             # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
 
@@ -58,10 +64,17 @@ class ImageTransformerNode():
         #self.file = open('/home/milan/output_image_transform_node.txt', 'a+')
         #self.file.write('\nIMAGE_TRANSFORM_NODE:\n')
 
+    def callbackImage(self, image_msg):
+        thread = threading.Thread(target=self.cbNewImage,args=(image_msg,))
+        thread.setDaemon(True)
+        thread.start()
 
 
     def cbNewImage(self, image_msg):
-        print('image received!')
+        if not self.thread_lock.acquire(False):
+            return
+        start = time.time()
+        #print('image received!')
         # memorize image
         self.image_msg = image_msg
 
@@ -83,11 +96,17 @@ class ImageTransformerNode():
 
         self.pub_image.publish(self.corrected_image)
         tk.completed('published')
-
+        end = time.time()
+        print "GOING THROUGH TOOK: s"
+        print(end - start)
+        
         if self.verbose:
             rospy.loginfo('ai:\n' + tk.getall())
+            
+        self.thread_lock.release()
 
     def cbNewTrafo(self, trafo_msg):
+        print('trafo received!')
         # testwise write to file
         # self.file.write('received new trafo\n')
 
