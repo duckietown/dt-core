@@ -17,7 +17,7 @@
         <node if="$(arg local)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_FINAL.py" output="screen" clear_params="true" required="true">
             <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
             <param name="verbose" value="false"/>
-            <param name="intersectionType" value="trafficLight"/>
+            <param name="intersectionType" value="$(arg intersectionType)"/>
             <!-- Input to coordination node -->
             <remap from="~signals_detection" to="led_detector_node/led_detection"/>
         </node>
@@ -45,7 +45,7 @@
       <node unless="$(arg local)" machine="$(arg veh)" name="coordinator_node" pkg="explicit_coordinator" type="coordinator_node_ETHZ17_FINAL.py" output="screen" clear_params="true" required="true">
           <!-- <rosparam command="load" file="$(find duckietown)/config/$(arg config)/explicit_coordination/$(arg node_name)/$(arg param_file_name).yaml"/> -->
           <param name="verbose" value="false"/>
-          <param name="intersectionType" value="trafficLight"/>
+          <param name="intersectionType" value="$(arg intersectionType)"/>
 	  <remap from="~signals_detection" to="led_detector_node/led_detection"/>
       </node>
 
