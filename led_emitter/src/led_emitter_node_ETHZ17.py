@@ -18,7 +18,7 @@ class LEDEmitter(object):
         self.changePattern_(self.current_pattern_name)
 
         # Parameter to scale the intensity
-        self.intensity = 1
+        self.intensity = 0.8
 
         # If True, the LED turn on and off. Else, they are always on
         self.onOff = True
@@ -90,7 +90,7 @@ class LEDEmitter(object):
             # With joystick
             if self.current_pattern_name == 'ON_WHITE':
                 rospy.loginfo('changePattern(%r)' % pattern_name)
-                self.pattern = [[1,1,1]]*5
+                self.pattern = [[self.intensity,self.intensity,self.intensity]]*5
             elif self.current_pattern_name == 'ON_RED':
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[1,0,0]] * 5
@@ -107,7 +107,7 @@ class LEDEmitter(object):
             # With coordination
             if self.current_pattern_name == CoordinationSignalETHZ17.ON:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
-                self.pattern = [[1,1,1]]*5
+                self.pattern = [[self.intensity,self.intensity,self.intensity]]*5
             elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
@@ -116,7 +116,7 @@ class LEDEmitter(object):
             # With coordination (new)
             if self.current_pattern_name == CoordinationSignalETHZ17.SIGNAL_A:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
-                self.pattern = [[1,1,1]]*5
+                self.pattern = [[self.intensity,self.intensity,self.intensity]]*5
             elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
