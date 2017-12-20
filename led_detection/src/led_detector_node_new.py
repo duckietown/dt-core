@@ -41,7 +41,7 @@ class LEDDetectorNode(object):
 
         # Filter by Circularity
         params.filterByCircularity = True
-        params.minCircularity = 0.8
+        params.minCircularity = 0.9
 
         # Filter by Convexity
         params.filterByConvexity = True
@@ -180,9 +180,11 @@ class LEDDetectorNode(object):
 
         # Number of images
         NIm = imRight.shape[2]
-
+	
+	#print NIm	
+	
         # Iterate Right
-        for t in range(imRight.shape[2]):
+        for t in range(NIm):
             # Detect blobs.
             keypoints = self.detector.detect(imRight[:, :, t])
             FrameRight.append(np.zeros((2, len(keypoints))))
@@ -213,7 +215,7 @@ class LEDDetectorNode(object):
                         BlobsRight[-1]['Signal'][t] = 1
 
         # Iterate Front
-        for t in range(imFront.shape[2]):
+        for t in range(NIm):
             # Detect blobs.
             keypoints = self.detector.detect(imFront[:, :, t])
             FrameFront.append(np.zeros((2, len(keypoints))))
