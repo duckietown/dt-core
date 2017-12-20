@@ -26,12 +26,39 @@ class LEDDetectorNode(object):
 
         # Parameters
         self.capture_time = 0.97 # capture time
+        self.DTOL = 25
+
+        # Setup SimpleBlobDetector parameters
+        params = cv2.SimpleBlobDetector_Params()  # Change thresholds
+        params.minThreshold = 5
+        params.maxThreshold = 200
+        params.thresholdStep = 10
+
+        # Filter by Area.
+        params.filterByArea = True
+        params.minArea = 50
+        params.maxArea = 400
+
+        # Filter by Circularity
+        params.filterByCircularity = True
+        params.minCircularity = 0.8
+
+        # Filter by Convexity
+        params.filterByConvexity = True
+        params.minConvexity = 0.5
+
+        # Filter by Inertia
+        params.filterByInertia = False
+        params.minInertiaRatio = 0.05
+
+        # Create a detector with the parameters
+        self.detector = cv2.SimpleBlobDetector_create(params)
 
         # Node name
         self.node_name = rospy.get_name()
-	
-	# Traffic light
-	self.traffic_light_state = SignalsDetection.NO_TRAFFIC_LIGHT
+
+        # Traffic light
+        self.traffic_light_state = SignalsDetection.NO_TRAFFIC_LIGHT
 
         # Publish
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
@@ -108,7 +135,7 @@ class LEDDetectorNode(object):
                 rgb = numpy_from_ros_compressed(msg)
                 rgb = cv2.cvtColor(rgb,cv2.COLOR_BGRA2GRAY)
                 rgb = cv2.resize(rgb, (640 * 1, 480 * 1))
-		rgb = 255 - rgb
+                rgb = 255 - rgb
                 rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
                 # Save image to data
                 if np.size(self.data) == 0:
@@ -145,37 +172,6 @@ class LEDDetectorNode(object):
         # Crop image front
         imFront = self.data[H/10:H/2,W/8:W/2,:]
 
-        # Setup SimpleBlobDetector parameters
-        params = cv2.SimpleBlobDetector_Params()
-
-        # Change thresholds
-        params.minThreshold = 5
-        params.maxThreshold = 200
-        params.thresholdStep = 10
-
-        # Filter by Area.
-        params.filterByArea = True
-        params.minArea = 50
-        params.maxArea = 400
-
-        # Filter by Circularity
-        params.filterByCircularity = True
-        params.minCircularity = 0.8
-
-        # Filter by Convexity
-        params.filterByConvexity = True
-        params.minConvexity = 0.5
-
-        # Filter by Inertia
-        params.filterByInertia = False
-        params.minInertiaRatio = 0.05
-
-        # Create a detector with the parameters
-        detector = cv2.SimpleBlobDetector_create(params)
-
-        # Tolerance
-        DTOL = 25
-
         # Allocate space
         FrameRight = []
         BlobsRight = []
@@ -188,7 +184,7 @@ class LEDDetectorNode(object):
         # Iterate Right
         for t in range(imRight.shape[2]):
             # Detect blobs.
-            keypoints = detector.detect(imRight[:, :, t])
+            keypoints = self.detector.detect(imRight[:, :, t])
             FrameRight.append(np.zeros((2, len(keypoints))))
             # im_with_keypoints = cv2.drawKeypoints(imRight[:, :, t], keypoints, np.array([]), (0, 0, 255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # im_with_keypoints = cv2.resize(im_with_keypoints, (640*4/6*2, 480))
@@ -206,7 +202,7 @@ class LEDDetectorNode(object):
                     Distance = np.empty(len(BlobsRight))
                     for k in range(len(BlobsRight)):
                         Distance[k] = np.linalg.norm(BlobsRight[k]['p'] - FrameRight[t][:, n])
-                    if np.min(Distance) < DTOL:
+                    if np.min(Distance) < self.DTOL:
                         # print np.min(Distance)
                         # print np.argmin(Distance)
                         if BlobsRight[np.argmin(Distance)]['Signal'][t] == 0:
@@ -219,7 +215,7 @@ class LEDDetectorNode(object):
         # Iterate Front
         for t in range(imFront.shape[2]):
             # Detect blobs.
-            keypoints = detector.detect(imFront[:, :, t])
+            keypoints = self.detector.detect(imFront[:, :, t])
             FrameFront.append(np.zeros((2, len(keypoints))))
             # im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
@@ -237,7 +233,7 @@ class LEDDetectorNode(object):
                     Distance = np.empty(len(BlobsFront))
                     for k in range(len(BlobsFront)):
                         Distance[k] = np.linalg.norm(BlobsFront[k]['p'] - FrameFront[t][:, n])
-                    if np.min(Distance) < DTOL:
+                    if np.min(Distance) < self.DTOL:
                         # print np.min(Distance)
                         # print np.argmin(Distance)
                         if BlobsFront[np.argmin(Distance)]['Signal'][t] == 0:
@@ -250,12 +246,12 @@ class LEDDetectorNode(object):
         # Extract blobs (right)
         keypointBlobRight = []
         for k in range(len(BlobsRight)):
-            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], DTOL))
+            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], self.DTOL))
 
         # Extract blobs (front)
         keypointBlobFront = []
         for k in range(len(BlobsFront)):
-            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], DTOL))
+            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], self.DTOL))
 
         # Images
         imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -267,20 +263,20 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
-	    print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
+            print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
             if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
-	    print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
+            print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
             if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
-	
-	# Left bot (also UNKNOWN)
-	self.left = "UNKNOWN"
+
+        # Left bot (also UNKNOWN)
+        self.left = "UNKNOWN"
 
         # Publish results
         self.publish(imPublishRight,imPublishFront)
