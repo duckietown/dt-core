@@ -46,8 +46,8 @@ class lane_controller(object):
 
         # incurvature = False
         # curve_inner = False
-        k_Id = 0.2
-        k_Iphi = 0.1
+        k_Id = 2.5
+        k_Iphi = 1.25
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
@@ -248,6 +248,7 @@ class lane_controller(object):
         # rospy.loginfo("cross_track_err : " + str(cross_track_err))
         # rospy.loginfo("heading_err : " + str(heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
+        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
         rospy.loginfo("heading_err: " + str(heading_err))
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
         rospy.loginfo("cross_track_err: " + str(cross_track_err))
