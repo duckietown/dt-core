@@ -107,13 +107,13 @@ class VehicleAvoidanceControlNode(object):
 			
 		
 	def cbPose(self, vehicle_pose_msg):
-		desired_distance = 0.3
+# 		desired_distance = 0.3
 		#distance_error_tolerance = 0.04
-		d_min = 0.2
-		Kp = 0.7
-		Kp_delta_v = 0.8
-		Ki = 0.0
-		Kd = 0.00
+# 		d_min = 0.2
+# 		Kp = 0.7
+# 		Kp_delta_v = 0.8
+# 		Ki = 0.0
+# 		Kd = 0.00
 		
 		time = rospy.Time.now()
 				
@@ -126,7 +126,10 @@ class VehicleAvoidanceControlNode(object):
 		#print(Ts)
 		if Ts > 2:
 			self.v_rel = 0
-			self.v = 0
+			if vehicle_pose_msg.rho.data < self.minimal_distance:
+				self.v = 0
+			else:
+				self.v = self.v_follower
 			self.vehicle_pose_msg_temp = vehicle_pose_msg
 			self.v_error_temp = 0
 			self.I = 0
@@ -188,12 +191,12 @@ class VehicleAvoidanceControlNode(object):
 		#print(self.v_gain)
 		
 
-	def publishCmd(self,stamp): 
-		cmd_msg = Twist2DStamped()
-                cmd_msg.header.stamp = stamp
-		cmd_msg.v = 0.0
-		cmd_msg.omega = 0.0
-		self.car_cmd_pub.publish(cmd_msg)
+# 	def publishCmd(self,stamp): 
+# 		cmd_msg = Twist2DStamped()
+#                 cmd_msg.header.stamp = stamp
+# 		cmd_msg.v = 0.0
+# 		cmd_msg.omega = 0.0
+# 		self.car_cmd_pub.publish(cmd_msg)
    
 if __name__ == '__main__':
 	rospy.init_node('vehicle_avoidance_control_node', anonymous=False)

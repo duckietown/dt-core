@@ -100,6 +100,8 @@ class VehicleDetectionNode(object):
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=simple_blob_detector)
 			
+			#print(corners)
+			
 			vehicle_detected_msg_out.data = detection
 			self.pub_detection.publish(vehicle_detected_msg_out)
 			if detection:
