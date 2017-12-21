@@ -297,6 +297,7 @@
 		<!-- Lane controller -->
 		<group if="$(arg /lane_following/lane_controller)">
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
+			<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
