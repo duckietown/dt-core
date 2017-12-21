@@ -56,6 +56,7 @@ class lane_controller(object):
         self.heading_integral = 0
         self.time_start_curve = 0
         turn_off_feedforward_part = False
+        self.wheels_cmd_executed = WheelsCmdStamped()
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
