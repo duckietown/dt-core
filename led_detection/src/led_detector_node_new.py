@@ -76,14 +76,14 @@ class LEDDetectorNode(object):
 
         # Parameters
         #self.protocol            = rospy.get_param("~LED_protocol")
-        self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
-        self.capture_time         = rospy.get_param("~capture_time")
-        self.cell_size            = rospy.get_param("~cell_size")
+        #self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
+        #self.capture_time         = rospy.get_param("~capture_time")
+        #self.cell_size            = rospy.get_param("~cell_size")
         self.continuous           = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
         #self.frequencies = self.protocol['frequencies'].values()
 
-        rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
+        #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
         # Check vehicle name
         if not self.veh_name:
