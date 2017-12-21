@@ -112,11 +112,14 @@ class LEDEmitter(object):
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
 
-
             # With coordination (new)
             if self.current_pattern_name == CoordinationSignalETHZ17.SIGNAL_A:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
-                self.pattern = [[self.intensity,self.intensity,self.intensity]]*5
+                self.pattern    = [[0,0,0]]*5
+                self.pattern[2] = [0,self.intensity,0]
+            elif self.current_pattern_name == CoordinationSignalETHZ17.SIGNAL_GREEN:
+                rospy.loginfo('changePattern(%r)' % pattern_name)
+                self.pattern = [[self.intensity, self.intensity, self.intensity]]
             elif self.current_pattern_name == CoordinationSignalETHZ17.OFF:
                 rospy.loginfo('changePattern(%r)' % pattern_name)
                 self.pattern = [[0,0,0]]*5
