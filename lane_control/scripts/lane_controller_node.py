@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import math
-from duckietown_msgs.msg import Twist2DStamped, LanePose
+import numpy as np
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped
 import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
@@ -49,6 +50,8 @@ class lane_controller(object):
         # curve_inner = False
         k_Id = 2.5
         k_Iphi = 1.25
+        self.cross_track_err = 0
+        self.heading_err = 0
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
@@ -116,8 +119,8 @@ class lane_controller(object):
             # self.curve_inner = curve_inner
 
 
-    def updateWheelsCmdExecuted(self, wheels_cmd_executed)
-        self.wheels_cmd_executed = wheels_cmd_executed
+    def updateWheelsCmdExecuted(self, msg_wheels_cmd):
+        self.wheels_cmd_executed = msg_wheels_cmd
 
 
     def custom_shutdown(self):
@@ -170,25 +173,25 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
-        prev_cross_track_err = cross_track_err
-        prev_heading_err = heading_err
-        cross_track_err = lane_pose_msg.d - self.d_offset
-        heading_err = lane_pose_msg.phi
+        prev_cross_track_err = self.cross_track_err
+        prev_heading_err = self.heading_err
+        self.cross_track_err = lane_pose_msg.d - self.d_offset
+        self.heading_err = lane_pose_msg.phi
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
         car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
 
-        if math.fabs(cross_track_err) > self.d_thres:
+        if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
-            cross_track_err = cross_track_err / math.fabs(cross_track_err) * self.d_thres
+            self.cross_track_err = self.cross_track_err / math.fabs(self.cross_track_err) * self.d_thres
 
         currentMillis = int(round(time.time() * 1000))
 
         if self.last_ms is not None:
             dt = (currentMillis - self.last_ms) / 1000.0
-            self.cross_track_integral += cross_track_err * dt
-            self.heading_integral += heading_err * dt
+            self.cross_track_integral += self.cross_track_err * dt
+            self.heading_integral += self.heading_err * dt
 
         if self.cross_track_integral > 0.3:
             rospy.loginfo("you're greater 0.3")
@@ -202,15 +205,15 @@ class lane_controller(object):
         if self.heading_integral > 1.2:
             self.heading_integral = 1.2
 
-        if abs(cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if abs(self.cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
-        if abs(heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
+        if abs(self.heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.heading_integral = 0
-        if sign(cross_track_err) != sign(prev_cross_track_err):
+        if np.sign(self.cross_track_err) != np.sign(prev_cross_track_err):
             self.cross_track_integral = 0
-        if sign(heading_err) != sign(prev_heading_err):
+        if np.sign(self.heading_err) != np.sign(prev_heading_err):
             self.heading_integral = 0
-        if wheels_cmd_executed.vel_right == 0 and wheels_cmd_executed.vel_left == 0:
+        if self.wheels_cmd_executed.vel_right == 0 and self.wheels_cmd_executed.vel_left == 0:
             self.cross_track_integral = 0
             self.heading_integral = 0
 
@@ -227,7 +230,7 @@ class lane_controller(object):
         if self.turn_off_feedforward_part:
             omega_feedforward = 0
 
-        car_control_msg.omega =  self.k_d * cross_track_err + self.k_theta * heading_err
+        car_control_msg.omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         # rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         # rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
         car_control_msg.omega -= self.k_Id * self.cross_track_integral
@@ -236,7 +239,7 @@ class lane_controller(object):
 
 
         # if not self.incurvature:
-        #     if heading_err > 0.3:
+        #     if self.heading_err > 0.3:
         #         self.incurvature = True
         #         rospy.set_param('~incurvature',True)
         #     car_control_msg.omega -= self.k_Id * self.cross_track_integral
@@ -257,13 +260,13 @@ class lane_controller(object):
         # rospy.loginfo("k_Iphi :" + str(self.k_Iphi))
         # rospy.loginfo("Ktheta : " + str(self.k_theta))
         # rospy.loginfo("incurvature : " + str(self.incurvature))
-        # rospy.loginfo("cross_track_err : " + str(cross_track_err))
-        # rospy.loginfo("heading_err : " + str(heading_err))
+        # rospy.loginfo("cross_track_err : " + str(self.cross_track_err))
+        # rospy.loginfo("heading_err : " + str(self.heading_err))
         #rospy.loginfo("Ktheta : Versicherung")
         rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
-        rospy.loginfo("heading_err: " + str(heading_err))
+        rospy.loginfo("heading_err: " + str(self.heading_err))
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(cross_track_err))
+        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
 
