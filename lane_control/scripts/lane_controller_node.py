@@ -19,6 +19,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
         # safe shutdown
@@ -115,6 +116,8 @@ class lane_controller(object):
             # self.curve_inner = curve_inner
 
 
+    def updateWheelsCmdExecuted(self, wheels_cmd_executed)
+        self.wheels_cmd_executed = wheels_cmd_executed
 
 
     def custom_shutdown(self):
@@ -167,6 +170,8 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
+        prev_cross_track_err = cross_track_err
+        prev_heading_err = heading_err
         cross_track_err = lane_pose_msg.d - self.d_offset
         heading_err = lane_pose_msg.phi
 
@@ -200,6 +205,13 @@ class lane_controller(object):
         if abs(cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
         if abs(heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
+            self.heading_integral = 0
+        if sign(cross_track_err) != sign(prev_cross_track_err):
+            self.cross_track_integral = 0
+        if sign(heading_err) != sign(prev_heading_err):
+            self.heading_integral = 0
+        if wheels_cmd_executed.vel_right == 0 and wheels_cmd_executed.vel_left == 0:
+            self.cross_track_integral = 0
             self.heading_integral = 0
 
         # if velocity_of_actual_motor_comand == 0:       # TODO: get this velocity that is actually sent to the motors and plug in here
