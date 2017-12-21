@@ -9,6 +9,7 @@ from std_msgs.msg import String
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
 import numpy as np
 import cv2
+import scipy.fftpack
 from cv_bridge import CvBridge, CvBridgeError
 
 class LEDDetectorNode(object):
@@ -180,9 +181,9 @@ class LEDDetectorNode(object):
 
         # Number of images
         NIm = imRight.shape[2]
-	
-	#print NIm	
-	
+
+        #print NIm
+
         # Iterate Right
         for t in range(NIm):
             # Detect blobs.
@@ -265,14 +266,23 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
-            print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
+            # print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
+
+            # Frequency estimation based on FFT
+            T = 1.0/30 # TODO expecting 30 fps, but RESAMPLE to be sure
+            # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
+            signal_f      = scipy.fftpack.fft(BlobsRight[i]['Signal']-np.mean(BlobsRight[i]['Signal']))
+            y_f           = 2.0/NIm * np.abs(signal_f[:NIm/2])
+            fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
+            print fft_peak_freq
+
             if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
-            print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
+           #  print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
             if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
