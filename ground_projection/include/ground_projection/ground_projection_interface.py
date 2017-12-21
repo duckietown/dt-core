@@ -25,6 +25,7 @@ class GroundProjection(object):
         
         self.board_ = load_board_info()
 
+    
     def get_camera_info(self):
         return self.gpc.ci
     

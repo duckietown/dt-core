@@ -27,3 +27,5 @@ def rectify_segments(gp, segment_list):
         S2.segments.append(s2)
         
     return S2
+
+

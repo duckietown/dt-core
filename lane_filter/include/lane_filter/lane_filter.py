@@ -1,12 +1,14 @@
 from math import floor
 
 from scipy.ndimage.filters import gaussian_filter
-from scipy.stats import multivariate_normal
+from scipy.stats import multivariate_normal, entropy
 
 import duckietown_utils as dtu
 import numpy as np
 
 from .lane_filter_interface import LaneFilterInterface
+from .visualization import plot_phi_d_diagram_bgr, plot_reprojected_bgr
+
 
 
 __all__ = [
@@ -59,6 +61,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
+        self.last_segments_used = None
+        
         self.initialize()
 
     def initialize(self):
@@ -75,7 +79,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         d_t = self.d + v*delta_t*np.sin(self.phi)
         phi_t = self.phi + w*delta_t
 
-        p_belief = np.zeros(self.belief.shape)
+        p_belief = np.zeros(self.belief.shape, dtype='float32')
 
         # there has got to be a better/cleaner way to do this - just applying
         # the process model to translate each cell value
@@ -91,7 +95,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                     j_new = int(floor((phi_t[i,j] - self.phi_min)/self.delta_phi))
                     p_belief[i_new, j_new] += self.belief[i,j]
 
-        s_belief = np.zeros(self.belief.shape)
+        s_belief = np.zeros(self.belief.shape, dtype='float32')
         gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
         if np.sum(s_belief) == 0:
@@ -105,6 +109,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     def update(self, segments):
         """ Returns the likelihood """
+        self.last_segments_used = segments
+        
         measurement_likelihood = self.generate_measurement_likelihood(segments)
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief, measurement_likelihood)
@@ -113,11 +119,12 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             else:
 
                 self.belief = self.belief/np.sum(self.belief)
+
         return measurement_likelihood
 
     def generate_measurement_likelihood(self, segments):
         # initialize measurement likelihood to all zeros
-        measurement_likelihood = np.zeros(self.d.shape)
+        measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -125,7 +132,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            d_i, phi_i, l_i = self.generateVote(segment)
+            d_i, phi_i, l_i, weight = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or \
                 d_i < self.d_min or \
@@ -134,7 +141,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                 continue
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i, j] += 1
+            measurement_likelihood[i, j] += weight
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
@@ -164,17 +171,22 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     def getMax(self):
         return self.belief.max()
-
+    
+    def get_entropy(self):
+        s = entropy(self.belief.flatten())
+        return s
+    
     def generateVote(self, segment):
         """
 
-            return d_i, phi_i, l_i
+            return d_i, phi_i, l_i, weight
 
             XXX: What is l_i?
         """
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
-        t_hat = (p2 - p1) / np.linalg.norm(p2 - p1)
+        distance = np.linalg.norm(p2 - p1)
+        t_hat = (p2 - p1) / distance
         n_hat = np.array([-t_hat[1], t_hat[0]])
         d1 = np.inner(n_hat, p1)
         d2 = np.inner(n_hat, p2)
@@ -184,8 +196,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             l1 = -l1;
         if (l2 < 0):
             l2 = -l2;
-        l_i = (l1 + l2)/2
-        d_i = (d1 + d2)/2
+        l_i = (l1 + l2) / 2
+        d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE: # right lane is white
             if(p1[0] > p2[0]): # right edge of white lane
@@ -203,10 +215,23 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                 d_i = -d_i
             d_i = self.lanewidth/2 - d_i
 
-        return d_i, phi_i, l_i
+        # weight = distance
+        weight = 1
+        return d_i, phi_i, l_i, weight
+
+    def get_plot_phi_d(self):
+        est = self.get_estimate()
+        return plot_phi_d_diagram_bgr(self, phi=est['phi'], d=est['d'])
+
+    def get_plot_plot_reprojected_bgr(self, dpi=120):
+        est = self.get_estimate()
+        segments = self.last_segments_used
+        return plot_reprojected_bgr(self, phi=est['phi'], d=est['d'],
+                                    segments=segments, dpi=dpi)
 
 
-    # not used
+
+# not used
 #     def getSegmentDistance(self, segment):
 #         x_c = (segment.points[0].x + segment.points[1].x)/2
 #         y_c = (segment.points[0].y + segment.points[1].y)/2

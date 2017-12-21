@@ -3,7 +3,7 @@ from quickapp import QuickApp
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8AppWithLogs
 from ground_projection import GroundProjection
-import rosbag  # @UnresolvedImport
+import rosbag 
 
 from .pipeline import run_pipeline
 import os
