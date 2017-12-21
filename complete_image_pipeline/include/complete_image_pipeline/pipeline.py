@@ -1,13 +1,13 @@
-from geometry_msgs.msg import Point  
-
 from collections import OrderedDict
 
 import cv2
+from nose.tools import assert_almost_equal
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.maps import lane_straight_map, SegmentsMap, FRAME_AXLE
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
+from geometry_msgs.msg import Point
 from ground_projection import GroundProjection
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 from ground_projection.segment import rectify_segments
@@ -18,7 +18,6 @@ from line_detector2.run_programmatically import FakeContext
 import numpy as np
 
 from .fuzzing import fuzzy_segment_list_image_space
-from nose.tools import assert_almost_equal
 
 
 @dtu.contract(gp=GroundProjection)
@@ -135,10 +134,10 @@ def camera_from_world(xyz, cam_xyz, cam_theta):
 @dtu.contract(sm=SegmentsMap, camera_xyz='array[3]', camera_theta='float', 
               gpg=GroundProjectionGeometry)
 def plot_map(base, sm, gpg, camera_xyz, camera_theta):
+    """
+        base: already rectified image
+    """
     image = base.copy()
-    
-    
-    
     
     for segment in sm.segments:
         p1 = segment.points[0]
@@ -225,9 +224,6 @@ def get_grid(shape, L=32, col= {0: (255,0,0), 1: (0,255,0)}):
             coli = (cx + cy) % 2
             res[i,j,:] = col[coli]
     return res
-
-    
-
 
 
 
