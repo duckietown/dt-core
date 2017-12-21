@@ -139,7 +139,6 @@
 				<arg name="local" value="$(arg /camera/local)" />
 				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
-                <arg name="cali_file_name" value="$(arg veh)_rect" />
 				<arg name="node_name" value="raw_cam_info_reader_node" />
 				<arg name="image_type" value="raw" />
 			</include>
@@ -274,7 +273,8 @@
 	
 		<!-- Lane Filter -->
 		<group if="$(arg /lane_following/lane_filter)">
-			<remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+		  <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+		  <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
 			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
