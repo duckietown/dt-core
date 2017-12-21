@@ -26,7 +26,7 @@ class LEDEmitter(object):
         if self.onOff:
             self.dt          = 0.2
             self.is_on       = False
-            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.dt),self.cycleTimer)
+            self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.dt/(2.0)),self.cycleTimer)
 
         # Publish
         #self.pub_state = rospy.Publisher("~current_led_state",Float32,queue_size=1)
