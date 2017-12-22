@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from anti_instagram.kmeans_rebuild import *
 from anti_instagram.calcLstsqTransform import *
+from anti_instagram.simpleColorBalanceClass import *
 from .scale_and_shift import scaleandshift
 
 
@@ -22,12 +23,17 @@ class ScaleAndShift():
 
 class AntiInstagram():
     def __init__(self):
+        # scale&shift for image trafo
         self.scale = [1.0, 1.0, 1.0]
         self.shift = [0.0, 0.0, 0.0]
+        # thresholds for color balance
+        self.ThLow = [0, 0, 0]
+        self.ThHi = [255, 255, 255]
         # milansc: ignoring health for now
         #self.health = 0
 
         self.KM = None
+        self.CB = simpleColorBalanceClass()
 
     def setScaleShift(self, scale, shift):
         self.scale = scale
@@ -37,6 +43,10 @@ class AntiInstagram():
     def setupKM(self, numCenters, blurAlg, resize, blurKer):
         self.KM = kMeansClass(numCenters, blurAlg, resize, blurKer)
 
+
+    def calculateColorBalanceThreshold(self, img, CBpercent):
+        # init colorBalanceClass
+        self.ThLow, self.ThHi = self.CB.thresholdAnalysis(img, CBpercent)
 
     def calculateTransform(self, img):
         # apply KMeans
@@ -54,8 +64,8 @@ class AntiInstagram():
                                           self.KM.trained_centers[idxWhite]])
 
         # calculate transform with 4 centers
-        T4 = calcTransform(4, trained_centers)
-        T4.calcTransform()
+        #T4 = calcTransform(4, trained_centers)
+        #T4.calcTransform()
 
         # calculate transform with 3 centers
         T3 = calcTransform(3, trained_centers_woRed)
@@ -64,12 +74,12 @@ class AntiInstagram():
         # compare residuals
         # in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
         # causing a serious red shift in any image that has only 3 colors
-        if T4.returnResidualNorm() >= T3.returnResidualNorm():
-            self.shift = T4.shift
-            self.scale = T4.scale
-        else:
-            self.shift = T3.shift
-            self.scale = T3.scale
+        #if T4.returnResidualNorm() >= T3.returnResidualNorm():
+        #    self.shift = T4.shift
+        #    self.scale = T4.scale
+        #else:
+        #    self.shift = T3.shift
+        #    self.scale = T3.scale
 
         self.shift = T3.shift
         self.scale = T3.scale
@@ -80,3 +90,7 @@ class AntiInstagram():
         corrected_image_clipped = np.clip(
             corrected_image, 0, 255).astype(np.uint8)
         return corrected_image_clipped
+
+    def applyColorBalance(self, img, ThLow, ThHi):
+        corrected_image = self.CB.applyTrafo(img, ThLow, ThHi)
+        return corrected_image

@@ -133,7 +133,7 @@ class kMeansClass:
         errorYellowSortedIdx = np.argsort(errorYellow)
         errorWhiteSortedIdx = np.argsort(errorWhite)
 	errorSorted = np.vstack([errorBlack, errorWhite, errorYellow])
-        print(errorSorted)
+        #print(errorSorted)
 	if (withRed):
             errorRedSortedIdx = np.argsort(errorRed)
 	    errorSorted = np.vstack((errorSorted,errorRed))

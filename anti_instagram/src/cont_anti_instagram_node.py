@@ -4,8 +4,7 @@ from anti_instagram.AntiInstagram_rebuild import *
 from anti_instagram.kmeans_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
-from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform,
-                                 BoolStamped)
+from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform, AntiInstagramTransform_CB, BoolStamped)
 from duckietown_utils.jpg import image_cv_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
@@ -22,6 +21,7 @@ This node subscribed to the uncorrected images from the camera. Within a certain
 class ContAntiInstagramNode():
     def __init__(self):
         self.node_name = rospy.get_name()
+        robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
         # TODO verify if required?
         # self.active = True
@@ -30,13 +30,15 @@ class ContAntiInstagramNode():
         # Initialize publishers and subscribers
         self.pub_trafo = rospy.Publisher(
             "~transform", AntiInstagramTransform, queue_size=1)
+        self.pub_trafo_CB = rospy.Publisher(
+            "~colorBalanceTrafo", AntiInstagramTransform_CB, queue_size=1)
         self.pub_health = rospy.Publisher(
             "~health", AntiInstagramHealth, queue_size=1, latch=True)
 
         self.sub_image = rospy.Subscriber(
             # "/duckierick/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            # "/tesla/camera_node/image/compressed", CompressedImage, self.cbNewImage, queue_size=1)
-            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+            '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.cbNewImage, queue_size=1)
+            #"~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
 
 
         # TODO verify name of parameter
@@ -44,12 +46,20 @@ class ContAntiInstagramNode():
         self.verbose = rospy.get_param('line_detector_node/verbose', True)
 
         # Read parameters
-        self.interval = self.setupParameter("~ai_interval", 10)
+        self.interval = self.setupParameter("~ai_interval", 4)
         self.fancyGeom = self.setupParameter("~fancyGeom", False)
-        self.n_centers = self.setupParameter("~n_centers", 6)
-        self.blur = self.setupParameter("~blur", 'none')
-        self.resize = self.setupParameter("~resize", 1)
+        self.n_centers = self.setupParameter("~n_centers", 10)
+        self.blur = self.setupParameter("~blur", 'median')
+        self.resize = self.setupParameter("~resize", 0.2)
         self.blur_kernel = self.setupParameter("~blur_kernel", 5)
+        self.cb_percentage = self.setupParameter("~cb_percentage", 2)
+        self.trafo_mode = self.setupParameter("~trafo_mode", 'cb')
+        if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
+            rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
+            self.trafo_mode == "both"
+            rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
+            rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
+
 
         # Initialize health message
         self.health = AntiInstagramHealth()
@@ -58,8 +68,11 @@ class ContAntiInstagramNode():
         self.transform = AntiInstagramTransform()
         # FIXME: read default from configuration and publish it
 
+        self.transform_CB = AntiInstagramTransform_CB()
+
         self.ai = AntiInstagram()
-        self.ai.setupKM(self.n_centers, self.blur, self.resize, self.blur_kernel)
+        # milansc: resize is done on input image below
+        self.ai.setupKM(self.n_centers, self.blur, 1, self.blur_kernel)
         self.bridge = CvBridge()
 
         self.image_msg = None
@@ -83,8 +96,6 @@ class ContAntiInstagramNode():
 
 
     def processImage(self, event):
-        print('processImg called!')
-
         # if we have seen an image:
         if self.image_msg is not None:
             rospy.loginfo('ai: Computing color transform...')
@@ -98,39 +109,49 @@ class ContAntiInstagramNode():
 
             tk.completed('converted')
 
-            self.ai.calculateTransform(cv_image)
+            # resize input image
+            resized_img = cv2.resize(cv_image, (0, 0), fx=self.resize, fy=self.resize)
+            tk.completed('resized')
 
-            tk.completed('calculateTransform')
 
-            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
-            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+            if self.trafo_mode == "cb" or self.trafo_mode == "both":
+                # find color balance thresholds
+                self.ai.calculateColorBalanceThreshold(resized_img, self.cb_percentage)
+                tk.completed('calculateColorBalanceThresholds')
 
-            self.pub_trafo.publish(self.transform)
-            rospy.loginfo('ai: Color transform published.')
+                # store color balance thresholds to ros message
+                self.transform_CB.th[0], self.transform_CB.th[1], self.transform_CB.th[2] = self.ai.ThLow
+                self.transform_CB.th[3], self.transform_CB.th[4], self.transform_CB.th[5] = self.ai.ThHi
 
-            # write latest trafo to file
-            #self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n' + str(self.ai.scale) + '\n \n')
+                # publish color balance thresholds
+                self.pub_trafo_CB.publish(self.transform_CB)
+                rospy.loginfo('ai: Color balance thresholds published.')
 
-            # milansc: health is not supported yet
-            """
-            # if health is much below the threshold value, do not update the color correction and log it.
-            if self.ai.health <= 0.001:
-                # health is not good
 
-                rospy.loginfo("Health is not good")
 
-            else:
-                self.health.J1 = self.ai.health
+            if self.trafo_mode == "lin" or self.trafo_mode == "both":
+                if self.trafo_mode == "both":
+                    # apply color balance
+                    colorBalanced_image = self.ai.applyColorBalance(resized_img, self.ai.ThLow, self.ai.ThHi)
+                else:
+                    colorBalanced_image = resized_img
+
+
+                # find color transform
+                self.ai.calculateTransform(colorBalanced_image)
+                tk.completed('calculateTransform')
+
+                # store color transform to ros message
                 self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
                 self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
-                self.pub_health.publish(self.health)
+                # publish color trafo
                 self.pub_trafo.publish(self.transform)
                 rospy.loginfo('ai: Color transform published.')
 
-                # write latest trafo to file
-                self.file.write('shift:\n' + str(self.ai.shift) + '\nscale:\n'  + str(self.ai.scale) + '\nhealth:\n' + str(self.ai.health) + '\n \n')
-            """
+
+
+                # TODO health mesurement
 
 
 
