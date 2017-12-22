@@ -2,7 +2,7 @@
 import rospy
 import math
 import numpy as np
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
 import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
@@ -17,10 +17,12 @@ class lane_controller(object):
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
+        self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
         # safe shutdown
@@ -35,7 +37,6 @@ class lane_controller(object):
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
-
 
 
     def setGains(self):
@@ -57,6 +58,14 @@ class lane_controller(object):
         self.time_start_curve = 0
         turn_off_feedforward_part = False
         self.wheels_cmd_executed = WheelsCmdStamped()
+
+        self.actuator_params = ActuatorParameters()
+        self.actuator_params.gain = 0.0
+        self.actuator_params.trim = 0.0
+        self.actuator_params.baseline = 0.0
+        self.actuator_params.radius = 0.0
+        self.actuator_params.k = 0.0
+        self.actuator_params.limit = 0.0
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
@@ -122,6 +131,20 @@ class lane_controller(object):
 
     def updateWheelsCmdExecuted(self, msg_wheels_cmd):
         self.wheels_cmd_executed = msg_wheels_cmd
+
+
+    def updateActuatorParameters(self, msg_actuator_params):
+        self.actuator_params = msg_actuator_params
+        rospy.loginfo("actuator_params updated to: ")
+        rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
+        rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
+        rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
+        rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
+        rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
+        rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
+        msg_actuator_params_received = BoolStamped()
+        msg_actuator_params_received.data = True
+        self.pub_actuator_params_received.publish(msg_actuator_params_received)
 
 
     def custom_shutdown(self):
@@ -270,6 +293,13 @@ class lane_controller(object):
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+
+        rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
+        rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
+        rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
+        rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
+        rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
+        rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
