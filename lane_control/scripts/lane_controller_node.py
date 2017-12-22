@@ -66,6 +66,7 @@ class lane_controller(object):
         self.actuator_params.radius = 0.0
         self.actuator_params.k = 0.0
         self.actuator_params.limit = 0.0
+        self.omega_max = 999.0     # TODO: change!
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
@@ -254,13 +255,23 @@ class lane_controller(object):
         if self.turn_off_feedforward_part:
             omega_feedforward = 0
 
-        car_control_msg.omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
+        omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         # rospy.loginfo("P-Control: " + str(car_control_msg.omega))
         # rospy.loginfo("Adjustment: " + str(-self.k_Id * self.cross_track_integral))
-        car_control_msg.omega -= self.k_Id * self.cross_track_integral
-        car_control_msg.omega -= self.k_Iphi * self.heading_integral
-        car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
+        omega -= self.k_Id * self.cross_track_integral
+        omega -= self.k_Iphi * self.heading_integral
+        omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
+        ### omega_max_actuator_params = .....  # TODO: complete (based on parameters from self.actuator_params)
+        ### omega_max_radius_limitation = .....  # TODO: complete (based on radius limitation)
+        ### self.omega_max = min(omega_max_actuator_params, omega_max_radius_limitation)
+
+        if omega > self.omega_max:
+            car_control_msg.omega = self.omega_max
+            self.cross_track_integral -= self.cross_track_err * dt
+            self.heading_integral -= self.heading_err * dt
+        else:
+            car_control_msg.omega = omega
 
         # if not self.incurvature:
         #     if self.heading_err > 0.3:
@@ -293,13 +304,12 @@ class lane_controller(object):
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
-
-        rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
-        rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
-        rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
-        rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
-        rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
-        rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
+        # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
+        # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
+        # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
+        # rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
+        # rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
+        # rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
