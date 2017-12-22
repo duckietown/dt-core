@@ -26,7 +26,7 @@ class LEDDetectorNode(object):
         self.bridge = CvBridge()
 
         # Parameters
-        self.capture_time = 0.97 # capture time
+        self.capture_time = 0.5 # capture time
         self.DTOL = 25
 
         # Setup SimpleBlobDetector parameters
