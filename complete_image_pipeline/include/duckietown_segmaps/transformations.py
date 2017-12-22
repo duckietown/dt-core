@@ -1,11 +1,12 @@
-import numpy as np
 import duckietown_utils as dtu
-from duckietown_segmaps.maps import SegmentsMap, SegMapPoint
 from geometry.poses import SE3_from_SE2
+import numpy as np
+
+from .maps import SegmentsMap, SegMapPoint
+
 
 __all__ = [
-    'TransformationsInfo',
-    'transform_coordinates',
+    'TransformationsInfo', 
 ]
 
 class TransformationsInfo(object):
@@ -42,10 +43,10 @@ class TransformationsInfo(object):
         return res
     
     def transform_map_to_frame(self, smap, frame2):
-        return transform_map_to_frame(self, smap, frame2)
+        return _transform_map_to_frame(self, smap, frame2)
 
 @dtu.contract(smap=SegmentsMap)
-def transform_map_to_frame(tinfo, smap, frame2):
+def _transform_map_to_frame(tinfo, smap, frame2):
     
     def transform_point(p):
         frame1 = p.id_frame

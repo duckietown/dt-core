@@ -1,23 +1,22 @@
-from duckietown_segmaps.maps import SegmentsMap, FRAME_TILE, SegMapPoint,\
-    SegMapFace, SegMapSegment
-import duckietown_utils as dtu
-from duckietown_segmaps.map_localization_template import MapLocalizationTemplate
-import numpy as np
-from duckietown_utils.coords import DATATYPE_XYTHETA
 from numpy.testing.utils import assert_almost_equal
 
-# meters from inches
-m_from_in = lambda x: x * 0.0254 
+import duckietown_utils as dtu
+import numpy as np
 
-class TemplateStraightLane(MapLocalizationTemplate):
+from .map_localization_template import LocalizationTemplate
+from .maps import SegmentsMap, FRAME_TILE, SegMapPoint, SegMapFace, SegMapSegment
+
+
+class TemplateStraightLane(LocalizationTemplate):
     
     DATATYPE_COORDS = np.dtype([('phi', 'float64'), ('d', 'float64')])
     
-    def __init__(self, tile_size=m_from_in(12*2), 
-                       width_yellow=m_from_in(1), 
-                       width_white=m_from_in(2)):
+    def __init__(self, tile_size, 
+                       width_yellow, 
+                       width_white,
+                       tile_spacing):
         
-        self.map = get_map_straight_lane(tile_size, width_yellow, width_white)
+        self.map = get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing)
         self.lane_width = (tile_size - 2*width_white - width_yellow) / 2
     
     @dtu.contract(returns=SegmentsMap)
@@ -27,27 +26,37 @@ class TemplateStraightLane(MapLocalizationTemplate):
     def get_coords_datatype(self):
         return TemplateStraightLane.DATATYPE_COORDS
     
-#     @dtu.contract(returns='array[2]', xytheta='array[3]')
+    @dtu.contract(returns='array', xytheta='array')
     def coords_from_xytheta(self, xytheta):
+        """ Returns an array with datatype DATATYPE_COORDS """
         res = np.zeros((), dtype=self.dt)
         # x is unused (projection) 
         res['phi'] = xytheta['theta']
         res['d'] = xytheta['y'] + self.lane_width / 2
         return res 
         
-    # @dtu.contract(returns='array[3]', res='array[2]')
+    @dtu.contract(returns='array', res='array')
     def xytheta_from_coords(self, res):
-        r = np.zeros((), dtype=DATATYPE_XYTHETA)
+        """ Returns an array with datatype dtu.DATATYPE_XYTHETA """
+        r = np.zeros((), dtype=dtu.DATATYPE_XYTHETA)
         r['x'] = 0
         r['y'] = -self.lane_width / 2 + res['d']
         r['theta'] = res['phi']
-        return r  
-
+        return r
+    
 
 @dtu.contract(returns=SegmentsMap)
-def get_map_straight_lane(tile_size, width_yellow, width_white):
+def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
     # from inner yellow to inner white
-    L = (tile_size - 2*width_white - width_yellow) / 2
+    lane_width = L = (tile_size - 2*width_white - width_yellow) / 2
+    msg = """
+        width_yellow: %s   
+        width_white: %s
+        tile "size": %s  (outer white to outer white) 
+        lane width: %s  (inner yellow to inner white)
+        tile spacing: %s (distance between the center of two nearby tiles)
+    """ % (width_yellow, width_white, tile_size, lane_width, tile_spacing)
+    dtu.logger.info(msg)
     y1 = + width_yellow/2 + L + width_white
     y2 = + width_yellow/2 + L
     y3 = + width_yellow/2
@@ -96,7 +105,7 @@ def get_map_straight_lane(tile_size, width_yellow, width_white):
     
     
     add_tile(0,0)
-    add_tile(tile_size,0)
+    add_tile(tile_spacing,0)
     
     gap_len = 0.015
     dash_len = 0.04
@@ -122,13 +131,9 @@ def get_map_straight_lane(tile_size, width_yellow, width_white):
     segments.append(SegMapSegment(color=WHITE, points=['p5','q5']))
     segments.append(SegMapSegment(color=WHITE, points=['p6','q6']))
     
-    
-    
     faces.append(SegMapFace(color=WHITE, points=['p1', 'q1', 'q2', 'p2']))
     faces.append(SegMapFace(color=WHITE, points=['p5', 'q5', 'q6', 'p6']))
 #     faces.append(SegMapFace(color=YELLOW, points=['p3', 'q3', 'q4', 'p4']))
-    
-
 
     data = dict(points=points, segments=segments, faces=faces)
 

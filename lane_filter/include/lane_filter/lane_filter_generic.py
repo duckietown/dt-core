@@ -12,31 +12,33 @@ from .visualization import plot_phi_d_diagram_bgr
 
 
 __all__ = [
-    'LaneFilterHistogram',
+    'LaneFilterHistogramGeneric',
 ]
 
-class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
+class LaneFilterHistogramGeneric(dtu.Configurable, LaneFilterInterface):
     """ """
 
     def __init__(self, configuration):
         param_names = [
-            'mean_d_0',
-            'mean_phi_0',
-            'sigma_d_0',
-            'sigma_phi_0',
-            'delta_d',
-            'delta_phi',
-            'd_max',
-            'd_min',
-            'phi_max',
-            'phi_min',
-            'cov_v',
-            'linewidth_white',
-            'linewidth_yellow',
-            'lanewidth',
-            'min_max',
-            'sigma_d_mask',
-            'sigma_phi_mask',
+#             'mean_d_0',
+#             'mean_phi_0',
+#             'sigma_d_0',
+#             'sigma_phi_0',
+#             'delta_d',
+#             'delta_phi',
+#             'd_max',
+#             'd_min',
+#             'phi_max',
+#             'phi_min',
+#             'cov_v',
+#             'linewidth_white',
+#             'linewidth_yellow',
+#             'lanewidth',
+#             'min_max',
+#             'sigma_d_mask',
+#             'sigma_phi_mask',
+#             
+            'localization_template',
         ]
 
         dtu.Configurable.__init__(self, param_names, configuration)

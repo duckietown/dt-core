@@ -1,0 +1,8 @@
+description: >
+    The official 2017 localization template for straight line. 
+constructor: duckietown_segmaps.TemplateStraightLane
+parameters: 
+    tile_size: 0.558 # outer white to outer white
+    tile_spacing: 0.6096 
+    width_yellow: 0.0254 # 1 in
+    width_white: 0.0508 # 2 inches

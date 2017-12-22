@@ -4,10 +4,8 @@ import cv2
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.draw_map_on_images import plot_map
-from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE,\
-    plot_map_and_segments
-from duckietown_segmaps.template_lane_straight import \
-    TemplateStraightLane
+from duckietown_segmaps.map_localization_template import FAMILY_LOC_TEMPLATES
+from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE, plot_map_and_segments
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from duckietown_utils.coords import SE2_from_xyth
@@ -102,28 +100,29 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     lane_filter.update(sg.segments)
 
     res['belief'] = lane_filter.get_plot_phi_d()  
+    easy_algo_db = get_easy_algo_db()
     
-    lm = TemplateStraightLane()
+    name = 'DT17_straight'
+    localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, name)
     
     gpg = gp.gpc # XXX
     
     est = lane_filter.get_estimate()
     
     # Coordinates in TILE frame
-    xytheta_tile = lm.xytheta_from_coords(est)
+    xytheta_tile = localization_template.xytheta_from_coords(est)
 
-#     camera_xy = np.array([0, -lane_filter.lanewidth/2+est['d'], 0])
-#     camera_theta = est['phi'] 
-#     
     tinfo = TransformationsInfo()
     g = SE2_from_xyth(xytheta_tile)
     tinfo.add_transformation(frame1=FRAME_TILE, frame2=FRAME_AXLE, g=g) 
         
-    sm_orig = lm.get_map()
+    sm_orig = localization_template.get_map()
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     
+    dtu.logger.debug('plot_map_and_segments')
     res['world'] = plot_map_and_segments(sm_orig, tinfo, sg.segments, dpi=120)
     
+    dtu.logger.debug('plot_map')
     res['reprojected'] = plot_map(rectified, sm_axle, gpg)
     
     

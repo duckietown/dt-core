@@ -2,8 +2,8 @@ from collections import namedtuple
 
 import duckietown_utils as dtu
 from duckietown_utils.exception_utils import check_isinstance
-import numpy as np
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+import numpy as np
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -99,6 +99,7 @@ def _plot_detected_segments(tinfo, segments, pylab):
         w1 = tinfo.transform_point(f(p1), frame1=FRAME_AXLE, frame2=FRAME_TILE)
         w2 = tinfo.transform_point(f(p2), frame1=FRAME_AXLE, frame2=FRAME_TILE)
         
+#         dtu.logger.debug('Plotting w1 %s w2 %s' % (w1, w2))
         pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
 
         
@@ -128,7 +129,7 @@ def _plot_map_segments(sm, pylab):
         # If we are both in FRAME_AXLE
         if ( not (sm.points[p1].id_frame == FRAME_TILE) and 
              (sm.points[p2].id_frame == FRAME_TILE)):
-            msg = "Cannot deal with points not in frame FRAME_AXLE"
+            msg = "Cannot deal with points not in frame FRAME_TILE"
             raise NotImplementedError(msg)
     
         w1 = sm.points[p1].coords
