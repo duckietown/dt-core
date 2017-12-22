@@ -12,12 +12,10 @@ class lane_controller(object):
         self.last_ms = None
         self.pub_counter = 0
 
-        # Setup parameters
-        self.setGains()
-
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
+        self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
@@ -25,6 +23,10 @@ class lane_controller(object):
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
+
+        # Setup parameters
+        self.setGains()
+
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -68,6 +70,8 @@ class lane_controller(object):
         self.actuator_params.limit = 0.0
         self.omega_max = 999.0     # TODO: change!
 
+        self.use_radius_limit = True
+
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         # FIXME: AC aug'17: are these inverted?
@@ -82,6 +86,11 @@ class lane_controller(object):
         self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
+        self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
+
+        self.msg_radius_limit = BoolStamped()
+        self.msg_radius_limit.data = self.use_radius_limit
+        self.pub_radius_limit.publish(self.msg_radius_limit)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -90,6 +99,7 @@ class lane_controller(object):
         d_thres = rospy.get_param("~d_thres")
         theta_thres = rospy.get_param("~theta_thres")
         d_offset = rospy.get_param("~d_offset")
+        use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
         self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
@@ -106,8 +116,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -122,6 +132,11 @@ class lane_controller(object):
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
             self.turn_off_feedforward_part = turn_off_feedforward_part
+
+            if use_radius_limit != self.use_radius_limit:
+                self.use_radius_limit = use_radius_limit
+                self.msg_radius_limit.data = self.use_radius_limit
+                self.pub_radius_limit.publish(self.msg_radius_limit)
 
             # if incurvature != self.incurvature and incurvature:
             #     self.time_start_curve = rospy.Time.now().secs
@@ -177,7 +192,7 @@ class lane_controller(object):
         self.pub_car_cmd.publish(car_cmd_msg)
         #self.pub_wheels_cmd.publish(wheels_cmd_msg)
 
-##JULIEN
+    ##JULIEN
     #def cbCurve(self, msg):
     #    curvetype = msg.curvetype
     #    if curvetype == LaneCurvature.LEFT:
