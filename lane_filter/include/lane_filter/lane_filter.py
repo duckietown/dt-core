@@ -134,7 +134,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
         return measurement_likelihood
 
-    def generate_measurement_likelihood(self, segments):
+    def generate_measurement_likelihood(self, segment_list):
+        segments = segment_list.segments
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
         for segment in segments:

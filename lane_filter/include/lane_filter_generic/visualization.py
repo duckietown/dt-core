@@ -5,14 +5,14 @@ import numpy as np
 import numpy.ma as ma
 
 
-def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
+def plot_phi_d_diagram_bgr_generic(lane_filter, phi, d, dpi=120):
     """ Returns a BGR image """  
     a = CreateImageFromPylab(dpi=dpi)
     with a as pylab:
         f_d = lambda x: 100 * x
         f_phi = np.rad2deg
         # Where are the lanes?
-        lane_width = lane_filter.lanewidth
+
         d_max = lane_filter.d_max
         d_min = lane_filter.d_min
         phi_max = lane_filter.phi_max
@@ -48,14 +48,14 @@ def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
                    markeredgewidth=0,
                    markerfacecolor='magenta')
         
-        W = f_d(lane_width/2)
-        width_white = f_d(lane_filter.linewidth_white)
-        width_yellow = f_d(lane_filter.linewidth_yellow)
-        pylab.plot([-W,  -W], [f_phi(phi_min), f_phi(phi_max)], 'k-')
-        pylab.plot([-W-width_white,  -W-width_white], [f_phi(phi_min), f_phi(phi_max)], 'k-')
+#         W = f_d(lane_width/2)
+#         width_white = f_d(lane_filter.linewidth_white)
+#         width_yellow = f_d(lane_filter.linewidth_yellow)
+#         pylab.plot([-W,  -W], [f_phi(phi_min), f_phi(phi_max)], 'k-')
+#         pylab.plot([-W-width_white,  -W-width_white], [f_phi(phi_min), f_phi(phi_max)], 'k-')
         pylab.plot([0, 0], [f_phi(phi_min), f_phi(phi_max)], 'k--')
-        pylab.plot([+W,  +W], [f_phi(phi_min), f_phi(phi_max)], 'y--')
-        pylab.plot([+W+width_yellow,  +W+width_yellow], [f_phi(phi_min), f_phi(phi_max)], 'y--')
+#         pylab.plot([+W,  +W], [f_phi(phi_min), f_phi(phi_max)], 'y--')
+#         pylab.plot([+W+width_yellow,  +W+width_yellow], [f_phi(phi_min), f_phi(phi_max)], 'y--')
         s = ''
         s += "status = %s" % lane_filter.get_status()
         s += "\nphi = %.1f deg" % f_phi(phi)
@@ -68,9 +68,9 @@ def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
         y = f_phi(phi_max) - 10
         args = dict( rotation=-90, color='white')
         pylab.annotate("in middle of right lane", xy=(0,y), **args)
-        pylab.annotate("on right white tape", xy=(-W,y), **args)
-        pylab.annotate("on left yellow tape", xy=(+W,y), **args)
-        pylab.annotate("in other lane", xy=(+W*1.3,y), **args)
+#         pylab.annotate("on right white tape", xy=(-W,y), **args)
+#         pylab.annotate("on left yellow tape", xy=(+W,y), **args)
+#         pylab.annotate("in other lane", xy=(+W*1.3,y), **args)
         
         pylab.axis([f_d(d_min), f_d(d_max), f_phi(phi_min), f_phi(phi_max)])
         pylab.ylabel('phi: orientation (deg); cell = %.1f deg' % f_phi(delta_phi))

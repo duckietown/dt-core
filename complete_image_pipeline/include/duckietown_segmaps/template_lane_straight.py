@@ -5,6 +5,7 @@ import numpy as np
 
 from .map_localization_template import LocalizationTemplate
 from .maps import SegmentsMap, FRAME_TILE, SegMapPoint, SegMapFace, SegMapSegment
+import warnings
 
 
 class TemplateStraightLane(LocalizationTemplate):
@@ -18,21 +19,23 @@ class TemplateStraightLane(LocalizationTemplate):
         
         self.map = get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing)
         self.lane_width = (tile_size - 2*width_white - width_yellow) / 2
-    
+        self.dt = TemplateStraightLane.DATATYPE_COORDS
+        self.offset = width_yellow/2 + self.lane_width/2
+        
     @dtu.contract(returns=SegmentsMap)
     def get_map(self):
         return self.map
     
     def get_coords_datatype(self):
-        return TemplateStraightLane.DATATYPE_COORDS
+        return self.dt 
     
     @dtu.contract(returns='array', xytheta='array')
     def coords_from_xytheta(self, xytheta):
         """ Returns an array with datatype DATATYPE_COORDS """
         res = np.zeros((), dtype=self.dt)
         # x is unused (projection) 
-        res['phi'] = xytheta['theta']
-        res['d'] = xytheta['y'] + self.lane_width / 2
+        res['phi'] = dtu.norm_angle(xytheta['theta'])
+        res['d'] = xytheta['y'] + self.offset
         return res 
         
     @dtu.contract(returns='array', res='array')
@@ -40,8 +43,8 @@ class TemplateStraightLane(LocalizationTemplate):
         """ Returns an array with datatype dtu.DATATYPE_XYTHETA """
         r = np.zeros((), dtype=dtu.DATATYPE_XYTHETA)
         r['x'] = 0
-        r['y'] = -self.lane_width / 2 + res['d']
-        r['theta'] = res['phi']
+        r['y'] = res['d'] - self.offset
+        r['theta'] = dtu.norm_angle(res['phi'])
         return r
     
 
@@ -62,9 +65,11 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
     y3 = + width_yellow/2
     y4 = - width_yellow/2
     y5 = - width_yellow/2 - L
-    y6 = - width_yellow/2 - L - width_white
+    y6 = - width_yellow/2 - L - width_white  
     
     assert_almost_equal(width_white + L + width_yellow + L + width_white, tile_size) 
+    
+    tile_inter = (tile_spacing - tile_size)/2
     
     # horizon = 2 cells
     num_cells_horizon  = 1
@@ -92,20 +97,27 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
     points['q6'] = SegMapPoint(id_frame=FRAME, coords=[D, y6, 0])
     
     # now the tile itself
-    def add_tile(cx, cy):
+    def add_quad(cx, cy, L, M, color):
         s = len(points)
         pre = 't%s_' % s
-        A = tile_size / 2
-        points[pre+'t0'] = SegMapPoint(id_frame=FRAME, coords=[-A+cx, -A+cy, 0])
-        points[pre+'t1'] = SegMapPoint(id_frame=FRAME, coords=[-A+cx, +A+cy, 0])
-        points[pre+'t2'] = SegMapPoint(id_frame=FRAME, coords=[+A+cx, +A+cy, 0])
-        points[pre+'t3'] = SegMapPoint(id_frame=FRAME, coords=[+A+cx, -A+cy, 0])
-        faces.append(SegMapFace(color='black', 
+        A = L / 2
+        B = M / 2
+        points[pre+'t0'] = SegMapPoint(id_frame=FRAME, coords=[-A+cx, -B+cy, 0])
+        points[pre+'t1'] = SegMapPoint(id_frame=FRAME, coords=[-A+cx, +B+cy, 0])
+        points[pre+'t2'] = SegMapPoint(id_frame=FRAME, coords=[+A+cx, +B+cy, 0])
+        points[pre+'t3'] = SegMapPoint(id_frame=FRAME, coords=[+A+cx, -B+cy, 0])
+        faces.append(SegMapFace(color=color, 
                                 points=[pre+'t0',pre+'t1',pre+'t2',pre+'t3']))
+    def add_tile(tx, ty):
+        L = tile_size + tile_inter*2
+        add_quad(tx, ty, L, L, 'black')
+        add_quad(tx, ty+tile_size/2, L, L/3, 'black')
+        add_quad(tx, ty-tile_size/2, L, L/3, 'black')
+#         add_quad(tx, ty, tile_size, 'black')
     
+    add_tile(0,0) 
+    add_tile(tile_spacing,0) 
     
-    add_tile(0,0)
-    add_tile(tile_spacing,0)
     
     gap_len = 0.015
     dash_len = 0.04
@@ -116,7 +128,7 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
         points[pre+'t1'] = SegMapPoint(id_frame=FRAME, coords=[x, y4, 0])
         points[pre+'t2'] = SegMapPoint(id_frame=FRAME, coords=[x+dash_len, y4, 0])
         points[pre+'t3'] = SegMapPoint(id_frame=FRAME, coords=[x+dash_len, y3, 0])
-        faces.append(SegMapFace(color='yellow', 
+        faces.append(SegMapFace(color=YELLOW, 
                                 points=[pre+'t0',pre+'t1',pre+'t2',pre+'t3']))
     
     ngaps = (tile_size * 2) / (gap_len + dash_len) 
@@ -124,16 +136,19 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
         x = i * (gap_len + dash_len) - tile_size/2
         add_dash(x)
     
-    segments.append(SegMapSegment(color=WHITE, points=['p1','q1']))
-    segments.append(SegMapSegment(color=WHITE, points=['p2','q2']))
-    segments.append(SegMapSegment(color=YELLOW, points=['p3','q3']))
-    segments.append(SegMapSegment(color=YELLOW, points=['p4','q4']))
-    segments.append(SegMapSegment(color=WHITE, points=['p5','q5']))
-    segments.append(SegMapSegment(color=WHITE, points=['p6','q6']))
+    from duckietown_msgs.msg import Segment
+    segment = Segment()
+    warnings.warn('tmp test')
+    
+    segments.append(SegMapSegment(color=segment.WHITE, points=['q1','p1']))
+    segments.append(SegMapSegment(color=segment.WHITE, points=['p2','q2']))
+    segments.append(SegMapSegment(color=segment.YELLOW, points=['q3','p3']))
+    segments.append(SegMapSegment(color=segment.YELLOW, points=['p4','q4']))
+    segments.append(SegMapSegment(color=segment.WHITE, points=['q5','p5']))
+    segments.append(SegMapSegment(color=segment.WHITE, points=['p6','q6']))
     
     faces.append(SegMapFace(color=WHITE, points=['p1', 'q1', 'q2', 'p2']))
     faces.append(SegMapFace(color=WHITE, points=['p5', 'q5', 'q6', 'p6']))
-#     faces.append(SegMapFace(color=YELLOW, points=['p3', 'q3', 'q4', 'p4']))
 
     data = dict(points=points, segments=segments, faces=faces)
 

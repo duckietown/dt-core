@@ -4,6 +4,7 @@ import duckietown_utils as dtu
 from duckietown_utils.exception_utils import check_isinstance
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 import numpy as np
+from numpy.testing.utils import assert_almost_equal
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -68,7 +69,7 @@ class SegmentsMap(object):
 
 
 @dtu.contract(sm=SegmentsMap)
-def plot_map_and_segments(sm, tinfo, segments, dpi=120):
+def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
     """ Returns a BGR image """  
     a = CreateImageFromPylab(dpi=dpi)
 
@@ -85,8 +86,23 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120):
         pylab.plot(w1[0], w1[1], 'mo', markersize=6)
         
         pylab.axis('equal')
+
+        if ground_truth is not None:
+            x = ground_truth['x']
+            y = ground_truth['y']
+            theta = ground_truth['theta']
+            x1 = x + L * np.cos(theta)
+            y1 = y + L * np.sin(theta)
+            pylab.plot(x, y, 'co', markersize=10)
+            pylab.plot([x, x1], [y, y1], 'c-', markersize=10)
+#             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)
+            print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
+            
+        
         
     return a.get_bgr()
+
+
 
 def _plot_detected_segments(tinfo, segments, pylab):
     
@@ -132,9 +148,42 @@ def _plot_map_segments(sm, pylab):
             msg = "Cannot deal with points not in frame FRAME_TILE"
             raise NotImplementedError(msg)
     
-        w1 = sm.points[p1].coords
-        w2 = sm.points[p2].coords
+        w1 = np.array(sm.points[p1].coords)
+        w2 = np.array(sm.points[p2].coords)
         
-        color = 'k-'
+        color = 'c-'
         pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], color)
+    
+        n  = get_normal_outward_for_segment(w1, w2)
+        center = 0.51*w1 + 0.49*w2
+        L = 0.05
+        
+        center2 = center + n * L
+        
+        pylab.plot([center[0], center2[0]], [center[1], center2[1]], color)
+        
+        
+def get_normal_outward_for_segment(w1, w2):
+    """ Outward points towards black """
+    d = w2 - w1
+    #   w2
+    #   |  --->
+    #   w1
+    dn = np.linalg.norm(d)
+    d = d / dn
+    
+    z = np.array([0,0,1])
+    c = np.cross(d, z)
+    assert_almost_equal(np.linalg.norm(c), 1.0)
+    return c
+
+# TODO: move away
+assert_almost_equal(np.array([0,-1,0]), 
+                    get_normal_outward_for_segment(np.array([0,0,0]), np.array([2,0,0])))
+
+    
+    
+    
+    
+    
     

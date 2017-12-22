@@ -25,7 +25,7 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         g = "Pipeline"
         params.add_string('line_detector', default='baseline', 
                           help="Which line detector to use", group=g)
-        params.add_string('image_prep', default='prep_200_100', 
+        params.add_string('image_prep', default='baseline', 
                           help="Which image prep to use", group=g)
         params.add_string('lane_filter', default='baseline',
                           help="Which lane filter to use", group=g)

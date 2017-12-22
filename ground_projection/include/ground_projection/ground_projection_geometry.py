@@ -6,6 +6,7 @@ from geometry_msgs.msg import Point
 from image_geometry import PinholeCameraModel
 import numpy as np
 from sensor_msgs.msg import CameraInfo
+import itertools
 
 
 __all__ = [
@@ -52,13 +53,13 @@ class GroundProjectionGeometry(object):
         ch = self.ci.height
         pixel.u = cw * vec.x
         pixel.v = ch * vec.y
-        # XXX
-        if False:
-            # Nope, not this. Maybe set to NaN or throw an exception 
-            if (pixel.u < 0): pixel.u = 0
-            if (pixel.u > cw -1): pixel.u = cw - 1
-            if (pixel.v < 0): pixel.v = 0
-            if (pixel.v > ch - 1): pixel.v = 0
+        
+#         if False:
+#             # Nope, not this. Maybe set to NaN or throw an exception 
+#             if (pixel.u < 0): pixel.u = 0
+#             if (pixel.u > cw -1): pixel.u = cw - 1
+#             if (pixel.v < 0): pixel.v = 0
+#             if (pixel.v > ch - 1): pixel.v = 0
         return pixel
 
     @dtu.contract(pixel=Pixel, returns=Vector2D)
@@ -144,3 +145,84 @@ class GroundProjectionGeometry(object):
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, cv2.INTER_CUBIC, 
                         cv_image_rectified)
         return res
+    
+    def distort(self, rectified):
+        if not self._rectify_inited:
+            self._init_rectify_maps()
+        
+        rmapx, rmapy = invert_map(self.mapx, self.mapy)
+        
+        distorted = np.zeros(np.shape(rectified))
+        res = cv2.remap(rectified, rmapx, rmapy, cv2.INTER_NEAREST, distorted)
+        return res
+
+def invert_map(mapx, mapy):
+    H, W = mapx.shape[0:2]
+    rmapx = np.empty_like(mapx)
+    rmapx.fill(np.nan)
+    rmapy = np.empty_like(mapx)
+    rmapy.fill(np.nan)
+    
+    for y, x in itertools.product(range(H), range(W)):
+        tx = mapx[y,x]
+        ty = mapy[y,x]
+        
+        tx = int(np.round(tx))
+        ty = int(np.round(ty))
+        
+        if (0<=tx<W) and (0<=ty<=H):
+            rmapx[ty,tx] = x
+            rmapy[ty,tx] = y
+    # fill holes
+    fill_holes(rmapx, rmapy)
+    return rmapx, rmapy
+    
+def fill_holes(rmapx, rmapy):
+    H, W = rmapx.shape[0:2]
+    
+    nholes = 0
+    
+    R = 2
+    F = R * 2 + 1
+    def norm(x):
+        return np.hypot(x[0], x[1])
+    deltas0 = [ (i-R-1,j-R-1) for i,j in itertools.product(range(F), range(F))]
+    deltas0 = [x for x in deltas0 if norm(x)<=R]
+    deltas0.sort(key=norm)
+    
+
+    def get_deltas():
+#         deltas = list(deltas0)
+#         
+        return deltas0
+    
+    holes = set()
+    
+    for i, j in itertools.product(range(H), range(W)):
+        if np.isnan(rmapx[i,j]):
+            holes.add((i,j))
+            
+    while holes:
+        nholes =len(holes)
+        nholes_filled = 0 
+        
+        for i,j in list(holes):
+            # there is nan
+            nholes += 1
+            for di,dj in get_deltas():
+                u = i + di
+                v = j + dj
+                if (0<=u<H) and (0<=v<W):
+                    if not np.isnan(rmapx[u,v]):
+                        rmapx[i,j] = rmapx[u,v]
+                        rmapy[i,j] = rmapy[u,v]
+                        nholes_filled += 1
+                        holes.remove((i,j)) 
+                        break
+                
+#         print('holes %s filled: %s' % (nholes, nholes_filled))
+        if nholes_filled == 0:
+            break
+#     print('holes: %s' % holes)
+#     print('deltas: %s' % get_deltas())
+        

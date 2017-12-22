@@ -12,7 +12,6 @@ def fuzzy_segment_list_image_space(segment_list, n, intensity):
     
     for segment in segment_list.segments:
         for _ in range(n): 
-            
             s2 = fuzzy_segment(segment, intensity) 
             S2.segments.append(s2)
     return S2

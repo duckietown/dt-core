@@ -22,9 +22,8 @@ class GroundProjection(object):
         camera_info = get_camera_info_for_robot(robot_name)
         homography = get_homography_for_robot(robot_name)
         self.gpc = GroundProjectionGeometry(camera_info, homography)
-        
-        self.board_ = load_board_info()
 
+        self.board_ = load_board_info()
     
     def get_camera_info(self):
         return self.gpc.ci
@@ -106,20 +105,26 @@ class GroundProjection(object):
         dtu.yaml_write_to_file(ob,filename)
 
     @dtu.contract(sl=SegmentList, returns=SegmentList)
-    def find_ground_coordinates(self, sl):
-        """ Creates a new segment list with the ground coordinates set """
+    def find_ground_coordinates(self, sl, skip_not_on_ground=True):
+        """ Creates a new segment list with the ground coordinates set.
         
+         """
+        cutoff = 0.01
         sl2 = SegmentList()
         sl2.header = sl.header
         
         # Get ground truth of segmentList
         for s1 in sl.segments:
+            
             s2 = Segment()
             s2.points[0] = self.vector2ground(s1.pixels_normalized[0])
             s2.points[1] = self.vector2ground(s1.pixels_normalized[1])
             s2.pixels_normalized[0] = s1.pixels_normalized[0]
             s2.pixels_normalized[1] = s1.pixels_normalized[1] 
             s2.color = s1.color
+            if skip_not_on_ground:
+                if s2.points[0].x < cutoff or s2.points[1].x < cutoff:
+                    continue
             # TODO what about normal and points
             sl2.segments.append(s2)
         return sl2

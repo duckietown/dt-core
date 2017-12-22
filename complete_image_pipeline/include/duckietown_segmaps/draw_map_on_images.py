@@ -6,45 +6,145 @@ import duckietown_utils as dtu
 from geometry_msgs.msg import Point
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 import numpy as np
+from line_detector.visual_state_fancy_display import BGR_YELLOW, BGR_WHITE,\
+    BGR_BLACK, BGR_BLUE
+ 
+def rotate(l, n):
+    return l[n:] + l[:n]
 
-# 
-# @dtu.contract(xyz='array[3]', cam_xyz='array[3]', cam_theta='float', returns='array[3]')
-# def camera_from_world(xyz, cam_xyz, cam_theta):
-#     """ Converts an xyz point in world coordinates, to camera coordinates """ 
-#     C = np.cos(-cam_theta)
-#     S = np.sin(-cam_theta)
-#     R = np.array([[C,-S,0,-cam_xyz[0]],
-#          [S,+C,0,-cam_xyz[1]],
-#          [0, 0,1,-cam_xyz[2]],
-#          [0,0,0,1]])
-#     a = np.array([xyz[0], xyz[1], xyz[2], 1])
-# #     dtu.logger.debug(R)
-# #     dtu.logger.debug(a)
-#     r = np.dot(R, a)
-#     return r[0:3]
-#          
+@dtu.contract(coords0='list(seq)', x_frustum='float,>0')
+def get_points_rect_coords(coords0, x_frustum):
+    """
+        coords0 : list
+    """
+    n = len(coords0)
+    points = range(n)
+    
+    """ Returns a list of world coordinates """
+    def is_behind(i):
+        w = coords0[i]
+        behind = w[0] < x_frustum
+        return behind
+    
+    # first check that not all are behind
+    b = [is_behind(_) for _ in range(n)]
+    
+    if all(b):
+        return []
+    
+    # there is at least one not behind
+    while is_behind(points[0]):
+        points = rotate(points, 1)
+    
+    assert not is_behind(points[0])
+    # do the first one
+    points.append(points[0])
+    # now walk each point
+    coords = []
+    for i, id_point in enumerate(points):
+        w = coords0[id_point]
+        if i == 0:
+            # assume the first one is not behind
+            assert not is_behind(id_point)
+#             print('%d: put first of course' % i)
+            coords.append(w)
+        else:
+            previous = coords0[points[i-1]]
+
+            if is_behind(id_point):
+                if is_behind(points[i-1]):
+                    # both outside just ignore
+#                     print('%d: this and previous outside: add 1' % i)
+                    pass
+                else:
+                    # this outside, previous was not
+                    w_cut, _,  = clip_to_frustum(w, previous, x_frustum, noswap=True)
+                    coords.append(w_cut)
+                    
+#                     print('%d: this outside, previous was not: add 1' % i)
+            else: # not behind
+                if is_behind(points[i-1]):
+                    # previous outside, this not
+                    previous_cut, w = clip_to_frustum(previous, w, x_frustum, noswap=True)
+                    coords.append(previous_cut)
+                    coords.append(w) 
+#                     print('%d: previous outside, this not: add 2' % i)
+                else:
+                    # previous inside, this also: normal
+#                     print('%d: previous and this inside: add 1' % i)
+                    coords.append(w)
+    return coords
+
+def bgr_color_from_string(s):
+    d = {
+        'yellow': BGR_YELLOW,
+        'white': BGR_WHITE,
+        'black': BGR_BLACK,
+        'blue': BGR_BLUE,
+    }
+    return d[s]
+
+
+def paint_polygon_world(base, coords, gpg, color, x_frustum):
+    coords_inside = get_points_rect_coords(coords, x_frustum=x_frustum)
+    if not coords_inside:
+        # all outside
+        return
+    
+    # pixel coords
+    def pixel_from_world(c):
+        p = gpg.ground2pixel(Point(c[0],c[1],c[2]))
+        return (int(p.u), int(p.v))
+    
+    cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
+    
+    cv2.fillPoly(base, [cv_points], color)
+    
+def plot_ground_sky(base, gpg, color_ground, color_sky):
+    x = +100
+    p = gpg.ground2pixel(Point(x,0,0))
+    v = int(p.v)
+    for i in range(3):
+        base[v:, :, i] = color_ground[i]
+    for i in range(3):
+        base[:v, :, i] = color_sky[i]
     
 @dtu.contract(sm=SegmentsMap, #camera_xyz='array[3]', camera_theta='float', 
               gpg=GroundProjectionGeometry)
-def plot_map(base, sm, gpg): #, camera_xyz, camera_theta):
+def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True): #, camera_xyz, camera_theta):
     """
         base: already rectified image 
         
         sm= SegmentsMap in frame FRAME_AXLE
     """
-    image = base.copy()
+    image = base0.copy()
+    x_frustum = +0.05
+    if do_ground:
+        color_ground = (30,10,22)
+        color_sky = (244, 134, 66)
+        plot_ground_sky(image, gpg, color_ground, color_sky)
+        
+    if do_faces:
+        for face in sm.faces:
+            # list of arrays with cut stuff
+            coords = [sm.points[_].coords for _ in face.points]
+            color = bgr_color_from_string(face.color)
+            paint_polygon_world(image, coords, gpg, color, x_frustum)
     
-    for segment in sm.segments:
-        p1 = segment.points[0]
-        p2 = segment.points[1]
-        
-        # If we are both in FRAME_AXLE
-        if ( (sm.points[p1].id_frame == FRAME_AXLE) and 
-             (sm.points[p2].id_frame == FRAME_AXLE)):
-        
+    if do_segments:
+        for segment in sm.segments:
+            p1 = segment.points[0]
+            p2 = segment.points[1]
+            
+            # If we are both in FRAME_AXLE
+            if ( (sm.points[p1].id_frame != FRAME_AXLE) or 
+                 (sm.points[p2].id_frame != FRAME_AXLE)):
+                msg = "Cannot deal with points not in frame FRAME_AXLE"
+                raise NotImplementedError(msg)
+            
             w1 = sm.points[p1].coords
             w2 = sm.points[p2].coords
-            x_frustum = +0.05
+            
             w1_behind = w1[0] < x_frustum
             w2_behind = w2[0] < x_frustum
             
@@ -61,7 +161,7 @@ def plot_map(base, sm, gpg): #, camera_xyz, camera_theta):
              
             uv1 = gpg.ground2pixel(Point(w1[0],w1[1],w1[2]))
             uv2 = gpg.ground2pixel(Point(w2[0],w2[1],w2[2]))
-
+    
             width = 2
     #         BGR_WHITE = (255,255,255)
             paint = BGR_BLUE = (255,0,0)
@@ -69,19 +169,15 @@ def plot_map(base, sm, gpg): #, camera_xyz, camera_theta):
             ti = lambda a,b: (int(np.round(a)), int(np.round(b)))
             
             cv2.line(image, ti(uv1.u, uv1.v), ti(uv2.u, uv2.v), paint, width)
-            
-        else:
-            msg = "Cannot deal with points not in frame FRAME_AXLE"
-            raise NotImplementedError(msg)
-
-        gpg.rectified_input = True
-
+    
     return image
     
 @dtu.contract(w1='array[w]', w2='array[3]', x_frustum='float')
-def clip_to_frustum(w1, w2, x_frustum):    
-    if w1[0] > x_frustum:
-        return clip_to_frustum(w2, w1, x_frustum)
+def clip_to_frustum(w1, w2, x_frustum, noswap=False):
+    """ Assumes that w1 is outside. Returns w1_cut, w2 """    
+    if not noswap:
+        if w1[0] > x_frustum:
+            return clip_to_frustum(w2, w1, x_frustum)
     assert w1[0] <= x_frustum
     assert w2[0] > x_frustum
     

@@ -7,9 +7,11 @@ import numpy as np
 
 class ImagePrep(object):
     
-    def __init__(self, shape, top_cutoff):
+    def __init__(self, shape, top_cutoff, fuzzy_mult=None, fuzzy_noise=None):
         self.shape = shape
         self.top_cutoff = top_cutoff
+        self.fuzzy_mult = fuzzy_mult
+        self.fuzzy_noise = fuzzy_noise
     
     def process(self, context, image_cv, line_detector, transform):
         """ Returns SegmentList """
@@ -55,11 +57,14 @@ class ImagePrep(object):
             segment_list = get_segment_list_normalized(self.top_cutoff, self.shape, white, yellow, red)
             
         # SegmentList constructor
-        return segment_list
+        segment_list2 = fuzzy_segment_list_image_space(segment_list, 
+                                                       n=self.fuzzy_mult, 
+                                                       intensity=self.fuzzy_noise)
+        
+        return segment_list2
     
-#             self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
-#                     len(yellow.lines), len(red.lines)))
-#             
+from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
+
 
 
 def get_segment_list_normalized(top_cutoff, shape, white, yellow, red):

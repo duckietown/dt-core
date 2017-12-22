@@ -1,0 +1,16 @@
+description: >
+    Some tests 
+constructor: lane_filter_generic.LaneFilterGeneric
+parameters: 
+  configuration:
+      delta_d: 0.005
+      delta_phi: 0.025
+#       delta_d: 0.01
+#       delta_phi: 0.05
+      d_max: 0.3025 # add half
+      d_min: -0.15 
+      phi_min: -1.5
+      phi_max: 1.5125
+      min_max: 0.1
+
+      localization_template: DT17_ETH_straight
