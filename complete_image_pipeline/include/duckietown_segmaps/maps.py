@@ -1,9 +1,9 @@
 from collections import namedtuple
 
-import yaml
- 
-import duckietown_utils as dtu  
+import duckietown_utils as dtu
+from duckietown_utils.exception_utils import check_isinstance
 import numpy as np
+from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -17,88 +17,123 @@ class SegmentsMap(object):
     
     @dtu.contract(points=dict, segments=list, faces=list)
     def __init__(self, points, segments, faces):
-        self.points = {}
-        for k, p in points.items():
-            self.points[k] = SegMapPoint(id_frame = p[0], coords= np.array(p[1]))
-        
-        self.segments = []
-        for s in segments:
-            S = SegMapSegment(points=s['points'], color=s['color'])
-            self.segments.append(S)
-
-        self.faces = []
-        for f in faces:
-            F = SegMapFace(points=f['points'], color=f['color'])
-            self.faces.append(F)
-        
+        self.points = points
+        self.segments = segments
+        self.faces = faces
         self.validate()
         
     def validate(self):
+        for k, p in self.points.items():
+            check_isinstance(p, SegMapPoint)
+            
         for S in self.segments:
+            check_isinstance(S, SegMapSegment)
             for p in S.points:
                 if not p in self.points:
                     msg = 'Invalid point %r' % p
                     raise ValueError(msg)
+                
         for F in self.faces:
+            check_isinstance(F, SegMapFace)
             for p in F.points:
                 if not p in self.points:
                     msg = 'Invalid point %r' % p
                     raise ValueError(msg)
-                
-# 
-#     @dtu.contract(id_point=str, gpg=GroundProjectionGeometry, returns=Pixel)
-#     def get_screen_coordinates(self, id_point, gpg):
-#         """ Returns the pixel coordinates for the original image """
-#         if not id_point in self.points:
-#             msg = 'Could not find point %r.' % id_point
-#             raise ValueError(msg)
-#         p = self.points[id_point]
-#         if p.id_frame == FRAME_AXLE:
-#             q = Point()
-#             q.x = p.coords[0]
-#             q.y = p.coords[1]
-#             q.z = p.coords[2] 
-# 
-#             pixel = gpg.ground2pixel(q)
-# 
-#             dtu.logger.debug('q = %s  pixel = %s ' % (q, pixel))
-#             
-#             return pixel
-#         else:
-#             msg = 'Unknown axis %r' % p.id_frame
-#             raise ValueError(msg)
-#         
-def lane_straight_map():
-    m = yaml.load(maps['lane_straight'])
-    return SegmentsMap(**m) 
+
+    @staticmethod
+    def from_yaml(data):
+
+        points = data['points']
+        faces = data['faces']
+        segments = data['segments']
+        
+#         if faces is None: faces = []
+        
+        points2 = {}
+        for k, p in points.items():
+            points2[k] = SegMapPoint(id_frame=p[0], coords=np.array(p[1]))
+        
+        segments2 = []
+        for S in segments:
+            if not isinstance(S, SegMapSegment):
+                S = SegMapSegment(points=S['points'], color=S['color'])
+            segments2.append(S)
+        
+        faces2 = []
+        for f in faces:
+            F = SegMapFace(points=f['points'], color=f['color'])
+            faces2.append(F)
+
+        return SegmentsMap(points=points2, faces=faces2, segments=segments2)
+
+
+@dtu.contract(sm=SegmentsMap)
+def plot_map_and_segments(sm, tinfo, segments, dpi=120):
+    """ Returns a BGR image """  
+    a = CreateImageFromPylab(dpi=dpi)
+
+    with a as pylab:
+        _plot_map_segments(sm, pylab)
+        _plot_detected_segments(tinfo, segments, pylab)
+        
+        # draw arrow
+        L = 0.1
+        w1 = tinfo.transform_point(np.array([0,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        w2 = tinfo.transform_point(np.array([L,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        
+        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
+        pylab.plot(w1[0], w1[1], 'mo', markersize=6)
+        
+        pylab.axis('equal')
+        
+    return a.get_bgr()
+
+def _plot_detected_segments(tinfo, segments, pylab):
     
+    for segment in segments:
+        p1 = segment.points[0]
+        p2 = segment.points[1]
+        
+        f = lambda _: np.array([_.x, _.y, _.z])
+        
+        w1 = tinfo.transform_point(f(p1), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        w2 = tinfo.transform_point(f(p2), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        
+        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
 
-maps = {'lane_straight': """
-points:
-     p1: [axle, [0, 0.2921, 0]]
-     q1: [axle, [1.2192, 0.2921, 0]]
-     p2: [axle, [0, 0.2413, 0]]
-     q2: [axle, [1.2192, 0.2413, 0]]
-     p3: [axle, [0, 0.0127, 0]]
-     q3: [axle, [1.2192, 0.0127, 0]]
-     p4: [axle, [0, -0.0127, 0]]
-     q4: [axle, [1.2192, -0.0127, 0]]
-     p5: [axle, [0, -0.2413, 0]]
-     q5: [axle, [1.2192, -0.2413, 0]]
-     p6: [axle, [0, -0.2921, 0]]
-     q6: [axle, [1.2192, -0.2921, 0]]
-segments:
- - points: [p1, q1]
-   color: white
- - points: [p2, q2]
-   color: white
- - points: [p3, q3]
-   color: yellow
- - points: [p4, q4]
-   color: yellow
- - points: [p5, q5]
-   color: white
- - points: [p6, q6]
-   color: white
-"""}
+        
+@dtu.contract(sm=SegmentsMap)
+def _plot_map_segments(sm, pylab):
 
+    for face in sm.faces:
+        xs = []
+        ys = []
+        for p in face.points:
+            if sm.points[p].id_frame != FRAME_TILE:
+                msg = "Cannot deal with points not in frame FRAME_AXLE"
+                raise NotImplementedError(msg)
+            
+            coords = sm.points[p].coords
+            xs.append(coords[0])
+            ys.append(coords[1])
+            
+        xs.append(xs[0])
+        ys.append(ys[0])
+        pylab.fill(xs, ys, facecolor=face.color, edgecolor='black')
+
+    for segment in sm.segments:
+        p1 = segment.points[0]
+        p2 = segment.points[1]
+
+        # If we are both in FRAME_AXLE
+        if ( not (sm.points[p1].id_frame == FRAME_TILE) and 
+             (sm.points[p2].id_frame == FRAME_TILE)):
+            msg = "Cannot deal with points not in frame FRAME_AXLE"
+            raise NotImplementedError(msg)
+    
+        w1 = sm.points[p1].coords
+        w2 = sm.points[p2].coords
+        
+        color = 'k-'
+        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], color)
+    

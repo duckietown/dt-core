@@ -1,11 +1,11 @@
 import cv2
 
-from duckietown_msgs.msg import Pixel, Vector2D  
+from duckietown_msgs.msg import Pixel, Vector2D
 import duckietown_utils as dtu
-from geometry_msgs.msg import Point  
+from geometry_msgs.msg import Point
 from image_geometry import PinholeCameraModel
 import numpy as np
-from sensor_msgs.msg import CameraInfo  
+from sensor_msgs.msg import CameraInfo
 
 
 __all__ = [
@@ -20,10 +20,14 @@ class GroundProjectionGeometry(object):
         
         Conventions and coordinate frames:
         
-            "vector"    Vector2D   (x, y)        normalized image coordinates
+            "vector"    Vector2D   (x, y)        normalized image coordinates in rectified image
             "pixel"     Pixel      (u, v)        pixel coordinates
             "ground"    Point      (x, y, z=0)   axle frame
+
+        A previous version of the code allowed for a hidden flag
+        to specify whether the points were rectified or not.
         
+        Now, "vector" is always rectified. 
     """
 
     @dtu.contract(camera_info=CameraInfo, homography='array[3x3]')
@@ -35,8 +39,10 @@ class GroundProjectionGeometry(object):
         self.pcm = PinholeCameraModel()
         self.pcm.fromCameraInfo(self.ci)
         
-        # XXX: this needs to be removed
-        self.rectified_input = False
+        self._rectify_inited = False
+        
+#         # XXX: this needs to be removed
+#         self.rectified_input = False
         
     @dtu.contract(vec=Vector2D, returns=Pixel)
     def vector2pixel(self, vec):
@@ -77,8 +83,8 @@ class GroundProjectionGeometry(object):
     @dtu.contract(pixel=Pixel, returns=Point)
     def pixel2ground(self, pixel):
         uv_raw = np.array([pixel.u, pixel.v])
-        if not self.rectified_input:
-            uv_raw = self.pcm.rectifyPoint(uv_raw)
+#         if not self.rectified_input:
+#             uv_raw = self.pcm.rectifyPoint(uv_raw)
         #uv_raw = [uv_raw, 1]
         uv_raw = np.append(uv_raw, np.array([1]))
         ground_point = np.dot(self.H, uv_raw)
@@ -103,23 +109,21 @@ class GroundProjectionGeometry(object):
         image_point = image_point / image_point[2]
 
         pixel = Pixel()
-        if not self.rectified_input:
-            dtu.logger.debug('project3dToPixel')
-            distorted_pixel = self.pcm.project3dToPixel(image_point)
-            pixel.u = distorted_pixel[0]
-            pixel.v = distorted_pixel[1]
-        else:
-            pixel.u = image_point[0]
-            pixel.v = image_point[1]
+#         if not self.rectified_input:
+#             dtu.logger.debug('project3dToPixel')
+#             distorted_pixel = self.pcm.project3dToPixel(image_point)
+#             pixel.u = distorted_pixel[0]
+#             pixel.v = distorted_pixel[1]
+#         else:
+        pixel.u = image_point[0]
+        pixel.v = image_point[1]
     
         return pixel
     
     def rectify_point(self, p):
         return self.pcm.rectifyPoint(p)
 
-    def rectify(self, cv_image_raw):
-        ''' Undistort image'''
-        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+    def _init_rectify_maps(self):
         W = self.pcm.width
         H = self.pcm.height
         mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
@@ -127,4 +131,16 @@ class GroundProjectionGeometry(object):
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R, 
                                                  self.pcm.P, (W, H), 
                                                  cv2.CV_32FC1, mapx, mapy)
-        return cv2.remap(cv_image_raw, mapx, mapy, cv2.INTER_CUBIC, cv_image_rectified)
+        self.mapx = mapx
+        self.mapy = mapy
+        self._rectify_inited = True
+
+    def rectify(self, cv_image_raw):
+        ''' Undistort an image'''
+        if not self._rectify_inited:
+            self._init_rectify_maps()
+
+        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, cv2.INTER_CUBIC, 
+                        cv_image_rectified)
+        return res

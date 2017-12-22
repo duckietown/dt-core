@@ -63,7 +63,7 @@ def look_at(log, output, line_detector, image_prep, lane_filter):
 #     dtu.logger.debug(dtu.describe_value(image_cv))
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
-    res  = run_pipeline(image_cv_bgr, gp=gp,
+    res = run_pipeline(image_cv_bgr, gp=gp,
                         line_detector_name=line_detector, 
                         image_prep_name=image_prep,
                         lane_filter_name=lane_filter)

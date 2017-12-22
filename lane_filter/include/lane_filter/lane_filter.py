@@ -7,8 +7,8 @@ import duckietown_utils as dtu
 import numpy as np
 
 from .lane_filter_interface import LaneFilterInterface
-from .visualization import plot_phi_d_diagram_bgr, plot_reprojected_bgr
-
+from .visualization import plot_phi_d_diagram_bgr
+from numpy.testing.utils import assert_almost_equal
 
 
 __all__ = [
@@ -72,7 +72,19 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         # XXX: statement with no effect
         # self.cov_0
         RV = multivariate_normal(self.mean_0, self.cov_0)
-        self.belief = RV.pdf(pos)
+        
+        n = pos.shape[0] * pos.shape[1]
+        
+        gaussian = RV.pdf(pos) * 0.5 #+ 0.5/n
+        
+        gaussian = gaussian / np.sum(gaussian.flatten())
+        
+        uniform = np.ones(dtype='float32',shape=self.d.shape) * (1.0/n)
+        
+        a = 0.01
+        self.belief = a*gaussian + (1-a)*uniform
+        
+        assert_almost_equal(self.belief.flatten().sum(), 1.0)
 
     def predict(self, dt, v, w):
         delta_t = dt
@@ -99,6 +111,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
 
         if np.sum(s_belief) == 0:
+            # TODO: ok, what happens now? (@liam)
             return
 
         self.belief = s_belief / np.sum(s_belief)
@@ -117,7 +130,6 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
-
                 self.belief = self.belief/np.sum(self.belief)
 
         return measurement_likelihood
@@ -132,7 +144,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            d_i, phi_i, l_i, weight = self.generateVote(segment)
+            d_i, phi_i, _l_i, weight = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or \
                 d_i < self.d_min or \
@@ -149,11 +161,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     def get_estimate(self):
         maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
-
-        # Bug! we want the center of the cell
-        # d_max = self.d_min + maxids[0]*self.delta_d
-        # phi_max = self.phi_min + maxids[1]*self.delta_phi
-
+        
         # add 0.5 because we want the center of the cell
         d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
         phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
@@ -222,17 +230,3 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
     def get_plot_phi_d(self):
         est = self.get_estimate()
         return plot_phi_d_diagram_bgr(self, phi=est['phi'], d=est['d'])
-
-    def get_plot_plot_reprojected_bgr(self, dpi=120):
-        est = self.get_estimate()
-        segments = self.last_segments_used
-        return plot_reprojected_bgr(self, phi=est['phi'], d=est['d'],
-                                    segments=segments, dpi=dpi)
-
-
-
-# not used
-#     def getSegmentDistance(self, segment):
-#         x_c = (segment.points[0].x + segment.points[1].x)/2
-#         y_c = (segment.points[0].y + segment.points[1].y)/2
-#         return sqrt(x_c**2 + y_c**2)
