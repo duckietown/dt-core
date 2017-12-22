@@ -27,7 +27,7 @@ class ImageTransformerNode():
         self.active = True
         self.locked = False
         self.thread_lock = threading.Lock()
-        self.r = rospy.Rate(4) # Rate in Hz
+        self.r = rospy.Rate(5) # Rate in Hz
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
         # Initialize publishers and subscribers
@@ -88,7 +88,7 @@ class ImageTransformerNode():
                 return
 
         #start = time.time() #with this you can measure the time,..
-        print('image received!')
+        # print('image received!')
         # memorize image
         self.image_msg = image_msg
 
@@ -140,7 +140,7 @@ class ImageTransformerNode():
 
 
     def cbNewTrafo(self, trafo_msg):
-        print('image transformer: received new trafo!')
+        # print('image transformer: received new trafo!')
         # testwise write to file
         # self.file.write('received new trafo\n')
 
@@ -155,7 +155,7 @@ class ImageTransformerNode():
         self.ai.scale = trafo_msg.s[3:6]
 
     def cbNewTrafo_CB(self, th_msg):
-        print('image transformer: received new Color Balance trafo!')
+        # print('image transformer: received new Color Balance trafo!')
         if self.verbose:
             rospy.loginfo('image transformer: received new Color Balance trafo!')
 

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import numpy as np
-from anti_instagram.kmeans_rebuild import CENTERS_BRYW, CENTERS_BYW
+# from anti_instagram.kmeans_rebuild import CENTERS_BRYW, CENTERS_BYW
 
+# TODO fix import issue of centers
+CENTERS_BRYW = np.array([[60, 60, 60], [60, 60, 240], [50, 240, 240], [240, 240, 240]]);
+CENTERS_BYW = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 """
 This class calculates the optimal transform parameters based on the least squares optimization.
 We want to map the input color space [B, G, R] to the 'true' color space [B', G', R'].
@@ -81,8 +84,8 @@ class calcTransform:
         self.shift = np.zeros(3, np.float64)
         self.residuals = np.zeros((3, 3), np.float64)
         self.valueArrayBGR = np.zeros((3, self.num_centers), np.uint8)
-        print "true centers " + str(self.true_centers)
-        print "found centers 0 " + str(found_centers[:, 0])
+        # print "true centers " + str(self.true_centers)
+        # print "found centers 0 " + str(found_centers[:, 0])
         for k in range(3):
             self.valueArrayBGR[k, :] = self.found_centers[:, k]
 
@@ -102,7 +105,7 @@ class calcTransform:
         #print('matrices A: ' + str(self.matrices_A))
         #print('vectors b: ' + str(self.vectors_b))
 
-        print('created instance of calcTransform!')
+        # print('created instance of calcTransform!')
 
     def returnResidualNorm(self):
         return self.residualNorm
@@ -115,8 +118,8 @@ class calcTransform:
             self.scale[channel] = X[0]
             self.shift[channel] = X[1]
             self.residuals[channel] = r
-        print('scale: ' + str(self.scale))
-        print('shift: ' + str(self.shift))
+        # print('scale: ' + str(self.scale))
+        # print('shift: ' + str(self.shift))
         self.residualNorm = np.linalg.norm(self.residuals)
-        print('residuals: ' + str(self.residualNorm))
+        # print('residuals: ' + str(self.residualNorm))
         return self.scale, self.shift

@@ -14,8 +14,9 @@ from anti_instagram.AntiInstagram import *
 from anti_instagram.scale_and_shift import *
 # from .scale_and_shift import scaleandshift
 # from .scale_and_shift import scaleandshift2
-from simpleColorBalance import *
+from anti_instagram.simpleColorBalanceClass import *
 from colorBalanceKMeans import *
+from outlierEstimation import *
 
 class kMeanClass:
     """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
@@ -35,8 +36,7 @@ class kMeanClass:
 
     # initialize
     def __init__(self, inputImage, numCenters, blurAlg, resize, blurKer):
-        # read the image
-        self.input_image = cv2.imread(inputImage, cv2.IMREAD_UNCHANGED)
+        self.input_image = inputImage
         self.num_centers = int(numCenters)
         self.blur_alg = blurAlg
         self.fac_resize = float(resize)
@@ -47,7 +47,6 @@ class kMeanClass:
         # set up array for center colors
         self.color_image_array = np.zeros((self.num_centers, 200, 200, 3), np.uint8)
         print('created instance of kMeans with arguments:')
-        print('     input image = ' + str(inputImage))
         print('     number of centers = ' + str(self.num_centers))
         print('     blur algorithm = ' + str(self.blur_alg))
         print('     resize factor = ' + str(self.fac_resize))
@@ -122,7 +121,7 @@ class kMeanClass:
         # blur image
         self._blurImg()
         print('blurred image!')
-        self.blurred_image, self.shiftB, self.shiftG, self.shiftR = blackBalance(self.blurred_image)
+        # self.blurred_image, self.shiftB, self.shiftG, self.shiftR = blackBalance(self.blurred_image)
         # prepare KMeans
         kmc = KMeans(n_clusters=self.num_centers, init='k-means++', max_iter=20)
 
@@ -322,29 +321,40 @@ def main():
 
     # create instance of kMeans
     print("all arguments have been read.")
-
-    KM = kMeanClass(args.img_path, args.n_centers, args.blur, args.resize, args.blur_kernel)
+    inputImage = cv2.imread(args.img_path, cv2.IMREAD_UNCHANGED)
+    CB = simpleColorBalanceClass()
+    CB.thresholdAnalysis(inputImage, 1)
+    imageBalanced = CB.applyTrafo(inputImage)
+    KM = kMeanClass(imageBalanced, args.n_centers, args.blur, args.resize, args.blur_kernel)
     cv2.namedWindow('input', flags=cv2.WINDOW_NORMAL)
-    cv2.imshow('input', KM.input_image)
+    cv2.imshow('input', inputImage)
+    cv2.namedWindow('balanced', flags=cv2.WINDOW_NORMAL)
+    cv2.imshow('balanced', imageBalanced)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     KM.applyKM()
     idxBlack, idxRed, idxYellow, idxWhite  = KM.determineColor(True, KM.trained_centers)
+    trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed],
+                                KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+    print "the trained centers are: " + str(trained_centers)
     KM.plotDeterminedCenters(KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                              KM.trained_centers[idxWhite], KM.trained_centers[idxRed])
 
-    trained_centers = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxRed], KM.trained_centers[idxYellow], KM.trained_centers[idxWhite]])
+
     trained_centers_woRed = np.array([KM.trained_centers[idxBlack], KM.trained_centers[idxYellow],
                                 KM.trained_centers[idxWhite]])
+    true_centers = np.vstack([[70, 50, 60], [50, 70, 240], [60, 240, 230], [250, 250, 250]])
+    outlierIndex, outlierCenter = detectOutlier(trained_centers, true_centers)
+    true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
+    trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
 
-    print(trained_centers)
-
+    print "outlier center is: " + str(outlierCenter)
     print("transform instance will be created!")
-    T = calcTransform(3, trained_centers_woRed)
+    T = calcTransform(3, trained_centers_woOutlier, true_centers_woOutlier)
     T.calcTransform()
 
-    corr_img1 = scaleandshift2(KM.input_image, [1, 1, 1], [KM.shiftB, KM.shiftG, KM.shiftR])
-    corrected_img = scaleandshift2(corr_img1, T.scale, T.shift)
+    # corr_img1 = scaleandshift2(KM.input_image, [1, 1, 1], [KM.shiftB, KM.shiftG, KM.shiftR])
+    corrected_img = scaleandshift2(KM.input_image, T.scale, T.shift)
     corrected_image_cv2 = np.clip(
         corrected_img, 0, 255).astype(np.uint8)
 

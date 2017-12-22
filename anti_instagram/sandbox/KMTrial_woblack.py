@@ -9,7 +9,7 @@ from matplotlib.patches import Rectangle
 from sklearn.cluster import KMeans
 from collections import Counter
 import math
-from calcTransform import calcTransform
+from anti_instagram.calcLstsqTransform import *
 from anti_instagram.AntiInstagram import *
 from anti_instagram.scale_and_shift import *
 # from .scale_and_shift import scaleandshift
@@ -320,7 +320,7 @@ def main():
     print(trained_centers)
 
     print("transform instance will be created!")
-    T = calcTransform(2, trained_centers_woRed)
+    T = calcTransform(3, trained_centers, np.array([[60, 60, 240], [50, 240, 240], [240, 240, 240]]))
     T.calcTransform()
 
     corr_img1 = scaleandshift2(KM.input_image, [1, 1, 1], [KM.shiftB, KM.shiftG, KM.shiftR])

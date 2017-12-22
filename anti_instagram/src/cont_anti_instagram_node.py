@@ -46,14 +46,14 @@ class ContAntiInstagramNode():
         self.verbose = rospy.get_param('line_detector_node/verbose', True)
 
         # Read parameters
-        self.interval = self.setupParameter("~ai_interval", 4)
+        self.interval = self.setupParameter("~ai_interval", 10)
         self.fancyGeom = self.setupParameter("~fancyGeom", False)
         self.n_centers = self.setupParameter("~n_centers", 10)
         self.blur = self.setupParameter("~blur", 'median')
         self.resize = self.setupParameter("~resize", 0.2)
         self.blur_kernel = self.setupParameter("~blur_kernel", 5)
         self.cb_percentage = self.setupParameter("~cb_percentage", 2)
-        self.trafo_mode = self.setupParameter("~trafo_mode", 'cb')
+        self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
         if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
             self.trafo_mode == "both"

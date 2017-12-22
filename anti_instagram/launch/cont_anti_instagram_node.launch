@@ -1,13 +1,13 @@
 <launch>
 
 	<arg name="veh"/>
-	<arg name="ai_interval" default="4" doc="time interval after which the ai algorithm should be re-performed"/>
+	<arg name="ai_interval" default="10" doc="time interval after which the ai algorithm should be re-performed"/>
 	<arg name="geom" default="false" doc="use geometry considerations with true just bottom 0.6 of image with false"/>
     <arg name="cents" default="10" doc="number of cluster centers for kmeans"/>
     <arg name="blur" default="median" doc="type of blurring applied to image as preprocessing"/>
     <arg name="resize" default="0.2" doc="resizing factor to scale the image down or up"/>
     <arg name="ker" default="5" doc="size of blur kernel"/>
-    <arg name="trafo_mode" default="cb" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
+    <arg name="trafo_mode" default="both" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
     <arg name="cb_percentage" default="2" doc="percentage for auto-colorbalance"/>
 
     <param name="~veh" value="$(arg veh)"/>
