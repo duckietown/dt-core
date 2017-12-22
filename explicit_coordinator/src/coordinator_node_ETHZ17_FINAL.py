@@ -103,7 +103,7 @@ class VehicleCoordinator():
         elif self.state == State.KEEP_CALM:
             self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
-            self.roof_light = CoordinationSignal.GREEN
+            self.roof_light = CoordinationSignal.SIGNAL_GREEN
 
         rospy.logdebug('[coordination_node_ETHZ17] Transitioned to state' + self.state)
 #################################################################################################################
