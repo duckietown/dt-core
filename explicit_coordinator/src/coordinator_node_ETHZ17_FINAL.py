@@ -44,13 +44,12 @@ class VehicleCoordinator():
         # Parameters
 
         # Are we in a situation with traffic lights? Initially always false.
-
         if rospy.get_param("~intersectionType") == "trafficLight":
             self.traffic_light_intersection = True
         else:
             self.traffic_light_intersection = False
 
-        rospy.loginfo('[simple_coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
+        rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
         # Subscriptions
 
@@ -90,7 +89,7 @@ class VehicleCoordinator():
 #############################################################################################################
     def set_state(self, state):
 
-    # update only when changing state
+        # update only when changing state
         if self.state != state:
             self.last_state_transition = time()
             self.state = state
@@ -105,7 +104,7 @@ class VehicleCoordinator():
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
 
-        rospy.logdebug('[coordination_node_ETHZ17] Transitioned to state' + self.state)
+        rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 #################################################################################################################
 
     # Define the time at this current state
@@ -135,13 +134,16 @@ class VehicleCoordinator():
     def publish_topics(self):
         now = rospy.Time.now()
         self.clearance_to_go_pub.publish(CoordinationClearance(status=self.clearance_to_go))
+
         # Publish intersection_go flag
-        if (self.clearance_to_go == CoordinationClearance.GO):
+        if self.clearance_to_go == CoordinationClearance.GO and not self.intersection_go_published:
             msg = BoolStamped()
             msg.header.stamp = now
             msg.data = True
             self.pub_intersection_go.publish(msg)
-            # TODO: publish intersection go only once.
+            self.intersection_go_published = True
+
+        # Publish LEDs
         self.roof_light_pub.publish(self.roof_light)
 
         car_cmd_msg = Twist2DStamped(v=0.0,omega=0.0)
@@ -161,13 +163,13 @@ class VehicleCoordinator():
                 if self.traffic_light_intersection:
                     self.set_state(State.TL_SENSING)
                 else:
-            # our standard case: setting at stop clearing!
+                    # our standard case: setting at stop clearing!
                     self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.AT_STOP_CLEARING:
             #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
-            print(self.right_veh)
-            print(self.opposite_veh)
+            # print(self.right_veh)
+            # print(self.opposite_veh)
             if self.right_veh == UNKNOWN or self.opposite_veh == UNKNOWN: #if first measurement not seen yet
                 self.roof_light = CoordinationSignal.OFF
                 self.random_delay = 1+random() * self.T_UNKNOWN
@@ -177,14 +179,6 @@ class VehicleCoordinator():
                 self.random_delay = self.T_MIN_RANDOM + random() * self.T_MAX_RANDOM
                 print ("Other vehicle are waiting as well. Will wait for %.2f s" % self.random_delay)
                 self.set_state(State.SACRIFICE)
-            
-           # elif self.time_at_current_state() > self.T_CROSS + self.T_SENSE:
-            #    self.set_state(State.AT_STOP_CLEAR)
-
-            # elif self.state == State.AT_STOP_CLEAR:
-            #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
-        #    if self.veh_detected == SignalsDetection.CARS:  # if we are seeing other cars (i.e. we cannot go)
-         #       self.set_state(State.AT_STOP_CLEARING)
             else:
                 self.set_state(State.KEEP_CALM)
 
@@ -194,14 +188,11 @@ class VehicleCoordinator():
                 self.set_state(State.LANE_FOLLOWING)
 
         elif self.state == State.SACRIFICE:
-            #if self.right_veh != SignalsDetection.NO_CAR or self.opposite_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_C:
-               # self.set_state(State.AT_STOP_CLEARING)
             if self.time_at_current_state() > self.random_delay:
                 self.set_state(State.AT_STOP_CLEARING) #changed from CLEAR to CLEARING
 
         elif self.state == State.KEEP_CALM:
             if self.right_veh == SignalsDetection.SIGNAL_A or self.right_veh == SignalsDetection.SIGNAL_B or self.opposite_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_B:
-                #self.roof_light = CoordinationSignal.OFF
                 self.set_state(State.SACRIFICE)
             else:
                 if self.time_at_current_state() > 4:
@@ -218,6 +209,9 @@ class VehicleCoordinator():
 
         # If not GO, pusblish wait
         if self.state != State.GO:
+            # Initialize intersection_go_published
+            self.intersection_go_published = False
+            # Publish wait
             self.clearance_to_go = CoordinationClearance.WAIT
 
 if __name__ == '__main__':

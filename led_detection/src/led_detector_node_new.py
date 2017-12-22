@@ -32,6 +32,7 @@ class LEDDetectorNode(object):
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
         params.minThreshold = 5
+        # params.maxThreshold = 200
         params.maxThreshold = 200
         params.thresholdStep = 10
 
