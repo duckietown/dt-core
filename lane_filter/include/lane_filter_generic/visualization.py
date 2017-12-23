@@ -5,7 +5,7 @@ import numpy as np
 import numpy.ma as ma
 
 
-def plot_phi_d_diagram_bgr_generic(lane_filter, phi, d, dpi=120):
+def plot_phi_d_diagram_bgr_generic(lane_filter, phi, d, phi_true, d_true, dpi=120):
     """ Returns a BGR image """  
     a = CreateImageFromPylab(dpi=dpi)
     with a as pylab:
@@ -48,14 +48,19 @@ def plot_phi_d_diagram_bgr_generic(lane_filter, phi, d, dpi=120):
                    markeredgewidth=0,
                    markerfacecolor='magenta')
         
-#         W = f_d(lane_width/2)
-#         width_white = f_d(lane_filter.linewidth_white)
-#         width_yellow = f_d(lane_filter.linewidth_yellow)
-#         pylab.plot([-W,  -W], [f_phi(phi_min), f_phi(phi_max)], 'k-')
-#         pylab.plot([-W-width_white,  -W-width_white], [f_phi(phi_min), f_phi(phi_max)], 'k-')
+        if phi_true is not None:
+            pylab.plot(f_d(d_true), f_phi(phi_true), 'go', markersize=10, 
+                       markeredgecolor='green',
+                       markeredgewidth=3,
+                       markerfacecolor='none')
+            
+            pylab.plot(f_d(d_true), f_phi(phi_true), 'o', markersize=2, 
+                       markeredgecolor='none',
+                       markeredgewidth=0,
+                       markerfacecolor='green')
+            
         pylab.plot([0, 0], [f_phi(phi_min), f_phi(phi_max)], 'k--')
-#         pylab.plot([+W,  +W], [f_phi(phi_min), f_phi(phi_max)], 'y--')
-#         pylab.plot([+W+width_yellow,  +W+width_yellow], [f_phi(phi_min), f_phi(phi_max)], 'y--')
+
         s = ''
         s += "status = %s" % lane_filter.get_status()
         s += "\nphi = %.1f deg" % f_phi(phi)
@@ -63,6 +68,10 @@ def plot_phi_d_diagram_bgr_generic(lane_filter, phi, d, dpi=120):
         s += "\nentropy = %.4f" % lane_filter.get_entropy()
         s += "\nmax = %.4f" % lane_filter.belief.max()
         s += "\nmin = %.4f" % lane_filter.belief.min()
+        if phi_true is not None: 
+            s += "\nphi_true = %.1f deg" % f_phi(phi_true)
+            s += "\nd_true = %.1f cm" % f_d(d_true)
+            
         pylab.annotate(s, xy=(0.7, 0.35), xycoords='figure fraction')
         
         y = f_phi(phi_max) - 10

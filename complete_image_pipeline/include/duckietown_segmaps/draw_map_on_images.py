@@ -164,7 +164,7 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True): #
     
             width = 2
     #         BGR_WHITE = (255,255,255)
-            paint = BGR_BLUE = (255,0,0)
+            paint  = (255,120,120)
     #         paint = BGR_WHITE
             ti = lambda a,b: (int(np.round(a)), int(np.round(b)))
             

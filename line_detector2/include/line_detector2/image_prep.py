@@ -54,7 +54,8 @@ class ImagePrep(object):
             white = line_detector.detectLines('white')
             yellow = line_detector.detectLines('yellow')
             red = line_detector.detectLines('red')
-            segment_list = get_segment_list_normalized(self.top_cutoff, self.shape, white, yellow, red)
+            segment_list = get_segment_list_normalized(self.top_cutoff, 
+                                                       self.shape, white, yellow, red)
             
         # SegmentList constructor
         if self.fuzzy_mult is not None:

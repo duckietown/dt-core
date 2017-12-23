@@ -41,7 +41,9 @@ class GroundProjectionGeometry(object):
         self.pcm.fromCameraInfo(self.ci)
         
         self._rectify_inited = False
-        
+    
+    def get_camera_info(self):
+        return self.ci
 #         # XXX: this needs to be removed
 #         self.rectified_input = False
         
@@ -175,6 +177,17 @@ def invert_map(mapx, mapy):
             rmapy[ty,tx] = y
     # fill holes
     fill_holes(rmapx, rmapy)
+    
+#     D = 4
+#     for y, x in itertools.product(range(H), range(W)):
+#         v0 = max(y-D, 0)
+#         v1 = max(y+D, H-1)
+#         u0 = max(x-D, 0)
+#         u1 = max(x+D, W-1)
+#         
+#         rmapx[y,x] = np.median(rmapx[v0:v1,u0:u1].flatten())
+#         rmapy[y,x] = np.median(rmapy[v0:v1,u0:u1].flatten())
+    
     return rmapx, rmapy
     
 def fill_holes(rmapx, rmapy):

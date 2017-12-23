@@ -10,10 +10,8 @@ from easy_algo.algo_db import get_easy_algo_db
 from lane_filter import LaneFilterInterface
 import numpy as np
 
-from .fuzzing import fuzzy_segment_list_image_space
 from .visualization import plot_phi_d_diagram_bgr_generic
 import itertools
-from geometry.poses import xytheta_from_SE2
 
 
 __all__ = [
@@ -110,21 +108,10 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
         for segment in segments:
 
             delta = 0.05
-            for xytheta, weight in self.generate_votes(segment, delta):
-#                 g = dtu.SE2_from_xyth(xytheta)
-#                 g_inv = np.linalg.inv(g)
-#                 r = xytheta_from_SE2(g_inv)
-#                 
-#                 xytheta['x'] =r[0] 
-#                 xytheta['y'] = r[1]
-#                 xytheta['theta'] = r[2]
+            for xytheta, weight in self.generate_votes(segment, delta): 
                 
                 est = self._localization_template.coords_from_xytheta(xytheta)
-#                 print('xy %s %s theta %s  phi %s d %s ' % (xytheta['x'],
-#                                                            xytheta['y'],
-#                                                            np.rad2deg(xytheta['theta']),
-#                                                            np.rad2deg(est['phi']),
-#                                                            est['d']))
+
                 d_i = est['d']
                 phi_i = est['phi']
 
@@ -163,7 +150,7 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
 
                     measurement_likelihood[u, v] += weight * k
         
-        print('hit: %s miss : %s' % (hit, miss))
+        dtu.logger.debug('hit: %s miss : %s' % (hit, miss))
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
         
@@ -202,7 +189,6 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
         weight = d
         n_hat = get_normal_outward_for_segment(p2, p1)
 
-#         n_hat = np.array([0, 1, 0])
         # SegmentsMap
         sm = self._localization_template.get_map()
         
@@ -223,11 +209,15 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
         if num == 0:
             msg = 'No segment found for %s' % segment.color
             dtu.logger.debug(msg)
-        
 
-    def get_plot_phi_d(self):
+    def get_plot_phi_d(self, ground_truth=None):
         est = self.get_estimate()
-        return plot_phi_d_diagram_bgr_generic(self, phi=est['phi'], d=est['d'])
+        if ground_truth is not None:
+            ground_truth_location = self._localization_template.coords_from_xytheta(ground_truth)
+            phi_true = ground_truth_location['phi']
+            d_true = ground_truth_location['d']
+        return plot_phi_d_diagram_bgr_generic(self, phi=est['phi'], d=est['d'],
+                                              phi_true=phi_true, d_true=d_true)
 
 @dtu.contract(sm=SegmentsMap, delta='float,>0')
 def iterate_segment_sections(sm, map_segment, delta):
@@ -240,7 +230,6 @@ def iterate_segment_sections(sm, map_segment, delta):
     for s in range(n):
         p = w1 + dirv * delta * s
         yield p, map_segment_n
-        break # XXX
 
 
 def get_estimate(t, n, t_est, n_est):

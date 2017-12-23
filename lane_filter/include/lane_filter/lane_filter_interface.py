@@ -6,8 +6,6 @@ __all__ = [
 ]
 
 
-
-
 class LaneFilterInterface(object):
 
     __metaclass__ = ABCMeta

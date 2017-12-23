@@ -85,6 +85,19 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         
         # draw arrow
         L = 0.1
+        
+        
+        if ground_truth is not None:
+            x = ground_truth['x']
+            y = ground_truth['y']
+            theta = ground_truth['theta']
+            x1 = x + L * np.cos(theta)
+            y1 = y + L * np.sin(theta)
+            pylab.plot(x, y, 'co', markersize=12)
+            pylab.plot([x, x1], [y, y1], 'c-', linewidth=4)
+#             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)
+            print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
+            
         w1 = tinfo.transform_point(np.array([0,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
         w2 = tinfo.transform_point(np.array([L,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
         
@@ -93,16 +106,6 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         
         pylab.axis('equal')
 
-        if ground_truth is not None:
-            x = ground_truth['x']
-            y = ground_truth['y']
-            theta = ground_truth['theta']
-            x1 = x + L * np.cos(theta)
-            y1 = y + L * np.sin(theta)
-            pylab.plot(x, y, 'co', markersize=10)
-            pylab.plot([x, x1], [y, y1], 'c-', markersize=10)
-#             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)
-            print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
             
         
         

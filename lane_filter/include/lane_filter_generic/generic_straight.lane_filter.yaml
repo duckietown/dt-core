@@ -3,8 +3,8 @@ description: >
 constructor: lane_filter_generic.LaneFilterGeneric
 parameters: 
   configuration:
-      delta_d: 0.005
-      delta_phi: 0.025
+      delta_d: 0.0024
+      delta_phi: 0.022
 #       delta_d: 0.01
 #       delta_phi: 0.05
       d_max: 0.3025 # add half

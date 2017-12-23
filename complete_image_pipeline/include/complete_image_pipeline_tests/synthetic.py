@@ -100,7 +100,7 @@ def test_synthetic_phi(template,robot_name,line_detector_name,
     location['phi'] = phi 
     location['d'] = d 
     
-    res, stats = test_synthetic(template,robot_name,line_detector_name,
+    _res, stats = test_synthetic(template,robot_name,line_detector_name,
                                 image_prep_name, lane_filter_name, location, outd)
     error = stats['error']
     estimate = stats['estimate']
@@ -121,13 +121,14 @@ def test_synthetic_phi(template,robot_name,line_detector_name,
      
 def test_synthetic(template,robot_name,line_detector_name,
                    image_prep_name, lane_filter_name, location, outd):
-    # phi = np.deg2rad(-15)
+
     # first, load calibration for robot
     easy_algo_db = get_easy_algo_db()
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
     
     gp = GroundProjection(robot_name)
-    gpg = gp.gpc # GroundProjectionGeometry
+    # GroundProjectionGeometry
+    gpg = gp.get_ground_projection_geometry() 
     
     xytheta = localization_template.xytheta_from_coords(location)
     sm_orig = localization_template.get_map()
@@ -153,7 +154,7 @@ def test_synthetic(template,robot_name,line_detector_name,
 
 @dtu.contract(gpg=GroundProjectionGeometry)
 def simulate_image(sm_orig, xytheta, gpg, blur_sigma):
-    camera_info = gpg.ci # CameraInfo
+    camera_info = gpg.get_camera_info() 
     blank = generate_blank(camera_info)
     tinfo = TransformationsInfo()
     g = dtu.SE2_from_xyth(xytheta)
@@ -162,10 +163,21 @@ def simulate_image(sm_orig, xytheta, gpg, blur_sigma):
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     
     rectified_synthetic = plot_map(blank, sm_axle, gpg, do_segments=False)
-    rectified_synthetic_s = cv2.GaussianBlur(rectified_synthetic, (0,0), blur_sigma)
-    distorted_synthetic = gpg.distort(rectified_synthetic_s)
-    distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)
+    
+
+    distorted_synthetic = gpg.distort(rectified_synthetic)
+    
+    distorted_synthetic = add_noise(distorted_synthetic)
+#     distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)
+    distorted_synthetic = cv2.GaussianBlur(distorted_synthetic, (0,0), blur_sigma)
     return distorted_synthetic
+    
+def add_noise(image, intensity = 20, noise_blur = 1):
+    noise = np.random.randn(image.shape[0], image.shape[1], 3) * intensity
+    noise = cv2.GaussianBlur(noise, (0,0), noise_blur)
+    image = image*1.0 + noise
+    image = image.clip(0, 255).astype('uint8')
+    return image
     
 def generate_blank(camera_info):
     H = camera_info.height

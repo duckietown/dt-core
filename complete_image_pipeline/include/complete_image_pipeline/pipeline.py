@@ -11,17 +11,17 @@ import duckietown_utils as dtu
 from duckietown_utils.coords import SE2_from_xyth
 from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection
+from ground_projection.ground_projection_interface import find_ground_coordinates
 from ground_projection.segment import rectify_segments
 from lane_filter import FAMILY_LANE_FILTER
+from lane_filter_generic.lane_filter_generic_imp import LaneFilterGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 import numpy as np
 
+
 # from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
-from lane_filter_generic.lane_filter_generic_imp import LaneFilterGeneric
-
-
 @dtu.contract(gp=GroundProjection)
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                  all_details=False, skip_instagram=False, ground_truth=None):
@@ -30,7 +30,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         Returns a dictionary, res with the following fields:
             
             res['input_image']
+            
+        ground_truth = xytheta
     """
+    
+    gpg = gp.get_ground_projection_geometry()
     
     res = OrderedDict()
     res['image_input'] = image
@@ -50,7 +54,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     ai = AntiInstagram()
     ai.calculateTransform(image)
     
-     
+    
     if not skip_instagram:
         transform = ai.applyTransform
         transformed = transform(image)
@@ -84,22 +88,19 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         res['grid_remapped'] = gp.rectify(grid)
         
-    rectified = gp.rectify(res['image_input'])
+    rectified = gpg.rectify(res['image_input'])
     
     if all_details:
         res['image_input_rect'] = rectified
     
 #     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
-#     
-#     segment_list2 = fuzzy_segment_list_image_space(segment_list2, n=20, intensity=0.0015)
-#     segment_list2 = fuzzy_color(segment_list2)
     
-    segment_list2_rect = rectify_segments(gp, segment_list2)
+    segment_list2_rect = rectify_segments(gpg, segment_list2)
     res['segments rectified on image rectified'] = \
         vs_fancy_display(rectified, segment_list2_rect)
 
     # Project to ground
-    sg = gp.find_ground_coordinates(segment_list2_rect)
+    sg = find_ground_coordinates(gpg, segment_list2_rect)
     
     lane_filter.initialize()
     if all_details:
@@ -107,18 +108,16 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     
     _likelihood = lane_filter.update(sg)
     
-    res['belief'] = lane_filter.get_plot_phi_d()  
+    res['belief'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)  
     easy_algo_db = get_easy_algo_db()
     
     if isinstance(lane_filter, LaneFilterGeneric):
         template_name = lane_filter.localization_template
     else:
         template_name = 'DT17_straight'    
-    print('Creating %r' % template_name)
     
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
     
-    gpg = gp.gpc # XXX
     
     est = lane_filter.get_estimate()
     
