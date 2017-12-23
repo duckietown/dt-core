@@ -6,22 +6,26 @@ description: |
 
 parameters:
     states:
-        desc:
+        desc: |
+            States are the modes that the system can be in. Each state has corresponding events which trigger state transitions, as well as a list of active nodes in the current state.
         type: dict
         default: {}
     nodes:
         desc:
         type:
     global_transitions:
-        desc:
+        desc: |
+            These are the state transition events that can be triggered from all states.
         type: dict
         default: {}
     initial_state:
-        desc:
+        desc: |
+            This is the initial state that the FSM will be in upon launch of the node.
         type: str
-        default: ''
+        default: 'LANE_FOLLOWING'
     events:
-        desc:
+        desc: |
+            Events are triggered by certain topics, and allow for transitions between states
         type: dict
         default: {}
 
@@ -29,7 +33,8 @@ subscriptions: {}
 
 publishers:
     mode:
-        desc:
+        desc: |
+        This topic gives the current state of the FSM, and can have values from a set of strings indicating the possible state names.
         topic: ~mode
         type: duckietown_msgs/FSMState
         queue_size: 1
