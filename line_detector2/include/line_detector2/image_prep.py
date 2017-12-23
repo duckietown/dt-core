@@ -57,11 +57,13 @@ class ImagePrep(object):
             segment_list = get_segment_list_normalized(self.top_cutoff, self.shape, white, yellow, red)
             
         # SegmentList constructor
-        segment_list2 = fuzzy_segment_list_image_space(segment_list, 
-                                                       n=self.fuzzy_mult, 
-                                                       intensity=self.fuzzy_noise)
-        
-        return segment_list2
+        if self.fuzzy_mult is not None:
+            segment_list2 = fuzzy_segment_list_image_space(segment_list, 
+                                                           n=self.fuzzy_mult, 
+                                                           intensity=self.fuzzy_noise)
+            return segment_list2
+        else:
+            return segment_list
     
 from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
 

@@ -16,9 +16,18 @@ from complete_image_pipeline.pipeline import run_pipeline
 template = 'DT17_ETH_straight'
 robot_name = 'flitzer'
 line_detector_name = 'baseline'
-image_prep_name = 'prep_200_100'
-lane_filter_names = ['baseline', 'generic_straight']
-# lane_filter_names = ['generic_straight']
+# image_prep_name = 'prep_200_100'
+image_prep_name = 'baseline'
+# lane_filter_names = ['baseline', 'generic_straight']
+lane_filter_names = []
+lane_filter_names += ['generic_straight']
+lane_filter_names += ['baseline']
+raise_if_error_too_large = True
+
+max_phi_err = np.deg2rad(5)
+max_d_err = 0.021
+
+
 
 dirn = lambda _: 'out-synthetic/%s' % _
 @comptest
@@ -27,7 +36,7 @@ def test_synthetic_zero_zerophi():
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_zero_zerophi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
+        test_synthetic_phi(template, robot_name, line_detector_name,
                    image_prep_name, lane_filter_name, d, phi , outd)
 @comptest
 def test_synthetic_pos_zerophi():
@@ -35,7 +44,7 @@ def test_synthetic_pos_zerophi():
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_pos_zerophi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
+        test_synthetic_phi(template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 @comptest
 def test_synthetic_neg_posphi():
@@ -44,7 +53,7 @@ def test_synthetic_neg_posphi():
     
     for lane_filter_name in lane_filter_names:
         outd = dirn('test_synthetic_neg_posphi-' + lane_filter_name) 
-        test_synthetic(template, robot_name, line_detector_name,
+        test_synthetic_phi(template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 @comptest
 def test_synthetic_zero_posphi():
@@ -52,7 +61,7 @@ def test_synthetic_zero_posphi():
     phi = np.deg2rad(15)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_zero_posphi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
+        test_synthetic_phi(template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 
 @comptest
@@ -61,7 +70,7 @@ def test_synthetic_zero_negphi():
     phi = np.deg2rad(-20)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_zero_negphi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
+        test_synthetic_phi(template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 
 @comptest
@@ -70,8 +79,8 @@ def test_synthetic_zero_bignegphi():
     phi = np.deg2rad(-50)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_zero_bignegphi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        test_synthetic_phi(template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi, outd)
 
 @comptest
 def test_synthetic_zero_bigposphi():
@@ -79,12 +88,39 @@ def test_synthetic_zero_bigposphi():
     phi = np.deg2rad(+50)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_zero_bignegphi-' + lane_filter_name)
-        test_synthetic(template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        test_synthetic_phi(template, robot_name, line_detector_name,
+                       image_prep_name, lane_filter_name, d, phi, outd)
 
+def test_synthetic_phi(template,robot_name,line_detector_name,
+                   image_prep_name, lane_filter_name, d, phi, outd,
+                   max_phi_err=max_phi_err, 
+                   max_d_err=max_d_err):
+
+    location = np.zeros((), dtype=TemplateStraightLane.DATATYPE_COORDS)
+    location['phi'] = phi 
+    location['d'] = d 
+    
+    res, stats = test_synthetic(template,robot_name,line_detector_name,
+                                image_prep_name, lane_filter_name, location, outd)
+    error = stats['error']
+    estimate = stats['estimate']
+    fail = False
+    msg = 'location: %s  estimate: %s error: %s ' % (location, estimate, error)
+    if np.abs(error['phi']) > max_phi_err:
+        msg += '\nError in phi too big (%s > %s) ' % (np.abs(error['phi']), max_phi_err)
+        fail = True
+    if np.abs(error['d']) > max_d_err:
+        msg += '\nError in d too big (%s > %s)' % (np.abs(error['d']), max_d_err)
+        fail = True
+    if fail:
+        dtu.logger.error(msg)
+    
+        if raise_if_error_too_large:
+            raise Exception(msg)
+    
      
 def test_synthetic(template,robot_name,line_detector_name,
-                   image_prep_name, lane_filter_name, d, phi, outd ):
+                   image_prep_name, lane_filter_name, location, outd):
     # phi = np.deg2rad(-15)
     # first, load calibration for robot
     easy_algo_db = get_easy_algo_db()
@@ -93,24 +129,27 @@ def test_synthetic(template,robot_name,line_detector_name,
     gp = GroundProjection(robot_name)
     gpg = gp.gpc # GroundProjectionGeometry
     
-    location = np.zeros((), dtype=TemplateStraightLane.DATATYPE_COORDS)
-    location['phi'] = phi 
-    location['d'] = d 
-    
     xytheta = localization_template.xytheta_from_coords(location)
     sm_orig = localization_template.get_map()
     distorted_synthetic = simulate_image(sm_orig, xytheta, gpg, blur_sigma=0.3)
 
     image = distorted_synthetic
 
-    res = run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
+    res, stats = run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                        all_details=False,
                        skip_instagram=True, ground_truth=xytheta)
-
+    
+    error = np.empty_like(location)
+    for k in error.dtype.fields:
+        error[k] = stats['estimate'][k] - location[k]
+    stats['error'] = error
+#     print('location: %s' % location)
+#     print('estimate: %s' % stats['estimate'])
+#     print('error: %s' % stats['error'])
     res = dtu.resize_small_images(res)
     
     dtu.write_bgr_images_as_jpgs(res, outd, extra_string=outd.split('/')[-1])
-
+    return res, stats
 
 @dtu.contract(gpg=GroundProjectionGeometry)
 def simulate_image(sm_orig, xytheta, gpg, blur_sigma):

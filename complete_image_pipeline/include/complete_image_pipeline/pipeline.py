@@ -140,7 +140,10 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     res['reprojected'] = plot_map(rectified, sm_axle, gpg,
                                   do_ground=False, do_faces=False, do_segments=True)
     
-    return res
+    stats = OrderedDict()
+    stats['estimate'] = est
+    
+    return res, stats
 
 def get_grid(shape, L=32, col={0: (255,0,0), 1: (0,255,0)}):
     """ Creates a grid of given shape """

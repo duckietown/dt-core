@@ -1,10 +1,10 @@
 from collections import namedtuple
 
+from numpy.testing.utils import assert_almost_equal
+
 import duckietown_utils as dtu
-from duckietown_utils.exception_utils import check_isinstance
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 import numpy as np
-from numpy.testing.utils import assert_almost_equal
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -13,6 +13,14 @@ SegMapFace = namedtuple('SegMapFace', 'points color')
 
 FRAME_AXLE = 'axle'
 FRAME_TILE = 'tile'
+
+__all__ = [
+    'SegMapSegment',
+    'SegMapPoint',
+    'SegMapFace',
+    'FRAME_AXLE',
+    'FRAME_TILE',
+]
 
 class SegmentsMap(object):
     
@@ -25,17 +33,18 @@ class SegmentsMap(object):
         
     def validate(self):
         for k, p in self.points.items():
-            check_isinstance(p, SegMapPoint)
+            dtu.check_isinstance(p, SegMapPoint)
+            dtu.check_isinstance(k, str)
             
         for S in self.segments:
-            check_isinstance(S, SegMapSegment)
+            dtu.check_isinstance(S, SegMapSegment)
             for p in S.points:
                 if not p in self.points:
                     msg = 'Invalid point %r' % p
                     raise ValueError(msg)
                 
         for F in self.faces:
-            check_isinstance(F, SegMapFace)
+            dtu.check_isinstance(F, SegMapFace)
             for p in F.points:
                 if not p in self.points:
                     msg = 'Invalid point %r' % p
@@ -43,12 +52,9 @@ class SegmentsMap(object):
 
     @staticmethod
     def from_yaml(data):
-
         points = data['points']
         faces = data['faces']
         segments = data['segments']
-        
-#         if faces is None: faces = []
         
         points2 = {}
         for k, p in points.items():

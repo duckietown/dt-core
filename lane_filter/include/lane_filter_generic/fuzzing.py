@@ -1,3 +1,4 @@
+import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 import numpy as np
 
@@ -7,6 +8,7 @@ __all__ = [
     
 ]
 
+@dtu.contract(n='int,>=1', intensity='float, >0')
 def fuzzy_segment_list_image_space(segment_list, n, intensity):
     S2 = SegmentList()
     
