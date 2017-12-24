@@ -158,10 +158,13 @@ def add_tile(points, faces, segments, tile_size, tile_spacing):
     x1 = -tile_size/2 - extra
     x2 = +tile_size/2 + extra
     
+    c = BLACK
+    # to debug:
+    # c = GRAY
     assert_almost_equal(x2-x1, tile_spacing)
     y1 = -tile_size/2 - extra
     y2 = +tile_size/2 + extra
-    _add_rect(points, faces, segments, x1, y1, x2, y2, FRAME_TILE, GRAY, 
+    _add_rect(points, faces, segments, x1, y1, x2, y2, FRAME_TILE, c, 
               use_sides_for_loc=[None,None,None,None])
 
     x1 = -tile_size/2 

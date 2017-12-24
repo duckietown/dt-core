@@ -1,11 +1,12 @@
 import cv2
 from nose.tools import assert_almost_equal
 
-from duckietown_segmaps.maps import SegmentsMap, FRAME_AXLE
 import duckietown_utils as dtu
 from geometry_msgs.msg import Point
-from ground_projection.ground_projection_geometry import GroundProjectionGeometry
+from ground_projection import GroundProjectionGeometry
 import numpy as np
+
+from .maps import SegmentsMap, FRAME_AXLE
 
 
 def rotate(l, n):
@@ -141,20 +142,19 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True): #
             
             if w1_behind and w2_behind:
                 # They are both behind the camera: we do not draw them
-                dtu.logger.debug('Will not draw %s %s' % (w1,w2))
+#                 dtu.logger.debug('Will not draw %s %s' % (w1,w2))
                 continue
             elif not w1_behind and not w2_behind:
-                dtu.logger.debug('Points are ok')
+#                 dtu.logger.debug('Points are ok')
                 pass
             else:
-                dtu.logger.debug('Segment needs clipping')
+#                 dtu.logger.debug('Segment needs clipping')
                 w1, w2 = clip_to_frustum(w1, w2, x_frustum)
              
             uv1 = gpg.ground2pixel(Point(w1[0],w1[1],w1[2]))
             uv2 = gpg.ground2pixel(Point(w2[0],w2[1],w2[2]))
     
             width = 2
-    #         BGR_WHITE = (255,255,255)
             paint  = (255,120,120)
     #         paint = BGR_WHITE
             ti = lambda a,b: (int(np.round(a)), int(np.round(b)))
