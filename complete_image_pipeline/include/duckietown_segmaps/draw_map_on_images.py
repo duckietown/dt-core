@@ -7,7 +7,7 @@ from geometry_msgs.msg import Point
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 import numpy as np
 from line_detector.visual_state_fancy_display import BGR_YELLOW, BGR_WHITE,\
-    BGR_BLACK, BGR_BLUE
+    BGR_BLACK, BGR_BLUE, BGR_RED
  
 def rotate(l, n):
     return l[n:] + l[:n]
@@ -81,7 +81,11 @@ def bgr_color_from_string(s):
         'white': BGR_WHITE,
         'black': BGR_BLACK,
         'blue': BGR_BLUE,
+        'red': BGR_RED,
     }
+    if not s in d:
+        msg = 'No color %r found in %s' % (s, list(d))
+        raise ValueError(s)
     return d[s]
 
 

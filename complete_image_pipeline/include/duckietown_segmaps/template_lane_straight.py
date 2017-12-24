@@ -46,7 +46,25 @@ class TemplateStraightLane(LocalizationTemplate):
         r['y'] = res['d'] - self.offset
         r['theta'] = dtu.norm_angle(res['phi'])
         return r
+
+class TemplateStraightLaneWithStop(TemplateStraightLane):
     
+    def __init__(self, tile_size, 
+                       width_yellow, 
+                       width_white,
+                       tile_spacing,
+                       width_red):
+        TemplateStraightLane.__init__(self, tile_size, 
+                                      width_yellow, 
+                                      width_white,
+                                      tile_spacing)
+        
+        self.map = get_map_straight_lane_with_stop(tile_size, width_yellow, width_white, 
+                                                   tile_spacing, width_red)
+        self.lane_width = (tile_size - 2*width_white - width_yellow) / 2
+        self.dt = TemplateStraightLane.DATATYPE_COORDS
+        self.offset = width_yellow/2 + self.lane_width/2
+     
 
 @dtu.contract(returns=SegmentsMap)
 def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
@@ -118,7 +136,6 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
     add_tile(0,0) 
     add_tile(tile_spacing,0) 
     
-    
     gap_len = 0.015
     dash_len = 0.04
     def add_dash(x):
@@ -137,8 +154,7 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
         add_dash(x)
     
     from duckietown_msgs.msg import Segment
-    segment = Segment()
-    warnings.warn('tmp test')
+    segment = Segment() 
     
     segments.append(SegMapSegment(color=segment.WHITE, points=['q1','p1']))
     segments.append(SegMapSegment(color=segment.WHITE, points=['p2','q2']))
@@ -153,3 +169,37 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing):
     data = dict(points=points, segments=segments, faces=faces)
 
     return SegmentsMap(**data)
+
+@dtu.contract(points='dict', faces='list', id_frame='str', color='str')
+def _add_rect(points, faces, x1, y1, x2, y2, id_frame, color):
+    assert x2 > x1
+    assert y2 > y1
+    s = len(points)
+    
+    pre = '%s_' % s
+    points[pre+'t0'] = SegMapPoint(id_frame=id_frame, coords=[x1, y1, 0])
+    points[pre+'t1'] = SegMapPoint(id_frame=id_frame, coords=[x1, y2, 0])
+    points[pre+'t2'] = SegMapPoint(id_frame=id_frame, coords=[x2, y2, 0])
+    points[pre+'t3'] = SegMapPoint(id_frame=id_frame, coords=[x2, y1, 0])
+    faces.append(SegMapFace(color=color, 
+                            points=[pre+'t0',pre+'t1',pre+'t2',pre+'t3']))
+    
+@dtu.contract(returns=SegmentsMap)
+def get_map_straight_lane_with_stop(tile_size, width_yellow, width_white, tile_spacing, width_red):
+    straight = get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing)
+    points = straight.points
+    faces = straight.faces
+    segments = straight.segments
+    id_frame = FRAME_TILE
+    
+    x1 = tile_size/2 - width_red
+    y1 = 0
+    y2 = tile_size/2
+    x2 = tile_size/2 
+    color = 'red'
+    _add_rect(points, faces, x1, y1, x2, y2, id_frame, color)
+
+    return SegmentsMap(faces=faces, points=points, segments=segments)
+    
+    
+

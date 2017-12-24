@@ -1,0 +1,9 @@
+description: >
+    Straight lane for ETH duckietown with stop 
+constructor: duckietown_segmaps.TemplateStraightLaneWithStop
+parameters: 
+    tile_size: 0.558 # outer white to outer white
+    tile_spacing: 0.584 
+    width_yellow: 0.024 
+    width_white: 0.048 
+    width_red:  0.048

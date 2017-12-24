@@ -1,5 +1,5 @@
 description: >
-    ETH duckietown 
+    Straight lane for ETH duckietown 
 constructor: duckietown_segmaps.TemplateStraightLane
 parameters: 
     tile_size: 0.558 # outer white to outer white
