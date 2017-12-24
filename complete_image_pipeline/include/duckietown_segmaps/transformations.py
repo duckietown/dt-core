@@ -58,7 +58,6 @@ def _transform_map_to_frame(tinfo, smap, frame2):
     for k, v in smap.points.items():
         points2[k] = transform_point(v)
     
-    return SegmentsMap(points=points2, segments=smap.segments, faces=smap.faces)
+    return SegmentsMap(points=points2, segments=smap.segments, faces=smap.faces,
+                       constants=smap.constants)
 
-
-        

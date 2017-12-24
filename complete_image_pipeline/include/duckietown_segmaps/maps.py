@@ -11,8 +11,10 @@ SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords')
 SegMapSegment = namedtuple('SegMapSegment', 'points color')
 SegMapFace = namedtuple('SegMapFace', 'points color')
 
+FAMILY_SEGMAPS = 'segmap'
 FRAME_AXLE = 'axle'
 FRAME_TILE = 'tile'
+FRAME_GLOBAL = 'global'
 
 __all__ = [
     'SegMapSegment',
@@ -20,16 +22,25 @@ __all__ = [
     'SegMapFace',
     'FRAME_AXLE',
     'FRAME_TILE',
+    'FRAME_GLOBAL',
+    'FAMILY_SEGMAPS',
 ]
 
 class SegmentsMap(object):
     
-    @dtu.contract(points=dict, segments=list, faces=list)
-    def __init__(self, points, segments, faces):
+    @dtu.contract(points=dict, segments=list, faces=list, constants='None|dict(str:float)')
+    def __init__(self, points, segments, faces, constants=None):
+        if constants is None:
+            constants = {}
         self.points = points
         self.segments = segments
         self.faces = faces
+        self.constants = constants
         self.validate()
+        
+    @staticmethod
+    def empty():
+        return SegmentsMap(points={}, segments=[], faces=[], constants={})
         
     def validate(self):
         for k, p in self.points.items():
@@ -50,6 +61,24 @@ class SegmentsMap(object):
                     msg = 'Invalid point %r' % p
                     raise ValueError(msg)
 
+    @staticmethod
+    def merge(sms):
+        points = {}
+        segments = []
+        faces = []
+        constants = {}
+        for i, sm in enumerate(sms):
+            # first, make sure the names are different
+            sm2 = add_prefix(sm, 'm%d_'%i)
+            points.update(sm2.points)
+            segments.extend(sm2.segments)
+            faces.extend(sm2.faces)
+            # XXX: what if conflict?
+            constants.update(sm2.constants)
+
+        return SegmentsMap(points=points, faces=faces, 
+                           segments=segments, constants=constants)
+        
     @staticmethod
     def from_yaml(data):
         points = data['points']
@@ -80,12 +109,12 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
     a = CreateImageFromPylab(dpi=dpi)
 
     with a as pylab:
-        _plot_map_segments(sm, pylab)
+        _plot_map_segments(sm, pylab, FRAME_GLOBAL)
         _plot_detected_segments(tinfo, segments, pylab)
         
         # draw arrow
         L = 0.1
-        
+
         
         if ground_truth is not None:
             x = ground_truth['x']
@@ -96,10 +125,10 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
             pylab.plot(x, y, 'co', markersize=12)
             pylab.plot([x, x1], [y, y1], 'c-', linewidth=4)
 #             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)
-            print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
+#             print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
             
-        w1 = tinfo.transform_point(np.array([0,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
-        w2 = tinfo.transform_point(np.array([L,0,0]), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        w1 = tinfo.transform_point(np.array([0,0,0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
+        w2 = tinfo.transform_point(np.array([L,0,0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
         
         pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
         pylab.plot(w1[0], w1[1], 'mo', markersize=6)
@@ -121,22 +150,22 @@ def _plot_detected_segments(tinfo, segments, pylab):
         
         f = lambda _: np.array([_.x, _.y, _.z])
         
-        w1 = tinfo.transform_point(f(p1), frame1=FRAME_AXLE, frame2=FRAME_TILE)
-        w2 = tinfo.transform_point(f(p2), frame1=FRAME_AXLE, frame2=FRAME_TILE)
+        w1 = tinfo.transform_point(f(p1), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
+        w2 = tinfo.transform_point(f(p2), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
         
 #         dtu.logger.debug('Plotting w1 %s w2 %s' % (w1, w2))
         pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
 
         
 @dtu.contract(sm=SegmentsMap)
-def _plot_map_segments(sm, pylab):
+def _plot_map_segments(sm, pylab, expect_frame):
 
     for face in sm.faces:
         xs = []
         ys = []
         for p in face.points:
-            if sm.points[p].id_frame != FRAME_TILE:
-                msg = "Cannot deal with points not in frame FRAME_AXLE"
+            if sm.points[p].id_frame != expect_frame:
+                msg = "Expected points in frame %r, got %r" %(expect_frame, sm.points[p].id_frame)
                 raise NotImplementedError(msg)
             
             coords = sm.points[p].coords
@@ -145,16 +174,17 @@ def _plot_map_segments(sm, pylab):
             
         xs.append(xs[0])
         ys.append(ys[0])
-        pylab.fill(xs, ys, facecolor=face.color, edgecolor='black')
+        facecolor = face.color
+        pylab.fill(xs, ys, facecolor=facecolor, edgecolor='none')
 
     for segment in sm.segments:
         p1 = segment.points[0]
         p2 = segment.points[1]
 
         # If we are both in FRAME_AXLE
-        if ( not (sm.points[p1].id_frame == FRAME_TILE) and 
-             (sm.points[p2].id_frame == FRAME_TILE)):
-            msg = "Cannot deal with points not in frame FRAME_TILE"
+        if ( not (sm.points[p1].id_frame == expect_frame) and 
+             (sm.points[p2].id_frame == expect_frame)):
+            msg = "Cannot deal with points not in frame %r" % expect_frame
             raise NotImplementedError(msg)
     
         w1 = np.array(sm.points[p1].coords)
@@ -190,9 +220,19 @@ def get_normal_outward_for_segment(w1, w2):
 assert_almost_equal(np.array([0,-1,0]), 
                     get_normal_outward_for_segment(np.array([0,0,0]), np.array([2,0,0])))
 
-    
-    
-    
-    
-    
-    
+
+def add_prefix(sm, prefix):
+    points = {}
+    faces = []
+    segments = []
+    for k, v in sm.points.items():
+        points[prefix + k] = v
+    for face in sm.faces:
+        points2 = tuple(prefix +_ for _ in face.points)
+        faces.append(face._replace(points=points2))
+    for segment in sm.segments:
+        points2 = tuple(prefix +_ for _ in segment.points)
+        segments.append(segment._replace(points=points2))
+        
+    return SegmentsMap(points=points, faces=faces, segments=segments, 
+                       constants=sm.constants)

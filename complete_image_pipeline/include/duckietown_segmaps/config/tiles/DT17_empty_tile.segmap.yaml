@@ -1,0 +1,5 @@
+description: Empty tile
+constructor: duckietown_segmaps.empty_tile
+parameters: 
+    tile_size: 0.558 # outer white to outer white
+    tile_spacing: 0.584

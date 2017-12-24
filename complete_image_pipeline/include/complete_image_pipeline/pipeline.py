@@ -4,8 +4,9 @@ import cv2
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.draw_map_on_images import plot_map
-from duckietown_segmaps.map_localization_template import FAMILY_LOC_TEMPLATES
-from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE, plot_map_and_segments
+from localization_templates.map_localization_template import FAMILY_LOC_TEMPLATES
+from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE, plot_map_and_segments,\
+    FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from duckietown_utils.coords import SE2_from_xyth
@@ -114,7 +115,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     if isinstance(lane_filter, LaneFilterGeneric):
         template_name = lane_filter.localization_template
     else:
-        template_name = 'DT17_straight'    
+        template_name = 'DT17_straight_straight'
+        dtu.logger.debug('Using default template %r for visualization' % template_name)    
     
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
     
@@ -126,7 +128,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     tinfo = TransformationsInfo()
     g = SE2_from_xyth(xytheta_tile)
-    tinfo.add_transformation(frame1=FRAME_TILE, frame2=FRAME_AXLE, g=g) 
+    tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g) 
         
     sm_orig = localization_template.get_map()
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)

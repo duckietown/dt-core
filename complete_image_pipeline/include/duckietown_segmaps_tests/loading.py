@@ -1,7 +1,8 @@
 from comptests import comptest, run_module_tests
 
-from duckietown_segmaps.template_lane_straight import get_map_straight_lane
+
 from duckietown_utils import m_from_in
+from duckietown_segmaps.tiles import get_map_straight_lane
 
 
 @comptest

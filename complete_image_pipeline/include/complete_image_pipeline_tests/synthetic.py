@@ -1,26 +1,28 @@
 from comptests.registrar import comptest, run_module_tests
 
+import cv2
+
+from complete_image_pipeline.pipeline import run_pipeline
 from duckietown_segmaps.draw_map_on_images import plot_map
-from duckietown_segmaps.map_localization_template import FAMILY_LOC_TEMPLATES
-from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE
-from duckietown_segmaps.template_lane_straight import TemplateStraightLane
+from duckietown_segmaps.maps import FRAME_AXLE, FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from easy_algo.algo_db import get_easy_algo_db
 from ground_projection import GroundProjection
-import numpy as np
-import cv2
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
-from complete_image_pipeline.pipeline import run_pipeline
+from localization_templates import FAMILY_LOC_TEMPLATES
+from localization_templates import TemplateStraight
+import numpy as np
 
-template = 'DT17_ETH_straight'
+
+template = 'DT17_straight_straight'
 robot_name = 'flitzer'
 line_detector_name = 'baseline'
 # image_prep_name = 'prep_200_100'
 image_prep_name = 'baseline'
 # lane_filter_names = ['baseline', 'generic_straight']
 lane_filter_names = []
-lane_filter_names += ['generic_straight']
+lane_filter_names += ['generic_straightstraight']
 lane_filter_names += ['baseline']
 raise_if_error_too_large = True
 
@@ -96,7 +98,7 @@ def test_synthetic_phi(template,robot_name,line_detector_name,
                    max_phi_err=max_phi_err, 
                    max_d_err=max_d_err):
 
-    location = np.zeros((), dtype=TemplateStraightLane.DATATYPE_COORDS)
+    location = np.zeros((), dtype=TemplateStraight.DATATYPE_COORDS)
     location['phi'] = phi 
     location['d'] = d 
     
@@ -124,6 +126,7 @@ def test_synthetic(template,robot_name,line_detector_name,
 
     # first, load calibration for robot
     easy_algo_db = get_easy_algo_db()
+    dtu.logger.debug('looking for localization template %r' % template)
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
     
     gp = GroundProjection(robot_name)
@@ -158,13 +161,13 @@ def simulate_image(sm_orig, xytheta, gpg, blur_sigma):
     blank = generate_blank(camera_info)
     tinfo = TransformationsInfo()
     g = dtu.SE2_from_xyth(xytheta)
-    tinfo.add_transformation(frame1=FRAME_TILE, frame2=FRAME_AXLE, g=g) 
+    
+    tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g) 
         
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     
     rectified_synthetic = plot_map(blank, sm_axle, gpg, do_segments=False)
     
-
     distorted_synthetic = gpg.distort(rectified_synthetic)
     
     distorted_synthetic = add_noise(distorted_synthetic)

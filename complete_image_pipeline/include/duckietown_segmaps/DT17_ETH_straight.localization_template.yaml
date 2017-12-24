@@ -1,8 +1,0 @@
-description: >
-    Straight lane for ETH duckietown 
-constructor: duckietown_segmaps.TemplateStraightLane
-parameters: 
-    tile_size: 0.558 # outer white to outer white
-    tile_spacing: 0.584 
-    width_yellow: 0.024 
-    width_white: 0.048 

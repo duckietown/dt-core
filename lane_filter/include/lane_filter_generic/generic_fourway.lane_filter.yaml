@@ -1,5 +1,5 @@
 description: >
-    Lane filter for a straight lane with stop line (DT17_ETH_straight_stop) 
+    Lane filter for a straight lane with stop line (DT17_straight_stop) 
 constructor: lane_filter_generic.LaneFilterGeneric
 parameters: 
   configuration:
@@ -10,5 +10,5 @@ parameters:
       phi_min: -1.5
       phi_max: 1.5125
 
-      localization_template: DT17_ETH_straight_stop
+      localization_template: DT17_four_way
       min_max: 0.1

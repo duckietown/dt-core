@@ -3,22 +3,15 @@ import cv2
 from duckietown_msgs.msg import (Segment)  # @UnresolvedImport
 import numpy as np
 
-
-BLACK = (0,0,0)
-BGR_RED = (0,0,255)
-BGR_GREEN = (0,255,0)
-BGR_WHITE = (255,255,255)
-BGR_BLACK = (0,0,0)
-BGR_BLUE = (255,0,0)
-BGR_YELLOW = (0, 255,255)
+import duckietown_utils as dtu
 
 def vs_fancy_display(image_cv, segment_list):
     """
          
     """
-    colors = {Segment.WHITE: BGR_WHITE,
-              Segment.RED: BGR_RED,
-              Segment.YELLOW: BGR_YELLOW}
+    colors = {Segment.WHITE: dtu.ColorConstants.BGR_WHITE,
+              Segment.RED: dtu.ColorConstants.BGR_RED,
+              Segment.YELLOW: dtu.ColorConstants.BGR_YELLOW}
     
     ground = np.copy(image_cv)
     shape = ground.shape[:2]

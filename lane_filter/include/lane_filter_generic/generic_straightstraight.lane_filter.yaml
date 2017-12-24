@@ -1,5 +1,5 @@
 description: >
-    Lane filter for a straight lane (DT17_ETH_straight) 
+    Lane filter for a straight lane (DT17_straight) 
 constructor: lane_filter_generic.LaneFilterGeneric
 parameters: 
   configuration:
@@ -10,5 +10,5 @@ parameters:
       phi_min: -1.5
       phi_max: 1.5125
 
-      localization_template: DT17_ETH_straight
+      localization_template: DT17_straight_straight
       min_max: 0.1

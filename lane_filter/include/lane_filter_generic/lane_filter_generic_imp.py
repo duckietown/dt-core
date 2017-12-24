@@ -3,10 +3,10 @@ from math import floor
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
-from duckietown_segmaps.map_localization_template import FAMILY_LOC_TEMPLATES
+from localization_templates import FAMILY_LOC_TEMPLATES
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
-from easy_algo.algo_db import get_easy_algo_db
+from easy_algo import get_easy_algo_db
 from lane_filter import LaneFilterInterface
 import numpy as np
 

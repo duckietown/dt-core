@@ -9,6 +9,8 @@ setup_args = generate_distutils_setup(
         'complete_image_pipeline_tests',
         'duckietown_segmaps',
         'duckietown_segmaps_tests',
+        'localization_templates',
+        'localization_templates_tests',
     ],
     package_dir={'': 'include'},
 )

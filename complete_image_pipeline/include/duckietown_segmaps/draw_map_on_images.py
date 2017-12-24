@@ -6,9 +6,8 @@ import duckietown_utils as dtu
 from geometry_msgs.msg import Point
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 import numpy as np
-from line_detector.visual_state_fancy_display import BGR_YELLOW, BGR_WHITE,\
-    BGR_BLACK, BGR_BLUE, BGR_RED
- 
+
+
 def rotate(l, n):
     return l[n:] + l[:n]
 
@@ -75,18 +74,6 @@ def get_points_rect_coords(coords0, x_frustum):
                     coords.append(w)
     return coords
 
-def bgr_color_from_string(s):
-    d = {
-        'yellow': BGR_YELLOW,
-        'white': BGR_WHITE,
-        'black': BGR_BLACK,
-        'blue': BGR_BLUE,
-        'red': BGR_RED,
-    }
-    if not s in d:
-        msg = 'No color %r found in %s' % (s, list(d))
-        raise ValueError(s)
-    return d[s]
 
 
 def paint_polygon_world(base, coords, gpg, color, x_frustum):
@@ -132,7 +119,7 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True): #
         for face in sm.faces:
             # list of arrays with cut stuff
             coords = [sm.points[_].coords for _ in face.points]
-            color = bgr_color_from_string(face.color)
+            color = dtu.bgr_color_from_string(face.color)
             paint_polygon_world(image, coords, gpg, color, x_frustum)
     
     if do_segments:
