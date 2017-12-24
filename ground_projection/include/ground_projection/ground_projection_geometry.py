@@ -172,9 +172,10 @@ def invert_map(mapx, mapy):
         tx = int(np.round(tx))
         ty = int(np.round(ty))
         
-        if (0<=tx<W) and (0<=ty<=H):
+        if (0<=tx<W) and (0<=ty<H):
             rmapx[ty,tx] = x
             rmapy[ty,tx] = y
+            
     # fill holes
     fill_holes(rmapx, rmapy)
     

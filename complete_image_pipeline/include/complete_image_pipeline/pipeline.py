@@ -4,8 +4,7 @@ import cv2
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.draw_map_on_images import plot_map
-from localization_templates.map_localization_template import FAMILY_LOC_TEMPLATES
-from duckietown_segmaps.maps import FRAME_AXLE, FRAME_TILE, plot_map_and_segments,\
+from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments,\
     FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
@@ -19,6 +18,7 @@ from lane_filter_generic.lane_filter_generic_imp import LaneFilterGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
+from localization_templates.map_localization_template import FAMILY_LOC_TEMPLATES
 import numpy as np
 
 

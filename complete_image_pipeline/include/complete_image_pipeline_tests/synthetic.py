@@ -147,22 +147,23 @@ def test_synthetic(template,robot_name,line_detector_name,
     for k in error.dtype.fields:
         error[k] = stats['estimate'][k] - location[k]
     stats['error'] = error
-#     print('location: %s' % location)
-#     print('estimate: %s' % stats['estimate'])
-#     print('error: %s' % stats['error'])
+
     res = dtu.resize_small_images(res)
     
     dtu.write_bgr_images_as_jpgs(res, outd, extra_string=outd.split('/')[-1])
     return res, stats
 
-@dtu.contract(gpg=GroundProjectionGeometry)
-def simulate_image(sm_orig, xytheta, gpg, blur_sigma):
+@dtu.contract(gpg=GroundProjectionGeometry, pose='SE2')
+def simulate_image(sm_orig, pose, gpg, blur_sigma):
     camera_info = gpg.get_camera_info() 
     blank = generate_blank(camera_info)
     tinfo = TransformationsInfo()
-    g = dtu.SE2_from_xyth(xytheta)
-    
-    tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g) 
+
+    frames = list(set(_.id_frame for _ in sm_orig.points.values()))    
+    id_frame = frames[0]
+    dtu.logger.debug('frames: %s choose %s' % (frames, id_frame))
+
+    tinfo.add_transformation(frame1=id_frame, frame2=FRAME_AXLE, g=pose) 
         
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     

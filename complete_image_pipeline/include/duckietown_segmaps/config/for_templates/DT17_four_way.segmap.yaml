@@ -27,4 +27,3 @@ parameters:
     - cell: [3, 0]
       name: DT17_straight_tile
       rotation: -180
-      

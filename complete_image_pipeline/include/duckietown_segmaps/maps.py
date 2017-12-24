@@ -115,7 +115,6 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         # draw arrow
         L = 0.1
 
-        
         if ground_truth is not None:
             x = ground_truth['x']
             y = ground_truth['y']
@@ -135,9 +134,7 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         
         pylab.axis('equal')
 
-            
-        
-        
+
     return a.get_bgr()
 
 
@@ -158,7 +155,7 @@ def _plot_detected_segments(tinfo, segments, pylab):
 
         
 @dtu.contract(sm=SegmentsMap)
-def _plot_map_segments(sm, pylab, expect_frame):
+def _plot_map_segments(sm, pylab, expect_frame, plot_ref_segments=True):
 
     for face in sm.faces:
         xs = []
@@ -175,32 +172,34 @@ def _plot_map_segments(sm, pylab, expect_frame):
         xs.append(xs[0])
         ys.append(ys[0])
         facecolor = face.color
-        pylab.fill(xs, ys, facecolor=facecolor, edgecolor='none')
+        edgecolor = 'none'
+        pylab.fill(xs, ys, facecolor=facecolor, edgecolor=edgecolor)
 
-    for segment in sm.segments:
-        p1 = segment.points[0]
-        p2 = segment.points[1]
-
-        # If we are both in FRAME_AXLE
-        if ( not (sm.points[p1].id_frame == expect_frame) and 
-             (sm.points[p2].id_frame == expect_frame)):
-            msg = "Cannot deal with points not in frame %r" % expect_frame
-            raise NotImplementedError(msg)
+    if plot_ref_segments:
+        for segment in sm.segments:
+            p1 = segment.points[0]
+            p2 = segment.points[1]
     
-        w1 = np.array(sm.points[p1].coords)
-        w2 = np.array(sm.points[p2].coords)
+            # If we are both in FRAME_AXLE
+            if ( not (sm.points[p1].id_frame == expect_frame) and 
+                 (sm.points[p2].id_frame == expect_frame)):
+                msg = "Cannot deal with points not in frame %r" % expect_frame
+                raise NotImplementedError(msg)
         
-        color = 'c-'
-        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], color)
-    
-        n  = get_normal_outward_for_segment(w1, w2)
-        center = 0.51*w1 + 0.49*w2
-        L = 0.05
+            w1 = np.array(sm.points[p1].coords)
+            w2 = np.array(sm.points[p2].coords)
+            
+            color = 'c-'
+            pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], color)
         
-        center2 = center + n * L
-        
-        pylab.plot([center[0], center2[0]], [center[1], center2[1]], color)
-        
+            n  = get_normal_outward_for_segment(w1, w2)
+            center = 0.51*w1 + 0.49*w2
+            L = 0.05
+            
+            center2 = center + n * L
+            
+            pylab.plot([center[0], center2[0]], [center[1], center2[1]], color)
+            
         
 def get_normal_outward_for_segment(w1, w2):
     """ Outward points towards black """
