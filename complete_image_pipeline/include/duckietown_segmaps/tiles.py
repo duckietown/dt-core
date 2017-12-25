@@ -15,12 +15,45 @@ GRAY = dtu.ColorConstants.STR_GRAY
 RED = dtu.ColorConstants.STR_RED
 
 
+def three_way_intersection(tile_size, tile_spacing, width_white):
+    constants = {}
+    constants['tile_size'] = tile_size
+    constants['tile_spacing'] = tile_spacing
+    constants['width_white'] = tile_spacing
+    points = {}
+    segments = []
+    faces = []
+    extra = (tile_spacing-tile_size)/2
+    add_tile(points, faces, segments, tile_size, tile_spacing)
+    
+    id_frame = FRAME_TILE
+    color = WHITE
+    x1 = tile_size/2 - width_white
+    x2 = tile_size/2
+    y1 = -tile_size/2 - extra
+    y2 = +tile_size/2 + extra 
+    
+    _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame, color,
+              use_sides_for_loc=[Segment.WHITE, None, Segment.WHITE, None])
+    
+    
+    for a in [0,270]:
+        angle = np.deg2rad(a)
+        
+        add_corner(points, faces, segments, tile_size, extra, width_white, 
+                   FRAME_TILE, angle=angle)
+        
+    data = dict(points=points, segments=segments, faces=faces, constants=constants)
+
+    return SegmentsMap(**data)
+
     
 @dtu.contract(returns=SegmentsMap)
 def empty_tile(tile_size, tile_spacing, width_white):
     constants = {}
     constants['tile_size'] = tile_size
     constants['tile_spacing'] = tile_spacing
+    constants['width_white'] = tile_spacing
     points = {}
     segments = []
     faces = []
@@ -263,14 +296,6 @@ def get_map_curve(tile_size, tile_spacing, width_yellow,
 
     
     radius = tile_size/2 
-#     if direction == 'right':
-#         center = [-tile_size/2, -tile_size/2]
-#         alpha1 = 0
-#         alpha2 = np.pi / 2
-#     else:
-#         center = [-tile_size/2, +tile_size/2]
-#         alpha1 = -np.pi / 2 -np.deg2rad(3)
-#         alpha2 =  + np.deg2rad(3)
         
     width = width_yellow
     colors = [YELLOW, None]
@@ -314,10 +339,11 @@ def add_corner(points, faces, segments, tile_size, extra, width_white, id_frame,
         R = SO2_from_angle(angle)
         coords[i] = np.dot(R, coords[i])
     color = WHITE
-    use_sides_for_loc = [False, False, False, False]
+    use_sides_for_loc = [None, None, None, None]
     __add_rect_by_coords(points, faces, segments, 
                          coords, id_frame, color,
                          use_sides_for_loc)
+    
 @dtu.contract(lengths='list[N]', colors='list[N](str|None)')
 def add_curved(points, faces, segments, id_frame, 
                center, radius, 

@@ -1,17 +1,18 @@
+import itertools
 from math import floor
 
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
-from localization_templates import FAMILY_LOC_TEMPLATES
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from lane_filter import LaneFilterInterface
+from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 
 from .visualization import plot_phi_d_diagram_bgr_generic
-import itertools
+from geometry.poses import SE2_from_translation_angle
 
 
 __all__ = [
@@ -31,7 +32,8 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
             'd_min',
             'phi_max',
             'phi_min',
-            
+         
+            'delta_segment',   
             'min_max',
         ]
 
@@ -66,13 +68,14 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
 
     def initialize(self):
         easy_algo_db = get_easy_algo_db()
-        self._localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, 
-                                                                  self.localization_template)
+        self._localization_template = \
+            easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, 
+                                         self.localization_template)
         
         shape = self.d.shape
         n = shape[0] * shape[1]
         
-        uniform = np.ones(dtype='float64',shape=self.d.shape) * (1.0/n)
+        uniform = np.ones(dtype='float64', shape=self.d.shape) * (1.0/n)
 
         self.belief = uniform
         
@@ -106,11 +109,9 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
     
         hit = miss = 0
         for segment in segments:
-
-            delta = 0.05
-            for xytheta, weight in self.generate_votes(segment, delta): 
+            for pose, weight in self.generate_votes(segment, self.delta_segment): 
                 
-                est = self._localization_template.coords_from_xytheta(xytheta)
+                est = self._localization_template.coords_from_pose(pose)
 
                 d_i = est['d']
                 phi_i = est['phi']
@@ -200,11 +201,9 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
                     xy, theta = get_estimate(p, n, p1, n_hat)
                     assert -np.pi <= theta <= +np.pi
                     
-                    r = np.zeros(shape=(), dtype=dtu.DATATYPE_XYTHETA)
-                    r['x'] = xy[0]
-                    r['y'] = xy[1]
-                    r['theta'] = theta 
-                    yield r, weight
+                    pose = SE2_from_translation_angle(xy, theta)
+
+                    yield pose, weight
                     num += 1
         if num == 0:
             msg = 'No segment found for %s' % segment.color
@@ -213,7 +212,7 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
     def get_plot_phi_d(self, ground_truth=None):
         est = self.get_estimate()
         if ground_truth is not None:
-            ground_truth_location = self._localization_template.coords_from_xytheta(ground_truth)
+            ground_truth_location = self._localization_template.coords_from_pose(ground_truth)
             phi_true = ground_truth_location['phi']
             d_true = ground_truth_location['d']
         return plot_phi_d_diagram_bgr_generic(self, phi=est['phi'], d=est['d'],
@@ -226,7 +225,7 @@ def iterate_segment_sections(sm, map_segment, delta):
     w2 = np.array(sm.points[map_segment.points[1]].coords)
     map_segment_n = get_normal_outward_for_segment(w1, w2)
     dirv = (w1-w2) / np.linalg.norm(w1-w2)
-    n = int(np.floor(np.linalg.norm(w1-w2) / delta))
+    n = int(np.ceil(np.linalg.norm(w1-w2) / delta))
     for s in range(n):
         p = w1 + dirv * delta * s
         yield p, map_segment_n

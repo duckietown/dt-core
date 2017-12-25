@@ -1,14 +1,18 @@
-from duckietown_utils.cli import D8App
-from easy_algo.algo_db import get_easy_algo_db
-from duckietown_segmaps.maps import FAMILY_SEGMAPS, _plot_map_segments
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
-import duckietown_utils as dtu
 import os
+
 from reprep.plot_utils.axes import turn_all_axes_off
-from duckietown_utils.file_utils import write_data_to_file
-from geometry.poses import SE2_from_translation_angle
+
 from complete_image_pipeline_tests.synthetic import simulate_image
+from duckietown_segmaps.maps import FAMILY_SEGMAPS, _plot_map_segments
+import duckietown_utils as dtu
+from duckietown_utils.cli import D8App
+from duckietown_utils.file_utils import write_data_to_file
+from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+from easy_algo.algo_db import get_easy_algo_db
+from geometry.poses import SE2_from_translation_angle
 from ground_projection.ground_projection_interface import GroundProjection
+import numpy as np
+
 
 class DisplayTileAndMaps(D8App):
     """ 
@@ -16,25 +20,19 @@ class DisplayTileAndMaps(D8App):
     """
 
     def define_program_options(self, params):
-        pass
-    
-#         params.add_string('output', default=None, short='-o', help='Output directory', group=g) 
+        params.accept_extra()
     
     def go(self):
-
-        maps = []
-        
-#         maps += ['DT17_four_way']
-#         maps += ['DT17_curve_right']
-#         maps += ['DT17_map_loop3']
-        maps += ['DT17_before_curve']
         out = 'out-maps'
+        extra = self.options.get_extra()
         
-        db = get_easy_algo_db()
-        maps = list(db.query_and_instance(FAMILY_SEGMAPS, '*'))
-        
-        maps = ['DT17_curve_left']
-        print('maps: %s' % maps)
+        if len(extra) == 0:
+            db = get_easy_algo_db()
+            maps = list(db.query_and_instance(FAMILY_SEGMAPS, '*'))
+        else:
+            maps = extra
+
+        self.debug('maps: %s' % maps)
         for id_map in maps:
             display_map(id_map, out)
             
@@ -76,4 +74,3 @@ def simulate_camera_view(sm):
 
         
     
-import numpy as np

@@ -6,6 +6,8 @@ import numpy as np
 
 from .map_localization_template import LocalizationTemplate
 from duckietown_segmaps.maps import FRAME_GLOBAL
+from geometry.poses import translation_angle_from_SE2,\
+    SE2_from_translation_angle
 
 
 class TemplateStraight(LocalizationTemplate):
@@ -39,26 +41,28 @@ class TemplateStraight(LocalizationTemplate):
     def get_coords_datatype(self):
         return self.dt 
     
-    @dtu.contract(returns='array', xytheta='array')
-    def coords_from_xytheta(self, xytheta):
+    @dtu.contract(returns='array', pose='SE2')
+    def coords_from_pose(self, pose):
         """ Returns an array with datatype DATATYPE_COORDS """
         
         self.get_map() # need initialized
         
+        xy, theta = translation_angle_from_SE2(pose)
+        
         res = np.zeros((), dtype=self.dt)
         # x is unused (projection) 
-        res['phi'] = dtu.norm_angle(xytheta['theta'])
-        res['d'] = xytheta['y'] + self.offset
+        res['phi'] = dtu.norm_angle(theta)
+        res['d'] = xy[1] + self.offset
         return res 
         
-    @dtu.contract(returns='array', res='array')
-    def xytheta_from_coords(self, res):
+    @dtu.contract(returns='SE2', res='array')
+    def pose_from_coords(self, res):
         """ Returns an array with datatype dtu.DATATYPE_XYTHETA """
         self.get_map() # need initialized
         
-        r = np.zeros((), dtype=dtu.DATATYPE_XYTHETA)
-        r['x'] = 0
-        r['y'] = res['d'] - self.offset
-        r['theta'] = dtu.norm_angle(res['phi'])
-        return r
+        x = 0
+        y = res['d'] - self.offset
+        theta = dtu.norm_angle(res['phi'])
+        pose = SE2_from_translation_angle([x,y], theta)
+        return pose
 

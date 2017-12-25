@@ -1,0 +1,6 @@
+description: The center of a three-way intersection.
+constructor: duckietown_segmaps.three_way_intersection
+parameters: 
+    tile_size: 0.558 # outer white to outer white
+    tile_spacing: 0.584
+    width_white: 0.048

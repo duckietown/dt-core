@@ -5,6 +5,7 @@ from numpy.testing.utils import assert_almost_equal
 import duckietown_utils as dtu
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 import numpy as np
+from geometry.poses import translation_angle_from_SE2
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -103,7 +104,7 @@ class SegmentsMap(object):
         return SegmentsMap(points=points2, faces=faces2, segments=segments2)
 
 
-@dtu.contract(sm=SegmentsMap)
+@dtu.contract(sm=SegmentsMap, ground_truth='SE2|None')
 def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
     """ Returns a BGR image """  
     a = CreateImageFromPylab(dpi=dpi)
@@ -116,11 +117,13 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         L = 0.1
 
         if ground_truth is not None:
-            x = ground_truth['x']
-            y = ground_truth['y']
-            theta = ground_truth['theta']
-            x1 = x + L * np.cos(theta)
-            y1 = y + L * np.sin(theta)
+            (x, y), _ = translation_angle_from_SE2(ground_truth)
+            x1, y1, _ = np.dot(ground_truth, [L, 0, 1])
+#             x = ground_truth['x']
+#             y = ground_truth['y']
+#             theta = ground_truth['theta']
+#             x1 = x + L * np.cos(theta)
+#             y1 = y + L * np.sin(theta)
             pylab.plot(x, y, 'co', markersize=12)
             pylab.plot([x, x1], [y, y1], 'c-', linewidth=4)
 #             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)

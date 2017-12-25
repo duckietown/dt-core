@@ -121,7 +121,7 @@ def test_synthetic_phi(template,robot_name,line_detector_name,
             raise Exception(msg)
     
      
-def test_synthetic(template,robot_name,line_detector_name,
+def test_synthetic(template, robot_name,line_detector_name,
                    image_prep_name, lane_filter_name, location, outd):
 
     # first, load calibration for robot
@@ -133,15 +133,15 @@ def test_synthetic(template,robot_name,line_detector_name,
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry() 
     
-    xytheta = localization_template.xytheta_from_coords(location)
+    pose = localization_template.pose_from_coords(location)
     sm_orig = localization_template.get_map()
-    distorted_synthetic = simulate_image(sm_orig, xytheta, gpg, blur_sigma=0.3)
+    distorted_synthetic = simulate_image(sm_orig, pose, gpg, blur_sigma=0.3)
 
     image = distorted_synthetic
 
     res, stats = run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                        all_details=False,
-                       skip_instagram=True, ground_truth=xytheta)
+                       skip_instagram=True, ground_truth=pose)
     
     error = np.empty_like(location)
     for k in error.dtype.fields:

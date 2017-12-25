@@ -8,7 +8,6 @@ from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments,\
     FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
-from duckietown_utils.coords import SE2_from_xyth
 from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection
 from ground_projection.ground_projection_interface import find_ground_coordinates
@@ -23,7 +22,7 @@ import numpy as np
 
 
 # from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
-@dtu.contract(gp=GroundProjection)
+@dtu.contract(gp=GroundProjection, ground_truth='SE2|None')
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                  all_details=False, skip_instagram=False, ground_truth=None):
     """ 
@@ -32,7 +31,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
             
             res['input_image']
             
-        ground_truth = xytheta
+        ground_truth = pose
     """
     
     gpg = gp.get_ground_projection_geometry()
@@ -124,10 +123,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     est = lane_filter.get_estimate()
     
     # Coordinates in TILE frame
-    xytheta_tile = localization_template.xytheta_from_coords(est)
-
+    g = localization_template.pose_from_coords(est)
     tinfo = TransformationsInfo()
-    g = SE2_from_xyth(xytheta_tile)
     tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g) 
         
     sm_orig = localization_template.get_map()
