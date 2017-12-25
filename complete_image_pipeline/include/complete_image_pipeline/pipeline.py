@@ -24,7 +24,8 @@ import numpy as np
 # from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None')
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
-                 all_details=False, skip_instagram=False, ground_truth=None):
+                 all_details=False, skip_instagram=False, ground_truth=None,
+                 actual_map=None):
     """ 
         Image: numpy (H,W,3) == BGR
         Returns a dictionary, res with the following fields:
@@ -66,7 +67,6 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         transform = lambda x: x.copy()
         transformed_clipped = image.copy()
     
-    
     if all_details:
         res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
 
@@ -78,8 +78,9 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['segments_on_image_input_transformed'] = \
             vs_fancy_display(image_prep.image_cv, segment_list2)
         
-    res['segments_on_image_input_transformed_resized'] = \
-        vs_fancy_display(image_prep.image_resized, segment_list2)
+    if all_details:
+        res['segments_on_image_input_transformed_resized'] = \
+            vs_fancy_display(image_prep.image_resized, segment_list2)
 
     grid = get_grid(image.shape[:2])
     
@@ -117,8 +118,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         template_name = 'DT17_straight_straight'
         dtu.logger.debug('Using default template %r for visualization' % template_name)    
     
-    localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
-    
+    localization_template = \
+        easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
     
     est = lane_filter.get_estimate()
     
@@ -126,18 +127,22 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     g = localization_template.pose_from_coords(est)
     tinfo = TransformationsInfo()
     tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g) 
-        
-    sm_orig = localization_template.get_map()
-    sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
+
+    if actual_map is not None:
+#         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
+        res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
+                                             ground_truth=ground_truth)
     
-    dtu.logger.debug('plot_map_and_segments')
-    res['world'] = plot_map_and_segments(sm_orig, tinfo, sg.segments, dpi=120,
-                                         ground_truth=ground_truth)
+    
+    assumed = localization_template.get_map()
+    res['assumed'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
+                                           ground_truth=ground_truth)
     
     dtu.logger.debug('plot_map')
-    res['reprojected'] = plot_map(rectified, sm_axle, gpg,
+    assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
+    res['reprojected'] = plot_map(rectified, assumed_axle, gpg,
                                   do_ground=False, do_faces=False, do_segments=True)
-    
+        
     stats = OrderedDict()
     stats['estimate'] = est
     

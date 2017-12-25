@@ -1,10 +1,11 @@
-from comptests.registrar import comptest, run_module_tests
-
+import duckietown_utils as dtu
 import numpy as np
 
 from .synthetic import test_synthetic_phi
 
+
 # template = 'DT17_straight_stop'
+actual_map_name =  'DT17_four_way'
 template = 'DT17_four_way'
 robot_name = 'flitzer'
 line_detector_name = 'baseline'
@@ -22,32 +23,33 @@ max_d_err = 0.021
 
 dirn = lambda _: 'out-synthetic/%s' % _
 
-@comptest
+@dtu.unit_test
 def stopline_zero_zerophi():
     d = 0
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('stopline_zero_zerophi-' + lane_filter_name)
-        test_synthetic_phi(template, robot_name, line_detector_name,
+        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
-@comptest
+@dtu.unit_test
 def stopline_zero_negphi():
     d = 0
     phi = np.deg2rad(-13)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('stopline_zero_negphi-' + lane_filter_name)
-        test_synthetic_phi(template, robot_name, line_detector_name,
+        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
-@comptest
+@dtu.unit_test
 def stopline_zero_posphi():
     d = 0
     phi = np.deg2rad(+13)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('stopline_zero_posphi-' + lane_filter_name)
-        test_synthetic_phi(template, robot_name, line_detector_name,
+        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()
+    

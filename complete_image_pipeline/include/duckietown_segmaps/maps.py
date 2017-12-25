@@ -48,13 +48,28 @@ class SegmentsMap(object):
             dtu.check_isinstance(p, SegMapPoint)
             dtu.check_isinstance(k, str)
             
+            coords = p.coords
+            if not isinstance(coords, np.ndarray):
+                self.points[k] = p._replace(coords=np.array(coords))
+            
         for S in self.segments:
             dtu.check_isinstance(S, SegMapSegment)
             for p in S.points:
                 if not p in self.points:
                     msg = 'Invalid point %r' % p
                     raise ValueError(msg)
+            assert(len(S.points) == 2)
                 
+            w1 = self.points[S.points[0]].coords
+            w2 = self.points[S.points[1]].coords
+            
+            dist = np.linalg.norm(w1-w2)
+            if dist == 0:
+                msg = 'This is a degenerate segment (points: %s %s) ' % (w1, w2)
+                msg += 'names: %s' % S.points
+                raise ValueError(msg)
+
+
         for F in self.faces:
             dtu.check_isinstance(F, SegMapFace)
             for p in F.points:
@@ -211,6 +226,10 @@ def get_normal_outward_for_segment(w1, w2):
     #   |  --->
     #   w1
     dn = np.linalg.norm(d)
+    if dn == 0:
+        msg = 'Could not compute normal for segment with two points equal:'
+        msg += ' %s %s' % (w1,w2)
+        raise ValueError(msg)
     d = d / dn
     
     z = np.array([0,0,1])

@@ -193,6 +193,8 @@ def _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame, color,
 def _add_rect_tilted(points, faces, segments, 
                      x, y, theta, length, width, id_frame, color, 
                      use_sides_for_loc):
+    assert length > 0
+    assert width > 0
     R = SO2_from_angle(theta)
     p1 = np.array([x, y]) + np.dot(R, [-length/2, -width/2])
     p2 = np.array([x, y]) + np.dot(R, [length/2, -width/2])
@@ -287,7 +289,7 @@ def get_map_curve(tile_size, tile_spacing, width_yellow,
         alpha2 =  + np.deg2rad(3)
         
     colors = [WHITE]
-    lengths = [width_white*3]
+    lengths = [width_white*2]
     detect_color = Segment.WHITE
     
     add_curved(points, faces, segments,id_frame,
@@ -365,21 +367,19 @@ def add_curved(points, faces, segments, id_frame,
         alpha_end = min(alpha_end, alpha2)
 #         cut_alpha = alpha_end - alpha_start
         effective_length = (alpha_end-alpha_start) * effective_radius
-#         if cut_alpha < 0.1 * delta_alpha:
-#             break
-#         
-        
-        if color is not None:
-            
-            alpha_mid = (alpha_start + alpha_end)/2
-            x = center[0] + np.cos(alpha_mid) * radius
-            y = center[1] + np.sin(alpha_mid) * radius
-            theta = alpha_mid + np.pi/2
-            
-            _add_rect_tilted(points, faces, segments, 
-                             x, y, theta, effective_length, width, id_frame, color, 
-                             use_sides_for_loc=[detect_color, None, detect_color, None])
+        if effective_length > 0:
     
+            if color is not None:
+                
+                alpha_mid = (alpha_start + alpha_end)/2
+                x = center[0] + np.cos(alpha_mid) * radius
+                y = center[1] + np.sin(alpha_mid) * radius
+                theta = alpha_mid + np.pi/2
+                
+                _add_rect_tilted(points, faces, segments, 
+                                 x, y, theta, effective_length, width, id_frame, color, 
+                                 use_sides_for_loc=[detect_color, None, detect_color, None])
+        
         alpha = alpha_end 
         if alpha > alpha2:
             break

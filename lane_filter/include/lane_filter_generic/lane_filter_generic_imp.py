@@ -223,9 +223,13 @@ def iterate_segment_sections(sm, map_segment, delta):
     """ Yields point, normal """
     w1 = np.array(sm.points[map_segment.points[0]].coords)
     w2 = np.array(sm.points[map_segment.points[1]].coords)
+    dist = np.linalg.norm(w1-w2)
+    if dist == 0:
+        msg = 'Could not use degenerate segment (points: %s %s) ' % (w1, w2)
+        raise ValueError(msg)
     map_segment_n = get_normal_outward_for_segment(w1, w2)
-    dirv = (w1-w2) / np.linalg.norm(w1-w2)
-    n = int(np.ceil(np.linalg.norm(w1-w2) / delta))
+    dirv = (w1-w2) / dist
+    n = int(np.ceil(dist / delta))
     for s in range(n):
         p = w1 + dirv * delta * s
         yield p, map_segment_n

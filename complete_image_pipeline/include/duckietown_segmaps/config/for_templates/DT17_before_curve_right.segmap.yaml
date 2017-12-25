@@ -1,4 +1,4 @@
-description: Before a curve right
+description: Before a curve right (straight, right, straight)
 constructor: duckietown_segmaps.compose_maps
 parameters: 
     grid_spacing: 0.584

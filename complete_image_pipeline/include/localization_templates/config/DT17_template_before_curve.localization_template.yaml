@@ -1,4 +1,0 @@
-description: Localization in straight lane 
-constructor: localization_templates.TemplateStraight
-parameters: 
-    tile_name: DT17_before_curve
