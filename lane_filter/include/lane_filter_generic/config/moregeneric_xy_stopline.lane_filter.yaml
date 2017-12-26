@@ -1,0 +1,30 @@
+description: >
+    Lane filter for estimating the distance to the stop line 
+constructor: lane_filter_generic.LaneFilterMoreGeneric
+parameters: 
+
+    configuration: 
+        variables: !!omap
+            - d:
+                min: -0.15
+                max: +0.3025
+                resolution: 0.02
+                # resolution: 0.02 # like baseline
+                
+                units: m
+                units_display: cm
+                description: Distance from center lane
+            - dstop:
+                min: 0
+                max: 0.3
+                resolution: 0.02
+                # resolution: 0.02 # like baseline
+                
+                units: m
+                units_display: cm
+                description: Distance from stop line
+                
+    
+        localization_template: DT17_template_xy_stopline
+        min_max: 0.1
+        delta_segment: 0.01

@@ -1,0 +1,5 @@
+description: Localization in x, y before stopline. 
+constructor: localization_templates.TemplateXYStopline
+parameters: 
+    tile_name: DT17_before_stopline_pattern
+    

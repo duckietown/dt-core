@@ -16,6 +16,7 @@ image_prep_name = 'baseline'
 # lane_filter_names = ['baseline', 'generic_straight']
 lane_filter_names = []
 lane_filter_names += ['generic_before_curve_left']
+lane_filter_names += ['moregeneric_before_curve_left']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True
 actual_map_name = 'DT17_before_curve_left'

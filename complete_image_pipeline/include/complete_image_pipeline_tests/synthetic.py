@@ -11,18 +11,17 @@ actual_map_name =  'DT17_straight_straight'
 template = 'DT17_straight_straight'
 robot_name = 'flitzer'
 line_detector_name = 'baseline'
-# image_prep_name = 'prep_200_100'
-image_prep_name = 'baseline'
+image_prep_name = 'prep_200_100'
+# image_prep_name = 'baseline'
 # lane_filter_names = ['baseline', 'generic_straight']
 lane_filter_names = []
-lane_filter_names += ['generic_straightstraight']
+# lane_filter_names += ['generic_straightstraight']
+lane_filter_names += ['moregeneric_straight']
 lane_filter_names += ['baseline']
-raise_if_error_too_large = True
+raise_if_error_too_large = False
 
 max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
-
-
 
 dirn = lambda _: 'out-synthetic/%s' % _
 @dtu.unit_test
@@ -35,8 +34,8 @@ def test_synthetic_zero_zerophi():
                    image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
 def test_synthetic_pos_zerophi():
-    d = 0.05
-    phi = np.deg2rad(0)
+    d = 0.054
+    phi = np.deg2rad(0.5)
     for lane_filter_name in lane_filter_names:    
         outd = dirn('test_synthetic_pos_zerophi-' + lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
@@ -135,7 +134,6 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
         location = pose_or_location
         pose = localization_template.pose_from_coords(location)
         
-#     sm_orig = localization_template.get_map()
     distorted_synthetic = simulate_image(actual_map, pose, gpg, blur_sigma=0.3)
 
     image = distorted_synthetic

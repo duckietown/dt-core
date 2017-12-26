@@ -1,96 +1,73 @@
-import itertools
-from math import floor
+from collections import OrderedDict
+import warnings
 
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
+from duckietown_msgs.msg import Segment
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
+from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo import get_easy_algo_db
-from geometry import SE2_from_translation_angle
+from geometry import SE2_from_translation_angle, SO2_from_angle
+from grid_helper import GridHelper
+from grid_helper.grid_helper_visualization import grid_helper_annotate_axes,\
+    grid_helper_plot_field, grid_helper_mark_point, convert_unit,\
+    grid_helper_set_axes
 from lane_filter import LaneFilterInterface
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-
-from .visualization import plot_phi_d_diagram_bgr_generic
+import sys
 
 
 __all__ = [
-    'LaneFilterGeneric',
+    'LaneFilterMoreGeneric',
 ]
 
-class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
+
+class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
     """ """
 
     def __init__(self, configuration):
         param_names = [
             'localization_template',
-            
-            'delta_d',
-            'delta_phi',
-            'd_max',
-            'd_min',
-            'phi_max',
-            'phi_min',
-         
             'delta_segment',   
             'min_max',
+            'variables',
         ]
 
         dtu.Configurable.__init__(self, param_names, configuration)
 
-        self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
-                                   self.phi_min:self.phi_max:self.delta_phi]
+        self.grid_helper = GridHelper(OrderedDict(self.variables))
 
-        self.ref_d = np.empty_like(self.d)
-        self.ref_phi = np.empty_like(self.phi)
-        for i, j in itertools.product(range(self.d.shape[0]), range(self.d.shape[1])):
-            self.ref_d[i,j] = self.d_min + (i+0.5)*self.delta_d
-            self.ref_phi[i,j] = self.phi_min + (j+0.5)*self.delta_phi
-
-        # these are the bounds you would give to pcolor
-        # there is one row and one column more
-        # self.d, self.phi are the lower corners
-
-        # Each cell captures this area:
-        #         (X[i,   j],   Y[i,   j]),
-        #         (X[i,   j+1], Y[i,   j+1]),
-        #         (X[i+1, j],   Y[i+1, j]),
-        #         (X[i+1, j+1], Y[i+1, j+1])
-        self.d_pcolor, self.phi_pcolor= \
-            np.mgrid[self.d_min:(self.d_max+self.delta_d):self.delta_d,
-                     self.phi_min:(self.phi_max+self.delta_phi):self.delta_phi]
-
-        self.belief = np.empty(self.d.shape)
-
+        self.initialize_belief()
         self.last_segments_used = None
         
-
+    def initialize_belief(self):
+        self.belief = self.grid_helper.create_new()
+        
+        n = self.belief.shape[0]  * self.belief.shape[1]
+        self.belief.fill(1.0/n)
+        
+        assert_almost_equal(self.belief.flatten().sum(), 1.0)
+        
     def initialize(self):
         easy_algo_db = get_easy_algo_db()
         self._localization_template = \
             easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, 
                                          self.localization_template)
+        self.initialize_belief()
         
-        shape = self.d.shape
-        n = shape[0] * shape[1]
-        
-        uniform = np.ones(dtype='float64', shape=self.d.shape) * (1.0/n)
-
-        self.belief = uniform
-        
-        assert_almost_equal(self.belief.flatten().sum(), 1.0)
-
     def predict(self, dt, v, w):
         pass
 
     def get_status(self):
+        # TODO
         return LaneFilterInterface.GOOD
 
     def update(self, segment_list):
         """ Returns the likelihood """
         
-#         segment_list = fuzzy_segment_list_image_space(segment_list, n=100, intensity=0.0015)
         self.last_segments_used = segment_list.segments
         
         measurement_likelihood = self.generate_measurement_likelihood(segment_list.segments)
@@ -105,52 +82,22 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
 
     def generate_measurement_likelihood(self, segments):
         # initialize measurement likelihood to all zeros
-        measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
-    
+        measurement_likelihood = self.grid_helper.create_new('float32')
+        measurement_likelihood.fill(0)
         hit = miss = 0
         for segment in segments:
+#             if segment.color not in [Segment.RED, Segment.WHITE]:
+#                 warnings.warn('Only doing rED')
+#                 continue
             for pose, weight in self.generate_votes(segment, self.delta_segment): 
                 
                 est = self._localization_template.coords_from_pose(pose)
-
-                d_i = est['d']
-                phi_i = est['phi']
-
-                # if the vote lands outside of the histogram discard it
-                if d_i > self.d_max or \
-                    d_i < self.d_min or \
-                    phi_i < self.phi_min or \
-                    phi_i > self.phi_max:
-                    miss += 1
-                    continue
-                else:
-                    hit += 1
-                i = int(floor((d_i - self.d_min) / self.delta_d))
-                j = int(floor((phi_i - self.phi_min) / self.delta_phi))
+                value = dict((k, est[k]) for k in self.variables)
+                added = self.grid_helper.add_vote(measurement_likelihood, value, weight)
+                hit += added > 0
+                miss += added == 0
                 
-                m = 1.0
-                K_d = lambda x: np.exp(-np.abs(x)*m/self.delta_d)
-                K_phi = lambda x: np.exp(-np.abs(x)*m/self.delta_phi)
-                F = 1
                 
-#                 F = 0
-#                 K_phi = lambda _: 1
-#                 K_d = lambda _: 1
-#                 
-                for di, dj in itertools.product(range(-F,F+1), range(-F,F+1)):
-                    u = i + di
-                    v = j + dj
-                    if not ((0<=u<self.d.shape[0]) and (0<=v<self.d.shape[1])):
-                        continue
-                    phi_cell = self.ref_phi[u,v]
-                    d_cell = self.ref_d[u,v]
-                    delta_phi = phi_i - phi_cell
-                    delta_d = d_i - d_cell
-                    
-                    k = K_phi(delta_phi) * K_d(delta_d)
-
-                    measurement_likelihood[u, v] += weight * k
-        
         dtu.logger.debug('hit: %s miss : %s' % (hit, miss))
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
@@ -158,14 +105,8 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
         return measurement_likelihood
 
     def get_estimate(self):
-        maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
-        i, j = maxids
-        d_max = self.ref_d[i,j]
-        phi_max = self.ref_phi[i,j]
-        res = np.zeros((), dtype=LaneFilterInterface.ESTIMATE_DATATYPE)
-        res['d'] = d_max
-        res['phi'] = phi_max
-        return res
+        # TODO: make F parameter
+        return self.grid_helper.get_max_weighted(self.belief, F=1)
 
     @dtu.deprecated("use get_estimate")
     def getEstimate(self):
@@ -197,12 +138,8 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
         for map_segment in sm.segments:
             if map_segment.color == segment.color:
                 for p, n in iterate_segment_sections(sm, map_segment, delta):
-                    
                     xy, theta = get_estimate(p, n, p1, n_hat)
-                    assert -np.pi <= theta <= +np.pi
-                    
                     pose = SE2_from_translation_angle(xy, theta)
-
                     yield pose, weight
                     num += 1
         if num == 0:
@@ -210,13 +147,48 @@ class LaneFilterGeneric(dtu.Configurable, LaneFilterInterface):
             dtu.logger.debug(msg)
 
     def get_plot_phi_d(self, ground_truth=None):
-        est = self.get_estimate()
-        if ground_truth is not None:
-            ground_truth_location = self._localization_template.coords_from_pose(ground_truth)
-            phi_true = ground_truth_location['phi']
-            d_true = ground_truth_location['d']
-        return plot_phi_d_diagram_bgr_generic(self, phi=est['phi'], d=est['d'],
-                                              phi_true=phi_true, d_true=d_true)
+        a = CreateImageFromPylab(dpi=120)
+        gh = self.grid_helper
+        with a as pylab:
+            grid_helper_plot_field(gh, self.belief, pylab)
+            grid_helper_annotate_axes(gh, pylab)
+
+            estimate = self.get_estimate()
+            if ground_truth is not None:
+                ground_truth_location = \
+                    self._localization_template.coords_from_pose(ground_truth)
+                grid_helper_mark_point(gh, pylab, ground_truth_location, 
+                                       color='green', markersize=4)
+            grid_helper_mark_point(gh, pylab, estimate, color='magenta', markersize=10)
+            
+            s = ''
+            s += "status = %s" % self.get_status()
+            for name, spec in zip(gh._names, gh._specs):
+                convert = lambda x: '%.2f %s' % (convert_unit(x, spec.units, spec.units_display),
+                                               spec.units_display) 
+                s += '\n'
+                s += "\nest %s = %s" % (name, convert(estimate[name]))
+                if ground_truth is not None:
+                    s += "\ntrue %s = %s" % (name, convert(ground_truth_location[name]))
+                    err = np.abs(ground_truth_location[name] - estimate[name])
+                    s += '\nabs err = %s' % (convert(err))
+                    cell = spec.resolution
+                    percent = 100.0 /cell *  err
+                    s += '\nrel err = %.1f %% of cell' % (percent)
+                    s += '\n true = green dot' 
+                    
+                    
+            s += '\n'
+            s += "\nentropy = %.4f" % self.get_entropy()
+            s += "\nmax = %.4f" % self.belief.max()
+            s += "\nmin = %.4f" % self.belief.min()
+
+                
+            pylab.annotate(s, xy=(0.7, 0.45), xycoords='figure fraction')
+            grid_helper_set_axes(gh, pylab)
+            
+        return a.get_bgr()
+
 
 @dtu.contract(sm=SegmentsMap, delta='float,>0')
 def iterate_segment_sections(sm, map_segment, delta):
@@ -224,15 +196,20 @@ def iterate_segment_sections(sm, map_segment, delta):
     w1 = np.array(sm.points[map_segment.points[0]].coords)
     w2 = np.array(sm.points[map_segment.points[1]].coords)
     dist = np.linalg.norm(w1-w2)
+    
     if dist == 0:
         msg = 'Could not use degenerate segment (points: %s %s) ' % (w1, w2)
         raise ValueError(msg)
+    
     map_segment_n = get_normal_outward_for_segment(w1, w2)
-    dirv = (w1-w2) / dist
+    dirv = (w2-w1) / dist
     n = int(np.ceil(dist / delta))
+
     for s in range(n):
         p = w1 + dirv * delta * s
         yield p, map_segment_n
+        
+        
 
 
 def get_estimate(t, n, t_est, n_est):
@@ -264,10 +241,3 @@ def get_estimate(t, n, t_est, n_est):
         
     return xy, -theta
 
-
-def SO2_from_angle(theta):
-    ''' Returns a 2x2 rotation matrix. '''
-    return np.array([
-            [+np.cos(theta), -np.sin(theta)],
-            [+np.sin(theta), +np.cos(theta)]])
-    

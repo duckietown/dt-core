@@ -19,6 +19,7 @@ from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 from localization_templates.map_localization_template import FAMILY_LOC_TEMPLATES
 import numpy as np
+from lane_filter_generic.lane_filter_more_generic import LaneFilterMoreGeneric
 
 
 # from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
@@ -112,7 +113,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     res['belief'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)  
     easy_algo_db = get_easy_algo_db()
     
-    if isinstance(lane_filter, LaneFilterGeneric):
+    if isinstance(lane_filter, (LaneFilterGeneric, LaneFilterMoreGeneric)):
         template_name = lane_filter.localization_template
     else:
         template_name = 'DT17_straight_straight'

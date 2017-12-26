@@ -13,7 +13,8 @@ line_detector_name = 'baseline'
 image_prep_name = 'baseline'
 # lane_filter_names = ['baseline', 'generic_straight']
 lane_filter_names = []
-lane_filter_names += ['generic_fourway']
+# lane_filter_names += ['generic_fourway']
+lane_filter_names += ['moregeneric_fourway']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True
 
@@ -24,29 +25,29 @@ max_d_err = 0.021
 dirn = lambda _: 'out-synthetic/%s' % _
 
 @dtu.unit_test
-def stopline_zero_zerophi():
+def intersection_zero_zerophi():
     d = 0
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:    
-        outd = dirn('stopline_zero_zerophi-' + lane_filter_name)
+        outd = dirn('intersection_zero_zerophi-' + lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
 @dtu.unit_test
-def stopline_zero_negphi():
+def intersection_zero_negphi():
     d = 0
     phi = np.deg2rad(-13)
     for lane_filter_name in lane_filter_names:    
-        outd = dirn('stopline_zero_negphi-' + lane_filter_name)
+        outd = dirn('intersection_zero_negphi-' + lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
 @dtu.unit_test
-def stopline_zero_posphi():
+def intersection_zero_posphi():
     d = 0
     phi = np.deg2rad(+13)
     for lane_filter_name in lane_filter_names:    
-        outd = dirn('stopline_zero_posphi-' + lane_filter_name)
+        outd = dirn('intersection_zero_posphi-' + lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
