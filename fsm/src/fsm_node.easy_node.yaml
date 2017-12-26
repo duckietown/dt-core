@@ -1,8 +1,26 @@
 description: |
-    Note that this node publishes on many topics according to the configuration:
+    This node publishes the current FSM state to fsm_node/mode. 
+    The FSM can tell nodes whether to be active or inactive in the current state, and publishes on many topics according to the configuration:
 
         for node_name, topic_name in nodes.items():
             self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, ...)
+    
+    where nodes.items() is a list of all nodes affected by the FSM, and the topic_name is node_name/switch. The relevant nodes then subsribe to node_name/switch, and toggle their behaviour based on the value of the switch. An example of how a node named ExampleNode can handle this is shown below:
+
+        class ExampleNode(object):
+            def __init__(self):
+            ...
+            self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+
+            def cbSwitch(self,switch_msg):
+                self.active = switch_msg.data
+
+            def someOtherFunc(self, msg):
+                if not self.active:
+                    return
+                # else normal functionality
+                ...
+
 
 parameters:
     states:
