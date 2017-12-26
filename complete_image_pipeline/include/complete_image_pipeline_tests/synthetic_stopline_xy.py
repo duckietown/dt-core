@@ -9,10 +9,10 @@ robot_name = 'flitzer'
 line_detector_name = 'baseline'
 # image_prep_name = 'prep_200_100'
 image_prep_name = 'baseline'
-# lane_filter_names = ['baseline', 'generic_straight']
+
 lane_filter_names = []
 lane_filter_names += ['moregeneric_xy_stopline']
-# lane_filter_names += ['baseline']
+
 raise_if_error_too_large = True
 
 max_phi_err = np.deg2rad(5)

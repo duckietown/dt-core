@@ -1,10 +1,8 @@
 from collections import OrderedDict
-import warnings
 
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
-from duckietown_msgs.msg import Segment
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
@@ -17,7 +15,7 @@ from grid_helper.grid_helper_visualization import grid_helper_annotate_axes,\
 from lane_filter import LaneFilterInterface
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-import sys
+
 
 
 __all__ = [
@@ -86,9 +84,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         measurement_likelihood.fill(0)
         hit = miss = 0
         for segment in segments:
-#             if segment.color not in [Segment.RED, Segment.WHITE]:
-#                 warnings.warn('Only doing rED')
-#                 continue
+
             for pose, weight in self.generate_votes(segment, self.delta_segment): 
                 
                 est = self._localization_template.coords_from_pose(pose)
@@ -202,10 +198,13 @@ def iterate_segment_sections(sm, map_segment, delta):
         raise ValueError(msg)
     
     map_segment_n = get_normal_outward_for_segment(w1, w2)
+    # going from w1 to w2
     dirv = (w2-w1) / dist
     n = int(np.ceil(dist / delta))
-
-    for s in range(n):
+    
+    assert n >= 1
+    for i in range(n):
+        s = i + 0.5  # take middle of segment
         p = w1 + dirv * delta * s
         yield p, map_segment_n
         

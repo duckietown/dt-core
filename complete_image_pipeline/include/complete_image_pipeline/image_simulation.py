@@ -15,8 +15,16 @@ __all__ = [
 
 @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2')
 def simulate_image(sm_orig, pose, gpg, blur_sigma):
-    camera_info = gpg.get_camera_info() 
-    blank = generate_blank(camera_info)
+    camera_info = gpg.get_camera_info()
+    H = camera_info.height
+    W = camera_info.width
+    H_pad = int(0.3*H)
+    W_pad = int(0.3*W)
+    H_padded = H + H_pad
+    W_padded = W + W_pad
+    blank = np.zeros(dtype='uint8', shape=(H, W, 3))
+    blank.fill(128)
+    
     tinfo = TransformationsInfo()
 
     frames = list(set(_.id_frame for _ in sm_orig.points.values()))    
@@ -44,12 +52,12 @@ def add_noise(image, intensity = 20, noise_blur = 1):
     image = image*1.0 + noise
     image = image.clip(0, 255).astype('uint8')
     return image
-
-
-def generate_blank(camera_info):
-    H = camera_info.height
-    W = camera_info.width
-    bgr = np.zeros(dtype='uint8', shape=(H, W, 3))
-    bgr.fill(128)
-    return bgr
+# 
+# 
+# def generate_blank(camera_info):
+#     H = camera_info.height
+#     W = camera_info.width
+#     bgr = np.zeros(dtype='uint8', shape=(H, W, 3))
+#     bgr.fill(128)
+#     return bgr
     

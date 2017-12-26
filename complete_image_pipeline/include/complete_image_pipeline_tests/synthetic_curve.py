@@ -11,11 +11,9 @@ import numpy as np
 template = 'DT17_template_before_curve_left'
 robot_name = 'flitzer'
 line_detector_name = 'baseline'
-# image_prep_name = 'prep_200_100'
-image_prep_name = 'baseline'
-# lane_filter_names = ['baseline', 'generic_straight']
+image_prep_name = 'prep_200_100'
+# image_prep_name = 'baseline'
 lane_filter_names = []
-lane_filter_names += ['generic_before_curve_left']
 lane_filter_names += ['moregeneric_before_curve_left']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True

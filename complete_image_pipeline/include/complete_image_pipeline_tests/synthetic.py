@@ -13,9 +13,8 @@ robot_name = 'flitzer'
 line_detector_name = 'baseline'
 image_prep_name = 'prep_200_100'
 # image_prep_name = 'baseline'
-# lane_filter_names = ['baseline', 'generic_straight']
+
 lane_filter_names = []
-# lane_filter_names += ['generic_straightstraight']
 lane_filter_names += ['moregeneric_straight']
 lane_filter_names += ['baseline']
 raise_if_error_too_large = False

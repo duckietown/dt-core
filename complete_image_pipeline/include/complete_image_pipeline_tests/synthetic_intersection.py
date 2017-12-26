@@ -4,7 +4,6 @@ import numpy as np
 from .synthetic import test_synthetic_phi
 
 
-# template = 'DT17_straight_stop'
 actual_map_name =  'DT17_four_way'
 template = 'DT17_four_way'
 robot_name = 'flitzer'
@@ -13,7 +12,6 @@ line_detector_name = 'baseline'
 image_prep_name = 'baseline'
 # lane_filter_names = ['baseline', 'generic_straight']
 lane_filter_names = []
-# lane_filter_names += ['generic_fourway']
 lane_filter_names += ['moregeneric_fourway']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True

@@ -91,9 +91,10 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum):
         p = gpg.ground2pixel(Point(c[0],c[1],c[2]))
         return (int(p.u), int(p.v))
     
+    cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
+    
     if False:
         # paint the lines (with antialiasing?)
-        cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
         n = len(coords_inside)
         for i in range(n):
             p1 = cv_points[i, :]
