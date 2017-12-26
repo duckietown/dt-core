@@ -88,7 +88,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     if all_details:
         res['grid'] = grid
 
-        res['grid_remapped'] = gp.rectify(grid)
+        res['grid_remapped'] = gpg.rectify(grid)
         
     rectified = gpg.rectify(res['image_input'])
     

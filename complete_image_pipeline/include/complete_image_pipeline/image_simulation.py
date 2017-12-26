@@ -7,6 +7,7 @@ import duckietown_utils as dtu
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 
 import numpy as np
+from duckietown_utils.jpg import write_bgr_to_file_as_jpg
 
 __all__ = [
     'simulate_image',
@@ -27,6 +28,8 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     
     rectified_synthetic = plot_map(blank, sm_axle, gpg, do_segments=False)
+    
+    dtu.write_bgr_to_file_as_jpg(rectified_synthetic, 'rectified_synthetic.jpg')
     
     distorted_synthetic = gpg.distort(rectified_synthetic)
     

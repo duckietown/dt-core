@@ -51,6 +51,15 @@ def intersection_zero_posphi():
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi , outd)
 
+@dtu.unit_test
+def intersection_zero_posphi2():
+    d = 0
+    phi = np.deg2rad(+10)
+    for lane_filter_name in lane_filter_names:    
+        outd = dirn('intersection_zero_posphi2-' + lane_filter_name)
+        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi , outd)
+
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()
     

@@ -138,9 +138,10 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
 
     image = distorted_synthetic
 
+    all_details = False
     res, stats = run_pipeline(image, gp, line_detector_name, 
                               image_prep_name, lane_filter_name,
-                              all_details=False,
+                              all_details=all_details,
                               skip_instagram=True, ground_truth=pose, 
                               actual_map = actual_map)
     

@@ -24,6 +24,6 @@ parameters:
     - cell: [2, 0]
       name: DT17_straight_stop_tile
       rotation: -180
-    - cell: [3, 0]
-      name: DT17_straight_tile
-      rotation: -180
+#     - cell: [3, 0]
+#       name: DT17_straight_tile
+#       rotation: -180

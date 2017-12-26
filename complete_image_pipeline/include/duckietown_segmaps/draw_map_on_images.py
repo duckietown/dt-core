@@ -7,6 +7,7 @@ from ground_projection import GroundProjectionGeometry
 import numpy as np
 
 from .maps import SegmentsMap, FRAME_AXLE
+import warnings
 
 
 def rotate(l, n):
@@ -83,13 +84,21 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum):
         # all outside
         return
     
+#     print coords_inside
+    
     # pixel coords
     def pixel_from_world(c):
         p = gpg.ground2pixel(Point(c[0],c[1],c[2]))
         return (int(p.u), int(p.v))
     
     cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
-    
+    n = len(coords_inside)
+    for i in range(n):
+        p1 = cv_points[i, :]
+        p2 = cv_points[(i+1)%n, :]
+#         cv2.line(base, (p1[0],p1[1]), (p2[0],p2[1]), color, 1)
+        
+#     print('cv_points: %s' %  cv_points)
     cv2.fillPoly(base, [cv_points], color)
     
 def plot_ground_sky(base, gpg, color_ground, color_sky):
@@ -110,9 +119,12 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True): #
         sm= SegmentsMap in frame FRAME_AXLE
     """
     image = base0.copy()
-    x_frustum = +0.05
+#     x_frustum = +0.05
+    x_frustum = +0.1
+    
     if do_ground:
         color_ground = (30,10,22)
+
         color_sky = (244, 134, 66)
         plot_ground_sky(image, gpg, color_ground, color_sky)
         
