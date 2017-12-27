@@ -29,6 +29,7 @@ class ImageTransformerNode():
         self.thread_lock = threading.Lock()
         self.r = rospy.Rate(4) # Rate in Hz
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
+        cont_mode = rospy.get_param("~cont_mode", "") #tells which topic to listen to
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -39,9 +40,14 @@ class ImageTransformerNode():
             # "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
             '/{}/camera_node/image/compressed'.format(robot_name), CompressedImage, self.callbackImage, queue_size=1)
 
-        self.sub_trafo = rospy.Subscriber(
-            '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
-            # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+        if (cont_mode):
+            self.sub_trafo = rospy.Subscriber(
+                '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+                # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
+        else:
+            self.sub_trafo = rospy.Subscriber(
+                '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
+                # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
 
         self.sub_colorBalance = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/colorBalanceTrafo'.format(robot_name), AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
@@ -53,6 +59,9 @@ class ImageTransformerNode():
             self.trafo_mode == "both"
             rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
             rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
+
+        if not(cont_mode):
+            self.trafo_mode = "lin"
 
         # TODO verify name of parameter
         # Verbose option

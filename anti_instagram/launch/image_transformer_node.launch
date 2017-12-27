@@ -1,7 +1,10 @@
 <launch>
 
 	<arg name="veh"/>
+	<arg name="cont_mode" default="false" doc="tells image transformer to listen to continouus topic,.."/>
 	<param name="~veh" value="$(arg veh)"/>
+	<param name="~cont_mode" type="boolean" value="$(arg cont_mode)"/>
+
 	<group ns="$(arg veh)">
 
 

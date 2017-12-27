@@ -8,6 +8,7 @@
     <arg name="resize" default="0.2" doc="resizing factor to scale the image down or up"/>
     <arg name="ker" default="5" doc="size of blur kernel"/>
     <arg name="trafo_mode" default="both" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
+    <arg name="cont_mode" default="true" doc="tells image transformer to listen to continouus topic,.."/>
     <arg name="cb_percentage" default="2" doc="percentage for auto-colorbalance"/>
 
     <param name="~veh" value="$(arg veh)"/>
@@ -17,6 +18,7 @@
 
 	    <node name="image_transformer_node" pkg="anti_instagram" type="image_transformer_node.py" output="screen">
 	        <param name="~trafo_mode" type="str" value="$(arg trafo_mode)"/>
+            <param name="~cont_mode" type="boolean" value="$(arg cont_mode)"/>
             <!--remap from="/tesla/camera_node/image/compressed" to="~uncorrected_image" /-->
         </node>
 
