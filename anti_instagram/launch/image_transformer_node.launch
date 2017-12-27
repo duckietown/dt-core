@@ -2,8 +2,10 @@
 
 	<arg name="veh"/>
 	<arg name="cont_mode" default="false" doc="tells image transformer to listen to continouus topic,.."/>
+	<arg name="trafo_mode" default="both" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
 	<param name="~veh" value="$(arg veh)"/>
 	<param name="~cont_mode" type="boolean" value="$(arg cont_mode)"/>
+	<param name="~trafo_mode" type="str" value="$(arg trafo_mode)"/>
 
 	<group ns="$(arg veh)">
 
