@@ -35,7 +35,7 @@ class TemplateStraight(LocalizationTemplate):
         res['d'] = xy[1] + self.offset
         return res 
         
-    @dtu.contract(returns='SE2', res='array')
+    @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
         self._init_metrics()
         x = 0

@@ -55,7 +55,7 @@ class TemplateBeforeCurve(LocalizationTemplate):
         res['d'] = d
         return res 
         
-    @dtu.contract(returns='SE2', res='array')
+    @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
         """ Returns an array with datatype dtu.DATATYPE_XYTHETA """
         

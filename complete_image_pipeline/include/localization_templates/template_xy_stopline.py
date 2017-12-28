@@ -52,14 +52,13 @@ class TemplateXYStopline(LocalizationTemplate):
         res['dstop'] = self.offset_dstop - xy[0]     
         return res 
         
-    @dtu.contract(returns='SE2', res='array')
+    @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
         self._init_metrics()
         
         y = res['d'] - self.offset # OK
         x = self.offset_dstop - res['dstop']
 
-        
         theta = 0
         pose = SE2_from_translation_angle([x,y], theta)
         return pose
