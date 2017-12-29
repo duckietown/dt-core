@@ -1,5 +1,5 @@
-description: Localization before right curve 
+description: Localization before right curve
 constructor: localization_templates.TemplateBeforeCurve
-parameters: 
-    tile_name: DT17_before_curve_right
+parameters:
+    tile_name: DT17_pattern_before_curve_right
     direction: right

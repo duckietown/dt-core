@@ -1,13 +1,11 @@
-description: Straight - straight
+description: Before a stop line
 constructor: duckietown_segmaps.compose_maps
 parameters: 
     grid_spacing: 0.584
     tiles:
     - cell: [0, 0]
-      name: DT17_straight_tile
+      name: DT17_tile_straight_stop
       rotation: 0
     - cell: [1, 0]
-      name: DT17_straight_tile
+      name: DT17_tile_empty
       rotation: 0
-
-      

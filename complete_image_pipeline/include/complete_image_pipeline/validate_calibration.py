@@ -16,44 +16,44 @@ __all__ = [
 ]
 
 class ValidateCalibration(D8App):
-    """ 
-    
-        This program validates the intrinsic/extrinsics calibrations.
-        
     """
-    
+
+        This program validates the intrinsic/extrinsics calibrations.
+
+    """
+
     usage = """
 
 Use as follows:
 
     $ rosrun complete_image_pipeline validate_calibration [robot names]
-    
+
 Example:
 
     $ rosrun complete_image_pipeline validate_calibration shamrock emma
-  
+
 """
 
     def define_program_options(self, params):
-        params.add_string('output', short='o', help='Output dir', 
+        params.add_string('output', short='o', help='Output dir',
                           default='out-validate_calibration')
         params.accept_extra()
-        
+
     def go(self):
         extra = self.options.get_extra()
         db = get_easy_algo_db()
-            
+
         if len(extra) == 0:
             query = '*'
         else:
             query = extra
-            
+
         robots = db.query('robot', query)
         self.debug('robots: %s' % sorted(robots))
 
-        # actual_map_name =  'DT17_straight_straight'
-        actual_map_name =  'DT17_four_way'
-        
+
+        actual_map_name =  'DT17_scenario_four_way'
+
         out = self.options.output
         create_visuals(robots, actual_map_name, out)
 
@@ -70,15 +70,13 @@ def create_visuals(robots, actual_map_name, out):
             gp = GroundProjection(robot_name)
         except (NoCameraInfoAvailable, NoHomographyInfoAvailable) as e:
             dtu.logger.warning('skipping %r: %s' % (robot_name, e))
-        gpg = gp.get_ground_projection_geometry()    
+        gpg = gp.get_ground_projection_geometry()
         pose = np.eye(3)
         rectified_synthetic, distorted = \
-            simulate_image(actual_map, pose, gpg, blur_sigma=1) 
+            simulate_image(actual_map, pose, gpg, blur_sigma=1)
         res[robot_name] = rectified_synthetic
         res2[robot_name] = distorted
     output = os.path.join(out, 'distorted')
     dtu.write_bgr_images_as_jpgs(res2, output)
     output = os.path.join(out, 'rectified')
     dtu.write_bgr_images_as_jpgs(res, output)
-
-    
