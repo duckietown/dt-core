@@ -79,13 +79,12 @@ class LogicGateNode(object):
                             bool_list.append(True)
                         else:
                             bool_list.append(False)
-                            # Keeps track of latest timestamp
                     else:                                           # else BoolStamped
                         if (event_msg.data == self.event_trigger_dict[event_name]):
                             bool_list.append(True)
                         else:
                             bool_list.append(False)
-                            # Keeps track of latest timestamp
+                    # Keeps track of latest timestamp
                     if event_msg.header.stamp >= latest_time_stamp:
                         latest_time_stamp = event_msg.header.stamp
 
