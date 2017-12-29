@@ -23,7 +23,7 @@ class lane_controller(object):
             self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         else:
             print "no message recieved"
-            self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+            self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.printtest, queue_size=1)
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
 
@@ -40,7 +40,8 @@ class lane_controller(object):
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
-
+    def printtest(self):
+        print "no message"
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
