@@ -42,11 +42,11 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             self.beliefArray.append(np.empty(self.d.shape))
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0  = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
-        self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]  
-         
+        self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
+
         self.initialize()
-        
-        
+
+
     def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v*delta_t*np.sin(self.phi)
@@ -73,12 +73,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             self.beliefArray[k] = s_belief/np.sum(s_belief)
 
 
-    
+
     def update(self, segments, range_arr):
 
         for i in range(self.num_belief):
             if i == 0:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])    
+                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])
             else:
                 measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
             if measurement_likelihood is not None:
@@ -94,7 +94,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         measurement_likelihood = np.zeros(self.d.shape)
         for segment in segments:
             # only consider points in a certain range from the Duckiebot
-            point_range = self.getSegmentDistance(segment)            
+            point_range = self.getSegmentDistance(segment)
             if point_range < range_min or point_range > range_max:
                 continue
             # we don't care about RED ones for now
@@ -103,25 +103,25 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             # filter out any segments that are behind us
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
-            # print "Point range: ", point_range 
+            # print "Point range: ", point_range
             d_i,phi_i,l_i = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i>self.phi_max:
                 continue
             i = int(floor((d_i - self.d_min)/self.delta_d))
             j = int(floor((phi_i - self.phi_min)/self.delta_phi))
-            measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1 
-        if np.linalg.norm(measurement_likelihood) == 0:            
+            measurement_likelihood[i,j] = measurement_likelihood[i,j] +  1
+        if np.linalg.norm(measurement_likelihood) == 0:
             return None
         measurement_likelihood = measurement_likelihood/np.sum(measurement_likelihood)
         return measurement_likelihood
-        
+
     def getEstimate(self):
         d_max = np.zeros(self.num_belief)
         phi_max = np.zeros(self.num_belief)
         for i in range(self.num_belief):
             maxids = np.unravel_index(self.beliefArray[i].argmax(),self.beliefArray[i].shape)
-            # add 0.5 because we want the center of the cell 
+            # add 0.5 because we want the center of the cell
             d_max[i] = self.d_min + (maxids[0]+0.5)*self.delta_d
             phi_max[i] = self.phi_min + (maxids[1]+0.5)*self.delta_phi
         return [d_max,phi_max]
@@ -177,4 +177,3 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         x_c = (segment.points[0].x + segment.points[1].x)/2
         y_c = (segment.points[0].y + segment.points[1].y)/2
         return sqrt(x_c**2 + y_c**2)
-

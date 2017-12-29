@@ -13,12 +13,12 @@ class LaneFilterNode(object):
         self.active = True
         self.filter = None
         self.updateParams(None)
-        
+
         self.t_last_update = rospy.get_time()
         self.velocity = Twist2DStamped()
         self.d_median = []
         self.phi_median = []
-        
+
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
@@ -30,7 +30,7 @@ class LaneFilterNode(object):
         self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
-      
+
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
@@ -42,7 +42,7 @@ class LaneFilterNode(object):
 
             self.loginfo('new filter config: %s' % str(c))
             self.filter = instantiate(c[0], c[1])
-            
+
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
@@ -61,7 +61,7 @@ class LaneFilterNode(object):
         range_max = 0.6  # range to consider edges in general
         range_min = 0.2
         range_diff = (range_max - range_min)/(self.filter.num_belief - 1)
-        
+
         for i in range(1,self.filter.num_belief + 1):
             range_arr[i] = range_min + (i-1)*range_diff
 
@@ -85,7 +85,7 @@ class LaneFilterNode(object):
         #elif (sum_phi_l>1.6 and av_d_l <-0.05):
         #    print "I see a right curve"
         #else:
-        #    print "I am on a straight line" 
+        #    print "I am on a straight line"
 
         delta_dmax = np.median(d_max[1:]) # - d_max[0]
         delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
@@ -95,7 +95,7 @@ class LaneFilterNode(object):
             self.phi_median.pop(0)
         self.d_median.append(delta_dmax)
         self.phi_median.append(delta_phimax)
-        
+
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
@@ -120,7 +120,7 @@ class LaneFilterNode(object):
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg((255*self.filter.beliefArray[0]).astype('uint8'), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
-        
+
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
 
@@ -135,7 +135,7 @@ class LaneFilterNode(object):
         img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
         img.header.stamp = stamp
         return img
-        
+
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
 

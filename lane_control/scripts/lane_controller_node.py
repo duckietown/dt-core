@@ -17,13 +17,16 @@ class lane_controller(object):
         self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
-        # Subscriptions
-        test = False
-        if test:
+        # Subscription
+        # TODO: set normal_use False for using your topic
+        normal_use = True
+        if normal_use:
             self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         else:
-            print "no message recieved"
-            self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.printtest, queue_size=1)
+            # TODO: add your own subscriber here by modifying topic, choose from lane_pose_obstacle_avoidance,lane_pose_parking, implicit_coordination_velocity,lane_pose_intersection_navigation
+            #self.sub_lane_reading = rospy.Subscriber("~lane_pose_intersection_navigation", LanePose, self.cbPose, queue_size=1)
+            self.sub_lane_reading = rospy.Subscriber("~yourtopic", LanePose, self.cbPose, queue_size=1)
+
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
 
@@ -39,9 +42,6 @@ class lane_controller(object):
         # timer
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
-
-    def printtest(self):
-        print "no message"
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -67,7 +67,7 @@ class lane_controller(object):
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
-        turn_off_feedforward_part = False
+        turn_off_feedforward_part = True
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_params = ActuatorParameters()
