@@ -7,6 +7,7 @@ import rosbag
 
 from .pipeline import run_pipeline
 import os
+import warnings
 
 
 __all__ = [
@@ -51,6 +52,7 @@ def look_at(log, output, line_detector, image_prep, lane_filter):
     
     vehicle_name = dtu.which_robot(bag)
     
+    
     dtu.logger.info('Vehicle name: %s' % vehicle_name) 
     
     gp = GroundProjection(vehicle_name) 
@@ -63,7 +65,7 @@ def look_at(log, output, line_detector, image_prep, lane_filter):
 #     dtu.logger.debug(dtu.describe_value(image_cv))
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
-    res = run_pipeline(image_cv_bgr, gp=gp,
+    res, stats = run_pipeline(image_cv_bgr, gp=gp,
                         line_detector_name=line_detector, 
                         image_prep_name=image_prep,
                         lane_filter_name=lane_filter)

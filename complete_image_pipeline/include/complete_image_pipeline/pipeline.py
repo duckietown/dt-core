@@ -13,15 +13,14 @@ from ground_projection import GroundProjection
 from ground_projection.ground_projection_interface import find_ground_coordinates
 from ground_projection.segment import rectify_segments
 from lane_filter import FAMILY_LANE_FILTER
+from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
-from localization_templates.map_localization_template import FAMILY_LOC_TEMPLATES
+from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-from lane_filter_generic import LaneFilterMoreGeneric
 
 
-# from lane_filter_generic.fuzzing import fuzzy_segment_list_image_space
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None')
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                  all_details=False, skip_instagram=False, ground_truth=None,
@@ -140,9 +139,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     
     dtu.logger.debug('plot_map')
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
+    
+    
     res['reprojected'] = plot_map(rectified, assumed_axle, gpg,
-                                  do_ground=False, do_faces=False, do_segments=True)
-        
+                                  do_ground=False, do_horizon=True, do_faces=False, do_segments=True)
+#     res['blurred']= cv2.medianBlur(image, 11)    
     stats = OrderedDict()
     stats['estimate'] = est
     

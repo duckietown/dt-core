@@ -2,6 +2,7 @@ import os
 
 from reprep.plot_utils.axes import turn_all_axes_off
 
+from complete_image_pipeline.image_simulation import SimulationData
 from complete_image_pipeline_tests.synthetic import simulate_image
 from duckietown_segmaps.maps import FAMILY_SEGMAPS, _plot_map_segments
 import duckietown_utils as dtu
@@ -16,7 +17,18 @@ import numpy as np
 
 class DisplayTileAndMaps(D8App):
     """ 
-          
+        Displays the segment maps.
+    """
+    usage = """
+    
+Use as follows:
+
+    $ rosrun complete_image_pipeline display_segmaps [pattern]
+
+For example:
+
+    $ rosrun complete_image_pipeline display_segmaps 'DT17*'
+    
     """
 
     def define_program_options(self, params):
@@ -27,10 +39,12 @@ class DisplayTileAndMaps(D8App):
         extra = self.options.get_extra()
         
         if len(extra) == 0:
-            db = get_easy_algo_db()
-            maps = list(db.query_and_instance(FAMILY_SEGMAPS, '*'))
+            query = '*' 
         else:
-            maps = extra
+            query = extra
+
+        db = get_easy_algo_db()
+        maps = list(db.query_and_instance(FAMILY_SEGMAPS, query))
 
         self.debug('maps: %s' % maps)
         for id_map in maps:
@@ -44,10 +58,12 @@ def display_map(id_map, out):
     fn = os.path.join(out, '%s-texture.png' % (id_map))
     write_data_to_file(texture_png, fn)
     
-    bgr = simulate_camera_view(smap)
+    simdata = simulate_camera_view(smap)
+    
     fn = os.path.join(out, '%s-view.jpg' % (id_map))
-    dtu.write_bgr_to_file_as_jpg(bgr, fn)
+    dtu.write_bgr_to_file_as_jpg(simdata.rectified_synthetic_bgr, fn)
 
+@dtu.contract(returns='str', dpi=int)
 def get_texture(smap, dpi):
     figure_args=dict(figsize=(2,2), facecolor='green')
     a = CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
@@ -62,15 +78,16 @@ def get_texture(smap, dpi):
     png = a.get_png()
     return png
 
+@dtu.contract(returns=SimulationData)
 def simulate_camera_view(sm):
-    robot_name = 'flitzer'
+    robot_name = 'shamrock' # XX
     gp = GroundProjection(robot_name)
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry() 
     
     pose = SE2_from_translation_angle([0,-0.05],-np.deg2rad(-5))
-    distorted_synthetic = simulate_image(sm, pose, gpg, blur_sigma=0.3)
-    return distorted_synthetic
+    res = simulate_image(sm, pose, gpg, blur_sigma=0.3)
+    return res
 
         
     

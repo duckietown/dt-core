@@ -7,6 +7,7 @@ from image_geometry import PinholeCameraModel
 import numpy as np
 from sensor_msgs.msg import CameraInfo
 import itertools
+import warnings
 
 
 __all__ = [
@@ -108,7 +109,11 @@ class GroundProjectionGeometry(object):
             raise ValueError(msg)
             
         ground_point = np.array([point.x, point.y, 1.0])
-        image_point = np.dot(self.Hinv, ground_point)
+        # An applied mathematician would cry for this
+        #    image_point = np.dot(self.Hinv, ground_point)
+        # A better way:
+        image_point = np.linalg.solve(self.H, ground_point)
+        
         image_point = image_point / image_point[2]
 
         pixel = Pixel()
@@ -177,6 +182,8 @@ def invert_map(mapx, mapy):
             rmapy[ty,tx] = y
             
     # fill holes
+#     if False:
+        
     fill_holes(rmapx, rmapy)
     
 #     D = 4
@@ -237,6 +244,9 @@ def fill_holes(rmapx, rmapy):
 #         print('holes %s filled: %s' % (nholes, nholes_filled))
         if nholes_filled == 0:
             break
+        
+        warnings.warn('xxx')
+        break
 #     print('holes: %s' % holes)
 #     print('deltas: %s' % get_deltas())
         
