@@ -7,14 +7,13 @@ from ground_projection import GroundProjectionGeometry
 import numpy as np
 
 from .maps import SegmentsMap, FRAME_AXLE
-import warnings
 
 
 def rotate(l, n):
     return l[n:] + l[:n]
 
-@dtu.contract(coords0='list(seq)', x_frustum='float,>0')
-def get_points_rect_coords(coords0, x_frustum):
+@dtu.contract(coords0='list(seq)')
+def get_points_rect_coords(coords0, N, d):
     """
         coords0 : list
     """
@@ -24,7 +23,7 @@ def get_points_rect_coords(coords0, x_frustum):
     """ Returns a list of world coordinates """
     def is_behind(i):
         w = coords0[i]
-        behind = w[0] < x_frustum
+        behind = np.dot(N, w) + d < 0
         return behind
     
     # first check that not all are behind
@@ -47,7 +46,7 @@ def get_points_rect_coords(coords0, x_frustum):
         if i == 0:
             # assume the first one is not behind
             assert not is_behind(id_point)
-#             print('%d: put first of course' % i)
+            # print('%d: put first of course' % i)
             coords.append(w)
         else:
             previous = coords0[points[i-1]]
@@ -55,75 +54,89 @@ def get_points_rect_coords(coords0, x_frustum):
             if is_behind(id_point):
                 if is_behind(points[i-1]):
                     # both outside just ignore
-#                     print('%d: this and previous outside: add 1' % i)
+                    # print('%d: this and previous outside: add 1' % i)
                     pass
                 else:
                     # this outside, previous was not
-                    w_cut, _,  = clip_to_frustum(w, previous, x_frustum, noswap=True)
+                    w_cut, _,  = clip_to_plane(w, previous, N, d)
                     coords.append(w_cut)
                     
-#                     print('%d: this outside, previous was not: add 1' % i)
+                    # print('%d: this outside, previous was not: add 1' % i)
             else: # not behind
                 if is_behind(points[i-1]):
                     # previous outside, this not
-                    previous_cut, w = clip_to_frustum(previous, w, x_frustum, noswap=True)
+                    previous_cut, w = clip_to_plane(previous, w, N, d)
                     coords.append(previous_cut)
                     coords.append(w) 
-#                     print('%d: previous outside, this not: add 2' % i)
+                    # print('%d: previous outside, this not: add 2' % i)
                 else:
                     # previous inside, this also: normal
-#                     print('%d: previous and this inside: add 1' % i)
+                    # print('%d: previous and this inside: add 1' % i)
                     coords.append(w)
+    return coords[:-1]
+
+def clip_to_view(coords, x_frustum, fov):
+  
+    theta1 = np.pi/2 - fov/2
+    theta2 = - theta1
+
+    planes = [
+        (np.array([1,0,0]), -x_frustum),
+        (np.array([np.cos(theta1),np.sin(theta1),0]), 0),
+        (np.array([np.cos(theta2),np.sin(theta2),0]), 0),
+        # (np.array([0,-1,0]), D), # y > - d
+        # (np.array([0,+1,0]), D), # y < d
+    ]
+    
+    for n_, d_ in planes:
+        coords = get_points_rect_coords(coords, n_, d_)
+        if not coords:
+            # all outside
+            return []
     return coords
 
-
-
-def paint_polygon_world(base, coords, gpg, color, x_frustum):
-    coords_inside = get_points_rect_coords(coords, x_frustum=x_frustum)
+def paint_polygon_world(base, coords, gpg, color, x_frustum, fov):
+    coords_inside = clip_to_view(coords, x_frustum, fov)
     if not coords_inside:
-        # all outside
         return
-    
-    shift = 4 
-    S = 2 ** shift
-    # pixel coords
+
+    shift = 8
+    S = 2 ** shift 
     def pixel_from_world(c):
         p = gpg.ground2pixel(Point(c[0],c[1],c[2]))
         return (int(p.u*S), int(p.v*S))
     
     cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
-    
-#     if False:
-#         # paint the lines (with antialiasing?)
-#         n = len(coords_inside)
-#         for i in range(n):
-#             p1 = cv_points[i, :]
-#             p2 = cv_points[(i+1)%n, :]
-#             cv2.line(base, (p1[0],p1[1]), (p2[0],p2[1]), color, thickness=1, shift=shift)
-#         
-
     cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
+    
 
-def get_horizon_points(gpg):
+
+def get_horizon_points(gpg, shift):
     x = +100
     y = x * 3 # enough for field of view
     p_left = gpg.ground2pixel(Point(x,y,0))
     p_right = gpg.ground2pixel(Point(x,-y,0))
-    return (int(p_left.u), int(p_left.v)), (int(p_right.u), int(p_right.v))
+    S = 2 ** shift
+    return ((int(p_left.u*S), int(p_left.v*S)), 
+            (int(p_right.u*S), int(p_right.v*S)))
 
     
 def plot_ground_sky(base, gpg, color_ground, color_sky):
+    # XXX: there is a bug somewhere here for shift != 0
+    shift = 0
+    S = 2 ** shift
     H, W = base.shape[:2]
-    p1, p2 = get_horizon_points(gpg)
-    points = np.array([p1, (0,0), (W, 0), p2], dtype='int32')
-    cv2.fillPoly(base, [points], color_sky)
-    points2 = np.array([p1, (0,H), (W, H), p2],dtype='int32')
-    cv2.fillPoly(base, [points2], color_ground)
+    p1, p2 = get_horizon_points(gpg, shift)
+    points = np.array([p1, (0,0), (W*S, 0), p2], dtype='int32')
+    cv2.fillPoly(base, [points], color_sky, lineType=AA)
+    points2 = np.array([p1, (0,H*S), (W*S, H*S), p2],dtype='int32')
+    cv2.fillPoly(base, [points2], color_ground, lineType=AA)
     
 AA = cv2.LINE_AA  # @UndefinedVariable
 def plot_horizon(base, gpg, color_horizon, width=2):
-    p1, p2 = get_horizon_points(gpg)
-    cv2.line(base, p1, p2, color_horizon, width, lineType=AA)  # @UndefinedVariable
+    shift = 8
+    p1, p2 = get_horizon_points(gpg, shift)
+    cv2.line(base, p1, p2, color_horizon, width, shift=shift, lineType=AA)  # @UndefinedVariable
 
 @dtu.contract(sm=SegmentsMap, #camera_xyz='array[3]', camera_theta='float', 
               gpg=GroundProjectionGeometry)
@@ -135,8 +148,8 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True,
         sm= SegmentsMap in frame FRAME_AXLE
     """
     image = base0.copy()
-#     x_frustum = +0.05
     x_frustum = +0.1
+    fov = np.deg2rad(150)
     
     if do_ground:
         color_ground = (30,10,22)
@@ -152,8 +165,9 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True,
         for face in sm.faces:
             # list of arrays with cut stuff
             coords = [sm.points[_].coords for _ in face.points]
+            
             color = dtu.bgr_color_from_string(face.color)
-            paint_polygon_world(image, coords, gpg, color, x_frustum)
+            paint_polygon_world(image, coords, gpg, color, x_frustum, fov)
     
     if do_segments:
         for segment in sm.segments:
@@ -169,55 +183,62 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True,
             w1 = sm.points[p1].coords
             w2 = sm.points[p2].coords
             
-            w1_behind = w1[0] < x_frustum
-            w2_behind = w2[0] < x_frustum
             
-            if w1_behind and w2_behind:
-                # They are both behind the camera: we do not draw them
-#                 dtu.logger.debug('Will not draw %s %s' % (w1,w2))
+            coords_inside = clip_to_view([w1, w2], x_frustum, fov)
+            
+            if not coords_inside:
                 continue
-            elif (not w1_behind) and (not w2_behind):
-#                 dtu.logger.debug('Points are ok')
-                pass
-            else:
-# #                 continue 
-#                 warnings.warn('xxx')
-#                 dtu.logger.debug('Segment needs clipping')
-                w1, w2 = clip_to_frustum(w1, w2, x_frustum)
-              
-#             
-#                 print('\nclipped w1 %s w2 %s' % (w1, w2))
-#              
+            
+#             print('coords_inside: %s' % coords_inside)
+            w1 = coords_inside[0]
+            w2 = coords_inside[1]
+            # XXX: more generated
             uv1 = gpg.ground2pixel(Point(w1[0],w1[1],w1[2]))
             uv2 = gpg.ground2pixel(Point(w2[0],w2[1],w2[2]))
     
-            
+            shift = 8
+            S = 2**shift
             width = 2
             paint = (255,120,120)
     #         paint = BGR_WHITE
-            ti = lambda a,b: (int(np.round(a)), int(np.round(b)))
+            ti = lambda a,b: (int(np.round(a*S)), int(np.round(b*S)))
             
             p1 = ti(uv1.u, uv1.v)
             p2 = ti(uv2.u, uv2.v)
-#             print('p1: %s p2 %s' % (p1, p2))
-            cv2.line(image, p1, p2, paint, width)
+            cv2.line(image, p1, p2, paint, width, shift=shift, lineType=AA)  # @UndefinedVariable
     
     return image
     
 @dtu.contract(w1='array[w]', w2='array[3]', x_frustum='float')
 def clip_to_frustum(w1, w2, x_frustum, noswap=False):
-    """ Assumes that w1 is outside. Returns w1_cut, w2 """    
     if not noswap:
         if w1[0] > x_frustum:
             return clip_to_frustum(w2, w1, x_frustum)
-    assert w1[0] <= x_frustum
-    assert w2[0] > x_frustum
-    
+
     # n*p + d = 0
     n = np.array([1,0,0])
-    d = -x_frustum
+    d = -x_frustum    
+    return clip_to_plane(w1, w2, n, d)
+ 
+@dtu.contract(w1='array[3]', w2='array[3]')
+def clip_to_plane(w1, w2, n, d):
+    """ 
+        Assumes that w1 is outside. Returns w1_cut, w2
     
-    direction = w2-w1
+        n*p + d > 0 inside
+        n*p + d = 0 plane
+        n*p + d < 0 outside 
+        
+        w1 is outside 
+    
+     """    
+    def inside(p):
+        x = np.dot(n, p) + d
+        return x >= 0
+    
+    assert not inside(w1)
+    assert inside(w2)
+    direction = w2 - w1
     
     # intersection = w2 + alpha * direction
     # n* (w2 + alpha * dir) + d = 0
@@ -226,7 +247,8 @@ def clip_to_frustum(w1, w2, x_frustum, noswap=False):
     alpha = (- d - np.dot(n, w2)) / (np.dot(n, direction))
     intersection = w2 + alpha * direction
     
-    assert_almost_equal(intersection[0], x_frustum)
+    dist= np.dot(n, intersection) + d 
+    assert_almost_equal(dist, 0)
     
     w1_ = intersection
     return w1_, w2

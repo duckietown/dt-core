@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 SimulationData = namedtuple('SimulationData', 
-                            'rectified_synthetic_bgr distorted_synthetic_bgr ')
+                            'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
 
 
 @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
@@ -39,6 +39,9 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
     sm_axle = tinfo.transform_map_to_frame(sm_orig, FRAME_AXLE)
     
     rectified_synthetic = plot_map(blank, sm_axle, gpg, do_segments=False)
+    rectified_segments = plot_map(blank, sm_axle, gpg, do_segments=True,
+                                  do_ground=True, do_faces=False, 
+                                  do_horizon=False)
     
 #     dtu.write_bgr_to_file_as_jpg(rectified_synthetic, 'rectified_synthetic.jpg')
     
@@ -49,7 +52,8 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
     distorted_synthetic = cv2.GaussianBlur(distorted_synthetic, (0,0), blur_sigma)
 
     return SimulationData(distorted_synthetic_bgr=distorted_synthetic,
-                          rectified_synthetic_bgr=rectified_synthetic)
+                          rectified_synthetic_bgr=rectified_synthetic,
+                          rectified_segments_bgr=rectified_segments)
 
     
 def add_noise(image, intensity = 20, noise_blur = 1):

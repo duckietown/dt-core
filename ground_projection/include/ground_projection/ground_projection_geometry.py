@@ -245,8 +245,6 @@ def fill_holes(rmapx, rmapy):
         if nholes_filled == 0:
             break
         
-        warnings.warn('xxx')
-        break
 #     print('holes: %s' % holes)
 #     print('deltas: %s' % get_deltas())
         

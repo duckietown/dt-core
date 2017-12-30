@@ -62,6 +62,8 @@ def display_map(id_map, out):
     
     fn = os.path.join(out, '%s-view.jpg' % (id_map))
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_synthetic_bgr, fn)
+    fn = os.path.join(out, '%s-segments.jpg' % (id_map))
+    dtu.write_bgr_to_file_as_jpg(simdata.rectified_segments_bgr, fn)
 
 @dtu.contract(returns='str', dpi=int)
 def get_texture(smap, dpi):
