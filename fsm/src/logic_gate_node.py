@@ -31,7 +31,7 @@ class LogicGateNode(object):
         for event_name, event_dict in self.events_dict.items():
             topic_name = event_dict["topic"]
             self.event_trigger_dict[event_name] = event_dict["trigger"]
-            # Initialze local copy as None
+            # Initialize local copy as None
             self.event_msg_dict[event_name] = None
             self.sub_list.append(
                 rospy.Subscriber(topic_name,classes[event_dict["msg_type"]], self.cbBoolStamped, callback_args=event_name))
@@ -70,18 +70,12 @@ class LogicGateNode(object):
                 if event_msg is None:
                     bool_list.append(False)
                 else:
-                    # print self.events_dict[event_name]
-                    if "field" in self.events_dict[event_name]:     # if special type of message
-                        field = self.events_dict[event_name]["field"]
-                        print field
-                        print getattr(event_msg, field)
-                        if (getattr(event_msg, field) == self.event_trigger_dict[event_name]):
+                    if "field" in self.events_dict[event_name]: # if special type of message
+                        if (getattr(event_msg, self.events_dict[event_name]["field"]) == self.event_trigger_dict[event_name]):
                             bool_list.append(True)
                         else:
                             bool_list.append(False)
-                    else:  
-                        if event_name == "parallel_autonomy_on":
-                            print event_name                                         # else BoolStamped
+                    else:   # else BoolStamped
                         if (event_msg.data == self.event_trigger_dict[event_name]):
                             bool_list.append(True)
                         else:
