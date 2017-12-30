@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 import os
 
 import cv2
@@ -7,12 +7,11 @@ import cv2
 from duckietown_utils.download import download_if_not_exist
 from duckietown_utils.jpg import image_cv_from_jpg_fn
 from duckietown_utils.path_utils import get_ros_package_path
-from line_detector2_tests.single_image import write_images_as_jpegs
 import numpy as np
-from reprep.graphics.filter_posneg import posneg_hinton, posneg
+from reprep.graphics.filter_posneg import posneg
 from scipy import stats
 
-@comptest
+@dtu.unit_test
 def single_image_histograms():
     url = 'https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=0'
     p = os.path.join(get_ros_package_path('line_detector2'), 
@@ -21,8 +20,8 @@ def single_image_histograms():
     image_cv = image_cv_from_jpg_fn(p)
     
 
-    res  = go(image_cv)
-    write_images_as_jpegs('single_image_histograms', res)
+    res = go(image_cv)
+    dtu.write_bgr_images_as_jpgs(res, 'single_image_histograms')
     
   
 
@@ -73,4 +72,4 @@ def go(image_bgr):
     return res
 
 if __name__ == '__main__':
-    run_module_tests() 
+    dtu.run_tests_for_this_module() 

@@ -1,11 +1,11 @@
-from comptests.registrar import run_module_tests, comptest
+import duckietown_utils as dtu
 from anti_instagram_tests.annotations_test import anti_instagram_annotations_test
 from easy_logs.cli.require import require_resource
 import os
 from duckietown_utils import system_cmd_result
 
 
-@comptest
+@dtu.unit_test
 def iids_tests():
     out_base = 'anti_instagram_annotations_test'
     
@@ -30,4 +30,4 @@ def iids_tests():
     
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()

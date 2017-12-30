@@ -109,6 +109,7 @@ def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
 
         if raise_if_error_too_large:
             raise Exception(msg)
+    return not fail
 
 @dtu.contract(actual_map_name='str')
 def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
@@ -133,9 +134,9 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
         location = pose_or_location
         pose = localization_template.pose_from_coords(location)
 
-    distorted_synthetic = simulate_image(actual_map, pose, gpg, blur_sigma=0.3)
+    simulation_data = simulate_image(actual_map, pose, gpg, blur_sigma=0.3)
 
-    image = distorted_synthetic
+    image = simulation_data.distorted_synthetic_bgr
 
     all_details = False
     res, stats = run_pipeline(image, gp, line_detector_name,

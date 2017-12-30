@@ -9,6 +9,7 @@ from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection, NoHomographyInfoAvailable
 import numpy as np
 from pi_camera import NoCameraInfoAvailable
+from complete_image_pipeline_tests.synthetic import test_synthetic_phi
 
 
 __all__ = [
@@ -57,6 +58,26 @@ Example:
         out = self.options.output
         create_visuals(robots, actual_map_name, out)
 
+        for robot_name in robots:
+            ok = try_simulated_localization(robot_name)
+            
+def try_simulated_localization(robot_name):
+    actual_map_name =  'DT17_scenario_straight_straight'
+    template = 'DT17_template_straight_straight'
+    
+    line_detector_name = 'baseline'
+    lane_filter_name = 'baseline'
+    image_prep_name = 'baseline'
+    d = 0.02
+    phi = np.deg2rad(15)
+    max_phi_err = np.deg2rad(5)
+    max_d_err = 0.03
+    outd = 'out-try_simulated_localization-%s' % robot_name
+    
+    test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
+           image_prep_name, lane_filter_name, d, phi, outd,
+           max_phi_err=max_phi_err,
+           max_d_err=max_d_err)
 
 def create_visuals(robots, actual_map_name, out):
     db = get_easy_algo_db()
@@ -70,13 +91,18 @@ def create_visuals(robots, actual_map_name, out):
             gp = GroundProjection(robot_name)
         except (NoCameraInfoAvailable, NoHomographyInfoAvailable) as e:
             dtu.logger.warning('skipping %r: %s' % (robot_name, e))
+            continue
         gpg = gp.get_ground_projection_geometry()
         pose = np.eye(3)
         rectified_synthetic, distorted = \
             simulate_image(actual_map, pose, gpg, blur_sigma=1)
         res[robot_name] = rectified_synthetic
         res2[robot_name] = distorted
-    output = os.path.join(out, 'distorted')
-    dtu.write_bgr_images_as_jpgs(res2, output)
-    output = os.path.join(out, 'rectified')
-    dtu.write_bgr_images_as_jpgs(res, output)
+    if not res:
+        msg = 'No images to draw.'
+        dtu.logger.error(msg)
+    else:
+        output = os.path.join(out, 'distorted')
+        dtu.write_bgr_images_as_jpgs(res2, output)
+        output = os.path.join(out, 'rectified')
+        dtu.write_bgr_images_as_jpgs(res, output)

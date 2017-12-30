@@ -4,8 +4,7 @@ import cv2
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.draw_map_on_images import plot_map
-from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments,\
-    FRAME_GLOBAL
+from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
@@ -19,9 +18,10 @@ from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
+from duckietown_utils.exception_utils import check_isinstance
 
 
-@dtu.contract(gp=GroundProjection, ground_truth='SE2|None')
+@dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
                  all_details=False, skip_instagram=False, ground_truth=None,
                  actual_map=None):
@@ -33,6 +33,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         ground_truth = pose
     """
+
+    check_isinstance(image, np.ndarray)
 
     gpg = gp.get_ground_projection_geometry()
 
@@ -53,7 +55,6 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     ai = AntiInstagram()
     ai.calculateTransform(image)
-
 
     if not skip_instagram:
         transform = ai.applyTransform

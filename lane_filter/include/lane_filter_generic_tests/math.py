@@ -1,10 +1,10 @@
 import numpy as np
-from comptests.registrar import comptest, run_module_tests
+import duckietown_utils as dtu
 from numpy.testing.utils import assert_almost_equal
 from lane_filter_generic.lane_filter_generic_imp import get_estimate
 
 
-@comptest
+@dtu.unit_test
 def test_relation1():
     t = np.array([10,0,0])
     n = np.array([-1,0,0])
@@ -18,7 +18,7 @@ def test_relation1():
     assert_almost_equal(theta, 0)
 
 
-@comptest
+@dtu.unit_test
 def test_relation2():
     t = np.array([10,0,0])
     n = np.array([-1,0,0])
@@ -33,7 +33,7 @@ def test_relation2():
     assert_almost_equal(theta, 0)
 
 
-@comptest
+@dtu.unit_test
 def test_relation3():
     #
     #    *          <-|
@@ -51,4 +51,4 @@ def test_relation3():
     assert_almost_equal(theta, -np.pi/2)
 
 if __name__ == '__main__':
-    run_module_tests()
+    dtu.run_tests_for_this_module()
