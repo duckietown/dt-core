@@ -65,8 +65,8 @@ class LogicGateNode(object):
         latest_time_stamp = rospy.Time(0)
 
         for event_name, event_msg in self.event_msg_dict.items():
-            print event_name
             if event_name in inputs:    # one of the inputs to gate
+                print event_name
                 if event_msg is None:
                     bool_list.append(False)
                 else:
@@ -79,7 +79,9 @@ class LogicGateNode(object):
                             bool_list.append(True)
                         else:
                             bool_list.append(False)
-                    else:                                           # else BoolStamped
+                    else:  
+                        if event_name == "parallel_autonomy_on":
+                            print event_name                                         # else BoolStamped
                         if (event_msg.data == self.event_trigger_dict[event_name]):
                             bool_list.append(True)
                         else:
