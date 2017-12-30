@@ -27,3 +27,6 @@ parameters:
     - cell: [1, 1]
       name: DT17_tile_curve_right
       rotation: 0
+    - cell: [0, 0]
+      name: DT17_tile_empty
+      rotation: 0

@@ -13,6 +13,7 @@ WHITE = dtu.ColorConstants.STR_WHITE
 BLACK = dtu.ColorConstants.STR_BLACK
 GRAY = dtu.ColorConstants.STR_GRAY
 RED = dtu.ColorConstants.STR_RED
+GREEN = dtu.ColorConstants.STR_GREEN
 
 
 def three_way_intersection(tile_size, tile_spacing, width_white):
@@ -47,9 +48,33 @@ def three_way_intersection(tile_size, tile_spacing, width_white):
 
     return SegmentsMap(**data)
 
+@dtu.contract(returns=SegmentsMap)
+def get_map_empty_tile(tile_size, tile_spacing, buffer_black):
+    constants = {}
+    constants['tile_size'] = tile_size
+    constants['tile_spacing'] = tile_spacing
+    constants['buffer_black'] = buffer_black
+    points = {}
+    segments = []
+    faces = []
+    
+    add_tile(points, faces, segments, tile_size, tile_spacing)
+    
+    length = width = tile_size - buffer_black*2 
+    x = y = theta = 0
+    color = GREEN
+    use_sides_for_loc=[None,None,None,None]
+    _add_rect_tilted(points, faces, segments, 
+                 x, y, theta, length, width, FRAME_TILE, color, 
+                 use_sides_for_loc)
+
+
+    data = dict(points=points, segments=segments, faces=faces, constants=constants)
+    return SegmentsMap(**data)
     
 @dtu.contract(returns=SegmentsMap)
 def empty_tile(tile_size, tile_spacing, width_white):
+    """ DT16 Old intersection center """
     constants = {}
     constants['tile_size'] = tile_size
     constants['tile_spacing'] = tile_spacing
@@ -68,6 +93,147 @@ def empty_tile(tile_size, tile_spacing, width_white):
     data = dict(points=points, segments=segments, faces=faces, constants=constants)
 
     return SegmentsMap(**data)
+
+@dtu.contract(returns=SegmentsMap)
+def get_map_intersection_center(tile_size, tile_spacing, width_white, width_red, width_yellow, num_roads):
+    
+    lane_width = (tile_size - 2*width_white - width_yellow) / 2
+    extra = (tile_spacing - tile_size)/2
+    
+    assert num_roads in [3, 4], num_roads
+    
+    constants = {}
+    constants['tile_size'] = tile_size
+    constants['tile_spacing'] = tile_spacing
+    constants['width_white'] = tile_spacing # XXX bug
+    constants['width_red'] = width_red
+    constants['width_yellow'] = width_yellow
+
+    points = {}
+    segments = []
+    faces = []
+    
+    add_tile(points, faces, segments, tile_size, tile_spacing)
+    
+    if num_roads == 3:
+        angles = [0, 90, 270]
+    if num_roads == 4:
+        angles = [0, 90, 180, 270]
+    
+    id_frame = FRAME_TILE
+    
+    for a in angles:
+        
+        # add red
+        width = width_red
+        length = lane_width
+        x = -tile_size/2 + width_red/2
+        y = -width_yellow/2 -lane_width/2  
+        theta = np.deg2rad(90)
+        
+        alpha = np.deg2rad(a)
+        R = SO2_from_angle(alpha)
+        x,y = np.dot(R, [x, y])
+        theta = theta + alpha 
+        
+        color = RED
+        use_sides_for_loc=[Segment.RED,None,Segment.RED,None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+        
+        # add yellow strip
+        width = width_red
+        length = width_yellow
+        x = -tile_size/2 + width_red/2
+        y = 0    
+        theta = np.deg2rad(90)
+        
+        alpha = np.deg2rad(a)
+        R = SO2_from_angle(alpha)
+        x,y = np.dot(R, [x, y])
+        theta = theta + alpha 
+        
+        color = YELLOW
+        use_sides_for_loc=[None, None, None, None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+        
+        # add white corner
+        if num_roads == 3 and a == 90:
+            # but not in the three-way
+            continue
+        
+        width = width_white
+        length = width_white
+        
+        x = -tile_size/2 + width_white/2
+        y = -tile_size/2 + width_white/2
+        theta = np.deg2rad(0)
+         
+        alpha = np.deg2rad(a)
+        R = SO2_from_angle(alpha)
+        x,y = np.dot(R, [x, y])
+        theta = theta + alpha 
+         
+        color = WHITE
+        use_sides_for_loc=[None, None, None, None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+         
+        width = extra
+        length = width_white
+        x = -tile_size/2 + width_white/2
+        y = -tile_size/2 - width/2
+        theta = np.deg2rad(0)
+         
+        alpha = np.deg2rad(a)
+        R = SO2_from_angle(alpha)
+        x,y = np.dot(R, [x, y])
+        theta = theta + alpha 
+         
+        color = WHITE
+        use_sides_for_loc=[None, None, None, None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+        
+        width = width_white
+        length = extra
+        x = -tile_size/2 -length/2 
+        y = -tile_size/2 + width_white/2
+        theta = np.deg2rad(0)
+         
+        alpha = np.deg2rad(a)
+        R = SO2_from_angle(alpha)
+        x,y = np.dot(R, [x, y])
+        theta = theta + alpha 
+         
+        use_sides_for_loc=[None, None, None, None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+        
+    if num_roads == 3:
+        # add white line
+        length = tile_size + extra*2
+        width = width_white
+        x = tile_size/2 - width_white/2
+        y = 0
+        color = WHITE
+        theta = np.deg2rad(90)
+        use_sides_for_loc=[Segment.WHITE, None, Segment.WHITE, None]
+        _add_rect_tilted(points, faces, segments, 
+                     x, y, theta, length, width, id_frame, color, 
+                     use_sides_for_loc)
+        
+
+    data = dict(points=points, segments=segments, faces=faces, constants=constants)
+
+    return SegmentsMap(**data)
+
 
 @dtu.contract(returns=SegmentsMap)
 def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing,
@@ -212,7 +378,7 @@ def __add_rect_by_coords(points, faces, segments,
     s = len(points)
     
     pre = '%s_' % s
-    names=[]
+    names = []
     for i, coord in enumerate(coords):
         name = '%s%s'% (pre, i)
         names.append(name)

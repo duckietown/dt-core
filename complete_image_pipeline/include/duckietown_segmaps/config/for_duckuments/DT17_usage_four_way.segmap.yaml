@@ -1,4 +1,4 @@
-description: Three way intersection (seen by the middle)
+description: Four way intersection (seen by a straight tile)
 constructor: duckietown_segmaps.compose_maps
 parameters:
     grid_spacing: 0.584
@@ -7,17 +7,17 @@ parameters:
       name: DT17_tile_straight
       rotation: 0
     - cell: [1, 0]
-      name: DT17_tile_three_way_center
+      name: DT17_tile_four_way_center
       rotation: 0
     - cell: [1, 1]
-      name: DT17_tile_straight
-      rotation: -90
-    - cell: [1, 2]
       name: DT17_tile_straight
       rotation: -90
     - cell: [1, -1]
       name: DT17_tile_straight
       rotation: 90
-    - cell: [1, -2]
+    - cell: [2, 0]
       name: DT17_tile_straight
-      rotation: 90
+      rotation: -180
+#     - cell: [3, 0]
+#       name: DT17_tile_straight
+#       rotation: -180
