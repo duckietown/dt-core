@@ -7,7 +7,7 @@ description: |
     * When an input topic is published, the `logic_gate_node` checks whether the AND or OR gate is satisfied
     * If the gate is satisfied, the node publishes `True` on the `~/gate_name` topic, else it publishes `False`  
 
-    The FSM node publishes on many topics according to the configuration:
+    The logic gate node publishes on many topics according to the configuration:
 
         for gate_name, gate_dict in self.gates_dict.items():
             output_topic_name = gate_dict["output_topic"]
