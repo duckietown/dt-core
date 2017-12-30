@@ -1,6 +1,6 @@
 from numpy.testing.utils import assert_almost_equal
 
-from complete_image_pipeline_tests.synthetic import test_synthetic
+from complete_image_pipeline_tests.synthetic import test_synthetic, dirn
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from geometry import SE2, SE2_from_translation_angle
@@ -22,9 +22,6 @@ max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
 
 
-dirn = lambda _: 'out-synthetic/%s' % _
-
-
 
 @dtu.unit_test
 def start_curve():
@@ -36,7 +33,7 @@ def start_curve():
 
 
     for lane_filter_name in lane_filter_names:
-        outd = dirn('start_curve-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                         image_prep_name, lane_filter_name, pose_or_location, outd)
 
@@ -46,7 +43,7 @@ def inside_curve():
     pose_or_location = SE2_from_translation_angle([0.15, -0.1], np.deg2rad(5))
 
     for lane_filter_name in lane_filter_names:
-        outd = dirn('inside_curve-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                         image_prep_name, lane_filter_name, pose_or_location, outd)
 
@@ -55,7 +52,7 @@ def inside_curve2():
     pose_or_location = SE2_from_translation_angle([0.35, -0.1], np.deg2rad(15))
 
     for lane_filter_name in lane_filter_names:
-        outd = dirn('inside_curve2-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, pose_or_location, outd)
 

@@ -9,7 +9,6 @@ from duckietown_utils.jpg import image_cv_from_jpg_fn
 from duckietown_utils.path_utils import get_ros_package_path
 import numpy as np
 from reprep.graphics.filter_posneg import posneg
-from scipy import stats
 
 @dtu.unit_test
 def single_image_histograms():
@@ -43,8 +42,6 @@ def go(image_bgr):
     hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2BGR)
 #     cv2.imshow('hsv_map', hsv_map)
     res['hsv_map'] = hsv_map
-    
-    
     
     hist_scale = 10
 

@@ -5,6 +5,7 @@ from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
+import os
 
 
 actual_map_name =  'DT17_scenario_straight_straight'
@@ -22,13 +23,16 @@ raise_if_error_too_large = False
 max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
 
-dirn = lambda _: 'out-synthetic/%s' % _
+def dirn(misc):
+    outd = dtu.get_output_dir_for_test()
+    return os.path.join(outd, misc)
+
 @dtu.unit_test
 def test_synthetic_zero_zerophi():
     d = 0
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_zero_zerophi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name,template, robot_name, line_detector_name,
                    image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
@@ -36,7 +40,7 @@ def test_synthetic_pos_zerophi():
     d = 0.054
     phi = np.deg2rad(0.5)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_pos_zerophi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
@@ -45,7 +49,7 @@ def test_synthetic_neg_posphi():
     phi = np.deg2rad(15)
 
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_neg_posphi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
@@ -53,7 +57,7 @@ def test_synthetic_zero_posphi():
     d = 0
     phi = np.deg2rad(15)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_zero_posphi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 
@@ -62,7 +66,7 @@ def test_synthetic_zero_negphi():
     d = 0
     phi = np.deg2rad(-20)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_zero_negphi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi , outd)
 
@@ -71,7 +75,7 @@ def test_synthetic_zero_bignegphi():
     d = 0
     phi = np.deg2rad(-50)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_zero_bignegphi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, d, phi, outd)
 
@@ -80,9 +84,9 @@ def test_synthetic_zero_bigposphi():
     d = 0
     phi = np.deg2rad(+50)
     for lane_filter_name in lane_filter_names:
-        outd = dirn('test_synthetic_zero_bignegphi-' + lane_filter_name)
+        outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi, outd)
+                           image_prep_name, lane_filter_name, d, phi, outd)
 
 def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
                    image_prep_name, lane_filter_name, d, phi, outd,
