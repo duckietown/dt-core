@@ -42,6 +42,7 @@ class GroundProjectionGeometry(object):
         self.pcm.fromCameraInfo(self.ci)
         
         self._rectify_inited = False
+        self._distort_inited = False
     
     def get_camera_info(self):
         return self.ci
@@ -156,11 +157,11 @@ class GroundProjectionGeometry(object):
     def distort(self, rectified):
         if not self._rectify_inited:
             self._init_rectify_maps()
-        
-        rmapx, rmapy = invert_map(self.mapx, self.mapy)
-        
+        if not self._distort_inited:
+            self.rmapx, self.rmapy = invert_map(self.mapx, self.mapy)
+            self._distort_inited = True
         distorted = np.zeros(np.shape(rectified))
-        res = cv2.remap(rectified, rmapx, rmapy, cv2.INTER_NEAREST, distorted)
+        res = cv2.remap(rectified, self.rmapx, self.rmapy, cv2.INTER_NEAREST, distorted)
         return res
 
 def invert_map(mapx, mapy):

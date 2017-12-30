@@ -11,7 +11,8 @@ from duckietown_utils.file_utils import write_data_to_file
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo.algo_db import get_easy_algo_db
 from geometry.poses import SE2_from_translation_angle
-from ground_projection.ground_projection_interface import GroundProjection
+from ground_projection.ground_projection_interface import GroundProjection,\
+    get_ground_projection
 import numpy as np
 
 
@@ -81,9 +82,8 @@ def get_texture(smap, dpi):
     return png
 
 @dtu.contract(returns=SimulationData)
-def simulate_camera_view(sm):
-    robot_name = 'shamrock' # XX
-    gp = GroundProjection(robot_name)
+def simulate_camera_view(sm, robot_name = 'shamrock'):
+    gp = get_ground_projection(robot_name)
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry() 
     

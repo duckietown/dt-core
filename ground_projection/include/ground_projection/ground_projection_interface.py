@@ -15,6 +15,9 @@ __all__ = [
     'GroundProjection',
 ]
 
+@dtu.memoize_simple
+def get_ground_projection(robot_name):
+    return GroundProjection(robot_name)
 
 class GroundProjection(object):
 

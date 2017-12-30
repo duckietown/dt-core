@@ -1,9 +1,9 @@
 import numpy as np
 import duckietown_utils as dtu
-from easy_algo.algo_db import get_easy_algo_db
+from easy_algo import get_easy_algo_db
 from duckietown_segmaps.maps import SegmentsMap, FAMILY_SEGMAPS, FRAME_TILE
 from duckietown_segmaps.transformations import TransformationsInfo
-from geometry.poses import SE2_from_xytheta
+from geometry import SE2_from_xytheta
 
 def compose_maps(grid_spacing, tiles):
     db = get_easy_algo_db()

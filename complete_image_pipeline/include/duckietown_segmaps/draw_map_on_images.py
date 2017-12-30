@@ -107,7 +107,10 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov):
         return (int(p.u*S), int(p.v*S))
     
     cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
+#     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
     cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
+#     cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA,
+#                   thickness=1)
     
 
 
@@ -129,7 +132,7 @@ def plot_ground_sky(base, gpg, color_ground, color_sky):
     p1, p2 = get_horizon_points(gpg, shift)
     points = np.array([p1, (0,0), (W*S, 0), p2], dtype='int32')
     cv2.fillPoly(base, [points], color_sky, lineType=AA)
-    points2 = np.array([p1, (0,H*S), (W*S, H*S), p2],dtype='int32')
+    points2 = np.array([p1, (0,H*S), (W*S, H*S), p2], dtype='int32')
     cv2.fillPoly(base, [points2], color_ground, lineType=AA)
     
 AA = cv2.LINE_AA  # @UndefinedVariable
