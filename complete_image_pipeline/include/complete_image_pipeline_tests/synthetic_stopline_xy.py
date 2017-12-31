@@ -1,8 +1,9 @@
 import duckietown_utils as dtu
-import numpy as np
-from .synthetic import test_synthetic
 from geometry import SE2_from_translation_angle
-from complete_image_pipeline_tests.synthetic import dirn
+import numpy as np
+
+from .synthetic import dirn, test_synthetic
+
 
 actual_map_name =  'DT17_scenario_four_way'
 template = 'DT17_template_xy_stopline'

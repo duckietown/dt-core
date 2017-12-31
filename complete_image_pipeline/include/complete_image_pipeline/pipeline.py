@@ -18,7 +18,6 @@ from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-from duckietown_utils.exception_utils import check_isinstance
 
 
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
@@ -34,7 +33,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         ground_truth = pose
     """
 
-    check_isinstance(image, np.ndarray)
+    dtu.check_isinstance(image, np.ndarray)
 
     gpg = gp.get_ground_projection_geometry()
 

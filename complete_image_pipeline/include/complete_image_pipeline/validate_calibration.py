@@ -9,6 +9,7 @@ from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection, NoHomographyInfoAvailable
 import numpy as np
 from pi_camera import NoCameraInfoAvailable
+# XXX: should not include the _tests module
 from complete_image_pipeline_tests.synthetic import test_synthetic_phi
 
 
@@ -52,7 +53,6 @@ Example:
         robots = db.query('robot', query)
         self.debug('robots: %s' % sorted(robots))
 
-
         actual_map_name =  'DT17_scenario_four_way'
 
         out = self.options.output
@@ -60,20 +60,20 @@ Example:
 
         for robot_name in robots:
             ok = try_simulated_localization(robot_name)
-            
+
 def try_simulated_localization(robot_name):
     actual_map_name =  'DT17_scenario_straight_straight'
     template = 'DT17_template_straight_straight'
-    
+
     line_detector_name = 'baseline'
     lane_filter_name = 'baseline'
     image_prep_name = 'baseline'
-    d = 0.02
-    phi = np.deg2rad(15)
+    d = 0.01
+    phi = np.deg2rad(5)
     max_phi_err = np.deg2rad(5)
     max_d_err = 0.03
     outd = 'out-try_simulated_localization-%s' % robot_name
-    
+
     test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
            image_prep_name, lane_filter_name, d, phi, outd,
            max_phi_err=max_phi_err,

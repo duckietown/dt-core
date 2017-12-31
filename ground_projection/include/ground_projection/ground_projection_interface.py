@@ -19,6 +19,11 @@ __all__ = [
 def get_ground_projection(robot_name):
     return GroundProjection(robot_name)
 
+@dtu.contract(returns=GroundProjectionGeometry, robot_name=str)
+def get_ground_projection_geometry_for_robot(robot_name):
+    gp = get_ground_projection(robot_name)
+    return gp.get_ground_projection_geometry()
+
 class GroundProjection(object):
 
     def __init__(self, robot_name):
@@ -28,6 +33,7 @@ class GroundProjection(object):
 
         self.board_ = load_board_info()
     
+    @dtu.contract(returns=GroundProjectionGeometry)
     def get_ground_projection_geometry(self):
         return self._gpg
     
@@ -108,7 +114,7 @@ class GroundProjection(object):
             
     def write_homography(self, filename):
         ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
-        dtu.yaml_write_to_file(ob,filename)
+        dtu.yaml_write_to_file(ob, filename)
 
 @dtu.contract(sl=SegmentList, gpg=GroundProjectionGeometry, returns=SegmentList)
 def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):

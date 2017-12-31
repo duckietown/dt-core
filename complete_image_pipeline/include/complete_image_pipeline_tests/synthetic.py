@@ -6,6 +6,7 @@ from ground_projection import GroundProjection
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
 import os
+from ground_projection.ground_projection_interface import get_ground_projection
 
 
 actual_map_name =  'DT17_scenario_straight_straight'
@@ -127,7 +128,7 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
     dtu.logger.debug('looking for localization template %r' % template)
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
 
-    gp = GroundProjection(robot_name)
+    gp = get_ground_projection(robot_name)
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry()
 

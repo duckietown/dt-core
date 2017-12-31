@@ -16,8 +16,10 @@ def single_image1():
     gp = GroundProjection(robot_name)
 #     gpg = gp.get_ground_projection_geometry()
     
-    res, stats  = run_pipeline(image_cv, gp,
+    res, _stats  = run_pipeline(image_cv, gp,
                          line_detector_name, image_prep_name, lane_filter_name,
                          all_details=False, skip_instagram=False, ground_truth=None)
-    dtu.write_jpgs_to_dir(res, 'single_image1')
+    
+    outd = dtu.get_output_dir_for_test()
+    dtu.write_jpgs_to_dir(res, outd)
     
