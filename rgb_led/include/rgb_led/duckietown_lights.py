@@ -153,7 +153,7 @@ def create_patterns():
 		for freq in frequencies:
 			comb = 'all-%s-%1.1f' % (color, freq)
 			add_pattern(comb, blink_all(rgb, 1.0/freq))
- 
+
 	static = {TOP: WHITE, FRONT_LEFT:RED, FRONT_RIGHT:GREEN,
 	BACK_LEFT:colors['orange'], BACK_RIGHT:colors['blue']}
 
