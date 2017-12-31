@@ -10,9 +10,8 @@ from duckietown_utils.cli import D8App
 from duckietown_utils.file_utils import write_data_to_file
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo.algo_db import get_easy_algo_db
-from geometry.poses import SE2_from_translation_angle
-from ground_projection.ground_projection_interface import GroundProjection,\
-    get_ground_projection
+from geometry import SE2_from_translation_angle
+from ground_projection.ground_projection_interface import get_ground_projection
 import numpy as np
 
 

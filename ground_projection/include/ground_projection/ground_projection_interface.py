@@ -2,7 +2,7 @@ import os.path
 
 import cv2
 
-from duckietown_msgs.msg import Segment, SegmentList  # @UnresolvedImport
+from duckietown_msgs.msg import Segment, SegmentList  
 import duckietown_utils as dtu
 import numpy as np
 from pi_camera import get_camera_info_for_robot
@@ -99,7 +99,7 @@ class GroundProjection(object):
 
         # only reverse order if first point is at bottom right corner
         if ((corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][0] and (corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][1]):
-            rospy.loginfo("Reversing order of points.")
+            dtu.logger.info("Reversing order of points.")
             src_pts.reverse()
 
         # Compute homography from image to ground

@@ -18,6 +18,7 @@ from line_detector.visual_state_fancy_display import vs_fancy_display
 from line_detector2.run_programmatically import FakeContext
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
+from easy_node.utils.timing import ProcessingTimingStats
 
 
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
@@ -34,6 +35,9 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     """
 
     dtu.check_isinstance(image, np.ndarray)
+    
+    
+    
 
     gpg = gp.get_ground_projection_geometry()
 
@@ -45,32 +49,42 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     image_prep = algo_db.create_instance('image_prep', image_prep_name)
 
     context = FakeContext()
-
     if all_details:
         segment_list = image_prep.process(context, image, line_detector, transform = None)
 
         res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
         res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
-
+    
+    pts = ProcessingTimingStats()
+    pts.reset()
+    pts.received_message()
+    pts.decided_to_process()
+    
+    
     ai = AntiInstagram()
-    ai.calculateTransform(image)
+    
+    with pts.phase('calculate AI transform'):
+        ai.calculateTransform(image)
 
-    if not skip_instagram:
-        transform = ai.applyTransform
-        transformed = transform(image)
-        transformed_clipped = cv2.convertScaleAbs(transformed)
+    with pts.phase('apply AI transform'):
+    
+        if not skip_instagram:
+            transform = ai.applyTransform
+            transformed = transform(image)
+            transformed_clipped = cv2.convertScaleAbs(transformed)
+        
+            if all_details:
+                res['image_input_transformed'] = transformed
+        else:
+            transform = lambda x: x.copy()
+            transformed_clipped = image.copy()
+
         if all_details:
-            res['image_input_transformed'] = transformed
+            res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
 
-    else:
-        transform = lambda x: x.copy()
-        transformed_clipped = image.copy()
-
-    if all_details:
-        res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
-
-    segment_list2 = image_prep.process(context, transformed_clipped,
-                                       line_detector, transform=transform)
+    with pts.phase('edge detection'):
+        segment_list2 = image_prep.process(context, transformed_clipped,
+                                           line_detector, transform=transform)
 
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
     if all_details:
@@ -81,34 +95,40 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['segments_on_image_input_transformed_resized'] = \
             vs_fancy_display(image_prep.image_resized, segment_list2)
 
-    grid = get_grid(image.shape[:2])
+
 
     if all_details:
+        grid = get_grid(image.shape[:2])
         res['grid'] = grid
-
         res['grid_remapped'] = gpg.rectify(grid)
 
-    rectified = gpg.rectify(res['image_input'])
+    with pts.phase('rectify'):
+        rectified = gpg.rectify(res['image_input'])
 
     if all_details:
         res['image_input_rect'] = rectified
 
 #     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
 
-    segment_list2_rect = rectify_segments(gpg, segment_list2)
+    with pts.phase('rectify_segments'):
+        segment_list2_rect = rectify_segments(gpg, segment_list2)
+        
     res['segments rectified on image rectified'] = \
         vs_fancy_display(rectified, segment_list2_rect)
 
     # Project to ground
-    sg = find_ground_coordinates(gpg, segment_list2_rect)
+    with pts.phase('find_ground_coordinates'):
+        sg = find_ground_coordinates(gpg, segment_list2_rect)
 
     lane_filter.initialize()
     if all_details:
         res['prior'] = lane_filter.get_plot_phi_d()
 
-    _likelihood = lane_filter.update(sg)
+    with pts.phase('lane filter update'):
+        _likelihood = lane_filter.update(sg)
 
-    res['belief'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
+    with pts.phase('lane filter plot'):
+        res['belief'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
     easy_algo_db = get_easy_algo_db()
 
     if isinstance(lane_filter, (LaneFilterMoreGeneric)):
@@ -120,7 +140,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     localization_template = \
         easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
 
-    est = lane_filter.get_estimate()
+    with pts.phase('lane filter get_estimate()'):
+        est = lane_filter.get_estimate()
 
     # Coordinates in TILE frame
     g = localization_template.pose_from_coords(est)
@@ -147,6 +168,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     stats = OrderedDict()
     stats['estimate'] = est
 
+
+    dtu.logger.info(pts.get_stats())
     return res, stats
 
 def get_grid(shape, L=32, col={0: (255,0,0), 1: (0,255,0)}):

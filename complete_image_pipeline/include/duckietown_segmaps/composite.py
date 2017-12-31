@@ -1,5 +1,4 @@
 import numpy as np
-import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from duckietown_segmaps.maps import SegmentsMap, FAMILY_SEGMAPS, FRAME_TILE
 from duckietown_segmaps.transformations import TransformationsInfo

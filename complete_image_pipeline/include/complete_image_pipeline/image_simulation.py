@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 SimulationData = namedtuple('SimulationData', 
-                            'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
+        'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
 
 
 @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
@@ -21,10 +21,10 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
     camera_info = gpg.get_camera_info()
     H = camera_info.height
     W = camera_info.width
-    H_pad = int(0.3*H)
-    W_pad = int(0.3*W)
-    H_padded = H + H_pad
-    W_padded = W + W_pad
+#     H_pad = int(0.3*H)
+#     W_pad = int(0.3*W)
+#     H_padded = H + H_pad
+#     W_padded = W + W_pad
     blank = np.zeros(dtype='uint8', shape=(H, W, 3))
     blank.fill(128)
     

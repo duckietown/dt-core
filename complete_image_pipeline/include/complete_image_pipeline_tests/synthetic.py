@@ -2,7 +2,6 @@ from complete_image_pipeline import run_pipeline, simulate_image
 from duckietown_segmaps import FAMILY_SEGMAPS
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
-from ground_projection import GroundProjection
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
 import os

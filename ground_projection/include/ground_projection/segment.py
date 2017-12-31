@@ -14,9 +14,7 @@ def rectify_segment(gpg, s1):
         # rectify
         pr = gpg.rectify_point(uv)
         # recompute normalized coordinates
-        t = Pixel()
-        t.u = pr[0]
-        t.v = pr[1]
+        t = Pixel(pr[0], pr[1])
         s2.pixels_normalized[i] = gpg.pixel2vector(t)
     s2.color = s1.color
     return s2

@@ -1,13 +1,11 @@
 from reprep.graphics.filter_scale import scale
-
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+import duckietown_utils as dtu
 import numpy as np
 import numpy.ma as ma
 
-
 def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
     """ Returns a BGR image """  
-    a = CreateImageFromPylab(dpi=dpi)
+    a = dtu.CreateImageFromPylab(dpi=dpi)
     with a as pylab:
         f_d = lambda x: 100 * x
         f_phi = np.rad2deg
@@ -77,4 +75,3 @@ def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
         pylab.xlabel('d: distance from center line (cm); cell = %.1f cm' % f_d(delta_d))
 
     return a.get_bgr()
- 

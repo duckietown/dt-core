@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 from anti_instagram.AntiInstagram import AntiInstagram
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
-    SegmentList, Vector2D)
+    SegmentList)
 from duckietown_utils.instantiate_utils import instantiate
 from duckietown_utils.jpg import image_cv_from_jpg
-from geometry_msgs.msg import Point
 from sensor_msgs.msg import CompressedImage, Image
-from visualization_msgs.msg import Marker
 
 from line_detector.timekeeper import TimeKeeper
 import cv2

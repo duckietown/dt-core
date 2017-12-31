@@ -5,7 +5,7 @@ import numpy as np
 
 from .line_detector_interface import (Detections,
                                       LineDetectorInterface)
-import copy
+
 
 
 class LineDetectorHSV(Configurable, LineDetectorInterface):

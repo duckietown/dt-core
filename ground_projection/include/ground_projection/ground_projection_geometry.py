@@ -7,7 +7,6 @@ from image_geometry import PinholeCameraModel
 import numpy as np
 from sensor_msgs.msg import CameraInfo
 import itertools
-import warnings
 
 
 __all__ = [
@@ -149,8 +148,11 @@ class GroundProjectionGeometry(object):
         if not self._rectify_inited:
             self._init_rectify_maps()
 
-        cv_image_rectified = np.zeros(np.shape(cv_image_raw))
-        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, cv2.INTER_CUBIC, 
+        inter = cv2.INTER_NEAREST
+        # inter = cv2.INTER_CUBIC
+#         cv_image_rectified = np.zeros(np.shape(cv_image_raw))
+        cv_image_rectified = np.empty_like(cv_image_raw)
+        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, inter, 
                         cv_image_rectified)
         return res
     

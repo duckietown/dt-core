@@ -1,7 +1,7 @@
 import duckietown_utils as dtu
-
-from duckietown_utils import m_from_in
-from duckietown_segmaps.tiles import get_map_straight_lane
+# 
+# from duckietown_utils import m_from_in
+# from duckietown_segmaps.tiles import get_map_straight_lane
 
 
 @dtu.unit_test

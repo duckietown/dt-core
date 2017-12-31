@@ -59,7 +59,7 @@ Example:
         create_visuals(robots, actual_map_name, out)
 
         for robot_name in robots:
-            ok = try_simulated_localization(robot_name)
+            _ok = try_simulated_localization(robot_name)
 
 def try_simulated_localization(robot_name):
     actual_map_name =  'DT17_scenario_straight_straight'
@@ -74,10 +74,10 @@ def try_simulated_localization(robot_name):
     max_d_err = 0.03
     outd = 'out-try_simulated_localization-%s' % robot_name
 
-    test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
-           image_prep_name, lane_filter_name, d, phi, outd,
-           max_phi_err=max_phi_err,
-           max_d_err=max_d_err)
+    test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                       image_prep_name, lane_filter_name, d, phi, outd,
+                       max_phi_err=max_phi_err,
+                       max_d_err=max_d_err)
 
 def create_visuals(robots, actual_map_name, out):
     db = get_easy_algo_db()
@@ -94,10 +94,10 @@ def create_visuals(robots, actual_map_name, out):
             continue
         gpg = gp.get_ground_projection_geometry()
         pose = np.eye(3)
-        rectified_synthetic, distorted = \
+        simulated_data = \
             simulate_image(actual_map, pose, gpg, blur_sigma=1)
-        res[robot_name] = rectified_synthetic
-        res2[robot_name] = distorted
+        res[robot_name] = simulated_data.rectified_synthetic_bgr
+        res2[robot_name] = simulated_data.distorted_synthetic_bgr
     if not res:
         msg = 'No images to draw.'
         dtu.logger.error(msg)

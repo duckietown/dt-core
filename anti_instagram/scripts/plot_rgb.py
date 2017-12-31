@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-import rosbag
+# import rosbag
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from cv_bridge import CvBridge, CvBridgeError
+# from mpl_toolkits.mplot3d import Axes3D
+# from cv_bridge import CvBridge, CvBridgeError
 import cv2
-import numpy as np
+# import numpy as np
 #from sensor_msgs.msg import CompressedImage,Image
 
 import random
