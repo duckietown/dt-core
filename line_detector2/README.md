@@ -13,7 +13,7 @@ bag files.
 
 You can run from a bag with the following:
 
-    laptop $ roslaunch line_detector line_detector2_bag veh:=![vehicle] bagin:=![bag in] bagout:=![bag out] verbose:=true
+    laptop $ roslaunch line_detector line_detector_bag.launch veh:=![vehicle] bagin:=![bag in] bagout:=![bag out] verbose:=true
 
 Where:
 
