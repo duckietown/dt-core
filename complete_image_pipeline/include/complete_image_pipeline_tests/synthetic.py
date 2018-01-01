@@ -10,7 +10,7 @@ from ground_projection.ground_projection_interface import get_ground_projection
 
 actual_map_name =  'DT17_scenario_straight_straight'
 template = 'DT17_template_straight_straight'
-robot_name = 'flitzer'
+robot_name = 'shamrock'
 line_detector_name = 'baseline'
 image_prep_name = 'prep_200_100'
 # image_prep_name = 'baseline'
