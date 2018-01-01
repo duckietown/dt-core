@@ -2,7 +2,9 @@ from .kmeans import getparameters2, identifyColors, runKMeans
 from .scale_and_shift import scaleandshift
 from anti_instagram.kmeans import CENTERS, CENTERS2
 import numpy as np
-from duckietown_utils import logger
+import duckietown_utils as dtu
+
+logger = dtu.logger
 
 def calculate_transform(image):
     """
@@ -90,7 +92,9 @@ class AntiInstagram(object):
     
     def applyTransform(self, image):
         corrected_image = scaleandshift(image, self.scale, self.shift)
-        return corrected_image
+        res = np.clip(corrected_image, 0, 255).astype('uint8')
+#         print res.dtype
+        return res
     
     def calculateTransform(self, image, testframe=False):
         success, self.health, parameters = calculate_transform(image)
@@ -98,6 +102,7 @@ class AntiInstagram(object):
             raise Exception('calculate_transform failed')
         self.scale = parameters['scale']
         self.shift = parameters['shift']
+        logger.debug('Scale: %s shift: %s' % (self.scale, self.shift))
     
     def calculateHealth(self):
         return self.health

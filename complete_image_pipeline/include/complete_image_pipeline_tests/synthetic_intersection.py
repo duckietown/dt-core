@@ -7,7 +7,7 @@ from .synthetic import dirn
 
 actual_map_name =  'DT17_scenario_four_way'
 template = 'DT17_template_four_way'
-robot_name = 'shamrock'
+robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
 line_detector_name = 'baseline'
 # image_prep_name = 'prep_200_100'
 image_prep_name = 'baseline'

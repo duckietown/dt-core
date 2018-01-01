@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from geometry import SE2_from_translation_angle, SO2_from_angle
 
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
@@ -7,7 +8,6 @@ from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo import get_easy_algo_db
-from geometry import SE2_from_translation_angle, SO2_from_angle
 from grid_helper import GridHelper
 from grid_helper.grid_helper_visualization import grid_helper_annotate_axes,\
     grid_helper_plot_field, grid_helper_mark_point, convert_unit,\
@@ -15,7 +15,7 @@ from grid_helper.grid_helper_visualization import grid_helper_annotate_axes,\
 from lane_filter import LaneFilterInterface
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-
+from collections import defaultdict
 
 
 __all__ = [
@@ -83,16 +83,40 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         measurement_likelihood = self.grid_helper.create_new('float32')
         measurement_likelihood.fill(0)
         hit = miss = 0
-        for segment in segments:
-
-            for pose, weight in self.generate_votes(segment, self.delta_segment): 
+        
+        pose_weight = []
+        
+        num_by_color = defaultdict(lambda: 0)
+        
+        adjust_by_number = True # add to configuration
+        
+        with dtu.timeit_clock("pose gen for %s segs" % len(segments)):
+            
+            for segment in segments:
+                num_by_color[segment.color] += 1
                 
+            for segment in segments:
+                for pose, weight in self.generate_votes(segment, self.delta_segment):
+                    
+                    if adjust_by_number:
+                        n = num_by_color[segment.color]
+                        weight_adjusted = weight * 1.0 / n
+                    else: 
+                        weight_adjusted = weight
+                    pose_weight.append((pose, weight_adjusted))
+                   
+        values = [] 
+        with dtu.timeit_clock("voting for %s votes" % len(pose_weight)):
+            for pose, weight in pose_weight:
                 est = self._localization_template.coords_from_pose(pose)
                 value = dict((k, est[k]) for k in self.variables)
+                values.append(value)
+        
+        with dtu.timeit_clock("add voting for %s votes" % len(pose_weight)):
+            for value in values:
                 added = self.grid_helper.add_vote(measurement_likelihood, value, weight)
                 hit += added > 0
                 miss += added == 0
-                
                 
         dtu.logger.debug('hit: %s miss : %s' % (hit, miss))
         if np.linalg.norm(measurement_likelihood) == 0:

@@ -25,6 +25,6 @@ parameters:
                 units_display: deg
                 description: Angle with respect to center lane
 
-        localization_template: DT17_template_straight_straight
+        localization_template: DT17_template_straight
         min_max: 0.1
-        delta_segment: 0.05
+        delta_segment: 1 # note: very large

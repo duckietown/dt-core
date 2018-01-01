@@ -95,7 +95,8 @@ def clip_to_view(coords, x_frustum, fov):
             return []
     return coords
 
-def paint_polygon_world(base, coords, gpg, color, x_frustum, fov):
+def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
+                        do_faces_outline):
     coords_inside = clip_to_view(coords, x_frustum, fov)
     if not coords_inside:
         return
@@ -108,9 +109,14 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov):
     
     cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
 #     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
-    cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
-#     cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA,
-#                   thickness=1)
+    
+    if do_faces_fill:
+        cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
+    if do_faces_outline:
+        cv2.polylines(base, [cv_points], True, (0,0,0), shift=shift, lineType=AA,
+                thickness=3)
+        cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA,
+                thickness=2)
     
 
 
@@ -143,7 +149,7 @@ def plot_horizon(base, gpg, color_horizon, width=2):
 
 @dtu.contract(sm=SegmentsMap, #camera_xyz='array[3]', camera_theta='float', 
               gpg=GroundProjectionGeometry)
-def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True,
+def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=False, do_segments=True,
              do_horizon=True): #, camera_xyz, camera_theta):
     """
         base: already rectified image 
@@ -164,13 +170,21 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_segments=True,
         color_horizon = (255, 140, 80)
         plot_horizon(image, gpg, color_horizon)
         
-    if do_faces:
+    if do_faces or do_faces_outline:
         for face in sm.faces:
             # list of arrays with cut stuff
             coords = [sm.points[_].coords for _ in face.points]
             
             color = dtu.bgr_color_from_string(face.color)
-            paint_polygon_world(image, coords, gpg, color, x_frustum, fov)
+            # don't do outline for black
+            if face.color == 'black':
+                do_outline = False
+            else:
+                do_outline = do_faces_outline  
+            paint_polygon_world(image, coords, gpg, color, x_frustum, fov,
+                                do_faces_outline=do_outline,
+                                do_faces_fill=do_faces)
+            
     
     if do_segments:
         for segment in sm.segments:

@@ -13,7 +13,8 @@ class TemplateStraight(LocalizationTemplate):
     
     DATATYPE_COORDS = np.dtype([('phi', 'float64'), ('d', 'float64')])
     
-    def __init__(self, tile_name):
+    def __init__(self, tile_name, default_x):
+        self.default_x = default_x
         LocalizationTemplate.__init__(self, tile_name, TemplateStraight.DATATYPE_COORDS)
     
     def _init_metrics(self):
@@ -25,7 +26,6 @@ class TemplateStraight(LocalizationTemplate):
         
     @dtu.contract(returns='array', pose='SE2')
     def coords_from_pose(self, pose):
-        """ Returns an array with datatype DATATYPE_COORDS """
         self._init_metrics()
         xy, theta = translation_angle_from_SE2(pose)
         
@@ -38,7 +38,7 @@ class TemplateStraight(LocalizationTemplate):
     @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
         self._init_metrics()
-        x = 0
+        x = self.default_x
         y = res['d'] - self.offset
         theta = dtu.norm_angle(res['phi'])
         pose = SE2_from_translation_angle([x,y], theta)

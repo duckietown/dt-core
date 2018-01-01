@@ -12,10 +12,9 @@ def single_image1():
     line_detector_name = 'baseline'
     image_prep_name = 'baseline'
     lane_filter_name = 'baseline'
-    robot_name = 'shamrock'
+    robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
     gp = GroundProjection(robot_name)
-#     gpg = gp.get_ground_projection_geometry()
-    
+
     res, _stats  = run_pipeline(image_cv, gp,
                          line_detector_name, image_prep_name, lane_filter_name,
                          all_details=False, skip_instagram=False, ground_truth=None)

@@ -7,11 +7,16 @@ import numpy as np
 
 class ImagePrep(object):
     
-    def __init__(self, shape, top_cutoff, fuzzy_mult=None, fuzzy_noise=None):
+    def __init__(self, shape, top_cutoff, resampling_algorithm, fuzzy_mult=None, fuzzy_noise=None):
         self.shape = shape
         self.top_cutoff = top_cutoff
         self.fuzzy_mult = fuzzy_mult
         self.fuzzy_noise = fuzzy_noise
+        self.resampling_algorithm = resampling_algorithm
+        allowed = ['nearest', 'linear']
+        if not resampling_algorithm in allowed:
+            msg = 'Good values for resampling_algorithm: %s, not %r.' % (allowed, resampling_algorithm)
+            raise ValueError(msg)
     
     def process(self, context, image_cv, line_detector, transform):
         """ Returns SegmentList """
@@ -29,8 +34,14 @@ class ImagePrep(object):
             
             if (h0,w0) != (h1,w1):
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
-                self.image_resized = cv2.resize(image_cv, (w1,h1), 
-                                                interpolation=cv2.INTER_NEAREST)
+                if self.resampling_algorithm == 'nearest':
+                    self.image_resized = cv2.resize(image_cv, (w1,h1), 
+                                                    interpolation=cv2.INTER_NEAREST)
+                elif self.resampling_algorithm == 'linear':
+                    self.image_resized = cv2.resize(image_cv, (w1,h1), 
+                                                    interpolation=cv2.INTER_LINEAR)
+                else:
+                    raise NotImplementedError(self.resampling_algorithm)
             else:
                 self.image_resized = image_cv
                 

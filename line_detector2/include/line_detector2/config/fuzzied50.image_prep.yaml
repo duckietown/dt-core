@@ -5,3 +5,4 @@ parameters:
     top_cutoff: 100
     fuzzy_mult: 20
     fuzzy_noise: 0.0015
+    resampling_algorithm: nearest

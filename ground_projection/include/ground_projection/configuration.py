@@ -13,13 +13,22 @@ def get_homography_default():
     """ Returns a nominal homography """
     return get_homography_for_robot('default')
 
+# shamrock
+homography_default = """
+homography: [-5.828719e-05, -0.0001358896, -0.2350442, 0.001113641, -2.290353e-05, -0.3695509, -0.0003339684, -0.007747321, 1]
+"""
+
+
 @dtu.contract(robot_name=str, returns='array[3x3]')
 def get_homography_for_robot(robot_name):
     # find the file
-    fn = get_homography_info_config_file(robot_name)
+    if robot_name == dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS:
+        data = dtu.yaml_load(homography_default)
+    else:
+        fn = get_homography_info_config_file(robot_name)
     
-    # load the YAML
-    data = dtu.yaml_load_file(fn)
+        # load the YAML
+        data = dtu.yaml_load_file(fn)
     
     # convert the YAML
     homography = homography_from_yaml(data) 

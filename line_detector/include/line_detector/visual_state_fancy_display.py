@@ -4,8 +4,9 @@ from duckietown_msgs.msg import (Segment)  # @UnresolvedImport
 import numpy as np
 
 import duckietown_utils as dtu
+AA = cv2.LINE_AA  # @UndefinedVariable
 
-def vs_fancy_display(image_cv, segment_list):
+def vs_fancy_display(image_cv, segment_list, width=2):
     """
          
     """
@@ -16,7 +17,7 @@ def vs_fancy_display(image_cv, segment_list):
     ground = np.copy(image_cv)
     shape = ground.shape[:2]
     
-    ground = ground / 4 + 120
+    ground = ground / 8 + 80
      
     for segment in segment_list.segments:
         
@@ -27,8 +28,8 @@ def vs_fancy_display(image_cv, segment_list):
         P2 = normalized_to_image(p2, shape) 
         
         paint = colors[segment.color]
-        width = 1
-        cv2.line(ground, P1, P2, paint, width)
+        
+        cv2.line(ground, P1, P2, paint, width, lineType=AA)
         
     return ground
 

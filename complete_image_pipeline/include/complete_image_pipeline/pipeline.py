@@ -63,30 +63,35 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     
     ai = AntiInstagram()
     
-    with pts.phase('calculate AI transform'):
-        ai.calculateTransform(image)
+    if not skip_instagram:
+        with pts.phase('calculate AI transform'):
+            ai.calculateTransform(image)
 
     with pts.phase('apply AI transform'):
     
         if not skip_instagram:
             transform = ai.applyTransform
-            transformed = transform(image)
-            transformed_clipped = cv2.convertScaleAbs(transformed)
+#             transformed_clipped = cv2.convertScaleAbs(transformed)
         
-            if all_details:
-                res['image_input_transformed'] = transformed
         else:
             transform = lambda x: x.copy()
-            transformed_clipped = image.copy()
+             
+#             transformed_clipped = image.copy()
+
+
+        transformed = transform(image)
 
         if all_details:
-            res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
+            res['image_input_transformed'] = transformed
+#         if all_details:
+#             res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
 
     with pts.phase('edge detection'):
-        segment_list2 = image_prep.process(context, transformed_clipped,
+        segment_list2 = image_prep.process(context, transformed,
                                            line_detector, transform=transform)
 
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
+    
     if all_details:
         res['segments_on_image_input_transformed'] = \
             vs_fancy_display(image_prep.image_cv, segment_list2)
@@ -103,7 +108,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['grid_remapped'] = gpg.rectify(grid)
 
     with pts.phase('rectify'):
-        rectified = gpg.rectify(res['image_input'])
+        rectified = transform(gpg.rectify(res['image_input']))
 
     if all_details:
         res['image_input_rect'] = rectified
@@ -163,7 +168,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
 
     res['reprojected'] = plot_map(rectified, assumed_axle, gpg,
-                                  do_ground=False, do_horizon=True, do_faces=False, do_segments=True)
+                                  do_ground=False, do_horizon=True, do_faces=False, do_faces_outline=True,
+                                  do_segments=False)
 #     res['blurred']= cv2.medianBlur(image, 11)
     stats = OrderedDict()
     stats['estimate'] = est

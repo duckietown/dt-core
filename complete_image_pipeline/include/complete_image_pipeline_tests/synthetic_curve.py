@@ -9,7 +9,7 @@ import numpy as np
 
 
 template = 'DT17_template_before_curve_left'
-robot_name = 'shamrock'
+robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
 line_detector_name = 'baseline'
 image_prep_name = 'prep_200_100'
 # image_prep_name = 'baseline'
