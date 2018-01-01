@@ -1,4 +1,7 @@
 description: |
+    **fsm_node**
+    
+    
     This node handles the state transitions based on the defined state transition events. Below is a summary of the basic functionality of the `fsm_node`.
     
     * Each state is a mode that the Duckiebot can be in
@@ -23,7 +26,7 @@ description: |
             self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
             self.active = True
             self.mode = None
-            
+
             def cbSwitch(self,switch_msg):
                 self.active = switch_msg.data # True or False
 

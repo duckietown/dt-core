@@ -1,4 +1,7 @@
 description: |
+    **logic_gate_node**
+
+
     This node handles AND and OR logic gates of events for state transitions. Below is a summary of the basic functionality of the `logic_gate_node`.
     
     * Logic AND and OR gates can be defined
