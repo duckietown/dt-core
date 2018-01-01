@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from geometry import SE2_from_translation_angle, SO2_from_angle
 
 from numpy.testing.utils import assert_almost_equal
@@ -8,14 +8,12 @@ from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
 import duckietown_utils as dtu
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo import get_easy_algo_db
-from grid_helper import GridHelper
-from grid_helper.grid_helper_visualization import grid_helper_annotate_axes,\
+from grid_helper import GridHelper, grid_helper_annotate_axes,\
     grid_helper_plot_field, grid_helper_mark_point, convert_unit,\
     grid_helper_set_axes
 from lane_filter import LaneFilterInterface
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-from collections import defaultdict
 
 
 __all__ = [
