@@ -1,7 +1,6 @@
-from . import logger
 import numpy as np
 
-class SASParams():
+class SASParams(object):
     algorithm = 2
 
 def scaleandshift(img, scale, shift):

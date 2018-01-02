@@ -8,3 +8,6 @@ from .AntiInstagram import *
 from .kmeans import *
 from .utils import *
 from .scale_and_shift import *
+
+from .interface import *
+from .identity import *

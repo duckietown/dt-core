@@ -74,7 +74,8 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             
-            self.belief = self.belief / np.sum(self.belief)
+            alpha = 1.0 / np.sum(self.belief)
+            self.belief = self.belief * alpha
 
         return measurement_likelihood
 

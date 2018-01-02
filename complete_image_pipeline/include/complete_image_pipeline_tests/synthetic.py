@@ -18,8 +18,8 @@ image_prep_name = 'prep_200_100'
 
 lane_filter_names = []
 lane_filter_names += ['moregeneric_straight']
-lane_filter_names += ['baseline']
-raise_if_error_too_large = False
+# lane_filter_names += ['baseline']
+raise_if_error_too_large = True
 
 max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
@@ -143,11 +143,15 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
 
     image = simulation_data.distorted_synthetic_bgr
 
+    anti_instagram_name='identity' # skip
     all_details = False
-    res, stats = run_pipeline(image, gp, line_detector_name,
-                              image_prep_name, lane_filter_name,
+    res, stats = run_pipeline(image, gp, 
+                              line_detector_name=line_detector_name,
+                              image_prep_name=image_prep_name, 
+                              lane_filter_name=lane_filter_name,
+                              anti_instagram_name=anti_instagram_name,
                               all_details=all_details,
-                              skip_instagram=True, ground_truth=pose,
+                              ground_truth=pose,
                               actual_map = actual_map)
 
     error = np.empty_like(location)

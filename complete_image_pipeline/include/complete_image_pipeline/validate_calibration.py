@@ -24,15 +24,17 @@ class ValidateCalibration(D8App):
 
     """
 
+    cmd = 'rosrun complete_image_pipeline validate_calibration'
+
     usage = """
 
 Use as follows:
 
-    $ rosrun complete_image_pipeline validate_calibration [robot names]
+    $ %(prog)s [robot names]
 
 Example:
 
-    $ rosrun complete_image_pipeline validate_calibration shamrock emma
+    $ %(prog)s shamrock emma
 
 """
 

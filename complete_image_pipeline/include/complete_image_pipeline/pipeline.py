@@ -1,13 +1,12 @@
 from collections import OrderedDict
 
-
-
-from anti_instagram import AntiInstagram
+from anti_instagram import AntiInstagramInterface
 from duckietown_segmaps.draw_map_on_images import plot_map
 from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
+from easy_node.utils.timing import ProcessingTimingStats, FakeContext
 from ground_projection import GroundProjection
 from ground_projection.ground_projection_interface import find_ground_coordinates
 from ground_projection.segment import rectify_segments
@@ -17,12 +16,11 @@ from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-from easy_node.utils.timing import ProcessingTimingStats, FakeContext
 
 
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name,
-                 all_details=False, skip_instagram=False, ground_truth=None,
+def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name, anti_instagram_name,
+                 all_details=False, ground_truth=None,
                  actual_map=None):
     """
         Image: numpy (H,W,3) == BGR
@@ -34,8 +32,6 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     """
 
     dtu.check_isinstance(image, np.ndarray)
-    
-    
     
 
     gpg = gp.get_ground_projection_geometry()
@@ -60,25 +56,16 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     pts.decided_to_process()
     
     
-    ai = AntiInstagram()
+    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
+            
     
-    if not skip_instagram:
-        with pts.phase('calculate AI transform'):
-            ai.calculateTransform(image)
+    with pts.phase('calculate AI transform'):
+        ai.calculateTransform(image)
 
     with pts.phase('apply AI transform'):
-    
-        if not skip_instagram:
-            transform = ai.applyTransform
-#             transformed_clipped = cv2.convertScaleAbs(transformed)
-        
-        else:
-            transform = lambda x: x.copy()
-             
-#             transformed_clipped = image.copy()
 
 
-        transformed = transform(image)
+        transformed = ai.applyTransform(image)
 
         if all_details:
             res['image_input_transformed'] = transformed
@@ -87,7 +74,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     with pts.phase('edge detection'):
         segment_list2 = image_prep.process(context, transformed,
-                                           line_detector, transform=transform)
+                                           line_detector, transform=ai.applyTransform)
 
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
     
@@ -107,7 +94,9 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['grid_remapped'] = gpg.rectify(grid)
 
     with pts.phase('rectify'):
-        rectified = transform(gpg.rectify(res['image_input']))
+        rectified0 = gpg.rectify(res['image_input'])
+    
+    rectified = ai.applyTransform(rectified0)
 
     if all_details:
         res['image_input_rect'] = rectified

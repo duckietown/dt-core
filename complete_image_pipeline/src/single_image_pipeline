@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @create-shortcut-for-this
+
 from duckietown_utils.cli import d8app_run
 from complete_image_pipeline.cli_single_image import SingleImagePipeline
 

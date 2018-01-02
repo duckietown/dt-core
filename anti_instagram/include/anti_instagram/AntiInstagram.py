@@ -3,6 +3,7 @@ from .scale_and_shift import scaleandshift
 from anti_instagram.kmeans import CENTERS, CENTERS2
 import numpy as np
 import duckietown_utils as dtu
+from .interface import AntiInstagramInterface
 
 logger = dtu.logger
 
@@ -66,7 +67,8 @@ def calculate_transform(image):
 #         self.scale = (self.scale+deltascale*IIR_weight)/(1+IIR_weight)
 #         self.shift = (self.shift+deltashift*IIR_weight)/(1+IIR_weight)
 
-class ScaleAndShift():
+class ScaleAndShift(object):
+    
     """ Represents the transformation """
     
     def __init__(self, scale, shift):
@@ -83,7 +85,7 @@ class ScaleAndShift():
 
 
 
-class AntiInstagram(object):
+class AntiInstagram(AntiInstagramInterface):
 
     def __init__(self):
         self.scale = [1.0, 1.0, 1.0]
