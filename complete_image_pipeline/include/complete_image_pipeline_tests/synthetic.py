@@ -7,6 +7,7 @@ from easy_algo import get_easy_algo_db
 from ground_projection.ground_projection_interface import get_ground_projection
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
+import random
 
 
 actual_map_name =  'DT17_scenario_straight_straight'
@@ -94,6 +95,9 @@ def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
                    max_phi_err=max_phi_err,
                    max_d_err=max_d_err):
 
+    # important to have deterministic results
+    # The randomness is in the line extraction
+    np.random.seed(42)
     location = np.zeros((), dtype=TemplateStraight.DATATYPE_COORDS)
     location['phi'] = phi
     location['d'] = d
@@ -103,6 +107,8 @@ def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
     estimate = stats['estimate']
     fail = False
     msg = 'location: %s  estimate: %s error: %s ' % (location, estimate, error)
+    dtu.logger.info(msg)
+    
     if np.abs(error['phi']) > max_phi_err:
         msg += '\nError in phi too big (%s > %s) ' % (np.abs(error['phi']), max_phi_err)
         fail = True

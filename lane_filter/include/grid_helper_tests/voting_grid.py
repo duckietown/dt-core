@@ -4,7 +4,6 @@ import os
 from numpy.testing.utils import assert_equal, assert_almost_equal
 
 import duckietown_utils as dtu
-
 from grid_helper.grid_helper_visualization import grid_helper_plot,\
     grid_helper_plot_field, grid_helper_annotate_axes, grid_helper_mark_point
 from grid_helper.voting_grid import GridHelper

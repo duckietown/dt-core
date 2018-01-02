@@ -22,7 +22,7 @@ max_d_err = 0.021
 
 @dtu.unit_test
 def stopline_zero_zero():
-    pose_or_location = dtu.geo.SE2_from_translation_angle([0, -0.10], np.deg2rad(5))
+    pose_or_location = dtu.geo.SE2_from_translation_angle([0, -0.10], np.deg2rad(0))
 
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
