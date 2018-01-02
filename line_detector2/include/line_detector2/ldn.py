@@ -2,7 +2,7 @@ import cv2
 import duckietown_utils as dtu
 from anti_instagram import AntiInstagram
 from cv_bridge import CvBridge 
-from duckietown_msgs.msg import (Segment, SegmentList)  # @UnresolvedImport
+from duckietown_msgs.msg import Segment, SegmentList
 from easy_algo import get_easy_algo_db
 from easy_node import EasyNode
 import numpy as np
@@ -70,7 +70,7 @@ class LineDetectorNode2(EasyNode):
         with context.phase('correcting'):
             # apply color correction
             image_cv_corr = self.ai.applyTransform(image_cv)
-            image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
+#             image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
  
         with context.phase('detection'):
             # Set the image to be detected

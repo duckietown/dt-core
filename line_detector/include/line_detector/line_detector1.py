@@ -1,14 +1,13 @@
 import cv2
+import duckietown_utils as dtu
 
-from duckietown_utils.parameters import Configurable
 import numpy as np
 
-from .line_detector_interface import (Detections,
-                                      LineDetectorInterface)
+from .line_detector_interface import Detections, LineDetectorInterface
 
 
 
-class LineDetectorHSV(Configurable, LineDetectorInterface):
+class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
     """ LineDetectorHSV """
 
     def __init__(self, configuration):
@@ -33,7 +32,7 @@ class LineDetectorHSV(Configurable, LineDetectorInterface):
             'hough_max_line_gap',
         ]
 
-        Configurable.__init__(self, param_names, configuration)
+        dtu.Configurable.__init__(self, param_names, configuration)
 
     def _colorFilter(self, color):
         # threshold colors in HSV space
@@ -49,7 +48,8 @@ class LineDetectorHSV(Configurable, LineDetectorInterface):
             raise Exception('Error: Undefined color strings...')
 
         # binary dilation
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(self.dilation_kernel_size, self.dilation_kernel_size))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
+                                           (self.dilation_kernel_size, self.dilation_kernel_size))
         bw = cv2.dilate(bw, kernel)
         
         # refine edge for certain color
@@ -62,7 +62,8 @@ class LineDetectorHSV(Configurable, LineDetectorInterface):
         return edges
 
     def _HoughLine(self, edge):
-        lines = cv2.HoughLinesP(edge, 1, np.pi/180, self.hough_threshold, np.empty(1), self.hough_min_line_length, self.hough_max_line_gap)
+        lines = cv2.HoughLinesP(edge, 1, np.pi/180, self.hough_threshold, np.empty(1), 
+                                self.hough_min_line_length, self.hough_max_line_gap)
         if lines is not None:
             lines = np.array(lines[:,0])
         else:

@@ -4,7 +4,7 @@ import os
 from numpy.testing.utils import assert_equal, assert_almost_equal
 
 import duckietown_utils as dtu
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+
 from grid_helper.grid_helper_visualization import grid_helper_plot,\
     grid_helper_plot_field, grid_helper_annotate_axes, grid_helper_mark_point
 from grid_helper.voting_grid import GridHelper
@@ -114,7 +114,7 @@ def voting_kernel1():
     assert(errors_x.min() >= -resolution/2)
     assert(np.abs(errors_x_w).max() <= resolution/10)
 
-    a = CreateImageFromPylab(dpi=1000)
+    a = dtu.CreateImageFromPylab(dpi=1000)
     with a as pylab:
         grid_helper_plot_field(gh, votes, pylab)
         pylab.axis('equal')
@@ -126,7 +126,7 @@ def voting_kernel1():
         for e in estimated_weighted:
             grid_helper_mark_point(gh, pylab, e, color='green', markersize=3)
 
-    b = CreateImageFromPylab(dpi=1000)
+    b = dtu.CreateImageFromPylab(dpi=1000)
     with b as pylab:
         x = np.array([_['x'] for _ in points])
         xe = np.array([_['x'] for _ in estimated])
