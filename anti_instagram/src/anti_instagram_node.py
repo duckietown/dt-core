@@ -2,7 +2,7 @@
 import rospy
 from sensor_msgs.msg import CompressedImage,Image  # @UnresolvedImport
 from duckietown_msgs.msg import AntiInstagramHealth, BoolStamped, AntiInstagramTransform  # @UnresolvedImport
-from anti_instagram.AntiInstagram import *
+from anti_instagram.anti_instagram_imp import *
 from duckietown_utils.jpg import image_cv_from_jpg
 from cv_bridge import CvBridge  # @UnresolvedImport
 from line_detector.timekeeper import TimeKeeper

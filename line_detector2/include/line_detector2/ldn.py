@@ -1,12 +1,9 @@
 import cv2
-
-from anti_instagram.AntiInstagram import AntiInstagram
-from cv_bridge import CvBridge  # @UnresolvedImport
+import duckietown_utils as dtu
+from anti_instagram import AntiInstagram
+from cv_bridge import CvBridge 
 from duckietown_msgs.msg import (Segment, SegmentList)  # @UnresolvedImport
-from duckietown_utils.image_conversions import d8n_image_msg_from_cv_image
-from duckietown_utils.jpg import image_cv_from_jpg
-from duckietown_utils.text_utils import indent
-from easy_algo.algo_db import get_easy_algo_db
+from easy_algo import get_easy_algo_db
 from easy_node import EasyNode
 import numpy as np
 
@@ -54,7 +51,7 @@ class LineDetectorNode2(EasyNode):
         with context.phase('decoding'):
             # Decode from compressed image with OpenCV
             try:
-                image_cv = image_cv_from_jpg(image_msg.data)
+                image_cv = dtu.image_cv_from_jpg(image_msg.data)
             except ValueError as e:
                 self.loginfo('Could not decode image: %s' % e)
                 return 
@@ -71,7 +68,7 @@ class LineDetectorNode2(EasyNode):
  
 
         with context.phase('correcting'):
-            # apply color correction: AntiInstagram
+            # apply color correction
             image_cv_corr = self.ai.applyTransform(image_cv)
             image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
  
@@ -126,20 +123,20 @@ class LineDetectorNode2(EasyNode):
  
             with context.phase('published-images'):
                 # Publish the frame with lines
-                out = d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
+                out = dtu.d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
                 self.publishers.image_with_lines.publish(out) 
 
             with context.phase('pub_edge/pub_segment'):
-                out = d8n_image_msg_from_cv_image(self.detector.edges, "mono8", same_timestamp_as=image_msg)
+                out = dtu.d8n_image_msg_from_cv_image(self.detector.edges, "mono8", same_timestamp_as=image_msg)
                 self.publishers.edge.publish(out)
                 
                 colorSegment = color_segment(white.area, red.area, yellow.area)
-                out = d8n_image_msg_from_cv_image(colorSegment, "bgr8", same_timestamp_as=image_msg) 
+                out = dtu.d8n_image_msg_from_cv_image(colorSegment, "bgr8", same_timestamp_as=image_msg) 
                 self.publishers.color_segment.publish(out)
 
 
         if self.intermittent_log_now():
-            self.info('stats from easy_node\n' + indent(context.get_stats(), '> '))
+            self.info('stats from easy_node\n' + dtu.indent(context.get_stats(), '> '))
     
     def intermittent_log_now(self):
         return self.intermittent_counter % self.intermittent_interval == 1

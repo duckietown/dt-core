@@ -1,18 +1,19 @@
 #!/usr/bin/env python
-from anti_instagram.AntiInstagram import AntiInstagram
-from cv_bridge import CvBridge
-from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
-    SegmentList)
-import duckietown_utils as dtu
-from sensor_msgs.msg import CompressedImage, Image
-
-from line_detector.timekeeper import TimeKeeper
-import cv2
-import rospy
 import threading
 import time
+
+import cv2
+
+from anti_instagram import AntiInstagram
+from cv_bridge import CvBridge
+from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
+                                 SegmentList)
+import duckietown_utils as dtu
 from line_detector.line_detector_plot import color_segment, drawLines
+from line_detector.timekeeper import TimeKeeper
 import numpy as np
+import rospy
+from sensor_msgs.msg import CompressedImage, Image
 
 
 class LineDetectorNode(object):
@@ -158,7 +159,7 @@ class LineDetectorNode(object):
 
         tk.completed('resized')
 
-        # apply color correction: AntiInstagram
+        # apply color correction
         image_cv_corr = self.ai.applyTransform(image_cv)
         image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
 

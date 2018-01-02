@@ -229,6 +229,5 @@ if __name__ == '__main__':
 	print(t2-t1)
 	
 	trained = runKMeans(testdata)
-	from anti_instagram import AntiInstagram
 	mapping = identifyColors(trained[0], CENTERS)
 	getparameters(mapping, trained[0], CENTERS)

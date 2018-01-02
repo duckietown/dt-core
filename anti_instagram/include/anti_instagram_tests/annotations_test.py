@@ -8,7 +8,7 @@ import scipy.io
 import yaml
 
 from anti_instagram import logger, wrap_test_main
-from anti_instagram.AntiInstagram import ScaleAndShift, calculate_transform
+from anti_instagram.anti_instagram_imp import ScaleAndShift, calculate_transform
 import duckietown_utils as dtu
 from line_detector.line_detector_plot import drawLines
 import numpy as np

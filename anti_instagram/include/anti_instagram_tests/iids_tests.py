@@ -1,7 +1,7 @@
 import os
 
-from anti_instagram_tests.annotations_test import anti_instagram_annotations_test
-from duckietown_utils import system_cmd_result
+from .annotations_test import anti_instagram_annotations_test
+
 import duckietown_utils as dtu
 
 
@@ -15,7 +15,7 @@ def iids_tests():
 
     cmd = ['unzip', '-o', zipname]
     cwd = dirname
-    system_cmd_result(cwd,cmd,
+    dtu.system_cmd_result(cwd,cmd,
                       display_stdout=False,
                       display_stderr=False,
                       raise_on_error=True)

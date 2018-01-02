@@ -48,4 +48,3 @@ class LineDetectorProcessor(ProcessorInterface):
             bag_out.write('image', compressed_img_msg)
             
             frame += 1
-     
