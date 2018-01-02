@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# @create-shortcut-for-this
+
 from rgb_led import *
 import sys
 

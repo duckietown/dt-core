@@ -38,7 +38,7 @@ class RGB_LED():
         g = color >> 8 & 0xFF
         b = color >> 0 & 0xFF
         self.setRGBvint8(led, [r, g, b])
-        
+
     def setRGBvint8(self, led, color):
         self.setLEDBrightness(led, self.OFFSET_RED  , color[0])
         self.setLEDBrightness(led, self.OFFSET_GREEN, color[1])
