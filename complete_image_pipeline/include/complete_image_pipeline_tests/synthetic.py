@@ -7,15 +7,13 @@ from easy_algo import get_easy_algo_db
 from ground_projection.ground_projection_interface import get_ground_projection
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
-import random
 
 
 actual_map_name =  'DT17_scenario_straight_straight'
 template = 'DT17_template_straight_straight'
 robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
 line_detector_name = 'baseline'
-image_prep_name = 'prep_200_100'
-# image_prep_name = 'baseline'
+image_prep_name = 'baseline'
 
 lane_filter_names = []
 lane_filter_names += ['moregeneric_straight']

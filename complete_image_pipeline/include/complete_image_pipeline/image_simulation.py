@@ -43,8 +43,6 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
                                   do_ground=True, do_faces=False,
                                   do_horizon=False)
 
-#     dtu.write_bgr_to_file_as_jpg(rectified_synthetic, 'rectified_synthetic.jpg')
-
     distorted_synthetic = gpg.distort(rectified_synthetic)
 
     distorted_synthetic = add_noise(distorted_synthetic)
@@ -62,4 +60,3 @@ def add_noise(image, intensity = 20, noise_blur = 1):
     image = image*1.0 + noise
     image = image.clip(0, 255).astype('uint8')
     return image
-    
