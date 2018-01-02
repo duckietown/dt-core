@@ -3,8 +3,7 @@ from anti_instagram.AntiInstagram import AntiInstagram
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
     SegmentList)
-from duckietown_utils.instantiate_utils import instantiate
-from duckietown_utils.jpg import image_cv_from_jpg
+import duckietown_utils as dtu
 from sensor_msgs.msg import CompressedImage, Image
 
 from line_detector.timekeeper import TimeKeeper
@@ -56,7 +55,7 @@ class LineDetectorNode(object):
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
-        rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
+        rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)  # @UndefinedVariable
 
 
     def updateParams(self, _event):
@@ -76,7 +75,7 @@ class LineDetectorNode(object):
 #         if str(self.detector_config) != str(c):
             self.loginfo('new detector config: %s' % str(c))
 
-            self.detector = instantiate(c[0], c[1])
+            self.detector = dtu.instantiate(c[0], c[1])
 #             self.detector_config = c
 
         if self.verbose and self.pub_edge is None:
@@ -141,7 +140,7 @@ class LineDetectorNode(object):
 
         # Decode from compressed image with OpenCV
         try:
-            image_cv = image_cv_from_jpg(image_msg.data)
+            image_cv = dtu.image_cv_from_jpg(image_msg.data)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return

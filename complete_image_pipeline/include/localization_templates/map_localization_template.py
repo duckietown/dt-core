@@ -1,8 +1,8 @@
 
 from duckietown_segmaps import FAMILY_SEGMAPS, SegmentsMap
+from duckietown_segmaps.maps import FRAME_GLOBAL
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
-from duckietown_segmaps.maps import FRAME_GLOBAL 
 
 
 FAMILY_LOC_TEMPLATES = 'localization_template'

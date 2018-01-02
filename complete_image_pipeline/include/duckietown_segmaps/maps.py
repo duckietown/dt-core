@@ -3,9 +3,9 @@ from collections import namedtuple
 from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+
 import numpy as np
-from geometry.poses import translation_angle_from_SE2
+from geometry import translation_angle_from_SE2
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -122,7 +122,7 @@ class SegmentsMap(object):
 @dtu.contract(sm=SegmentsMap, ground_truth='SE2|None')
 def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
     """ Returns a BGR image """  
-    a = CreateImageFromPylab(dpi=dpi)
+    a = dtu.CreateImageFromPylab(dpi=dpi)
 
     with a as pylab:
         _plot_map_segments(sm, pylab, FRAME_GLOBAL)

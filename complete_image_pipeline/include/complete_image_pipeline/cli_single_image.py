@@ -1,7 +1,5 @@
-from duckietown_utils import (
-    get_file_from_url, get_md5, image_cv_from_jpg_fn, write_jpgs_to_dir)
 from duckietown_utils.cli import D8App
-
+import duckietown_utils as dtu
 from .pipeline import run_pipeline
 
 __all__ = [
@@ -31,16 +29,16 @@ class SingleImagePipeline(D8App):
   
         image_filename = self.options.image
         if image_filename.startswith('http'):
-            image_filename = get_file_from_url(image_filename)
+            image_filename = dtu.get_file_from_url(image_filename)
 
-        image_cv = image_cv_from_jpg_fn(image_filename)
+        image_cv = dtu.image_cv_from_jpg_fn(image_filename)
     
         res  = run_pipeline(image_cv, line_detector, image_prep)
         
         output = self.options.output
         if output is None:
-            output = 'out-pipeline-' + get_md5(self.options.image)[:6]
+            output = 'out-pipeline-' + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
             
-        write_jpgs_to_dir(res, output)
+        dtu.write_jpgs_to_dir(res, output)
     

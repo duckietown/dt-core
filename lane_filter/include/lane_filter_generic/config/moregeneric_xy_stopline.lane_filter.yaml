@@ -17,7 +17,7 @@ parameters:
             - dstop:
                 min: 0
                 max: 0.3
-                resolution: 0.02
+                resolution: 0.01
                 # resolution: 0.02 # like baseline
                 
                 units: m

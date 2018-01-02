@@ -1,6 +1,6 @@
 import cv2
 
-from duckietown_msgs.msg import (Segment)  # @UnresolvedImport
+from duckietown_msgs.msg import Segment
 import numpy as np
 
 import duckietown_utils as dtu

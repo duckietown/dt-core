@@ -39,6 +39,8 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         self.initialize_belief()
         self.last_segments_used = None
         
+        self.delta_segment = float(self.delta_segment)
+        
     def initialize_belief(self):
         self.belief = self.grid_helper.create_new()
         

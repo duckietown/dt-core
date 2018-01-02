@@ -3,9 +3,8 @@ import duckietown_utils as dtu
 import numpy as np
 
 from .map_localization_template import LocalizationTemplate
-from geometry import translation_angle_from_SE2,\
-    SE2_from_translation_angle
 
+__all__ = ['TemplateBeforeCurve']
 
 class TemplateBeforeCurve(LocalizationTemplate):
     
@@ -36,13 +35,11 @@ class TemplateBeforeCurve(LocalizationTemplate):
         
         self._init_metrics()
         
-        xy, theta = translation_angle_from_SE2(pose)
-        
+        xy, theta = dtu.geo.translation_angle_from_SE2(pose)
         
         p = xy - self.center
         dist = np.hypot(p[0],p[1])
         d = self.offset - dist
-#         dist = self.offset - d
         alpha = np.arctan2(p[1], p[0])
         
         forward =  alpha + np.pi/2
@@ -72,5 +69,7 @@ class TemplateBeforeCurve(LocalizationTemplate):
                                             np.sin(self.alpha0)])
         theta = forward + phi
         
-        pose = SE2_from_translation_angle(xy, theta)
+        pose = dtu.geo.SE2_from_translation_angle(xy, theta)
         return pose
+    
+    

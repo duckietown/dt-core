@@ -2,10 +2,10 @@ import numpy as np
 import cv2
 
 from .line_detector_interface import Detections, LineDetectorInterface
+import duckietown_utils as dtu
 
-from duckietown_utils.parameters import Configurable
 
-class LineDetector2Dense(Configurable, LineDetectorInterface):
+class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
     def __init__(self, configuration):
         # Images to be processed
         self.bgr = np.empty(0)
@@ -28,7 +28,7 @@ class LineDetector2Dense(Configurable, LineDetectorInterface):
             'sobel_threshold',
         ]
 
-        Configurable.__init__(self, param_names, configuration)
+        dtu.Configurable.__init__(self, param_names, configuration)
 
     def _colorFilter(self, color):
         # threshold colors in HSV space

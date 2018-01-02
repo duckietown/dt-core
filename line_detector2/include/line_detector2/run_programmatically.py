@@ -1,7 +1,6 @@
 import duckietown_utils as dtu
-from contextlib import contextmanager
-
 from easy_algo import get_easy_algo_db
+from easy_node.utils.timing import FakeContext
 from easy_regression.processor_interface import ProcessorInterface
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
@@ -50,14 +49,3 @@ class LineDetectorProcessor(ProcessorInterface):
             
             frame += 1
      
-
-class FakeContext(object):
-    def __init__(self):
-        pass  
-
-    @contextmanager
-    def phase(self, name):  # @UnusedVariable
-            yield
-
-    def get_stats(self):
-        pass 

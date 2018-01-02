@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-import cv2
+
 
 from anti_instagram import AntiInstagram
 from duckietown_segmaps.draw_map_on_images import plot_map
@@ -15,10 +15,9 @@ from lane_filter import FAMILY_LANE_FILTER
 from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display
-from line_detector2.run_programmatically import FakeContext
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
-from easy_node.utils.timing import ProcessingTimingStats
+from easy_node.utils.timing import ProcessingTimingStats, FakeContext
 
 
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')

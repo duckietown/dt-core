@@ -1,5 +1,5 @@
 import duckietown_utils as dtu
-from geometry.poses import SE3_from_SE2
+
 import numpy as np
 
 from .maps import SegmentsMap, SegMapPoint
@@ -18,7 +18,7 @@ class TransformationsInfo(object):
     def add_transformation(self, frame1, frame2, g):
         """ frame2 expressed in frame1 is g in SE(2) """
         if g.shape == (3,3):
-            g = SE3_from_SE2(g)
+            g = dtu.geo.SE3_from_SE2(g)
         elif g.shape == (4,4):
             pass
             

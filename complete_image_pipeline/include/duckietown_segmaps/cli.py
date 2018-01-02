@@ -1,18 +1,18 @@
+
 import os
 
 from reprep.plot_utils.axes import turn_all_axes_off
 
 from complete_image_pipeline.image_simulation import SimulationData
+# XXX: should not include tests
 from complete_image_pipeline_tests.synthetic import simulate_image
-from duckietown_segmaps.maps import FAMILY_SEGMAPS, _plot_map_segments
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from duckietown_utils.file_utils import write_data_to_file
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
-from easy_algo.algo_db import get_easy_algo_db
-from geometry import SE2_from_translation_angle
+from easy_algo import get_easy_algo_db
 from ground_projection.ground_projection_interface import get_ground_projection
 import numpy as np
+
+from .maps import FAMILY_SEGMAPS, _plot_map_segments
 
 
 class DisplayTileAndMaps(D8App):
@@ -56,7 +56,7 @@ def display_map(id_map, out):
     smap = db.create_instance(FAMILY_SEGMAPS, id_map)
     texture_png = get_texture(smap, dpi=600)
     fn = os.path.join(out, '%s-texture.png' % (id_map))
-    write_data_to_file(texture_png, fn)
+    dtu.write_data_to_file(texture_png, fn)
     
     simdata = simulate_camera_view(smap)
     
@@ -68,7 +68,7 @@ def display_map(id_map, out):
 @dtu.contract(returns='str', dpi=int)
 def get_texture(smap, dpi):
     figure_args=dict(figsize=(2,2), facecolor='green')
-    a = CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
+    a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
     frames = list(set(_.id_frame for _ in smap.points.values()))
     id_frame = frames[0]
 #     print('frames: %s choose %s' % (frames, id_frame))
@@ -86,7 +86,7 @@ def simulate_camera_view(sm, robot_name = 'shamrock'):
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry() 
     
-    pose = SE2_from_translation_angle([0,-0.05],-np.deg2rad(-5))
+    pose = dtu.geo.SE2_from_translation_angle([0,-0.05],-np.deg2rad(-5))
     res = simulate_image(sm, pose, gpg, blur_sigma=0.3)
     return res
 

@@ -2,20 +2,16 @@
 import copy
 import os
 import shelve
+
 import cv2
 import scipy.io
 import yaml
 
 from anti_instagram import logger, wrap_test_main
 from anti_instagram.AntiInstagram import ScaleAndShift, calculate_transform
-from duckietown_utils.instantiate_utils import instantiate
-from duckietown_utils.jpg import (image_clip_255, image_cv_from_jpg_fn,
-                                  make_images_grid)
-from duckietown_utils.locate_files_impl import locate_files
-from duckietown_utils.path_utils import expand_all, get_ros_package_path
+import duckietown_utils as dtu
 from line_detector.line_detector_plot import drawLines
 import numpy as np
-from duckietown_utils.image_operations import gray2rgb, zoom_image
 
 
 def merge_comparison_results(comparison_results,overall_results):
@@ -53,10 +49,10 @@ def merge_comparison_results(comparison_results,overall_results):
 
 def examine_dataset(dirname, out):
     logger.info(dirname)
-    dirname = expand_all(dirname)
+    dirname = dtu.expand_all(dirname)
 
-    jpgs = locate_files(dirname, '*.jpg')
-    mats = locate_files(dirname, '*.mat')
+    jpgs = dtu.locate_files(dirname, '*.jpg')
+    mats = dtu.locate_files(dirname, '*.mat')
 
     logger.debug('I found %d JPGs and %d .mat.' % (len(jpgs), len(mats)))
 
@@ -71,7 +67,7 @@ def examine_dataset(dirname, out):
     first_jpg = sorted(jpgs)[0]
     logger.debug('Using jpg %r to learn transformation.' % first_jpg)
 
-    first_jpg_image = image_cv_from_jpg_fn(first_jpg)
+    first_jpg_image = dtu.image_cv_from_jpg_fn(first_jpg)
 
 
     success, health, parameters = calculate_transform(first_jpg_image)
@@ -87,15 +83,15 @@ def examine_dataset(dirname, out):
 
     transform = ScaleAndShift(**parameters)
 
-    duckietown_package_dir = get_ros_package_path('duckietown')
+    duckietown_package_dir = dtu.get_ros_package_path('duckietown')
     config_dir = os.path.join(duckietown_package_dir, 'config/baseline/line_detector/line_detector_node')
 
     if not os.path.exists(config_dir):
         msg = 'Could not find configuration dir %s' % config_dir
         raise Exception(msg)
 
-    config_dir = expand_all(config_dir)
-    configurations = locate_files(config_dir, '*.yaml')
+    config_dir = dtu.expand_all(config_dir)
+    configurations = dtu.locate_files(config_dir, '*.yaml')
 
     if not configurations:
         msg = 'Could not find any configuration file in %s.' % config_dir
@@ -132,15 +128,15 @@ def examine_dataset(dirname, out):
                     raise ValueError(detector)
 
                 def LineDetectorClass():
-                    return instantiate(detector[0], detector[1])
+                    return dtu.instantiate(detector[0], detector[1])
 
                 s = run_detection(transform, j, out, shape=shape,
                                   interpolation=interpolation, name=name,
                                   LineDetectorClass=LineDetectorClass)
                 summaries.append(s)
 
-            together = make_images_grid(summaries, cols=1, pad=10, bgcolor=[.5, .5, .5])
-            cv2.imwrite(fn, zoom_image(together, 4))
+            together = dtu.make_images_grid(summaries, cols=1, pad=10, bgcolor=[.5, .5, .5])
+            cv2.imwrite(fn, dtu.zoom_image(together, 4))
 
     overall_results=[]
     comparison_results={}
@@ -161,7 +157,7 @@ def examine_dataset(dirname, out):
 
 def run_detection(transform, jpg, out, shape, interpolation,
                   name, LineDetectorClass):
-    image = image_cv_from_jpg_fn(jpg)
+    image = dtu.image_cv_from_jpg_fn(jpg)
 
     image = cv2.resize(image, shape, interpolation=interpolation)
 
@@ -171,7 +167,7 @@ def run_detection(transform, jpg, out, shape, interpolation,
     image_detections = line_detection(LineDetectorClass, image)
     transformed = transform(image)
 
-    transformed_clipped = image_clip_255(transformed)
+    transformed_clipped = dtu.image_clip_255(transformed)
     transformed_detections = line_detection(LineDetectorClass, transformed_clipped)
 
     if not os.path.exists(out):
@@ -180,16 +176,16 @@ def run_detection(transform, jpg, out, shape, interpolation,
 
     def write(postfix, im):
         fn = os.path.join(out, '%s.%s.%s.png' % (bn, name, postfix))
-        cv2.imwrite(fn, zoom_image(im, 4))
+        cv2.imwrite(fn, dtu.zoom_image(im, 4))
 
-    together = make_images_grid([image,  # transformed,
+    together = dtu.make_images_grid([image,  # transformed,
                                  merge_masks_res(image_detections),
-                                 gray2rgb(image_detections['edges']),
+                                 dtu.gray2rgb(image_detections['edges']),
                                  image_detections['annotated'],
 
                                  transformed_clipped,
                                  merge_masks_res(transformed_detections),
-                                 gray2rgb(transformed_detections['edges']),
+                                 dtu.gray2rgb(transformed_detections['edges']),
                                  transformed_detections['annotated'],
                        ],
 
@@ -206,16 +202,16 @@ def merge_masks_res(res):
 def merge_masks(area_white, area_red, area_yellow):
     B, G, R = 0, 1, 2
     def white(x):
-        x = gray2rgb(x)
+        x = dtu.gray2rgb(x)
         return x
     def red(x):
-        x = gray2rgb(x)
+        x = dtu.gray2rgb(x)
         x[:,:,R] *= 1
         x[:,:,G] *= 0
         x[:,:,B] *= 0
         return x
     def yellow(x):
-        x = gray2rgb(x)
+        x = dtu.gray2rgb(x)
         x[:,:,R] *= 1
         x[:,:,G] *= 1
         x[:,:,B] *= 0
@@ -280,7 +276,7 @@ def test_pair(transform, jpg, mat, out):
         rval=region_color[0]*255.;
         gval=region_color[1]*255.;
         bval=region_color[2]*255.;
-        image = image_cv_from_jpg_fn(jpg)
+        image = dtu.image_cv_from_jpg_fn(jpg)
         transformed = transform(image)
         [b2,g2,r2]=cv2.split(transformed)
         thsv=cv2.cvtColor(transformed,cv2.COLOR_BGR2HSV)
@@ -351,13 +347,13 @@ def line_detection(LineDetectorClass, bgr):
 
 
 def anti_instagram_annotations_test(dirname, out_base):
-    base = expand_all(dirname)
+    base = dtu.expand_all(dirname)
 
     if not os.path.exists(base):
         msg = 'Could not find directory %s' % base
         raise Exception(msg)
         
-    dirs = locate_files(base, '*.iids1', alsodirs=True)
+    dirs = dtu.locate_files(base, '*.iids1', alsodirs=True)
     directory_results={}
     overall_results=[]
 
