@@ -124,6 +124,7 @@ def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
 def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                    image_prep_name, lane_filter_name, pose_or_location, outd):
 
+    np.random.seed(42)
     db = get_easy_algo_db()
     actual_map = db.create_instance(FAMILY_SEGMAPS, actual_map_name)
 

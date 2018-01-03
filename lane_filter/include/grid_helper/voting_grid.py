@@ -19,7 +19,8 @@ class GridHelper(object):
         is used for voting.
     """
     @dtu.contract(variables='dict(str:dict)')
-    def __init__(self, variables):
+    def __init__(self, variables, precision='float32'):
+        self.precision = precision
         dtu.check_isinstance(variables, OrderedDict)
         if len(variables) != 2:
             msg = 'I can only deal with 2 variables, obtained %s' % self._variables
@@ -33,6 +34,11 @@ class GridHelper(object):
         s1 = self._specs[1]
         self._mgrids = list(np.mgrid[s0.min:s0.max:s0.resolution,
                                      s1.min:s1.max:s1.resolution])
+        
+        for a in [0,1]:
+            new_max =  self._specs[a].min + self._mgrids[a].shape[a] * self._specs[a].resolution
+            self._specs[a] = self._specs[a]._replace(max=new_max)
+        
         H, W = self.shape = self._mgrids[0].shape 
         self._centers = [np.zeros(shape=(H, W)),np.zeros(shape=(H, W))]
         
@@ -52,8 +58,26 @@ class GridHelper(object):
         self._mgrids_plus = list(np.mgrid[s0.min:s0.max+s0.resolution:s0.resolution,
                                           s1.min:s1.max+s1.resolution:s1.resolution])
 
-        self.K0 = lambda x: gaussian_kernel(x, self._specs[0].resolution)
-        self.K1 = lambda x: gaussian_kernel(x, self._specs[1].resolution)
+        k0_o_sigma = 1.0 / self._specs[0].resolution
+        def K0(x):
+            d = x*k0_o_sigma
+            d2 = d*d
+            return np.exp(-d2)
+        
+        k1_o_sigma = 1.0 / self._specs[1].resolution
+        def K1(x):
+            d = x*k1_o_sigma
+            d2 = d*d
+            return np.exp(-d2)
+        
+        self.K0 = K0
+        self.K1 = K1
+        # self.K0 = lambda x: gaussian_kernel(x, self._specs[0].resolution)
+#         self.K1 = lambda x: gaussian_kernel(x, self._specs[1].resolution)
+        
+#         self.K0 = lambda x: x*0 + 2.0
+#         self.K1 = lambda x: x*0 + 2.0
+        
         
     def get_shape(self):
         """ Returns the shape of the grid """
@@ -65,25 +89,25 @@ class GridHelper(object):
         res.fill(np.nan)
         return res
     
-    @dtu.contract(target='array', value=dict)
-    def add_vote(self, target, value, weight, F = 1):
-        """ Returns 
+    @dtu.contract(target='array', value='dict')
+    def add_vote(self, target, value, weight, F, counts=None):
+        """ Returns 1 if hit, otherwise 0.
             
                 value = dict(phi=2,d=3)
                 weight = 1
                 hit = x.add_vote(grid, value, weight)
         """
+        
         values = [value[_] for _ in self._names]
         
         # Check if inside bounds
         coords = [None, None] # i, j
         for a in range(2):
             spec = self._specs[a]
-            inside = spec.min <= values[a] <= spec.max
-            if not inside:
-#                 dtu.logger.debug('Not inside bound %s <= %s < %s' % 
-#                              (spec.min, values[a], spec.max))
-                return 0
+            # We do this later, for each cell
+            # inside = spec.min <= values[a] <= spec.max
+            # if not inside:
+            #     return 0
             
             x = (values[a] - spec.min) / spec.resolution
             coords[a] = int(np.floor(x))
@@ -106,6 +130,7 @@ class GridHelper(object):
             v1_delta = values[1] - v1_cell
             
             k = self.K0(v0_delta) * self.K1(v1_delta)
+            
             weight_k = weight * k
             
             targets.append((u, v))
@@ -113,13 +138,165 @@ class GridHelper(object):
         
         if weights:    
             total_weight = sum(weights)
-         
-        for (u,v), weight in zip(targets, weights):
-            weight_k = weight / total_weight
-            target[u, v] += weight_k       
+            
+#             print('%s, %s, n act %d total w: %s' % (u, v, len(targets), total_weight))
+             
+            for (u,v), weight in zip(targets, weights):
+                weight_k = weight / total_weight
+                target[u, v] += weight_k       
+                if counts is not None:
+                    counts[u, v] += 1
 
         return 1
+
+
+    def multiply(self, values, weights, F):
+        N = values.shape[1]
+        
+        factor = {0: 1, 1: 9}[F]
+        M = N * factor
+        values2 = np.empty(shape=(2,M), dtype=self.precision)
+        weights2 = np.empty(shape=M, dtype=self.precision)
+        values_ref2 = np.empty(shape=(2,M), dtype=self.precision)
+        group = np.empty(shape=M, dtype='int16')
+        
+        cell_size_0 = self._specs[0].resolution
+        cell_size_1 = self._specs[1].resolution
+            
+        nd = 0
+        
+        for k, (di, dj) in enumerate(itertools.product(range(-F,F+1), range(-F,F+1))):
+            off = N*k
+            # same value ref
+            values_ref2[:, off:off+N] = values
+            weights2[off:off+N] = weights
+            values2[:, off:off+N] = values
+            values2[0, off:off+N] += di * cell_size_0 
+            values2[1, off:off+N] += dj * cell_size_1 
+            
+#             print('di %s %s  diffco \n%s\n%s' %(di, dj, 
+#                                                 values2[0, off:off+N] - values_ref2[0, off:off+N],
+#                                                 values2[1, off:off+N] - values_ref2[1, off:off+N]  ))
+            group[off:off+N] = np.array(range(N))
+            nd += 1
+            
+        assert nd == factor
+        return factor, values_ref2, values2, weights2, group
+        
+    @dtu.contract(target='array', values='array[2xN]', weights='array[N]')
+    def add_vote_faster(self, target, values, weights, F = 1, counts=None):
+        
+        with dtu.timeit_clock("adding additional votes"):
+            _factor, values_ref, values, weights, group = self.multiply(values, weights, F)
+        
+#         cells_in_group = np.zeros(len(group))
+#         for i in range(len(group)):
+#             cells_in_group[group[i]] += 1
+#         print('cells_in_group: %s' % cells_in_group)
+        
+        with dtu.timeit_clock("selecting valid"):
+            AND = np.logical_and
+            inside0 = AND(self._specs[0].min <= values[0, :],  values[0, :] <= self._specs[0].max)
+            inside1 = AND(self._specs[1].min <= values[1, :],  values[1, :] <= self._specs[1].max)
+            inside = AND(inside0, inside1)
+    #         hits = np.sum(inside)
+    #         misses = len(inside) - hits
+    #         print('num hit: %s (eq %d)  misses %s (eq %d) ' % (hits, hits/_factor, misses, misses/_factor))
+            
+            # only consider inside
+            values = values[:, inside]
+            values_ref = values_ref[:, inside]
+            weights = weights[inside]
+            group = group[inside]
+        
+#         diff = values - values_ref
+#         for a in [0,1]:
+#             print('diff %s min %s max %s res %s' % (a, np.min(diff[a,:]), np.max(diff[a,:]),
+#                                                     self._specs[a].resolution))
+        
+        with dtu.timeit_clock("computing coordinates"):
+                
+            nvalid = values.shape[1]
+            coords = np.zeros((2, nvalid), dtype='int32')
+            K = [self.K0, self.K1]
+            
+            
+            for a in range(2):
+                spec = self._specs[a]
+                inv_resolution  = 1.0 / spec.resolution
+                x = (values[a, :] - spec.min) * inv_resolution
+                
+    #             print('values[%d] = %s' % (a, values[a, :]))
+    #             print('x = %s' % x)
+                coords[a, :] = np.floor(x)
+    #             print('coords[%d] = %s' % (a, coords[a, :]))
+                xr = (values_ref[a, :] - spec.min) * inv_resolution
+                
+                dc = (xr - (coords[a, :] + 0.5))
+                
+    #             print('dc[%d] = %s' % (a, dc)) 
+                dr = dc * spec.resolution 
+            
+                k = 1
+                k = K[a](dr)
+                
+                weights *= k
+        
+        with dtu.timeit_clock("normalizing weights"):
+                
+            ngroups = np.max(group) + 1
+            
+            weight_group = np.zeros(ngroups)
+            if False:
+                for i in range(len(weights)):
+                    weight_group[group[i]] += weights[i]
+            else:    
+                np.add.at(weight_group, group, weights)
     
+                
+            assert len(weights) == nvalid
+#         print('cells_in_group: %s' % cells_in_group)
+#         print(weight_group)
+#         
+#         for i in range(len(weights)):
+#             print('i %s weight %s group weight %s' % (i, weights[i], weight_group[group[i]]))
+# #     
+            weights_normalized = weights / weight_group[group] 
+#         print('weight weights_normalized %s' % weights_normalized)
+
+#         print('weight group %s' % list(weight_group))
+#         weights_normalized = weights 
+        
+#         nonz = weights_normalized > 0 
+#         print('weights_normalized: min %s max %s' % (
+#                                                         np.min(weights_normalized[nonz]),
+#                                                         np.max(weights_normalized[nonz])))
+#
+#         target0 = target.copy()
+#         with dtu.timeit_clock("adding using indices"):
+#             # One of the bottlenecks is here
+#             
+#             for i in range(nvalid):
+#                 target0[coords[0, i], coords[1, i]] += weights_normalized[i]
+            # XXX: not equivalent! (think about same coords)          
+            # target[coords[0, :], coords[1, :]] += weights_normalized
+                
+#         if False:
+#             with dtu.timeit_clock(pre + "using histogramdd"):
+#                 bins = [np.arange(d + 1) for d in target.shape]
+#                 out, _ = np.histogramdd(coords.T, bins, weights=weights_normalized)
+#                 target += out
+#             
+        with dtu.timeit_clock("using numpy.at"):
+            np.add.at(target, tuple(coords), weights_normalized)
+        
+        if counts is not None:
+            with dtu.timeit_clock("update counts"):
+                for i in range(nvalid):
+                    counts[coords[0, i], coords[1, i]] += 1
+        
+        return nvalid
+     
     
     def get_max(self, target):
         """ Returns a dictionary """
@@ -189,4 +366,22 @@ def check_no_nans(target):
         msg += '\n' + str(target)
         raise ValueError(msg)
     
-        
+def array_as_string(a, v2s):
+    s = ''
+    for i in range(a.shape[0]):
+        s += '['
+        for j in range(a.shape[1]):
+            c = v2s(a[i,j])
+            s += c
+        s += ']\n'
+    return s
+
+def array_as_string_sign(a):
+    def w(x):
+        if x > 0:
+            return '+'
+        elif x < 0:
+            return '-'
+        else:
+            return ' '
+    return array_as_string(a, w)

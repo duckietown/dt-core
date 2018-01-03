@@ -9,7 +9,7 @@ def grid_helper_plot(grid_helper, belief, truth=None, estimate=None):
 
     with a as pylab:
         grid_helper_plot_field(grid_helper, belief, pylab)
-        pylab.axis('equal')
+#         pylab.axis('equal')
         grid_helper_annotate_axes(grid_helper, pylab)
     return a
 

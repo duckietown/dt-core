@@ -34,6 +34,23 @@ class TemplateStraight(LocalizationTemplate):
         res['phi'] = dtu.norm_angle(theta)
         res['d'] = xy[1] + self.offset
         return res
+    
+    @dtu.contract(xy='array[2xN]', theta='array[N]', returns='array[N]')    
+    def coords_from_position_orientation(self, xy, theta):
+        self._init_metrics()
+        num = xy.shape[1]
+        assert xy.shape == (2, num)
+        assert theta.shape == (num, )
+        
+        d = xy[1,:] + self.offset
+        phi = dtu.norm_angle_v(theta)
+        
+        res = np.zeros(num, dtype=self.dt)
+        res['phi'] = phi
+        res['d'] = d
+        return res 
+
+    
 
     @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):

@@ -51,6 +51,25 @@ class TemplateBeforeCurve(LocalizationTemplate):
         res['phi'] = phi
         res['d'] = d
         return res 
+
+    @dtu.contract(xy='array[2xN]', theta='array[N]')    
+    def coords_from_position_orientation(self, xy, theta):
+        self._init_metrics()
+        num = xy.shape[1]
+        assert xy.shape == (2, num)
+        assert theta.shape == (num, )
+        p = (xy.T - self.center).T
+        assert p.shape == (2, num)
+        dist = np.hypot(p[0, :], p[1, :])
+        d = self.offset - dist
+        alpha = np.arctan2(p[1, :], p[0, :])
+        forward = alpha + np.pi/2
+        phi = theta - forward
+        res = np.zeros(len(phi), dtype=self.dt)
+        # x is unused (projection) 
+        res['phi'] = phi
+        res['d'] = d
+        return res 
         
     @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
