@@ -29,6 +29,15 @@ def stopline_zero_zero():
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                            image_prep_name, lane_filter_name, pose_or_location, outd)
 
+@dtu.unit_test
+def stopline_two():
+    pose_or_location = dtu.geo.SE2_from_translation_angle([0.05, -0.10], np.deg2rad(0))
+
+    for lane_filter_name in lane_filter_names:
+        outd = dirn(lane_filter_name)
+        test_synthetic(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, pose_or_location, outd)
+
 
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()

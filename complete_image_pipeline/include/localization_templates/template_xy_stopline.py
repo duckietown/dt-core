@@ -53,6 +53,16 @@ class TemplateXYStopline(LocalizationTemplate):
 
         res['dstop'] = self.offset_dstop - xy[0]
         return res
+    
+    @dtu.contract(xy='array[2xN]', theta='array[N]')    
+    def coords_from_position_orientation(self, xy, theta):  # @UnusedVariable
+        self._init_metrics()
+        num = xy.shape[1]
+        
+        res = np.zeros(num, dtype=self.dt)
+        res['d'] = xy[1, :] + self.offset
+        res['dstop'] = -xy[0, :] + self.offset_dstop
+        return res 
 
     @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):

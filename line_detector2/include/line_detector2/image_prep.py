@@ -29,7 +29,7 @@ class ImagePrep(object):
             raise ValueError(msg)
 
         self.image_cv = image_cv
-        with context.phase('resizing'):
+        with context.phase('resizing (method: %s)' % self.resampling_algorithm):
             # Resize and crop image
             h0, w0 = image_cv.shape[0:2]
             h1, w1 = self.shape
@@ -37,13 +37,15 @@ class ImagePrep(object):
             if (h0,w0) != (h1,w1):
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
                 if self.resampling_algorithm == 'nearest':
-                    self.image_resized = cv2.resize(image_cv, (w1,h1),
-                                                    interpolation=cv2.INTER_NEAREST)
+                    interpolation=cv2.INTER_NEAREST
                 elif self.resampling_algorithm == 'linear':
-                    self.image_resized = cv2.resize(image_cv, (w1,h1),
-                                                    interpolation=cv2.INTER_LINEAR)
+                    interpolation=cv2.INTER_LINEAR
                 else:
                     raise NotImplementedError(self.resampling_algorithm)
+                
+                self.image_resized = cv2.resize(image_cv, (w1,h1), 
+                                                interpolation=interpolation)
+                 
             else:
                 self.image_resized = image_cv
 
@@ -52,22 +54,29 @@ class ImagePrep(object):
         with context.phase('correcting'):
             # apply color correction: AntiInstagram
             if transform is not None:
-                _ = transform(self.image_cut)
+                self.image_corrected = transform(self.image_cut)
                 # XXX
-                self.image_corrected = cv2.convertScaleAbs(_)
+#                 self.image_corrected = cv2.convertScaleAbs(_)
             else:
                 self.image_corrected = self.image_cut
 
         with context.phase('detection'):
             # Set the image to be detected
 
-            line_detector.setImage(self.image_corrected)
+            with context.phase('setImage'):
+                line_detector.setImage(self.image_corrected)
 
             # Detect lines and normals
-            white = line_detector.detectLines('white')
-            yellow = line_detector.detectLines('yellow')
-            red = line_detector.detectLines('red')
-            segment_list = get_segment_list_normalized(self.top_cutoff,
+            with context.phase('white'):
+                white = line_detector.detectLines('white')
+            with context.phase('yellow'):
+                yellow = line_detector.detectLines('yellow')
+            
+            with context.phase('red'):
+                red = line_detector.detectLines('red')
+            
+            with context.phase('get_segment_list_normalized'):
+                segment_list = get_segment_list_normalized(self.top_cutoff,
                                                        self.shape, white, yellow, red)
 
         # SegmentList constructor

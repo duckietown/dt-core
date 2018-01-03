@@ -16,6 +16,8 @@ from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 import math
 from grid_helper.voting_grid import array_as_string_sign
+from duckietown_utils.color_constants import matplotlib_01_from_rgb
+
 
 
 __all__ = [
@@ -30,20 +32,24 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         param_names = [
             'localization_template',
             'delta_segment',   
-            'min_max',
+            
             'variables',
+            'F',
+            'optimize',
+            'bounds_theta_deg',
+            'precision',
         ]
 
         dtu.Configurable.__init__(self, param_names, configuration)
-        precision = 'float32'
-        self.grid_helper = GridHelper(OrderedDict(self.variables), precision=precision)
+
+
+        self.grid_helper = GridHelper(OrderedDict(self.variables), precision=self.precision)
 
         self.initialize_belief()
         self.last_segments_used = None
         
         self.delta_segment = float(self.delta_segment)
         
-        self.F = 1
         
     def initialize_belief(self):
         self.belief = self.grid_helper.create_new()
@@ -74,12 +80,14 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         """ Returns the likelihood """
         
         self.last_segments_used = segment_list.segments
-        optimize = True
+        
+        
+        
         with dtu.timeit_clock('generating likelihood'):
-            if not optimize:
+            if not self.optimize:
                 measurement_likelihood = self.generate_measurement_likelihood(segment_list.segments)
             else:
-                measurement_likelihood = self.generate_measurement_likelihood_2(segment_list.segments)
+                measurement_likelihood = self.generate_measurement_likelihood_faster(segment_list.segments)
             
         with dtu.timeit_clock('multiply belief'):
             if measurement_likelihood is not None:
@@ -92,15 +100,34 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         return measurement_likelihood
 
-    def generate_measurement_likelihood_2(self, segments):
-        rep_obs = get_compat_representation_obs(segments)
-        rep_map = self.rep_map
-        
-        with dtu.timeit_clock("faster pose gen " ):
+    def generate_measurement_likelihood_faster(self, segments):
+        with dtu.timeit_clock("get_compat_representation_obs (%d segments)" % len(segments) ):
+            rep_obs = get_compat_representation_obs(segments)
+            rep_map = self.rep_map
+
+            
+        with dtu.timeit_clock("generate_votes_faster (map: %d, obs: %d)" % (len(rep_map.weight),
+                                                                            len(rep_obs.weight)) ):
             votes = generate_votes_faster(rep_map, rep_obs)
-            nvotes = len(votes.weight)
+            
+            if self.bounds_theta_deg is not None:
+                weight = votes.weight.copy()
+                theta_min = np.deg2rad(self.bounds_theta_deg[0])
+                theta_max = np.deg2rad(self.bounds_theta_deg[1])
+                num_outside = 0
+                for i in range(weight.shape[0]):
+                    
+                    theta = votes.theta[i]
+                    
+                    if not (theta_min<=theta<=theta_max):
+                        weight[i] = 0
+                        num_outside += 1
+                    
+                print('Removed %d of %d because outside box' % (num_outside, len(weight)))
+                votes = remove_zero_weight(votes._replace(weight=weight))
+            
     
-        with dtu.timeit_clock("compute pos iterative (%d)" % nvotes ):
+        with dtu.timeit_clock("compute pos iterative (%d)" % len(votes.weight) ):
             locations = self._localization_template.coords_from_position_orientation(votes.p, votes.theta)
         
             num = len(locations)
@@ -114,7 +141,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         compare = False
         
-        with dtu.timeit_clock("add voting faster (%d)" % nvotes):
+        with dtu.timeit_clock("add voting faster (%d)" %  len(votes.weight)):
             measurement_likelihood = self.grid_helper.create_new('float32')
             measurement_likelihood.fill(0)
 
@@ -184,6 +211,13 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             for segment in segments:
                 for pose, weight in self.generate_votes(segment, self.delta_segment):
                     
+                    if self.bounds_theta_deg is not None:
+                        theta_deg = np.rad2deg(dtu.norm_angle(dtu.geo.angle_from_SE2(pose)))
+                        m, M =  self.bounds_theta_deg 
+                        if not (m <= theta_deg < M):
+                            continue
+            
+            
                     if adjust_by_number:
                         n = num_by_color[segment.color]
                         weight_adjusted = weight * 1.0 / n
@@ -195,11 +229,15 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         with dtu.timeit_clock("generating coords for %s votes" % len(pose_weight)):
             for pose, weight in pose_weight:
                 est = self._localization_template.coords_from_pose(pose)
-                value = dict((k, est[k]) for k in self.variables)
-                values.append(value)
+                value = dict((k, float(est[k])) for k in self.variables)
+                values.append((value, weight))
         
         with dtu.timeit_clock("add voting for %s votes" % len(pose_weight)):
-            for value in values:
+            for value, weight in values:
+#                 if value['dstop'] > 0.3:
+#                     print('value:%s' % value)
+#                 else:
+#                     continue
                 added = self.grid_helper.add_vote(measurement_likelihood, value, weight, F=self.F)
                 hit += added > 0
                 miss += added == 0
@@ -232,7 +270,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             yields xytheta, weight
         """
         p1 = np.array([segment.points[0].x, segment.points[0].y, segment.points[0].z])
-        p2 = np.array([segment.points[1].x, segment.points[1].y, segment.points[0].z])
+        p2 = np.array([segment.points[1].x, segment.points[1].y, segment.points[1].z])
         p_hat = 0.5 * p1 + 0.5 * p2
         d = np.linalg.norm(p1-p2) 
         weight = d
@@ -253,10 +291,14 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             msg = 'No segment found for %s' % segment.color
             dtu.logger.debug(msg)
 
-    def get_plot_phi_d(self, ground_truth=None):
-        a = CreateImageFromPylab(dpi=120)
+    def get_plot_phi_d(self, ground_truth=None, bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
+        figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
+        a = CreateImageFromPylab(dpi=120, figure_args=figure_args)
+        
         gh = self.grid_helper
         with a as pylab:
+            
+#             pylab.gca().set_axis_bg_color(bgcolor)
             grid_helper_plot_field(gh, self.belief, pylab)
             grid_helper_annotate_axes(gh, pylab)
 
@@ -395,30 +437,46 @@ def get_compat_representation_map(sm, delta_segment):
      
     return PNRep(t=T, color=C, n=N, weight=W)
 
-def get_compat_representation_obs(segments): 
+def get_compat_representation_obs(segments, precision='float32'): 
     num = len(segments)
-    C = np.empty(shape=num, dtype='uint8')
-    T = np.empty(shape=(2, num), dtype='float32')
-    N = np.empty(shape=(2, num), dtype='float32')
-    W = np.empty(shape=num, dtype='float32')
+    C = np.empty(shape=num, dtype='uint8') # color
+    T = np.empty(shape=(2, num), dtype=precision) # position
+    N = np.empty(shape=(2, num), dtype=precision) # normal
+    W = np.empty(shape=num, dtype=precision) # weight
     
-    for i, segment in enumerate(segments):
-        assert segment.points[0].z == 0
-        assert segment.points[1].z == 0
-        p1 = np.array([segment.points[0].x, segment.points[0].y])
-        p2 = np.array([segment.points[1].x, segment.points[1].y])
-        p_hat = p1*0.5 + p2 * 0.5
-        n_hat = get_normal_outward_for_segment(p2, p1)
-        d = np.linalg.norm(p1-p2) 
-        weight = d
+    for i in range(num):
+        segment = segments[i]
+        points = segment.points  
+        color = segment.color
+           
+        p1 = np.array((points[0].x, points[0].y))
+        p2 = np.array((points[1].x, points[1].y))
+        p_hat = p1 * 0.5 + p2 * 0.5
+
+        diff = p1 - p2
+        distance = np.hypot(diff[0], diff[1])
+
+        weight = distance
     
-        C[i] = segment.color
+        C[i] = color 
         T[0, i] = p_hat[0]
         T[1, i] = p_hat[1]
-        N[0, i] = n_hat[0]
-        N[1, i] = n_hat[1]
+        N[0, i] = +diff[1] / distance
+        N[1, i] = -diff[0] / distance
         W[i] = weight
         
+        
+        if False:
+            diffn = diff / distance
+            n_hat = np.array((diffn[1], -diffn[0], 0))
+            n_hat_slow = get_normal_outward_for_segment(p2, p1)
+            assert_almost_equal(n_hat, n_hat_slow)
+            
+            assert segment.points[0].z == 0
+            assert segment.points[1].z == 0
+        
+     
+
     
     C.flags.writeable = False
     T.flags.writeable = False
@@ -429,57 +487,69 @@ def get_compat_representation_obs(segments):
 
 PNVotes = namedtuple('PNVotes', 'p theta weight')
 
-def generate_votes_faster(rep_map, rep_obs):
+def generate_votes_faster(rep_map, rep_obs, precision='float32'):
     num_map = len(rep_map.color)
     num_obs = len(rep_obs.color)
     max_votes = num_map * num_obs
-    vote_p = np.zeros(dtype='float32', shape=(2, max_votes))
-    vote_theta = np.zeros(dtype='float32', shape= max_votes)
-    vote_weight = np.zeros(dtype='float32', shape= max_votes)
+    vote_p = np.zeros(dtype=precision, shape=(2, max_votes))
+    vote_theta = np.zeros(dtype=precision, shape= max_votes)
+    vote_weight = np.zeros(dtype=precision, shape= max_votes)
     k = 0
         
     for i in range(num_map):
         c1 = rep_map.color[i]
         w1 = rep_map.weight[i]
-        t = rep_map.t[:, i]
-        n = rep_map.n[:, i]
+        t0, t1 = rep_map.t[:, i]
+        n0, n1 = rep_map.n[:, i]
         
         for j in range(num_obs):
             c2 = rep_obs.color[j]
-            w2 = rep_obs.weight[j]
             
             if c2 != c1:
-                W = 0
-            else:
-                W = w1 * w2
-  
-            t_est = rep_obs.t[:, j]
-            n_est = rep_obs.n[:, j]
-            
-            C = n[0] * n_est[0] + n[1] * n_est[1]
-            S = n[0] * n_est[1] - n[1] * n_est[0]
+                vote_weight[k] = 0
+                vote_theta[k] = np.nan
+                vote_p[0, k] = np.nan
+                vote_p[1, k] = np.nan
 
-            xy0 = t[0] - C*t_est[0] - S*t_est[1]
-            xy1 = t[1] + S*t_est[0] - C*t_est[1]
-            
-            theta = -math.acos(C) * np.sign(S)
-            
-            vote_theta[k] = theta
-            vote_weight[k] = W
-            vote_p[0, k] = xy0
-            vote_p[1, k] = xy1
+            else:
+                w2 = rep_obs.weight[j]
+                W = w1 * w2
+    
+                t_est0, t_est1 = rep_obs.t[:, j]
+                n_est0, n_est1 = rep_obs.n[:, j]
+                
+                C = n0 * n_est0 + n1 * n_est1
+                S = n0 * n_est1 - n1 * n_est0
+    
+                xy0 = t0 - C*t_est0 - S*t_est1
+                xy1 = t1 + S*t_est0 - C*t_est1
+                
+                C = min(C, 1) # compensate imprecision or acos(C) fails
+
+                theta = -math.acos(C) * np.sign(S)
+                
+                vote_theta[k] = theta
+                vote_weight[k] = W
+                vote_p[0, k] = xy0
+                vote_p[1, k] = xy1
             
             k += 1
-            
-    nonzeros = vote_weight > 0
-    vote_p = vote_p[:, nonzeros]
-    vote_theta = vote_theta[nonzeros]
-    vote_weight = vote_weight[nonzeros]
-    
+        
+    res =  PNVotes(p=vote_p, theta=vote_theta, weight=vote_weight)
+    return remove_zero_weight(res)
+
+def remove_zero_weight(pnvotes):
+    nonzeros = pnvotes.weight > 0
+
+    vote_p = pnvotes.p[:, nonzeros]
+    vote_theta = pnvotes.theta[nonzeros]
+    vote_weight = pnvotes.weight[nonzeros]
+
     vote_p.flags.writeable = False
     vote_theta.flags.writeable = False
     vote_weight.flags.writeable = False
         
     return PNVotes(p=vote_p, theta=vote_theta, weight=vote_weight)
-
+    
+    
         

@@ -26,5 +26,10 @@ parameters:
                 description: Angle with respect to center lane
 
         localization_template: DT17_template_four_way
-        min_max: 0.1
+        
         delta_segment: 0.05
+
+        F: 1
+        optimize: true
+        bounds_theta_deg: null
+        precision: float32

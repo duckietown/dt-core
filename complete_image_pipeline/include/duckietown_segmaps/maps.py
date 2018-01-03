@@ -5,7 +5,7 @@ from numpy.testing.utils import assert_almost_equal
 import duckietown_utils as dtu
 
 import numpy as np
-from geometry import translation_angle_from_SE2
+
 
 
 SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords') 
@@ -120,9 +120,11 @@ class SegmentsMap(object):
 
 
 @dtu.contract(sm=SegmentsMap, ground_truth='SE2|None')
-def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
+def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None,
+                          bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
     """ Returns a BGR image """  
-    a = dtu.CreateImageFromPylab(dpi=dpi)
+    figure_args=dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
+    a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
     with a as pylab:
         _plot_map_segments(sm, pylab, FRAME_GLOBAL)
@@ -132,17 +134,10 @@ def plot_map_and_segments(sm, tinfo, segments, dpi=120, ground_truth=None):
         L = 0.1
 
         if ground_truth is not None:
-            (x, y), _ = translation_angle_from_SE2(ground_truth)
+            (x, y), _ = dtu.geo.translation_angle_from_SE2(ground_truth)
             x1, y1, _ = np.dot(ground_truth, [L, 0, 1])
-#             x = ground_truth['x']
-#             y = ground_truth['y']
-#             theta = ground_truth['theta']
-#             x1 = x + L * np.cos(theta)
-#             y1 = y + L * np.sin(theta)
             pylab.plot(x, y, 'co', markersize=12)
             pylab.plot([x, x1], [y, y1], 'c-', linewidth=4)
-#             pylab.plot([-1, +1], [y, y], 'c--', markersize=10)
-#             print('ground truth: %s %s %s' % (x,y,np.rad2deg(theta)))
             
         w1 = tinfo.transform_point(np.array([0,0,0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
         w2 = tinfo.transform_point(np.array([L,0,0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
@@ -171,6 +166,14 @@ def _plot_detected_segments(tinfo, segments, pylab):
 #         dtu.logger.debug('Plotting w1 %s w2 %s' % (w1, w2))
         pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
 
+        p_hat = w1 *0.5 + w2 * 0.5
+        n_hat = get_normal_outward_for_segment(w2, w1)
+        d = np.linalg.norm(w1-w2)
+        o = p_hat + d/3 * n_hat
+        
+        pylab.plot([p_hat[0], o[0]], [p_hat[1], o[1]], 'r-')
+        
+        
         
 @dtu.contract(sm=SegmentsMap)
 def _plot_map_segments(sm, pylab, expect_frame, plot_ref_segments=True):
@@ -219,7 +222,7 @@ def _plot_map_segments(sm, pylab, expect_frame, plot_ref_segments=True):
             pylab.plot([center[0], center2[0]], [center[1], center2[1]], color)
             
         
-def get_normal_outward_for_segment(w1, w2):
+def get_normal_outward_for_segment_old(w1, w2):
     """ Outward points towards black """
     d = w2 - w1
     #   w2
@@ -234,12 +237,41 @@ def get_normal_outward_for_segment(w1, w2):
     
     z = np.array([0,0,1])
     c = np.cross(d, z)
-    assert_almost_equal(np.linalg.norm(c), 1.0)
+    if False:
+        assert_almost_equal(np.linalg.norm(c), 1.0)
     return c
+
+def get_normal_outward_for_segment(w1, w2):
+    """ Outward points towards black. """
+    d = w2 - w1
+    #   w2
+    #   |  --->
+    #   w1
+    dn = np.hypot(d[0], d[1])
+    if dn == 0:
+        msg = 'Could not compute normal for segment with two points equal:'
+        msg += ' %s %s' % (w1,w2)
+        raise ValueError(msg)
+    d = d / dn
+    
+#     c1 = d2*z3 - d3*z2
+#     c2 = d3*z1 - d1*z3
+#     c3 = d1*z2 - d2*z1
+    
+    c0 = np.array([d[1], -d[0], 0])
+    
+    if False:
+        z = np.array([0,0,1])
+        c = np.cross(d, z)
+        assert_almost_equal(np.linalg.norm(c), 1.0)
+        assert_almost_equal(np.linalg.norm(c0), 1.0)
+        assert_almost_equal(c0, c[:2])
+        
+    return c0
 
 # TODO: move away
 assert_almost_equal(np.array([0,-1,0]), 
-                    get_normal_outward_for_segment(np.array([0,0,0]), np.array([2,0,0])))
+                    get_normal_outward_for_segment(np.array([0,0]), np.array([2,0])))
 
 
 def add_prefix(sm, prefix):

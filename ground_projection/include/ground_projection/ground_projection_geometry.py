@@ -68,10 +68,9 @@ class GroundProjectionGeometry(object):
     @dtu.contract(pixel=Pixel, returns=Vector2D)
     def pixel2vector(self, pixel):
         """ Converts a [0,W]*[0,H] representation to [0, 1]x[0, 1]. """
-        vec = Vector2D()
-        vec.x = pixel.u / self.ci.width
-        vec.y = pixel.v / self.ci.height
-        return vec
+        x = pixel.u / self.ci.width
+        y = pixel.v / self.ci.height
+        return Vector2D(x, y)
 
     @dtu.contract(vec=Vector2D, returns=Point)
     def vector2ground(self, vec):
@@ -129,7 +128,17 @@ class GroundProjectionGeometry(object):
         return pixel
     
     def rectify_point(self, p):
-        return self.pcm.rectifyPoint(p)
+        res1 = self.pcm.rectifyPoint(p)
+#         
+#         pcm = self.pcm
+#         point = np.zeros((2, 1))
+#         point[0] = p[0]
+#         point[1] = p[1]
+#         
+#         res2 = cv2.undistortPoints(point.T, pcm.K, pcm.D, R=pcm.R, P=pcm.P)
+#         print res1, res2
+        return res1
+        
 
     def _init_rectify_maps(self):
         W = self.pcm.width
@@ -147,9 +156,9 @@ class GroundProjectionGeometry(object):
         ''' Undistort an image'''
         if not self._rectify_inited:
             self._init_rectify_maps()
-
-        inter = cv2.INTER_NEAREST
-        # inter = cv2.INTER_CUBIC
+# 
+        inter = cv2.INTER_NEAREST # 30 ms
+#         inter = cv2.INTER_CUBIC # 80 ms
 #         cv_image_rectified = np.zeros(np.shape(cv_image_raw))
         cv_image_rectified = np.empty_like(cv_image_raw)
         res = cv2.remap(cv_image_raw, self.mapx, self.mapy, inter, 

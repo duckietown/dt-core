@@ -128,15 +128,21 @@ def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
     
     # Get ground truth of segmentList
     for s1 in sl.segments:
-        s2 = Segment()
-        s2.points[0] = gpg.vector2ground(s1.pixels_normalized[0])
-        s2.points[1] = gpg.vector2ground(s1.pixels_normalized[1])
-        s2.pixels_normalized[0] = s1.pixels_normalized[0]
-        s2.pixels_normalized[1] = s1.pixels_normalized[1] 
-        s2.color = s1.color
+        g0 = gpg.vector2ground(s1.pixels_normalized[0])
+        g1 = gpg.vector2ground(s1.pixels_normalized[1])
         if skip_not_on_ground:
-            if s2.points[0].x < cutoff or s2.points[1].x < cutoff:
+            if g0.x < cutoff or g1.x < cutoff:
                 continue
+
+        points = [g0, g1]
+        pixels_normalized = [s1.pixels_normalized[0], s1.pixels_normalized[1]]
+        color = s1.color
+        s2 = Segment(points=points, pixels_normalized=pixels_normalized, color=color)
+#         s2.points[0] = g0
+#         s2.points[1] = g1 
+#         s2.pixels_normalized[0] = s1.pixels_normalized[0]
+#         s2.pixels_normalized[1] = s1.pixels_normalized[1] 
+#         s2.color = s1.color
         # TODO what about normal and points
         sl2.segments.append(s2)
     return sl2

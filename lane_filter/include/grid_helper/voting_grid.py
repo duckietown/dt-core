@@ -4,6 +4,7 @@ import itertools
 
 import duckietown_utils as dtu
 import numpy as np
+import warnings
 
 
 __all__ = [
@@ -100,32 +101,27 @@ class GridHelper(object):
         
         values = [value[_] for _ in self._names]
         
-        # Check if inside bounds
+
         coords = [None, None] # i, j
         for a in range(2):
             spec = self._specs[a]
-            # We do this later, for each cell
-            # inside = spec.min <= values[a] <= spec.max
-            # if not inside:
-            #     return 0
             
             x = (values[a] - spec.min) / spec.resolution
             coords[a] = int(np.floor(x))
-            
+        
+        H, W = self.shape    
+
         i, j = coords
         
-        H, W = self.shape
+        
         targets = []
         weights = []
         for di, dj in itertools.product(range(-F,F+1), range(-F,F+1)):
             u = i + di
             v = j + dj
-            
-            if not ((0<=u<H) and (0<=v<W)):
-                continue
-            
-            v0_cell = self._centers[0][u,v]
-            v1_cell = self._centers[1][u,v]
+
+            v0_cell = self._specs[0].min + (u+0.5) * self._specs[0].resolution
+            v1_cell = self._specs[1].min + (v+0.5) * self._specs[1].resolution
             v0_delta = values[0] - v0_cell
             v1_delta = values[1] - v1_cell
             
@@ -133,13 +129,13 @@ class GridHelper(object):
             
             weight_k = weight * k
             
-            targets.append((u, v))
+            if ((0<=u<H) and (0<=v<W)):
+                targets.append((u, v))
+                
             weights.append(weight_k)
         
         if weights:    
             total_weight = sum(weights)
-            
-#             print('%s, %s, n act %d total w: %s' % (u, v, len(targets), total_weight))
              
             for (u,v), weight in zip(targets, weights):
                 weight_k = weight / total_weight
@@ -147,13 +143,13 @@ class GridHelper(object):
                 if counts is not None:
                     counts[u, v] += 1
 
-        return 1
+        return len(targets)
 
 
     def multiply(self, values, weights, F):
         N = values.shape[1]
         
-        factor = {0: 1, 1: 9}[F]
+        factor = {0: 1, 1: 9, 2: 25}[F]
         M = N * factor
         values2 = np.empty(shape=(2,M), dtype=self.precision)
         weights2 = np.empty(shape=M, dtype=self.precision)
@@ -186,7 +182,7 @@ class GridHelper(object):
     @dtu.contract(target='array', values='array[2xN]', weights='array[N]')
     def add_vote_faster(self, target, values, weights, F = 1, counts=None):
         
-        with dtu.timeit_clock("adding additional votes"):
+        with dtu.timeit_clock("adding additional votes (orig: %s)" % values.shape[1]):
             _factor, values_ref, values, weights, group = self.multiply(values, weights, F)
         
 #         cells_in_group = np.zeros(len(group))
@@ -194,29 +190,17 @@ class GridHelper(object):
 #             cells_in_group[group[i]] += 1
 #         print('cells_in_group: %s' % cells_in_group)
         
-        with dtu.timeit_clock("selecting valid"):
-            AND = np.logical_and
-            inside0 = AND(self._specs[0].min <= values[0, :],  values[0, :] <= self._specs[0].max)
-            inside1 = AND(self._specs[1].min <= values[1, :],  values[1, :] <= self._specs[1].max)
-            inside = AND(inside0, inside1)
-    #         hits = np.sum(inside)
-    #         misses = len(inside) - hits
-    #         print('num hit: %s (eq %d)  misses %s (eq %d) ' % (hits, hits/_factor, misses, misses/_factor))
-            
-            # only consider inside
-            values = values[:, inside]
-            values_ref = values_ref[:, inside]
-            weights = weights[inside]
-            group = group[inside]
+       
         
 #         diff = values - values_ref
 #         for a in [0,1]:
 #             print('diff %s min %s max %s res %s' % (a, np.min(diff[a,:]), np.max(diff[a,:]),
 #                                                     self._specs[a].resolution))
         
-        with dtu.timeit_clock("computing coordinates"):
+        with dtu.timeit_clock("computing coordinates (nvalid = %s)" % values.shape[1]):
                 
             nvalid = values.shape[1]
+            
             coords = np.zeros((2, nvalid), dtype='int32')
             K = [self.K0, self.K1]
             
@@ -242,6 +226,9 @@ class GridHelper(object):
                 
                 weights *= k
         
+        if nvalid == 0:
+            return 0
+                
         with dtu.timeit_clock("normalizing weights"):
                 
             ngroups = np.max(group) + 1
@@ -255,13 +242,46 @@ class GridHelper(object):
     
                 
             assert len(weights) == nvalid
+            weights_normalized = weights / weight_group[group]
+            
+     
+        with dtu.timeit_clock("selecting valid (using %d)" % values.shape[1]):
+            AND = np.logical_and
+            inside0 = AND(self._specs[0].min <= values[0, :],  values[0, :] <= self._specs[0].max)
+            inside1 = AND(self._specs[1].min <= values[1, :],  values[1, :] <= self._specs[1].max)
+            inside = AND(inside0, inside1)
+    #         hits = np.sum(inside)
+    #         misses = len(inside) - hits
+    #         print('num hit: %s (eq %d)  misses %s (eq %d) ' % (hits, hits/_factor, misses, misses/_factor))
+            
+            # only consider inside
+            values = values[:, inside]
+            values_ref = values_ref[:, inside]
+            weights = weights[inside]
+            weights_normalized = weights_normalized[inside]
+            group = group[inside]
+            
+            coords = coords[:, inside]
+            
+            
+        with dtu.timeit_clock("using numpy.at"):
+            np.add.at(target, tuple(coords), weights_normalized)
+        
+        if counts is not None:
+            with dtu.timeit_clock("update counts"):
+                for i in range(nvalid):
+                    counts[coords[0, i], coords[1, i]] += 1
+        
+        return nvalid
+     
+            
 #         print('cells_in_group: %s' % cells_in_group)
 #         print(weight_group)
 #         
 #         for i in range(len(weights)):
 #             print('i %s weight %s group weight %s' % (i, weights[i], weight_group[group[i]]))
 # #     
-            weights_normalized = weights / weight_group[group] 
+             
 #         print('weight weights_normalized %s' % weights_normalized)
 
 #         print('weight group %s' % list(weight_group))
@@ -287,16 +307,7 @@ class GridHelper(object):
 #                 out, _ = np.histogramdd(coords.T, bins, weights=weights_normalized)
 #                 target += out
 #             
-        with dtu.timeit_clock("using numpy.at"):
-            np.add.at(target, tuple(coords), weights_normalized)
-        
-        if counts is not None:
-            with dtu.timeit_clock("update counts"):
-                for i in range(nvalid):
-                    counts[coords[0, i], coords[1, i]] += 1
-        
-        return nvalid
-     
+    
     
     def get_max(self, target):
         """ Returns a dictionary """

@@ -3,9 +3,12 @@ import duckietown_utils as dtu
 import numpy as np
 import numpy.ma as ma
 
-def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120):
+def plot_phi_d_diagram_bgr(lane_filter, phi, d, dpi=120, bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
     """ Returns a BGR image """  
-    a = dtu.CreateImageFromPylab(dpi=dpi)
+     
+    figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
+    a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
+    
     with a as pylab:
         f_d = lambda x: 100 * x
         f_phi = np.rad2deg

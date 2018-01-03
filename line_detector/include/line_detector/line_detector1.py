@@ -124,15 +124,20 @@ class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
         return centers, normals
 
     def detectLines(self, color):
-        bw, edge_color = self._colorFilter(color)
-        lines = self._HoughLine(edge_color)
-        centers, normals = self._findNormal(bw, lines)
+        with dtu.timeit_clock('_colorFilter'):
+            bw, edge_color = self._colorFilter(color)
+        with dtu.timeit_clock('_HoughLine'):
+            lines = self._HoughLine(edge_color)
+        with dtu.timeit_clock('_findNormal'):
+            centers, normals = self._findNormal(bw, lines)
         return Detections(lines=lines, normals=normals, area=bw, centers=centers)
 
     def setImage(self, bgr):
         self.bgr = np.copy(bgr)
-        self.hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-        self.edges = self._findEdge(self.bgr)
+        with dtu.timeit_clock('cvtColor COLOR_BGR2HSV'):
+            self.hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+        with dtu.timeit_clock('_findEdge'):
+            self.edges = self._findEdge(self.bgr)
   
     def getImage(self):
         return self.bgr

@@ -37,45 +37,45 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     gpg = gp.get_ground_projection_geometry()
 
     res = OrderedDict()
-    res['image_input'] = image
+    res['Raw input image'] = image
     algo_db = get_easy_algo_db()
     line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
     lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
     image_prep = algo_db.create_instance('image_prep', image_prep_name)
+    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
 
-    context = FakeContext()
-    if all_details:
-        segment_list = image_prep.process(context, image, line_detector, transform = None)
-
-        res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
-        res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
-    
     pts = ProcessingTimingStats()
     pts.reset()
     pts.received_message()
     pts.decided_to_process()
     
     
-    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
-            
+    if all_details:
+        segment_list = image_prep.process(FakeContext(), image, line_detector, transform = None)
+
+        res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
+        res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
+    
     
     with pts.phase('calculate AI transform'):
         ai.calculateTransform(image)
 
     with pts.phase('apply AI transform'):
 
-
         transformed = ai.applyTransform(image)
 
         if all_details:
             res['image_input_transformed'] = transformed
-#         if all_details:
-#             res['image_input_transformed_then_convertScaleAbs'] = transformed_clipped
 
     with pts.phase('edge detection'):
-        segment_list2 = image_prep.process(context, transformed,
+        # note: do not apply transform twice!
+        segment_list2 = image_prep.process(pts, image,
                                            line_detector, transform=ai.applyTransform)
 
+        if all_details:
+            
+            res['resized and corrected'] = image_prep.image_corrected
+            
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
     
     if all_details:
@@ -121,7 +121,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         _likelihood = lane_filter.update(sg)
 
     with pts.phase('lane filter plot'):
-        res['belief'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
+        res['likelihood'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
     easy_algo_db = get_easy_algo_db()
 
     if isinstance(lane_filter, (LaneFilterMoreGeneric)):
@@ -148,14 +148,14 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
 
     assumed = localization_template.get_map()
-    res['assumed'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
+    res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
                                            ground_truth=ground_truth)
 
     dtu.logger.debug('plot_map')
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
 
 
-    res['reprojected'] = plot_map(rectified, assumed_axle, gpg,
+    res['map reprojected on image'] = plot_map(rectified, assumed_axle, gpg,
                                   do_ground=False, do_horizon=True, do_faces=False, do_faces_outline=True,
                                   do_segments=False)
 #     res['blurred']= cv2.medianBlur(image, 11)

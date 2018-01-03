@@ -14,6 +14,7 @@ template = 'DT17_template_straight_straight'
 robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
 line_detector_name = 'baseline'
 image_prep_name = 'baseline'
+# image_prep_name = 'bilinear'
 
 lane_filter_names = []
 lane_filter_names += ['moregeneric_straight']
@@ -22,6 +23,9 @@ raise_if_error_too_large = True
 
 max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
+
+ntries = 2
+
 
 def dirn(misc):
     outd = dtu.get_output_dir_for_test()
@@ -33,16 +37,18 @@ def test_synthetic_zero_zerophi():
     phi = np.deg2rad(0)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name,template, robot_name, line_detector_name,
-                   image_prep_name, lane_filter_name, d, phi , outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name,template, robot_name, line_detector_name,
+                       image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
 def test_synthetic_pos_zerophi():
     d = 0.054
     phi = np.deg2rad(0.5)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
 def test_synthetic_neg_posphi():
     d = -0.05
@@ -50,16 +56,19 @@ def test_synthetic_neg_posphi():
 
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi , outd)
 @dtu.unit_test
 def test_synthetic_zero_posphi():
     d = 0
     phi = np.deg2rad(15)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi , outd)
 
 @dtu.unit_test
 def test_synthetic_zero_negphi():
@@ -67,8 +76,9 @@ def test_synthetic_zero_negphi():
     phi = np.deg2rad(-20)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                           image_prep_name, lane_filter_name, d, phi , outd)
 
 @dtu.unit_test
 def test_synthetic_zero_bignegphi():
@@ -76,8 +86,9 @@ def test_synthetic_zero_bignegphi():
     phi = np.deg2rad(-50)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi, outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 @dtu.unit_test
 def test_synthetic_zero_bigposphi():
@@ -85,8 +96,9 @@ def test_synthetic_zero_bigposphi():
     phi = np.deg2rad(+50)
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
-        test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi, outd)
+        for _ in range(ntries):
+            test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
                    image_prep_name, lane_filter_name, d, phi, outd,
@@ -117,7 +129,8 @@ def test_synthetic_phi(actual_map_name, template,robot_name,line_detector_name,
         dtu.logger.error(msg)
 
         if raise_if_error_too_large:
-            raise Exception(msg)
+            if not dtu.on_duckiebot():
+                raise Exception(msg)
     return not fail
 
 @dtu.contract(actual_map_name='str')
@@ -148,7 +161,9 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
 
     image = simulation_data.distorted_synthetic_bgr
 
-    anti_instagram_name='identity' # skip
+#     anti_instagram_name='identity' # skip
+    anti_instagram_name='baseline' 
+    
     all_details = False
     res, stats = run_pipeline(image, gp, 
                               line_detector_name=line_detector_name,

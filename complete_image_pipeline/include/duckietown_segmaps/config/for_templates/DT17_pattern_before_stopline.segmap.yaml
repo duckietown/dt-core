@@ -7,5 +7,5 @@ parameters:
       name: DT17_tile_straight
       rotation: 0
     - cell: [1, 0]
-      name: DT17_tile_four_way_center
+      name: DT17_tile_one_stop
       rotation: 0

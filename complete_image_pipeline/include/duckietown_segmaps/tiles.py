@@ -100,7 +100,7 @@ def get_map_intersection_center(tile_size, tile_spacing, width_white, width_red,
     lane_width = (tile_size - 2*width_white - width_yellow) / 2
     extra = (tile_spacing - tile_size)/2
     
-    assert num_roads in [3, 4], num_roads
+    assert num_roads in [1, 3, 4], num_roads
     
     constants = {}
     constants['tile_size'] = tile_size
@@ -115,6 +115,9 @@ def get_map_intersection_center(tile_size, tile_spacing, width_white, width_red,
     
     add_tile(points, faces, segments, tile_size, tile_spacing)
     
+    if num_roads == 1:
+        angles = [0]
+        
     if num_roads == 3:
         angles = [0, 90, 270]
     if num_roads == 4:
