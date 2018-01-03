@@ -82,14 +82,14 @@ class VehicleAvoidanceControlNode(object):
 	def controllerInitialization(self):
 		self.vehicle_pose_msg_temp = VehiclePose()
 		self.vehicle_pose_msg_temp.header.stamp = rospy.Time.now()
-		#self.time_temp = rospy.Time.now()
+		self.time_temp = rospy.Time.now()
 		self.v_rel = 0
 		self.v = 0
 		self.detection = False
 		self.v_error_temp = 0
 		self.I = 0
 		self.v_follower = 0
-		self.rho_temp = 0
+		#self.rho_temp = 0
 		self.omega = 0
 
 	def callback(self, data):
@@ -101,8 +101,8 @@ class VehicleAvoidanceControlNode(object):
 		self.detection = data.data
 		
 		if  not data.data:
-			self.v_gain = 1
-			self.P = 0
+			#self.v_gain = 1
+			#self.P = 0
 			self.I = 0
 			
 		
@@ -117,10 +117,10 @@ class VehicleAvoidanceControlNode(object):
 		
 		time = rospy.Time.now()
 				
-		Ts = (vehicle_pose_msg.header.stamp - self.vehicle_pose_msg_temp.header.stamp).to_sec()
-		#Ts2 = (time - self.time_temp).to_sec()
+		#Ts = (vehicle_pose_msg.header.stamp - self.vehicle_pose_msg_temp.header.stamp).to_sec()
+		Ts = (time - self.time_temp).to_sec()
 # 		print("-----")
-# 		print(Ts)
+#  		print(Ts)
 # 		print(Ts2)
 		self.vehicle_pose_msg_temp.header.stamp = vehicle_pose_msg.header.stamp
 		#print(Ts)
@@ -168,7 +168,7 @@ class VehicleAvoidanceControlNode(object):
 			self.vehicle_pose_msg_temp = vehicle_pose_msg
 			#print(self.v)
 			
-			#self.time_temp = time
+		self.time_temp = time
 				
 # 		v_gain_max = 1.5
 # 		if d_min > vehicle_pose_msg.rho.data:
@@ -181,6 +181,7 @@ class VehicleAvoidanceControlNode(object):
 	def cbCarCmd(self, car_cmd_msg):
 		car_cmd_msg_current = Twist2DStamped()
 		car_cmd_msg_current = car_cmd_msg
+		car_cmd_msg_current.header.stamp = rospy.Time.now()
 		if self.detection:
 			car_cmd_msg_current.v = self.v
 			if self.v == 0:

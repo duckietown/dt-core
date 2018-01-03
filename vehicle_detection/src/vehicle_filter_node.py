@@ -114,7 +114,7 @@ class VehicleFilterNode(object):
 					R_inv = np.transpose(R)
 					translation_vector = -np.dot(R_inv, translation_vector)
 					pose_msg_out = VehiclePose()
-					pose_msg_out.header.stamp = vehicle_corners_msg.header.stamp
+					pose_msg_out.header.stamp = rospy.Time.now()
 					pose_msg_out.rho.data = sqrt(translation_vector[2] ** 2 + translation_vector[0] ** 2)
 					pose_msg_out.psi.data = np.arctan2(-R_inv[2, 0], sqrt(R_inv[2, 1] ** 2 + R_inv[2, 2] ** 2))
 					pose_msg_out.detection.data = vehicle_corners_msg.detection.data
@@ -125,8 +125,8 @@ class VehicleFilterNode(object):
                   	self.pub_pose.publish(pose_msg_out)
                 else:
                  	print("Pose estimation failed")
-          	elapsed_time = (rospy.Time.now() - start).to_sec()
-          	self.pub_time_elapsed.publish(elapsed_time)
+                elapsed_time = (rospy.Time.now() - start).to_sec()
+                self.pub_time_elapsed.publish(elapsed_time)
           	self.lock.unlock()
           	return
 		
