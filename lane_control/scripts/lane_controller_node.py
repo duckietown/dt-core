@@ -119,6 +119,7 @@ class lane_controller(object):
         d_ref = rospy.get_param("~d_ref")
         phi_ref = rospy.get_param("~phi_ref")
         use_radius_limit = rospy.get_param("~use_radius_limit")
+        object_detected = rospy.get_param("~object_detected")
 
         #FeedForward
         self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
