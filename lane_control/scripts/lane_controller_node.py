@@ -20,8 +20,7 @@ class lane_controller(object):
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, queue_size=1)
-        #self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         
         # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
         # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose. self.obstacleAvoidPose,queue_size=1)
@@ -50,8 +49,7 @@ class lane_controller(object):
 
         # Setup parameters
         self.setGains()
-        if self.pose_changer==False:
-            cbPose(self,self.sub_lane_reading)
+
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -60,7 +58,7 @@ class lane_controller(object):
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
     def setupParameter(self,param_name,default_value):
-        value = rospy.get_ram(param_name,default_value)
+        value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
@@ -73,19 +71,19 @@ class lane_controller(object):
     #FSM
     def changeStateProcess(self,switch_msg):
 
-        self.sub_fsm_mode = switch_msg.state # String of current FSM state
-        rospy.loginfo("mode " + str(self.mode) + str(self.active))
+        self.fsm_state = switch_msg.state # String of current FSM state
+        rospy.loginfo("fsm_state: " + str(self.fsm_state) "   active: " + str(self.active))
 
     # From different nodes, we receive d, theta and v => prioritze the incoming flags and states
     # compose LanePose message with the received message => call cbPose => controller
     
     # LanePose handling
     def obstacleAvoidPose(self, lane_pose_msg):
-        if self.sub_obstacle_detected:
-            #change lane pose message
-            self.sub_lane_reading.d=lane_pose_msg.d 
+        # if self.obstacle_detected:
+        #     #change lane pose message
+        #     self.lane_reading.d=lane_pose_msg.d 
 
-            cbPose(self, lane_pose_msg)
+        #     cbPose(self, lane_pose_msg)
 
 
     def setGains(self):

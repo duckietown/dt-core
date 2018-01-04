@@ -54,8 +54,8 @@ class LaneFilterNode(object):
         self.active = switch_msg.data # true or false given by FSM
 
     def cbMode(self,switch_msg):
-        self.sub_fsm_mode = switch_msg.state # String of current FSM state
-        print "mode " , self.sub_fsm_mode
+        self.fsm_state = switch_msg.state # String of current FSM state
+        print "fsm_state: " , self.fsm_state
 
     def processSegments(self,segment_list_msg):
         if not self.active:
