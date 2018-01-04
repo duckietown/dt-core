@@ -240,7 +240,7 @@ class lane_controller(object):
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
         self.cross_track_err = lane_pose_msg.d - self.d_offset - self.d_ref
-        self.heading_err = lane_pose_msg.phi
+        self.heading_err = lane_pose_msg.phi - self.phi_ref
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = lane_pose_msg.header
