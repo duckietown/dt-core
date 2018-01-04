@@ -57,6 +57,9 @@ class lane_controller(object):
         theta_thres = math.pi / 6
         d_thres = math.fabs(k_theta / k_d) * theta_thres
         d_offset = 0.0
+        d_ref = 0.0
+        phi_ref = 0.0
+        object_detected = False
 
         # incurvature = False
         # curve_inner = False
@@ -89,6 +92,10 @@ class lane_controller(object):
         self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
         self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
+        self.d_ref =  self.setupParameter("~d_ref",d_ref)
+        self.object_detected = self.setupParameter("~object_detected",object_detected) # object detected flag
+
+
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
@@ -108,6 +115,8 @@ class lane_controller(object):
         d_thres = rospy.get_param("~d_thres")
         theta_thres = rospy.get_param("~theta_thres")
         d_offset = rospy.get_param("~d_offset")
+        d_ref = rospy.get_param("~d_ref")
+        phi_ref = rospy.get_param("~phi_ref")
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
@@ -125,8 +134,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
+        params_old = (self.v_bar,self.v_max,self.v_min, self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.d_ref, self.phi_ref, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit, self.object_detected)
+        params_new = (v_bar, v_max, v_min, k_d,k_theta,d_thres,theta_thres, d_offset, d_ref, phi_ref, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit, object_detected)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -136,11 +145,13 @@ class lane_controller(object):
             self.k_d = k_d
             self.k_theta = k_theta
             self.d_thres = d_thres
+            self.d_ref = d_ref
             self.theta_thres = theta_thres
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
             self.turn_off_feedforward_part = turn_off_feedforward_part
+            self.object_detected = object_detected
 
             if use_radius_limit != self.use_radius_limit:
                 self.use_radius_limit = use_radius_limit
@@ -215,6 +226,10 @@ class lane_controller(object):
 
         self.lane_reading = lane_pose_msg
 
+        #TODO
+        if self.object_detected:
+            self.d_ref = 2
+
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
@@ -224,7 +239,7 @@ class lane_controller(object):
 
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
-        self.cross_track_err = lane_pose_msg.d - self.d_offset
+        self.cross_track_err = lane_pose_msg.d - self.d_offset - self.d_ref
         self.heading_err = lane_pose_msg.phi
 
         car_control_msg = Twist2DStamped()
