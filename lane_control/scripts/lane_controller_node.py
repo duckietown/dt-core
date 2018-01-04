@@ -228,7 +228,7 @@ class lane_controller(object):
 
         self.lane_reading = lane_pose_msg
 
-        self.d_ref = 3
+        self.d_ref = 2
 
         #TODO
         if self.object_detected:
