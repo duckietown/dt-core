@@ -228,11 +228,17 @@ class lane_controller(object):
 
         self.lane_reading = lane_pose_msg
 
-        self.d_ref = -0.03
+        ###TODO SAVIORS
 
-        #TODO
-        if self.object_detected:
-            self.d_ref = 0.02
+        ## set object_detected here, flag message from saviors
+        #self.object_detected = ... (TRUE/FALSE)
+
+        if self.object_detected:   # if object is detected (TRUE)
+            self.d_ref = 0.02 # set d_ref here, LanePose message from saviors
+            # negetive value: moves towards right line
+            # positive value: moves towards left line
+
+        ###END TODO
 
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
