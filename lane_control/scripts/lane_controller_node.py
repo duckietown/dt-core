@@ -72,14 +72,14 @@ class lane_controller(object):
     #FSM
     # def changeStateProcess(self,switch_msg):
 
-        self.fsm_state = switch_msg.state # String of current FSM state
-        rospy.loginfo("fsm_state: " + str(self.fsm_state) "   active: " + str(self.active))
+        # self.fsm_state = switch_msg.state # String of current FSM state
+        # rospy.loginfo("fsm_state: " + str(self.fsm_state) "   active: " + str(self.active))
 
     # From different nodes, we receive d, theta and v => prioritze the incoming flags and states
     # compose LanePose message with the received message => call cbPose => controller
     
     # LanePose handling
-    def obstacleAvoidPose(self, lane_pose_msg):
+    # def obstacleAvoidPose(self, lane_pose_msg):
         # if self.obstacle_detected:
         #     #change lane pose message
         #     self.lane_reading.d=lane_pose_msg.d 
