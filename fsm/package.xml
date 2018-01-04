@@ -2,7 +2,8 @@
 <package>
   <name>fsm</name>
   <version>1.0.0</version>
-  <description>The finite state machine coordinates the modes of the car.</description>
+  <description>The finite state machine coordinates the modes of the car. The fsm package consists of two nodes, namely `fsm_node` and `logic_gate_node`.
+  </description>
 
   <author email="novitzky@mit.edu">Michael Misha Novitzky</author>
   <maintainer email="mack@duckietown.org">Mack</maintainer>
