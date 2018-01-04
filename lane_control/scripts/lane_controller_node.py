@@ -93,6 +93,7 @@ class lane_controller(object):
         self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
         self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
         self.d_ref =  self.setupParameter("~d_ref",d_ref)
+        self.phi_ref = self.setupParameter("~phi_ref", phi_ref)
         self.object_detected = self.setupParameter("~object_detected",object_detected) # object detected flag
 
 
