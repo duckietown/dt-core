@@ -135,8 +135,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.v_min, self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.d_ref, self.phi_ref, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit, self.object_detected)
-        params_new = (v_bar, v_min, k_d,k_theta,d_thres,theta_thres, d_offset, d_ref, phi_ref, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit, object_detected)
+        params_old = (self.v_bar, self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.d_ref, self.phi_ref, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit, self.object_detected)
+        params_new = (v_bar, k_d,k_theta,d_thres,theta_thres, d_offset, d_ref, phi_ref, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit, object_detected)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
