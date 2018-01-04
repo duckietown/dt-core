@@ -20,29 +20,33 @@ class lane_controller(object):
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        #self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, "hi", queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane filter", queue_size=1)
+        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, queue_size=1)
         
         # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
-        # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose. self.obstacleAvoidPose,queue_size=1)
+        # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose, self.PoseHandling, "obst avoid",queue_size=1)
         # self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.cbSwitch, queue_size=1)
         # self.sub_obstacle_emergency_stop = vlt brauchen wir es nicht
         
-        # self.sub_navigation_pose =
+        #TO DO find node/topic in their branch
+        # self.sub_navigation_pose = rospy.Subscriber("~obstacle_pose ", LanePose, self.PoseHandling, "int navg",queue_size=1)
         
-        # self.sub_parking_pose =
+        #TO DO find node/topic in their branch
+        # self.sub_parking_pose = rospy.Subscriber("~parking_pose ", LanePose, self.PoseHandling, "parking",queue_size=1)
         # self.sub_at_parking_lot =rospy.Subscriber("~at_parking_lot", BoolStamped, self.cbSwitch, queue_size=1)
         # self.sub_parking_stop =rospy.Subscriber("~parking_stop", BoolStamped, self.cbSwitch, queue_size=1) 
 
-        # self.sub_fleet_planning_pose =
+         #TO DO find node/topic in their branch
+        # self.sub_fleet_planning_pose = rospy.Subscriber("~fleet_planning ", LanePose, self.PoseHandling, "fleet",queue_size=1)
 
-        # self.sub_implicit_coor_poser =
+         #TO DO find node/topic in their branch
+        # self.sub_implicit_coor_pose = rospy.Subscriber("~implicit_coord ", LanePose, self.PoseHandling, "implicit",queue_size=1)
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         
         # FSM 
-        # self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, "ajajaj", queue_size=1)
+        # self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)
         # self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
         # self.active = True
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
@@ -66,9 +70,9 @@ class lane_controller(object):
     
 
     #FSM
-    # def cbSwitch(self,switch_msg, add_msg):
+    # def cbSwitch(self,switch_msg):
     #     self.active = switch_msg.data # True or False
-    #     print "callback arg ", add_msg
+    #     
     #FSM
     # def changeStateProcess(self,switch_msg):
 
@@ -78,13 +82,13 @@ class lane_controller(object):
     # From different nodes, we receive d, theta and v => prioritze the incoming flags and states
     # compose LanePose message with the received message => call cbPose => controller
     
+    # TO DO implement handling logic
     # LanePose handling
-    # def obstacleAvoidPose(self, lane_pose_msg):
-        # if self.obstacle_detected:
-        #     #change lane pose message
-        #     self.lane_reading.d=lane_pose_msg.d 
+    # def PoseHandling(self, lane_pose_msg, pose_source):
+    #    _if pose_source == ""
 
-        #     cbPose(self, lane_pose_msg)
+    #   call cbPose with final lane pose message
+    #         cbPose(self, lane_pose_msg)
 
 
     def setGains(self):
