@@ -11,6 +11,8 @@ class lane_controller(object):
         self.lane_reading = None
         self.last_ms = None
         self.pub_counter = 0
+        
+        
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
@@ -18,15 +20,38 @@ class lane_controller(object):
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, queue_size=1)
+        #self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        
+        # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
+        # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose. self.obstacleAvoidPose,queue_size=1)
+        # self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.cbSwitch, queue_size=1)
+        # self.sub_obstacle_emergency_stop = vlt brauchen wir es nicht
+        
+        # self.sub_navigation_pose =
+        
+        # self.sub_parking_pose =
+        # self.sub_at_parking_lot =rospy.Subscriber("~at_parking_lot", BoolStamped, self.cbSwitch, queue_size=1)
+        # self.sub_parking_stop =rospy.Subscriber("~parking_stop", BoolStamped, self.cbSwitch, queue_size=1) 
+
+        # self.sub_fleet_planning_pose =
+
+        # self.sub_implicit_coor_poser =
+
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
+        
+        # FSM 
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, "ajajaj", queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
+        self.active = True
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
 
         # Setup parameters
         self.setGains()
-
+        if self.pose_changer==False:
+            cbPose(self,self.sub_lane_reading)
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
 
@@ -35,10 +60,32 @@ class lane_controller(object):
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
 
     def setupParameter(self,param_name,default_value):
-        value = rospy.get_param(param_name,default_value)
+        value = rospy.get_ram(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
+    
+
+    #FSM
+    def cbSwitch(self,switch_msg, add_msg):
+        self.active = switch_msg.data # True or False
+        print "callback arg ", add_msg
+    #FSM
+    def changeStateProcess(self,switch_msg):
+
+        self.sub_fsm_mode = switch_msg.state # String of current FSM state
+        rospy.loginfo("mode " + str(self.mode) + str(self.active))
+
+    # From different nodes, we receive d, theta and v => prioritze the incoming flags and states
+    # compose LanePose message with the received message => call cbPose => controller
+    
+    # LanePose handling
+    def obstacleAvoidPose(self, lane_pose_msg):
+        if self.sub_obstacle_detected:
+            #change lane pose message
+            self.sub_lane_reading.d=lane_pose_msg.d 
+
+            cbPose(self, lane_pose_msg)
 
 
     def setGains(self):
@@ -213,6 +260,8 @@ class lane_controller(object):
         # delay from taking the image until now in seconds
         image_delay = image_delay_stamp.secs + image_delay_stamp.nsecs/1e9
 
+
+
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
         self.cross_track_err = lane_pose_msg.d - self.d_offset
@@ -342,6 +391,6 @@ class lane_controller(object):
         #     print car_control_msg
 
 if __name__ == "__main__":
-    rospy.init_node("lane_controller",anonymous=False)
+    rospy.init_node("lane_controller_node",anonymous=False) #adapted to sonjas default file
     lane_control_node = lane_controller()
     rospy.spin()

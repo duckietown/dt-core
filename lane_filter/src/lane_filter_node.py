@@ -9,7 +9,7 @@ from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
     def __init__(self):
-        self.node_name = "Lane Filter"
+        self.node_name = rospy.get_name()
         self.active = True
         self.filter = None
         self.updateParams(None)
@@ -30,7 +30,13 @@ class LaneFilterNode(object):
         self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
-      
+        
+        # FSM 
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
+        self.active = True
+     
+
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
@@ -45,7 +51,11 @@ class LaneFilterNode(object):
             
 
     def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data
+        self.active = switch_msg.data # true or false given by FSM
+
+    def cbMode(self,switch_msg):
+        self.sub_fsm_mode = switch_msg.state # String of current FSM state
+        print "mode " , self.sub_fsm_mode
 
     def processSegments(self,segment_list_msg):
         if not self.active:

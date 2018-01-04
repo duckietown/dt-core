@@ -20,7 +20,7 @@ import numpy as np
 
 class LineDetectorNode(object):
     def __init__(self):
-        self.node_name = "LineDetectorNode"
+        self.node_name = rospy.get_name()
 
         # Thread lock 
         self.thread_lock = threading.Lock()
@@ -54,7 +54,9 @@ class LineDetectorNode(object):
         # Subscribers
         self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
+        # FSM
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
@@ -85,9 +87,12 @@ class LineDetectorNode(object):
             self.pub_edge = rospy.Publisher("~edge", Image, queue_size=1)
             self.pub_colorSegment = rospy.Publisher("~colorSegment", Image, queue_size=1)
 
-
+            #FSM
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
+        #FSM
+    def cbMode(self,switch_msg):
+        self.sub_fsm_mode = switch_msg.state # String of current FSM state
 
     def cbImage(self, image_msg):
         self.stats.received()
