@@ -92,7 +92,7 @@ class LineDetectorNode(object):
         self.active = switch_msg.data
         #FSM
     def cbMode(self,switch_msg):
-        self.sub_fsm_mode = switch_msg.state # String of current FSM state
+        self.fsm_state = switch_msg.state # String of current FSM state
 
     def cbImage(self, image_msg):
         self.stats.received()
