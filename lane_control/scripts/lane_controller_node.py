@@ -146,6 +146,7 @@ class lane_controller(object):
             self.k_theta = k_theta
             self.d_thres = d_thres
             self.d_ref = d_ref
+            self.phi_ref = phi_ref
             self.theta_thres = theta_thres
             self.d_offset = d_offset
             self.k_Id = k_Id
