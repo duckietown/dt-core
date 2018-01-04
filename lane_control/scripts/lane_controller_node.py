@@ -20,7 +20,8 @@ class lane_controller(object):
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        #self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, "hi", queue_size=1)
         
         # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
         # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose. self.obstacleAvoidPose,queue_size=1)
@@ -41,9 +42,9 @@ class lane_controller(object):
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
         
         # FSM 
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, "ajajaj", queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
-        self.active = True
+        # self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, "ajajaj", queue_size=1)
+        # self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
+        # self.active = True
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0
 
@@ -65,11 +66,11 @@ class lane_controller(object):
     
 
     #FSM
-    def cbSwitch(self,switch_msg, add_msg):
-        self.active = switch_msg.data # True or False
-        print "callback arg ", add_msg
+    # def cbSwitch(self,switch_msg, add_msg):
+    #     self.active = switch_msg.data # True or False
+    #     print "callback arg ", add_msg
     #FSM
-    def changeStateProcess(self,switch_msg):
+    # def changeStateProcess(self,switch_msg):
 
         self.fsm_state = switch_msg.state # String of current FSM state
         rospy.loginfo("fsm_state: " + str(self.fsm_state) "   active: " + str(self.active))
@@ -247,10 +248,10 @@ class lane_controller(object):
     #    if curvetype == LaneCurvature.STRAIGHT:
     #        self.k_forward = 0.0
 
-    def cbPose(self, lane_pose_msg):
+    def cbPose(self, lane_pose_msg, add_msg):
 
         self.lane_reading = lane_pose_msg
-
+        rospy.loginfo(add_msg)
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
