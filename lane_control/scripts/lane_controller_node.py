@@ -228,11 +228,11 @@ class lane_controller(object):
 
         self.lane_reading = lane_pose_msg
 
-        self.d_ref = 2
+        self.d_ref = 0.03
 
         #TODO
         if self.object_detected:
-            self.d_ref = 2
+            self.d_ref = 0.02
 
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
