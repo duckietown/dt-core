@@ -374,16 +374,18 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        ### omega_max_radius_limitation = .....  # TODO: complete (based on radius limitation)
-        ### self.omega_max = min(self.actuator_limits.omega, omega_max_radius_limitation)
+        self.omega_max_radius_limitation = self.v_bar * self.velocity_to_m_per_s / self.min_radius * 2 * math.pi * self.omega_to_rad_per_s
+        self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if omega > self.omega_max:
             self.cross_track_integral -= self.cross_track_err * dt
             self.heading_integral -= self.heading_err * dt
-            ### if omega > omega_max_radius_limitation:
-            ###     car_control_msg.omega = omega_max_radius_limitation
+            car_control_msg.omega = self.omega_max
         else:
             car_control_msg.omega = omega
+
+        if car_control_msg.v > self.actuator_limits.v:
+            car_control_msg.v = self.actuator_limits.v
 
         # if not self.incurvature:
         #     if self.heading_err > 0.3:
