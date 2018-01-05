@@ -3,7 +3,7 @@ import rospy
 import math
 import numpy as np
 from duckietown_msgs.msg import (Twist2DStamped, LanePose, WheelsCmdStamped, 
-    ActuatorParameters, BoolStamped, FSMState)
+    BoolStamped, FSMState)
 import time
 class lane_controller(object):
     def __init__(self):
