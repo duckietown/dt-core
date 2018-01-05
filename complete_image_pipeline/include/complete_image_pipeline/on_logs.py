@@ -83,6 +83,8 @@ def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter,
 #     dtu.logger.debug(dtu.describe_value(image_cv))
      
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
+    
+    dtu.DuckietownConstants.show_timeit_benchmarks = True
     res, _stats = run_pipeline(image_cv_bgr, gp=gp,
                                anti_instagram_name=anti_instagram,
                                line_detector_name=line_detector,

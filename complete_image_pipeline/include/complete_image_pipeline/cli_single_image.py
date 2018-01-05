@@ -35,6 +35,7 @@ class SingleImagePipeline(D8App):
 
         image_cv = dtu.image_cv_from_jpg_fn(image_filename)
 
+        dtu.DuckietownConstants.show_timeit_benchmarks = True
         res  = run_pipeline(image_cv,
                             line_detector_name=self.options.line_detector,
                             image_prep_name=self.options.image_prep,
