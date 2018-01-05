@@ -69,6 +69,7 @@ def try_simulated_localization(robot_name):
 
     line_detector_name = 'baseline'
     lane_filter_name = 'baseline'
+    lane_filter_name = 'moregeneric_straight'
     image_prep_name = 'baseline'
     d = 0.01
     phi = np.deg2rad(5)

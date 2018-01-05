@@ -168,8 +168,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
                                                do_segments=False)
     
     with pts.phase('quality computation'):
-        predicted_segment_list = predict_segments(sm=assumed_axle, gpg=gpg)
-        quality_res, quality_stats = judge_quality(image, segment_list2, predicted_segment_list)
+        predicted_segment_list_rectified = predict_segments(sm=assumed_axle, gpg=gpg)
+        quality_res, quality_stats = judge_quality(image, segment_list2_rect, predicted_segment_list_rectified)
         res.update(quality_res)
 
 #     res['blurred']= cv2.medianBlur(image, 11)
