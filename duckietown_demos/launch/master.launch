@@ -526,6 +526,7 @@
 		<!-- Vehicle Coordinator-->
 		<remap from="implicit_coordination/fsm" to="fsm_node/mode" />
 		<remap from="implicit_coordination/vehicle_detection_node" to="/multivehicle_tracker_node/tracking" />
+		<remap from="implicit_coordination/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" />
 		<!--the following remap is done through led_patter_switch_node -->
 				<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<include file="$(find implicit_coord)/launch/implicit.launch">
@@ -563,7 +564,7 @@
 			</include>
 		</group>
 
-        <group if="$(arg /navigation/random_sr_turns)">
+    <group if="$(arg /navigation/random_sr_turns)">
 			<!-- random april tags -->
 			<remap from="sr_turns_node/mode" to="fsm_node/mode"/>
 			<!-- remapping outputs since there are two different possible turn types -->
