@@ -6,8 +6,10 @@ import duckietown_utils as dtu
 
 
 @dtu.unit_test
-def iids_tests():
-    out_base = 'anti_instagram_annotations_test'
+def anti_instagram_annotations_test():
+    out_base = dtu.get_output_dir_for_test()
+    
+#     out_base = 'anti_instagram_annotations_test'
     
     zipname = dtu.require_resource('ii-datasets.zip')
     dirname = os.path.dirname(zipname)
