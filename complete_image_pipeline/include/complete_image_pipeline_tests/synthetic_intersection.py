@@ -17,7 +17,7 @@ lane_filter_names += ['moregeneric_fourway']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True
 
-max_phi_err = np.deg2rad(5)
+max_phi_err = np.deg2rad(7.1)
 max_d_err = 0.021
 
 
@@ -28,7 +28,9 @@ def intersection_zero_zerophi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                           image_prep_name, lane_filter_name, d, phi , outd,
+                           max_phi_err=max_phi_err,
+                           max_d_err=max_d_err)
 
 @dtu.unit_test
 def intersection_zero_negphi():
@@ -37,7 +39,9 @@ def intersection_zero_negphi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                           image_prep_name, lane_filter_name, d, phi , outd,
+                           max_phi_err=max_phi_err,
+                           max_d_err=max_d_err)
 
 @dtu.unit_test
 def intersection_zero_posphi():
@@ -46,7 +50,9 @@ def intersection_zero_posphi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                           image_prep_name, lane_filter_name, d, phi , outd,
+                           max_phi_err=max_phi_err,
+                           max_d_err=max_d_err)
 
 @dtu.unit_test
 def intersection_zero_posphi2():
@@ -55,7 +61,9 @@ def intersection_zero_posphi2():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                           image_prep_name, lane_filter_name, d, phi , outd,
+                           max_phi_err=max_phi_err,
+                           max_d_err=max_d_err)
 
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()

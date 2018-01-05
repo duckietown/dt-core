@@ -7,6 +7,9 @@ from ground_projection import GroundProjectionGeometry
 import numpy as np
 
 from .maps import SegmentsMap, FRAME_AXLE
+from duckietown_msgs.msg._Vector2D import Vector2D
+from duckietown_msgs.msg._Segment import Segment
+from duckietown_msgs.msg._SegmentList import SegmentList
 
 
 def rotate(l, n):
@@ -269,3 +272,56 @@ def clip_to_plane(w1, w2, n, d):
     
     w1_ = intersection
     return w1_, w2
+
+
+@dtu.contract(gpg=GroundProjectionGeometry, sm=SegmentsMap, returns=SegmentList)
+def predict_segments(sm, gpg):
+    """ 
+        Predicts what segments the robot would see.
+    
+        Assumes map is in FRAME_AXLE.
+    """
+    x_frustum = +0.1
+    fov = np.deg2rad(150)
+    res = []
+    for segment in sm.segments:
+        p1 = segment.points[0]
+        p2 = segment.points[1]
+        
+        # If we are both in FRAME_AXLE
+        if ( (sm.points[p1].id_frame != FRAME_AXLE) or 
+             (sm.points[p2].id_frame != FRAME_AXLE)):
+            msg = "Cannot deal with points not in frame FRAME_AXLE"
+            raise NotImplementedError(msg)
+        
+        w1 = sm.points[p1].coords
+        w2 = sm.points[p2].coords
+        
+        coords_inside = clip_to_view([w1, w2], x_frustum, fov)
+        
+        if not coords_inside:
+            continue
+        w1 = coords_inside[0]
+        w2 = coords_inside[1]
+        point1 = Point(w1[0], w1[1], w1[2])
+        point2 = Point(w2[0], w2[1], w2[2])
+        
+        pixel1 = gpg.ground2pixel(point1)
+        pixel2 = gpg.ground2pixel(point2)
+        
+        normalized1 = gpg.pixel2vector(pixel1) 
+        normalized2 = gpg.pixel2vector(pixel2)
+        
+        pixels_normalized = [normalized1, normalized2]
+        normal = Vector2D(0,0)
+        points = [point1, point2]
+        
+#         color = segment_color_constant_from_string(segment.color)
+        assert segment.color in [Segment.RED, Segment.YELLOW, Segment.WHITE]
+        s = Segment(pixels_normalized=pixels_normalized, 
+                    normal=normal,
+                    points=points,
+                    color=segment.color)
+        res.append(s)
+
+    return SegmentList(segments=res)

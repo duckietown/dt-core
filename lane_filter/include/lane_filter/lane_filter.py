@@ -9,6 +9,7 @@ import numpy as np
 
 from .lane_filter_interface import LaneFilterInterface
 from .visualization import plot_phi_d_diagram_bgr
+from collections import OrderedDict
 
 
 __all__ = [
@@ -167,7 +168,8 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         d_max = self.d_min + (maxids[0]+0.5)*self.delta_d
         phi_max = self.phi_min + (maxids[1]+0.5)*self.delta_phi
 
-        res = np.zeros((), dtype=LaneFilterInterface.ESTIMATE_DATATYPE)
+#         res = np.zeros((), dtype=LaneFilterInterface.ESTIMATE_DATATYPE)
+        res = OrderedDict()
         res['d'] = d_max
         res['phi'] = phi_max
         return res

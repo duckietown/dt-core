@@ -16,7 +16,6 @@ from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 import math
 from grid_helper.voting_grid import array_as_string_sign
-from duckietown_utils.color_constants import matplotlib_01_from_rgb
 
 
 
@@ -80,8 +79,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         """ Returns the likelihood """
         
         self.last_segments_used = segment_list.segments
-        
-        
+
         
         with dtu.timeit_clock('generating likelihood'):
             if not self.optimize:
@@ -123,7 +121,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                         weight[i] = 0
                         num_outside += 1
                     
-                print('Removed %d of %d because outside box' % (num_outside, len(weight)))
+                # print('Removed %d of %d because outside box' % (num_outside, len(weight)))
                 votes = remove_zero_weight(votes._replace(weight=weight))
             
     
@@ -297,8 +295,6 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         
         gh = self.grid_helper
         with a as pylab:
-            
-#             pylab.gca().set_axis_bg_color(bgcolor)
             grid_helper_plot_field(gh, self.belief, pylab)
             grid_helper_annotate_axes(gh, pylab)
 
@@ -414,6 +410,7 @@ PNRep = namedtuple('PNRep', 't n color weight')
 
 def get_compat_representation_map(sm, delta_segment):
     sections = []
+    
     for map_segment in sm.segments:
         for p, n in iterate_segment_sections(sm, map_segment, delta_segment):
             sections.append((map_segment.color, p, n))
