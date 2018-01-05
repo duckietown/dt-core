@@ -50,17 +50,21 @@ def homography_from_yaml(data):
         msg += '\n\n' + dtu.indent(yaml.dump(data), '   ')
         dtu.raise_wrapped(InvalidHomographyInfo, e, msg)
 
+
+
 def get_homography_info_config_file(robot_name):
-    df = dtu.get_duckiefleet_root()
+    roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
+             os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
     
+    for df in roots:
     # Load camera information
-    fn = os.path.join(df, 'calibrations', 'camera_extrinsic', robot_name + '.yaml')
+        fn = os.path.join(df,  'camera_extrinsic', robot_name + '.yaml')
+        if os.path.exists(fn):
+            return fn
     
-    if not os.path.exists(fn):
-        msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, fn) 
-        raise NoHomographyInfoAvailable(msg)
+    msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots) 
+    raise NoHomographyInfoAvailable(msg)
     
-    return fn
 
 def check_homography_sane_for_DB17(homography):
     # TODO: to write

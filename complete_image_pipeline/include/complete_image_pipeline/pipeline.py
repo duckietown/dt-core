@@ -147,10 +147,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     tinfo = TransformationsInfo()
     tinfo.add_transformation(frame1=FRAME_GLOBAL, frame2=FRAME_AXLE, g=g)
 
-    if actual_map is not None:
-#         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
-        res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
-                                             ground_truth=ground_truth)
+    if all_details:
+        if actual_map is not None:
+    #         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
+            res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
+                                                 ground_truth=ground_truth)
 
 
     assumed = localization_template.get_map()
