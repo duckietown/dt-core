@@ -249,6 +249,7 @@
 		<group if="$(arg /lane_following/line_detection)">
 			<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
 			<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
+			<remap from="line_detector_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find line_detector)/launch/line_detector_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -277,6 +278,7 @@
 		<group if="$(arg /lane_following/lane_filter)">
 		  <remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
 		  <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+		  <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
 			<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
@@ -300,6 +302,7 @@
 		<group if="$(arg /lane_following/lane_controller)">
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 			<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
+			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 			<remap from="lane_controller_node/actuator_params" to="inverse_kinematics_node/actuator_params" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
