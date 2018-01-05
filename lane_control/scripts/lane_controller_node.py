@@ -2,7 +2,8 @@
 import rospy
 import math
 import numpy as np
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
+from duckietown_msgs.msg import (Twist2DStamped, LanePose, WheelsCmdStamped, 
+    ActuatorParameters, BoolStamped, FSMState)
 import time
 ####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
@@ -20,8 +21,8 @@ class lane_controller(object):
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane filter", queue_size=1)
-        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, queue_size=1)
+        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane filter", queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, "hi", queue_size=1)
         
         # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
         # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose, self.PoseHandling, "obst avoid",queue_size=1)
@@ -44,7 +45,8 @@ class lane_controller(object):
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
-        
+        ### self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+
         # FSM 
         # self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)
         # self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
@@ -211,6 +213,11 @@ class lane_controller(object):
         msg_actuator_params_received = BoolStamped()
         msg_actuator_params_received.data = True
         self.pub_actuator_params_received.publish(msg_actuator_params_received)
+
+
+    def cbMode(self,switch_msg):
+        self.fsm_state = switch_msg.state # String of current FSM state
+        print "fsm_state: " , self.fsm_state
 
 
     def custom_shutdown(self):

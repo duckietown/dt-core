@@ -4,7 +4,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 import numpy as np
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import (SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped,
+    FSMState)
 from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
@@ -33,7 +34,7 @@ class LaneFilterNode(object):
         
         # FSM 
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
         self.active = True
      
 

@@ -2,7 +2,7 @@
 from anti_instagram.AntiInstagram import AntiInstagram
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
-    SegmentList, Vector2D)
+    SegmentList, Vector2D, FSMState)
 from duckietown_utils.instantiate_utils import instantiate
 from duckietown_utils.jpg import image_cv_from_jpg
 from geometry_msgs.msg import Point
@@ -56,7 +56,7 @@ class LineDetectorNode(object):
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         # FSM
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.cbMode, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
@@ -91,8 +91,8 @@ class LineDetectorNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
         #FSM
-    def cbMode(self,switch_msg):
-        self.fsm_state = switch_msg.state # String of current FSM state
+    def cbMode(self, mode_msg):
+        self.fsm_state = mode_msg.state # String of current FSM state
 
     def cbImage(self, image_msg):
         self.stats.received()
