@@ -235,16 +235,10 @@ class lane_controller(object):
 
     def obstEmergBrakeUpdate(self, brakeUpdate):
         #ToDo: Emergency Brake Flag
-        # self.d_emergencybrake = brakeUpdate
+        # self.emergencybrake = brakeUpdate
 
     def cbPose(self, lane_pose_msg):
-
         self.lane_reading = lane_pose_msg
-
-
-
-        ## set object_detected here, flag message from saviors
-
 
         robot_name = rospy.get_param("~veh", "") #ToDo Controllers: potentially update param to get the robot name
         self.sub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
@@ -253,9 +247,8 @@ class lane_controller(object):
         self.sub_topic = '/{}/obst_avoid/d_target'.format(robot_name)
         self.subscriber = rospy.Subscriber(self.sub_topic, Float32, self.obstAvoidDUpdate) #Absolute value, with 0 on center line
 
-        self.sub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
+        self.sub_topic = '/obstacle_emergency_stop_flag'.format(robot_name)
         self.subscriber = rospy.Subscriber(self.sub_topic, Bool, self.obstEmergBrakeUpdate)
-
 
        # self.d_target_pub = rospy.Publisher(self.pub_topic, Float32, queue_size=1)
 
