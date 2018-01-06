@@ -5,7 +5,6 @@ import numpy as np
 from duckietown_msgs.msg import (Twist2DStamped, LanePose, WheelsCmdStamped, 
     ActuatorParameters, BoolStamped, FSMState)
 import time
-####JULIEN from duckietown_msgs.msg import LaneCurvature
 class lane_controller(object):
     def __init__(self):
         self.node_name = rospy.get_name()
@@ -15,47 +14,46 @@ class lane_controller(object):
         
         
 
+        # Setup parameters
+        self.setGains()
+
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
-        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane filter", queue_size=1)
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, "hi", queue_size=1)
-        
-        # from devel-savior-ai-final publish node "/obst_detect/posearray", PoseArray, queue_size=1)
-        # self.sub_savior_pose =  rospy.Subscriber("~obstacle_pose ", LanePose, self.PoseHandling, "obst avoid",queue_size=1)
-        # self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.cbSwitch, queue_size=1)
-        # self.sub_obstacle_emergency_stop = vlt brauchen wir es nicht
+        self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane_filter", queue_size=1)
+        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         
         #TO DO find node/topic in their branch
-        # self.sub_navigation_pose = rospy.Subscriber("~obstacle_pose ", LanePose, self.PoseHandling, "int navg",queue_size=1)
+        # self.sub_obstacle_avoidance_pose = rospy.Subscriber("~obstacle_avoidance_pose", LanePose, self.PoseHandling, "obstacle_avoidance",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        # self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.setFlag, "obstacle_detected", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
         
         #TO DO find node/topic in their branch
-        # self.sub_parking_pose = rospy.Subscriber("~parking_pose ", LanePose, self.PoseHandling, "parking",queue_size=1)
-        # self.sub_at_parking_lot =rospy.Subscriber("~at_parking_lot", BoolStamped, self.cbSwitch, queue_size=1)
-        # self.sub_parking_stop =rospy.Subscriber("~parking_stop", BoolStamped, self.cbSwitch, queue_size=1) 
+        # self.sub_intersection_navigation_pose = rospy.Subscriber("~intersection_navigation_pose", LanePose, self.PoseHandling, "intersection_navigation",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        
+        #TO DO find node/topic in their branch
+        # self.sub_parking_pose = rospy.Subscriber("~parking_pose", LanePose, self.PoseHandling, "parking",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
-         #TO DO find node/topic in their branch
-        # self.sub_fleet_planning_pose = rospy.Subscriber("~fleet_planning ", LanePose, self.PoseHandling, "fleet",queue_size=1)
+        #TO DO find node/topic in their branch
+        # self.sub_fleet_planning_pose = rospy.Subscriber("~fleet_planning", LanePose, self.PoseHandling, "fleet_planning",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        # self.sub_fleet_planning_lane_following_override_active = rospy.Subscriber("~fleet_planning_lane_following_override_active", BoolStamped, self.setFlag, "fleet_planning_lane_following_override_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
-         #TO DO find node/topic in their branch
-        # self.sub_implicit_coor_pose = rospy.Subscriber("~implicit_coord ", LanePose, self.PoseHandling, "implicit",queue_size=1)
+        #TO DO find node/topic in their branch
+        # self.sub_implicit_coord_pose = rospy.Subscriber("~implicit_coord", LanePose, self.PoseHandling, "implicit_coord",queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
+        # self.sub_implicit_coord_velocity_limit_active = rospy.Subscriber("~implicit_coord_velocity_limit_active", BoolStamped, self.setFlag, "implicit_coord_velocity_limit_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
-        ### self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
         # FSM 
-        # self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)
-        # self.sub_fsm_mode = rospy.Subscriber("fsm_node/mode",FSMState, self.changeStateProcess, queue_size=1)
-        # self.active = True
-        #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
-        #####JULIEN self.k_forward = 0.0
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
-        # Setup parameters
-        self.setGains()
+        self.msg_radius_limit = BoolStamped()
+        self.msg_radius_limit.data = self.use_radius_limit
+        self.pub_radius_limit.publish(self.msg_radius_limit)
 
         # safe shutdown
         rospy.on_shutdown(self.custom_shutdown)
@@ -63,6 +61,7 @@ class lane_controller(object):
         # timer
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
         rospy.loginfo("[%s] Initialized " %(rospy.get_name()))
+
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -72,25 +71,59 @@ class lane_controller(object):
     
 
     #FSM
-    # def cbSwitch(self,switch_msg):
-    #     self.active = switch_msg.data # True or False
-    #     
-    #FSM
-    # def changeStateProcess(self,switch_msg):
-
-        # self.fsm_state = switch_msg.state # String of current FSM state
-        # rospy.loginfo("fsm_state: " + str(self.fsm_state) "   active: " + str(self.active))
+    def cbSwitch(self,fsm_switch_msg):
+        self.active = fsm_switch_msg.data # True or False
+        rospy.loginfo("active: " + str(self.active))
+        
 
     # From different nodes, we receive d, theta and v => prioritze the incoming flags and states
     # compose LanePose message with the received message => call cbPose => controller
     
     # TO DO implement handling logic
     # LanePose handling
-    # def PoseHandling(self, lane_pose_msg, pose_source):
-    #    _if pose_source == ""
+    def PoseHandling(self, input_pose_msg, pose_source):
+        if not self.active:
+            return
 
-    #   call cbPose with final lane pose message
-    #         cbPose(self, lane_pose_msg)
+        self.prev_pose_msg = self.pose_msg
+        self.pose_msg_dict[pose_source] = input_pose_msg
+        if self.pose_initialized:
+            v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
+            self.v_ref_possible.clear()
+            self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
+
+        if self.fsm_state == "INTERSECTION_CONTROL":
+            if pose_source == "intersection_navigation":
+                self.pose_msg = input_pose_msg
+                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.pose_initialized = True
+        elif self.fsm_state == "PARKING":
+            if pose_source == "parking":
+                self.pose_msg = input_pose_msg
+                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.pose_initialized = True
+        else:
+            if pose_source == "lane_filter":
+                self.pose_msg = input_pose_msg
+                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.pose_initialized = True
+
+        if self.flag_dict["fleet_planning_lane_following_override_active"] == True:
+            if "fleet_planning" in self.pose_msg_dict:
+                self.pose_msg.d_ref = self.pose_msg_dict["fleet_planning"].d_ref
+                self.v_ref_possible["fleet_planning"] = self.pose_msg_dict["fleet_planning"].v_ref
+        if self.flag_dict["obstacle_detected"] == True:
+            if "obstacle_avoidance" in self.pose_msg_dict:
+                self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
+                self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
+        if self.flag_dict["implicit_coord_velocity_limit_active"] == True:
+            if "implicit_coord" in self.pose_msg_dict:
+                self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
+
+        self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
+
+        if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
+            self.cbPose(self.pose_msg)
 
 
     def setGains(self):
@@ -124,9 +157,21 @@ class lane_controller(object):
 
         self.use_radius_limit = True
 
+        self.flag_dict = {"obstacle_detected": False,
+                            "parking_stop": False,
+                            "fleet_planning_lane_following_override_active": False,
+                            "implicit_coord_velocity_limit_active": False}
+
+        self.pose_msg = LanePose()
+        self.pose_initialized = False
+        print "pose_msg: ", self.pose_msg
+        self.pose_msg_dict = dict()
+        self.v_ref_possible = dict()
+
+        self.active = True
+
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
-        # FIXME: AC aug'17: are these inverted?
         self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
         self.k_theta = self.setupParameter("~k_theta",k_theta) # P gain for d
         self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
@@ -139,10 +184,6 @@ class lane_controller(object):
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
-
-        self.msg_radius_limit = BoolStamped()
-        self.msg_radius_limit.data = self.use_radius_limit
-        self.pub_radius_limit.publish(self.msg_radius_limit)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -215,9 +256,13 @@ class lane_controller(object):
         self.pub_actuator_params_received.publish(msg_actuator_params_received)
 
 
-    def cbMode(self,switch_msg):
-        self.fsm_state = switch_msg.state # String of current FSM state
-        print "fsm_state: " , self.fsm_state
+    def setFlag(self, msg_flag, flag_name):
+        self.flag_dict[flag_name] = msg_flag.data
+
+
+    def cbMode(self,fsm_state_msg):
+        self.fsm_state = fsm_state_msg.state # String of current FSM state
+        print "fsm_state changed in lane_controller_node to: " , self.fsm_state
 
 
     def custom_shutdown(self):
@@ -259,10 +304,9 @@ class lane_controller(object):
     #    if curvetype == LaneCurvature.STRAIGHT:
     #        self.k_forward = 0.0
 
-    def cbPose(self, lane_pose_msg, add_msg):
+    def cbPose(self, lane_pose_msg):
 
         self.lane_reading = lane_pose_msg
-        rospy.loginfo(add_msg)
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
@@ -351,7 +395,7 @@ class lane_controller(object):
         # if not self.incurvature:
         #     if self.heading_err > 0.3:
         #         self.incurvature = True
-        #         rospy.set_param('~incurvature',True)
+        #         rospy.set_param("~incurvature",True)
         #     car_control_msg.omega -= self.k_Id * self.cross_track_integral
         #     car_control_msg.omega -= self.k_Iphi * self.heading_integral #*self.steer_gain #Right stick H-axis. Right is negative
         # else:
@@ -360,7 +404,7 @@ class lane_controller(object):
         #     else:
         #         time_incurve = 3
         #     if (rospy.Time.now().secs - self.time_start_curve) > time_incurve:   #TODO fix 5 to a time in curvature with v and d
-        #         rospy.set_param('~incurvature',False)
+        #         rospy.set_param("~incurvature",False)
         #         self.incurvature = False
         #     rospy.loginfo("incurvature : ")
         #     car_control_msg.omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
@@ -379,6 +423,7 @@ class lane_controller(object):
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        print "fsm_state in lane_controller_node: ", self.fsm_state
         # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
         # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
         # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
