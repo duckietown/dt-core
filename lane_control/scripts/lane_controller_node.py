@@ -225,17 +225,42 @@ class lane_controller(object):
     #    if curvetype == LaneCurvature.STRAIGHT:
     #        self.k_forward = 0.0
 
+    ###TODO SAVIORS
+
+    def obstacleFlagCallback(self, obstacleFlagUpdate):
+        self.object_detected = obstacleFlagUpdate
+
+    def obstAvoidDUpdate(self, dUpdate):
+        self.d_ref = dUpdate
+
+    def obstEmergBrakeUpdate(self, brakeUpdate):
+        #ToDo: Emergency Brake Flag
+        # self.d_emergencybrake = brakeUpdate
+
     def cbPose(self, lane_pose_msg):
 
         self.lane_reading = lane_pose_msg
 
-        ###TODO SAVIORS
+
 
         ## set object_detected here, flag message from saviors
-        #self.object_detected = ... (TRUE/FALSE)
 
-        if self.object_detected:   # if object is detected (TRUE)
-            self.d_ref = 0.02 # set d_ref here, LanePose message from saviors
+
+        robot_name = rospy.get_param("~veh", "") #ToDo Controllers: potentially update param to get the robot name
+        self.sub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
+        self.subscriber = rospy.Subscriber(self.sub_topic, bool, self.obstacleFlagCallback)
+
+        self.sub_topic = '/{}/obst_avoid/d_target'.format(robot_name)
+        self.subscriber = rospy.Subscriber(self.sub_topic, Float32, self.obstAvoidDUpdate) #Absolute value, with 0 on center line
+
+        self.sub_topic = 'obstacle_emergency_stop_flag'.format(robot_name)
+        self.subscriber = rospy.Subscriber(self.sub_topic, Bool, self.obstEmergBrakeUpdate)
+
+
+       # self.d_target_pub = rospy.Publisher(self.pub_topic, Float32, queue_size=1)
+
+        #if self.object_detected:   # if object is detected (TRUE)
+            #self.d_ref = 0.02 # set d_ref here, LanePose message from saviors
             # negetive value: moves towards right line
             # positive value: moves towards left line
 
