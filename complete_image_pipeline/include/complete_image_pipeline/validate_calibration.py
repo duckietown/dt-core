@@ -1,23 +1,21 @@
 from collections import OrderedDict
 import os
 
-from .image_simulation import simulate_image
 from duckietown_segmaps import FAMILY_SEGMAPS
 import duckietown_utils as dtu
-from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection, NoHomographyInfoAvailable
 import numpy as np
 from pi_camera import NoCameraInfoAvailable
 
-
-
+from .image_simulation import simulate_image
 
 __all__ = [
     'ValidateCalibration',
 ]
 
-class ValidateCalibration(D8App):
+
+class ValidateCalibration(dtu.D8App):
     """
 
         This program validates the intrinsic/extrinsics calibrations.
@@ -55,7 +53,7 @@ Example:
         robots = db.query('robot', query, raise_if_no_matches=True)
         self.debug('robots: %s' % sorted(robots))
 
-        actual_map_name =  'DT17_scenario_four_way'
+        actual_map_name = 'DT17_scenario_four_way'
 
         out = self.options.output
         create_visuals(robots, actual_map_name, out)
@@ -63,8 +61,9 @@ Example:
         for robot_name in robots:
             _ok = try_simulated_localization(robot_name)
 
+
 def try_simulated_localization(robot_name):
-    actual_map_name =  'DT17_scenario_straight_straight'
+    actual_map_name = 'DT17_scenario_straight_straight'
     template = 'DT17_template_straight_straight'
 
     line_detector_name = 'baseline'
@@ -79,11 +78,12 @@ def try_simulated_localization(robot_name):
 
     from complete_image_pipeline_tests.synthetic import test_synthetic_phi
     # XXX: should not include the _tests module
-    
+
     test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, d, phi, outd,
                        max_phi_err=max_phi_err,
                        max_d_err=max_d_err)
+
 
 def create_visuals(robots, actual_map_name, out):
     db = get_easy_algo_db()

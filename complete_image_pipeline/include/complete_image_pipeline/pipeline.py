@@ -36,13 +36,12 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     """
 
     dtu.check_isinstance(image, np.ndarray)
-    
 
     gpg = gp.get_ground_projection_geometry()
 
     res = OrderedDict()
     stats = OrderedDict()
-    
+
     res['Raw input image'] = image
     algo_db = get_easy_algo_db()
     line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
@@ -54,15 +53,13 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     pts.reset()
     pts.received_message()
     pts.decided_to_process()
-    
-    
+
     if all_details:
-        segment_list = image_prep.process(FakeContext(), image, line_detector, transform = None)
+        segment_list = image_prep.process(FakeContext(), image, line_detector, transform=None)
 
         res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
         res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
-    
-    
+
     with pts.phase('calculate AI transform'):
         ai.calculateTransform(image)
 
@@ -79,11 +76,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
                                            line_detector, transform=ai.applyTransform)
 
         if all_details:
-            
+
             res['resized and corrected'] = image_prep.image_corrected
-            
+
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
-    
+
     if all_details:
         res['segments_on_image_input_transformed'] = \
             vs_fancy_display(image_prep.image_cv, segment_list2)
@@ -92,8 +89,6 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['segments_on_image_input_transformed_resized'] = \
             vs_fancy_display(image_prep.image_resized, segment_list2)
 
-
-
     if all_details:
         grid = get_grid(image.shape[:2])
         res['grid'] = grid
@@ -101,7 +96,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     with pts.phase('rectify'):
         rectified0 = gpg.rectify(image)
-    
+
     rectified = ai.applyTransform(rectified0)
 
     if all_details:
@@ -111,7 +106,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     with pts.phase('rectify_segments'):
         segment_list2_rect = rectify_segments(gpg, segment_list2)
-        
+
     res['segments rectified on image rectified'] = \
         vs_fancy_display(rectified, segment_list2_rect)
 
@@ -153,7 +148,6 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
             res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
                                                  ground_truth=ground_truth)
 
-
     assumed = localization_template.get_map()
     res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
                                            ground_truth=ground_truth)
@@ -161,12 +155,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     dtu.logger.debug('plot_map')
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
 
-
     res['map reprojected on image'] = plot_map(rectified, assumed_axle, gpg,
-                                               do_ground=False, do_horizon=True, 
+                                               do_ground=False, do_horizon=True,
                                                do_faces=False, do_faces_outline=True,
                                                do_segments=False)
-    
+
     with pts.phase('quality computation'):
         predicted_segment_list_rectified = predict_segments(sm=assumed_axle, gpg=gpg)
         quality_res, quality_stats = judge_quality(image, segment_list2_rect, predicted_segment_list_rectified)
@@ -179,81 +172,80 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     dtu.logger.info(pts.get_stats())
     return res, stats
 
+
 def judge_quality(image, observed_segment_list, predicted_segment_list):
     res = OrderedDict()
     stats = OrderedDict()
-    
+
 #     mask2gray = lambda x: (x * 255).clip(0, 255).astype('uint8')
     H, W, _ = image.shape
     r = 1
-    reason_shape = (H*r, W*r, 3)
+    reason_shape = (H * r, W * r, 3)
     observed_width = int(14 * r)
-    predicted_width = int(50  * r)
-    
+    predicted_width = int(50 * r)
+
     summary_bgr = np.zeros(reason_shape, 'uint8')
-    
+
     ratios = []
-    for color in [Segment.WHITE,  Segment.YELLOW, Segment.RED, ]:
+    for color in [Segment.WHITE, Segment.YELLOW, Segment.RED, ]:
         predicted = only_one_color(predicted_segment_list, color)
         predicted_mask = np.zeros(reason_shape[0:2], 'float32')
         _draw_segment_list_on_image(predicted_mask, segment_list=predicted, width=predicted_width)
-         
-        predicted_mask = np.sign(predicted_mask)*255
-    
+
+        predicted_mask = np.sign(predicted_mask) * 255
+
         observed = only_one_color(observed_segment_list, color)
         observed_mask = np.zeros(reason_shape[0:2], 'float32')
         _draw_segment_list_on_image(observed_mask, segment_list=observed, width=observed_width)
         observed_mask = np.sign(observed_mask)
-        
+
         explained = np.sign(observed_mask * predicted_mask)
-        not_explained = observed_mask - explained 
-        
+        not_explained = observed_mask - explained
+
         _B, G, R = 0, 1, 2
         summary_bgr[:, :, R] |= (not_explained * 255).astype('uint8')
         summary_bgr[:, :, G] |= (explained * 255).astype('uint8')
-        
+
         ratio_explained = 1 - (np.sum(not_explained) / (np.sum(explained) + np.sum(not_explained) + 1))
         ratios.append(ratio_explained)
 #         res['predicted %s' % color] = mask2gray(predicted_mask)
 #         res['observed %s' % color] = mask2gray(observed_mask)
 #         res['explained %s = %d%%' % (color, ratio_explained*100)] = mask2gray(explained)
-    
+
     avg = np.mean(ratios)
-        
-    percent = lambda x: '%d%%' % (x*100)
+
+    percent = lambda x: '%d%%' % (x * 100)
     s = "W %s Y %s R %s" % (percent(ratios[0]), percent(ratios[1]), percent(ratios[2]))
     res['explained %s [%s]' % (percent(avg), s)] = summary_bgr
-    
+
     stats['quality'] = avg
     stats['ratios'] = ratios
-    return res, stats    
-    
+    return res, stats
+
+
 def _draw_segment_list_on_image(mask, segment_list, width):
     shape = mask.shape[:2]
-    
+
     for segment in segment_list.segments:
-        
+
         p1 = segment.pixels_normalized[0]
         p2 = segment.pixels_normalized[1]
-        
+
         P1 = normalized_to_image(p1, shape)
-        P2 = normalized_to_image(p2, shape) 
-        
+        P2 = normalized_to_image(p2, shape)
+
         paint = 255
-        
+
         cv2.line(mask, P1, P2, paint, width)
-        
-     
-    
-    
-    
+
+
 @dtu.contract(segment_list=SegmentList, color=int, returns=SegmentList)
 def only_one_color(segment_list, color):
     segments = [s for s in segment_list.segments if s.color == color]
     return SegmentList(segments=segments)
 
-    
-def get_grid(shape, L=32, col={0: (255,0,0), 1: (0,255,0)}):
+
+def get_grid(shape, L=32, col={0: (255, 0, 0), 1: (0, 255, 0)}):
     """ Creates a grid of given shape """
     H, W = shape
     res = np.zeros((H, W, 3), 'uint8')
@@ -262,5 +254,5 @@ def get_grid(shape, L=32, col={0: (255,0,0), 1: (0,255,0)}):
             cx = int(i / L)
             cy = int(j / L)
             coli = (cx + cy) % 2
-            res[i,j,:] = col[coli]
+            res[i, j, :] = col[coli]
     return res
