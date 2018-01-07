@@ -17,6 +17,7 @@ from sensor_msgs.msg import CompressedImage, Image
 
 
 class LineDetectorNode(object):
+
     def __init__(self):
         self.node_name = "LineDetectorNode"
 
@@ -54,10 +55,9 @@ class LineDetectorNode(object):
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
-        rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
+        rospy.loginfo("[%s] Initialized (verbose = %s)." % (self.node_name, self.verbose))
 
         rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)  # @UndefinedVariable
-
 
     def updateParams(self, _event):
         old_verbose = self.verbose
@@ -83,7 +83,6 @@ class LineDetectorNode(object):
             self.pub_edge = rospy.Publisher("~edge", Image, queue_size=1)
             self.pub_colorSegment = rospy.Publisher("~colorSegment", Image, queue_size=1)
 
-
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
@@ -93,7 +92,7 @@ class LineDetectorNode(object):
         if not self.active:
             return
         # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
+        thread = threading.Thread(target=self.processImage, args=(image_msg,))
         thread.setDaemon(True)
         thread.start()
         # Returns rightaway
@@ -141,7 +140,12 @@ class LineDetectorNode(object):
 
         # Decode from compressed image with OpenCV
         try:
-            image_cv = dtu.image_cv_from_jpg(image_msg.data)
+            if False:
+                image_cv = dtu.bgr_from_jpg(image_msg.data)
+            else:
+                image_cv_rgb = dtu.rgb_from_jpg_by_JPEG_library(image_msg.data)
+                image_cv = dtu.bgr_from_rgb(image_cv_rgb)
+
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
@@ -155,7 +159,7 @@ class LineDetectorNode(object):
             # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
             image_cv = cv2.resize(image_cv, (self.image_size[1], self.image_size[0]),
                                    interpolation=cv2.INTER_NEAREST)
-        image_cv = image_cv[self.top_cutoff:,:,:]
+        image_cv = image_cv[self.top_cutoff:, :, :]
 
         tk.completed('resized')
 
@@ -182,7 +186,7 @@ class LineDetectorNode(object):
 
         # Convert to normalized pixel coordinates, and add segments to segmentList
         arr_cutoff = np.array((0, self.top_cutoff, 0, self.top_cutoff))
-        arr_ratio = np.array((1./self.image_size[1], 1./self.image_size[0], 1./self.image_size[1], 1./self.image_size[0]))
+        arr_ratio = np.array((1. / self.image_size[1], 1. / self.image_size[0], 1. / self.image_size[1], 1. / self.image_size[0]))
         if len(white.lines) > 0:
             lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
             segmentList.segments.extend(self.toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
@@ -230,17 +234,15 @@ class LineDetectorNode(object):
 
             tk.completed('pub_edge/pub_segment')
 
-
         self.intermittent_log(tk.getall())
-
 
     def onShutdown(self):
         self.loginfo("Shutdown.")
 
-    def toSegmentMsg(self,  lines, normals, color):
+    def toSegmentMsg(self, lines, normals, color):
 
         segmentMsgList = []
-        for x1,y1,x2,y2,norm_x,norm_y in np.hstack((lines,normals)):
+        for x1, y1, x2, y2, norm_x, norm_y in np.hstack((lines, normals)):
             segment = Segment()
             segment.color = color
             segment.pixels_normalized[0].x = x1
@@ -253,7 +255,9 @@ class LineDetectorNode(object):
             segmentMsgList.append(segment)
         return segmentMsgList
 
+
 class Stats():
+
     def __init__(self):
         self.nresets = 0
         self.reset()
@@ -297,11 +301,8 @@ class Stats():
         return m
 
 
-
-
-
 if __name__ == '__main__':
-    rospy.init_node('line_detector',anonymous=False)
+    rospy.init_node('line_detector', anonymous=False)
     line_detector_node = LineDetectorNode()
     rospy.on_shutdown(line_detector_node.onShutdown)
     rospy.spin()

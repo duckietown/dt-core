@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-import rospy
 from cv_bridge import CvBridge
+from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped
+import duckietown_utils as dtu
+import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import SegmentList,   LanePose, BoolStamped, Twist2DStamped
-import duckietown_utils as dtu
 
 
 class LaneFilterNode(object):
+
     def __init__(self):
         self.node_name = "Lane Filter"
         self.active = True
@@ -23,16 +24,15 @@ class LaneFilterNode(object):
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
         # Publishers
-        self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
+        self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
 
-        self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
-        self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
-        self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
+        self.pub_ml_img = rospy.Publisher("~ml_img", Image, queue_size=1)
+        self.pub_entropy = rospy.Publisher("~entropy", Float32, queue_size=1)
+        self.pub_in_lane = rospy.Publisher("~in_lane", BoolStamped, queue_size=1)
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
-
 
     def updateParams(self, event):
         if self.filter is None:
@@ -42,11 +42,10 @@ class LaneFilterNode(object):
             self.loginfo('new filter config: %s' % str(c))
             self.filter = dtu.instantiate(c[0], c[1])
 
-
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def processSegments(self,segment_list_msg):
+    def processSegments(self, segment_list_msg):
         if not self.active:
             return
 
@@ -60,13 +59,13 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        ml = self.filter.update(segment_list_msg.segments)
+        ml = self.filter.update(segment_list_msg)
         if ml is not None:
-            ml_img = self.getDistributionImage(ml,segment_list_msg.header.stamp)
+            ml_img = self.getDistributionImage(ml, segment_list_msg.header.stamp)
             self.pub_ml_img.publish(ml_img)
 
         # Step 3: build messages and publish things
-        [d_max,phi_max] = self.filter.getEstimate()
+        [d_max, phi_max] = self.filter.getEstimate()
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
 
@@ -80,7 +79,7 @@ class LaneFilterNode(object):
         lanePose.status = lanePose.NORMAL
 
         # publish the belief image
-        belief_img = self.getDistributionImage(self.filter.belief,segment_list_msg.header.stamp)
+        belief_img = self.getDistributionImage(self.filter.belief, segment_list_msg.header.stamp)
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
 
@@ -90,13 +89,13 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
-    def getDistributionImage(self,mat,stamp):
+    def getDistributionImage(self, mat, stamp):
         bridge = CvBridge()
-        img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
+        img = bridge.cv2_to_imgmsg((255 * mat).astype('uint8'), "mono8")
         img.header.stamp = stamp
         return img
 
-    def updateVelocity(self,twist_msg):
+    def updateVelocity(self, twist_msg):
         self.velocity = twist_msg
 
     def onShutdown(self):
@@ -107,7 +106,7 @@ class LaneFilterNode(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node('lane_filter',anonymous=False)
+    rospy.init_node('lane_filter', anonymous=False)
     lane_filter_node = LaneFilterNode()
     rospy.on_shutdown(lane_filter_node.onShutdown)
     rospy.spin()

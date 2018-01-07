@@ -2,7 +2,7 @@ import os.path
 
 import cv2
 
-from duckietown_msgs.msg import Segment, SegmentList  
+from duckietown_msgs.msg import Segment, SegmentList
 import duckietown_utils as dtu
 import numpy as np
 from pi_camera import get_camera_info_for_robot
@@ -10,19 +10,21 @@ from pi_camera import get_camera_info_for_robot
 from .configuration import get_homography_for_robot
 from .ground_projection_geometry import GroundProjectionGeometry
 
-
 __all__ = [
     'GroundProjection',
 ]
+
 
 @dtu.memoize_simple
 def get_ground_projection(robot_name):
     return GroundProjection(robot_name)
 
+
 @dtu.contract(returns=GroundProjectionGeometry, robot_name=str)
 def get_ground_projection_geometry_for_robot(robot_name):
     gp = get_ground_projection(robot_name)
     return gp.get_ground_projection_geometry()
+
 
 class GroundProjection(object):
 
@@ -32,42 +34,42 @@ class GroundProjection(object):
         self._gpg = GroundProjectionGeometry(camera_info, homography)
 
         self.board_ = load_board_info()
-    
+
     @dtu.contract(returns=GroundProjectionGeometry)
     def get_ground_projection_geometry(self):
         return self._gpg
-    
+
     def get_camera_info(self):
         return self._gpg.ci
-    
+
     # wait until we have recieved the camera info message through ROS and then initialize
 #     def initialize_pinhole_camera_model(self, camera_info):
 #         self.ci = camera_info
 #         self.pcm.fromCameraInfo(camera_info)
         #print("pinhole camera model initialized")
-# 
+#
 #     def rectify_point(self, p):
 #         return self.gpc.rectify_point(p)
-#     
-#     
+#
+#
 #     def vector2pixel(self, vec):
 #         return self.gpc.vector2pixel(vec)
-# 
+#
 #     def pixel2vector(self, pixel):
 #         return self.gpc.pixel2vector(pixel)
-# 
+#
 #     def vector2ground(self, vec):
 #         return self.gpc.vector2ground(vec)
-# 
+#
 #     def ground2vector(self, point):
 #         return self.gpc.ground2vector(point)
-# 
+#
 #     def pixel2ground(self,pixel):
 #         return self.gpc.pixel2ground(pixel)
-# 
+#
 #     def ground2pixel(self, point):
 #         return self.gpc.ground2pixel(point)
-# 
+#
 #     def rectify(self, cv_image_raw):
 #         ''' Undistort image '''
 #         return self.gpc.rectify(cv_image_raw)
@@ -82,12 +84,12 @@ class GroundProjection(object):
         if ret == False:
             msg = "No corners found in image"
             dtu.logger.error(msg)
-            exit(1) # XXX
+            exit(1)  # XXX
         if len(corners) != self.board_['width'] * self.board_['height']:
             dtu.logger.error("Not all corners found in image")
-            exit(2) # XXX
+            exit(2)  # XXX
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
-        corners2 = cv2.cornerSubPix(cv_image_rectified, corners, (11,11), (-1,-1), criteria)
+        corners2 = cv2.cornerSubPix(cv_image_rectified, corners, (11, 11), (-1, -1), criteria)
 
         #TODO flip checks
         src_pts = []
@@ -98,7 +100,7 @@ class GroundProjection(object):
         # We're having a problem with our pattern since it's not rotation-invariant
 
         # only reverse order if first point is at bottom right corner
-        if ((corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][0] and (corners[0])[0][0] < (corners[self.board_['width']*self.board_['height']-1])[0][1]):
+        if ((corners[0])[0][0] < (corners[self.board_['width'] * self.board_['height'] - 1])[0][0] and (corners[0])[0][0] < (corners[self.board_['width'] * self.board_['height'] - 1])[0][1]):
             dtu.logger.info("Reversing order of points.")
             src_pts.reverse()
 
@@ -111,21 +113,22 @@ class GroundProjection(object):
         # Check if specific point in matrix is larger than zero (this would definitly mean we're having a corrupted rotation matrix)
         if(self.H[1][2] > 0):
             dtu.logger.error("WARNING: Homography could be corrupt!")
-            
+
     def write_homography(self, filename):
-        ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
+        ob = {'homography': sum(self.H.reshape(9, 1).tolist(), [])}
         dtu.yaml_write_to_file(ob, filename)
+
 
 @dtu.contract(sl=SegmentList, gpg=GroundProjectionGeometry, returns=SegmentList)
 def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
-    """ 
+    """
         Creates a new segment list with the ground coordinates set.
-    
+
     """
     cutoff = 0.01
     sl2 = SegmentList()
     sl2.header = sl.header
-    
+
     # Get ground truth of segmentList
     for s1 in sl.segments:
         g0 = gpg.vector2ground(s1.pixels_normalized[0])
@@ -139,9 +142,9 @@ def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
         color = s1.color
         s2 = Segment(points=points, pixels_normalized=pixels_normalized, color=color)
 #         s2.points[0] = g0
-#         s2.points[1] = g1 
+#         s2.points[1] = g1
 #         s2.pixels_normalized[0] = s1.pixels_normalized[0]
-#         s2.pixels_normalized[1] = s1.pixels_normalized[1] 
+#         s2.pixels_normalized[1] = s1.pixels_normalized[1]
 #         s2.color = s1.color
         # TODO what about normal and points
         sl2.segments.append(s2)
@@ -153,11 +156,11 @@ def load_board_info(filename=None):
     if filename is None:
         root = dtu.get_ros_package_path('duckietown')
         filename = root + '/config/baseline/ground_projection/ground_projection/default.yaml'
-        
+
     if not os.path.isfile(filename):
         msg = 'No such file: %s' % filename
         raise dtu.DTException(msg)
-        
+
     target_data = dtu.yaml_load_file(filename)
     target_info = {
         'width': target_data['board_w'],
