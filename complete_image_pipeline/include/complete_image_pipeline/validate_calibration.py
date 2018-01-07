@@ -3,6 +3,7 @@ import os
 
 from duckietown_segmaps import FAMILY_SEGMAPS
 import duckietown_utils as dtu
+from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
 from ground_projection import GroundProjection, NoHomographyInfoAvailable
 import numpy as np
@@ -15,7 +16,7 @@ __all__ = [
 ]
 
 
-class ValidateCalibration(dtu.D8App):
+class ValidateCalibration(D8App):
     """
 
         This program validates the intrinsic/extrinsics calibrations.
