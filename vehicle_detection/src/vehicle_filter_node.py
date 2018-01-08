@@ -120,13 +120,16 @@ class VehicleFilterNode(object):
 					pose_msg_out.detection.data = vehicle_corners_msg.detection.data
 					R2 = np.array([[cos(pose_msg_out.psi.data), -sin(pose_msg_out.psi.data)], [sin(pose_msg_out.psi.data), cos(pose_msg_out.psi.data)]])
 					translation_vector = -np.array([translation_vector[2], translation_vector[0]])
-                	translation_vector = np.dot(np.transpose(R2), translation_vector)
-                 	pose_msg_out.theta.data = np.arctan2(translation_vector[1] , translation_vector[0])
-                  	self.pub_pose.publish(pose_msg_out)
-                else:
-                 	print("Pose estimation failed")
-                elapsed_time = (rospy.Time.now() - start).to_sec()
-                self.pub_time_elapsed.publish(elapsed_time)
+					translation_vector = np.dot(np.transpose(R2), translation_vector)
+					pose_msg_out.theta.data = np.arctan2(translation_vector[1] , translation_vector[0])
+					self.pub_pose.publish(pose_msg_out)
+				else:
+					rospy.loginfo("[%s] Pose estimation failed, too high reprojection error." %(self.node_name))
+			else:
+				rospy.loginfo("[%s] Pose estimation failed." %(self.node_name))
+			
+			elapsed_time = (rospy.Time.now() - start).to_sec()
+			self.pub_time_elapsed.publish(elapsed_time)
           	self.lock.unlock()
           	return
 		
