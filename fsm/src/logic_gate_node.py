@@ -68,7 +68,10 @@ class LogicGateNode(object):
             if event_name in inputs:    # one of the inputs to gate
                 print event_name
                 if event_msg is None:
-                    bool_list.append(False)
+                    if "default" in self.events_dict[event_name]:
+                        bool_list.append(self.events_dict[event_name]["default"])
+                    else:
+                        bool_list.append(False)
                 else:
                     if "field" in self.events_dict[event_name]: # if special type of message
                         if (getattr(event_msg, self.events_dict[event_name]["field"]) == self.event_trigger_dict[event_name]):
