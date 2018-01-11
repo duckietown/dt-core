@@ -348,6 +348,9 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
+        if car_control_msg.v == 0:
+            car_control_msg.omega = 0
+
         # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         # rospy.loginfo("heading_err: " + str(self.heading_err))
         # rospy.loginfo("heading_integral: " + str(self.heading_integral))
