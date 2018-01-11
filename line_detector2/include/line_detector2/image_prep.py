@@ -9,6 +9,8 @@ from .ldn import toSegmentMsg
 
 class ImagePrep(object):
 
+    FAMILY = 'image_prep'
+
     def __init__(self, shape, top_cutoff, resampling_algorithm, fuzzy_mult=None, fuzzy_noise=None):
         self.shape = shape
         self.top_cutoff = top_cutoff
@@ -34,22 +36,22 @@ class ImagePrep(object):
             h0, w0 = image_cv.shape[0:2]
             h1, w1 = self.shape
 
-            if (h0,w0) != (h1,w1):
+            if (h0, w0) != (h1, w1):
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
                 if self.resampling_algorithm == 'nearest':
-                    interpolation=cv2.INTER_NEAREST
+                    interpolation = cv2.INTER_NEAREST
                 elif self.resampling_algorithm == 'linear':
-                    interpolation=cv2.INTER_LINEAR
+                    interpolation = cv2.INTER_LINEAR
                 else:
                     raise NotImplementedError(self.resampling_algorithm)
-                
-                self.image_resized = cv2.resize(image_cv, (w1,h1), 
+
+                self.image_resized = cv2.resize(image_cv, (w1, h1),
                                                 interpolation=interpolation)
-                 
+
             else:
                 self.image_resized = image_cv
 
-            self.image_cut = self.image_resized[self.top_cutoff:,:,:]
+            self.image_cut = self.image_resized[self.top_cutoff:, :, :]
 
         with context.phase('correcting'):
             # apply color correction: AntiInstagram
@@ -71,10 +73,10 @@ class ImagePrep(object):
                 white = line_detector.detectLines('white')
             with context.phase('yellow'):
                 yellow = line_detector.detectLines('yellow')
-            
+
             with context.phase('red'):
                 red = line_detector.detectLines('red')
-            
+
             with context.phase('get_segment_list_normalized'):
                 segment_list = get_segment_list_normalized(self.top_cutoff,
                                                        self.shape, white, yellow, red)
@@ -89,15 +91,13 @@ class ImagePrep(object):
             return segment_list
 
 
-
-
 def get_segment_list_normalized(top_cutoff, shape, white, yellow, red):
     segmentList = SegmentList()
 
     # Convert to normalized pixel coordinates, and add segments to segmentList
     s0, s1 = shape
     arr_cutoff = np.array((0, top_cutoff, 0, top_cutoff))
-    arr_ratio = np.array((1./ s1, 1./ s0, 1./ s1, 1./ s0))
+    arr_ratio = np.array((1. / s1, 1. / s0, 1. / s1, 1. / s0))
 
     if len(white.lines) > 0:
         lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)

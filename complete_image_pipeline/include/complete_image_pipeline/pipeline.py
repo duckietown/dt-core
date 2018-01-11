@@ -3,8 +3,8 @@ from collections import OrderedDict
 import cv2
 
 from anti_instagram import AntiInstagramInterface
-from duckietown_msgs.msg._Segment import Segment
-from duckietown_msgs.msg._SegmentList import SegmentList
+from duckietown_msgs.msg import Segment
+from duckietown_msgs.msg import SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
 from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
@@ -18,13 +18,15 @@ from lane_filter import FAMILY_LANE_FILTER
 from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display, normalized_to_image
+from line_detector2.image_prep import ImagePrep
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 
 
 @dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
 def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name, anti_instagram_name,
-                 all_details=False, ground_truth=None,
+                 all_details=False,
+                 ground_truth=None,
                  actual_map=None):
     """
         Image: numpy (H,W,3) == BGR
@@ -46,7 +48,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     algo_db = get_easy_algo_db()
     line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
     lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
-    image_prep = algo_db.create_instance('image_prep', image_prep_name)
+    image_prep = algo_db.create_instance(ImagePrep.FAMILY, image_prep_name)
     ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
 
     pts = ProcessingTimingStats()
