@@ -212,7 +212,7 @@ class lane_controller(object):
             if pose_source == "lane_filter":
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
-                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.v_ref_possible["main_pose"] = self.v_bar
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
 
@@ -267,8 +267,8 @@ class lane_controller(object):
         self.pub_car_cmd.publish(car_cmd_msg)
 
 
-    def cbPose(self, lane_pose_msg):
-        self.lane_reading = lane_pose_msg
+    def cbPose(self, pose_msg):
+        self.lane_reading = pose_msg
         # Calculating the delay image processing took
         timestamp_now = rospy.Time.now()
         image_delay_stamp = timestamp_now - self.lane_reading.header.stamp
@@ -278,12 +278,12 @@ class lane_controller(object):
 
         prev_cross_track_err = self.cross_track_err
         prev_heading_err = self.heading_err
-        self.cross_track_err = lane_pose_msg.d - self.d_offset
-        self.heading_err = lane_pose_msg.phi
+        self.cross_track_err = pose_msg.d - self.d_offset
+        self.heading_err = pose_msg.phi
 
         car_control_msg = Twist2DStamped()
-        car_control_msg.header = lane_pose_msg.header
-        car_control_msg.v = self.v_bar #*self.speed_gain #Left stick V-axis. Up is positive
+        car_control_msg.header = pose_msg.header
+        car_control_msg.v = pose_msg #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -318,7 +318,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature_ref * 2 * math.pi
+        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * pose_msg.curvature_ref * 2 * math.pi
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -340,7 +340,7 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
-        rospy.loginfo("lane_pose_msg.curvature_ref: " + str(lane_pose_msg.curvature_ref))
+        rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
         rospy.loginfo("heading_err: " + str(self.heading_err))
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
