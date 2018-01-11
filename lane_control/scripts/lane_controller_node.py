@@ -83,6 +83,10 @@ class lane_controller(object):
         self.heading_err = 0
         self.cross_track_integral = 0
         self.heading_integral = 0
+        self.cross_track_integral_top_cutoff = 0.3
+        self.cross_track_integral_bottom_cutoff = -0.3
+        self.heading_integral_top_cutoff = 1.2
+        self.heading_integral_bottom_cutoff = -1.2
         self.time_start_curve = 0
         use_feedforward_part = False
         self.wheels_cmd_executed = WheelsCmdStamped()
@@ -107,7 +111,7 @@ class lane_controller(object):
 
         self.active = True
 
-        # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file)
+        # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file (see launch-file of this node))
         self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
         self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
         self.k_theta = self.setupParameter("~k_theta",k_theta) # P gain for d
@@ -292,27 +296,25 @@ class lane_controller(object):
             self.cross_track_integral += self.cross_track_err * dt
             self.heading_integral += self.heading_err * dt
 
-        if self.cross_track_integral > 0.3:
-            rospy.loginfo("you're greater 0.3")
-            self.cross_track_integral = 0.3
-        if self.cross_track_integral < -0.3:
-            rospy.loginfo("youre smaller -0.3")
-            self.cross_track_integral = -0.3
+        if self.cross_track_integral > self.cross_track_integral_top_cutoff:
+            self.cross_track_integral = self.cross_track_integral_top_cutoff
+        if self.cross_track_integral < self.cross_track_integral_bottom_cutoff:
+            self.cross_track_integral = self.cross_track_integral_bottom_cutoff
 
-        if self.heading_integral < -1.2:
-            self.heading_integral = -1.2
-        if self.heading_integral > 1.2:
-            self.heading_integral = 1.2
+        if self.heading_integral > self.heading_integral_top_cutoff:
+            self.heading_integral = self.heading_integral_top_cutoff
+        if self.heading_integral < self.heading_integral_bottom_cutoff:
+            self.heading_integral = self.heading_integral_bottom_cutoff
 
         if abs(self.cross_track_err) <= 0.011:       # TODO: replace '<= 0.011' by '< delta_d' (but delta_d might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.cross_track_integral = 0
         if abs(self.heading_err) <= 0.051:           # TODO: replace '<= 0.051' by '< delta_phi' (but delta_phi might need to be sent by the lane_filter_node.py or even lane_filter.py)
             self.heading_integral = 0
-        if np.sign(self.cross_track_err) != np.sign(prev_cross_track_err):
+        if np.sign(self.cross_track_err) != np.sign(prev_cross_track_err):      # sign of error changed => error passed zero
             self.cross_track_integral = 0
-        if np.sign(self.heading_err) != np.sign(prev_heading_err):
+        if np.sign(self.heading_err) != np.sign(prev_heading_err):      # sign of error changed => error passed zero
             self.heading_integral = 0
-        if self.wheels_cmd_executed.vel_right == 0 and self.wheels_cmd_executed.vel_left == 0:
+        if self.wheels_cmd_executed.vel_right == 0 and self.wheels_cmd_executed.vel_left == 0:    # if actual velocity sent to the motors is zero
             self.cross_track_integral = 0
             self.heading_integral = 0
 
@@ -338,13 +340,13 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
-        rospy.loginfo("lane_pose_msg.curvature: " + str(lane_pose_msg.curvature))
+        rospy.loginfo("lane_pose_msg.curvature_ref: " + str(lane_pose_msg.curvature_ref))
         rospy.loginfo("heading_err: " + str(self.heading_err))
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("use_feedforward_part: " + str(self.use_feedforward_part))
-        print "fsm_state in lane_controller_node: ", self.fsm_state
+        rospy.loginfo("fsm_state in lane_controller_node: " + str(self.fsm_state))
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
 
