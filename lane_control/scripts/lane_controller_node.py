@@ -183,7 +183,7 @@ class lane_controller(object):
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
-        if flag_name = "obstacle_detected":
+        if flag_name == "obstacle_detected":
             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
         
     
@@ -191,7 +191,7 @@ class lane_controller(object):
         if not self.active:
             return
 
-        if pose_source = "obstacle_avoidance":
+        if pose_source == "obstacle_avoidance":
             print "obstacle_avoidance pose_msg d_ref: ", input_pose_msg.d_ref
             print "obstacle_avoidance pose_msg v_ref: ", input_pose_msg.v_ref
 
