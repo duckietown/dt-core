@@ -96,17 +96,20 @@ class lane_controller(object):
             if pose_source == "intersection_navigation":
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.main_pose_source = pose_source
                 self.pose_initialized = True
         elif self.fsm_state == "PARKING":
             if pose_source == "parking":
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.main_pose_source = pose_source
                 self.pose_initialized = True
         else:
             if pose_source == "lane_filter":
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.main_pose_source = pose_source
                 self.pose_initialized = True
 
         if self.flag_dict["fleet_planning_lane_following_override_active"] == True:
@@ -144,7 +147,7 @@ class lane_controller(object):
         self.cross_track_integral = 0
         self.heading_integral = 0
         self.time_start_curve = 0
-        turn_off_feedforward_part = False
+        use_feedforward_part = False
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_limits = Twist2DStamped()
@@ -164,6 +167,7 @@ class lane_controller(object):
         print "pose_msg: ", self.pose_msg
         self.pose_msg_dict = dict()
         self.v_ref_possible = dict()
+        self.main_pose_source = None
 
         self.active = True
 
@@ -177,7 +181,7 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id)
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
-        self.turn_off_feedforward_part = self.setupParameter("~turn_off_feedforward_part",turn_off_feedforward_part)
+        self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part)
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
@@ -199,7 +203,7 @@ class lane_controller(object):
         self.curvature_inner = 1 / 0.175
         # incurvature = rospy.get_param("~incurvature") # TODO remove after estimator is introduced
         # curve_inner = rospy.get_param("~curve_inner") # TODO remove after estimator is introduced
-        turn_off_feedforward_part = rospy.get_param("~turn_off_feedforward_part")
+        use_feedforward_part = rospy.get_param("~use_feedforward_part")
 
         k_Id = rospy.get_param("~k_Id")
         k_Iphi = rospy.get_param("~k_Iphi")
@@ -207,8 +211,8 @@ class lane_controller(object):
             rospy.loginfo("ADJUSTED I GAIN")
             self.cross_track_integral = 0
             self.k_Id = k_Id
-        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.turn_off_feedforward_part, self.use_radius_limit)
-        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, turn_off_feedforward_part, use_radius_limit)
+        params_old = (self.v_bar,self.k_d,self.k_theta,self.d_thres,self.theta_thres, self.d_offset, self.k_Id, self.k_Iphi, self.use_feedforward_part, self.use_radius_limit)
+        params_new = (v_bar,k_d,k_theta,d_thres,theta_thres, d_offset, k_Id, k_Iphi, use_feedforward_part, use_radius_limit)
 
         if params_old != params_new:
             rospy.loginfo("[%s] Gains changed." %(self.node_name))
@@ -222,7 +226,7 @@ class lane_controller(object):
             self.d_offset = d_offset
             self.k_Id = k_Id
             self.k_Iphi = k_Iphi
-            self.turn_off_feedforward_part = turn_off_feedforward_part
+            self.use_feedforward_part = use_feedforward_part
 
             if use_radius_limit != self.use_radius_limit:
                 self.use_radius_limit = use_radius_limit
@@ -364,7 +368,7 @@ class lane_controller(object):
         # else:
         #     self.curvature = self.curvature_outer
         omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature_ref * 2 * math.pi
-        if self.turn_off_feedforward_part:
+        if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
         omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
@@ -417,7 +421,7 @@ class lane_controller(object):
         rospy.loginfo("heading_integral: " + str(self.heading_integral))
         rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
+        rospy.loginfo("use_feedforward_part: " + str(self.use_feedforward_part))
         print "fsm_state in lane_controller_node: ", self.fsm_state
         # rospy.loginfo("actuator_limits.v: " + str(self.actuator_limits.v))
         # rospy.loginfo("actuator_limits.omega: " + str(self.actuator_limits.omega))
