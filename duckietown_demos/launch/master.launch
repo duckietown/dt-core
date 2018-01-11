@@ -304,6 +304,8 @@
 			<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 			<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
+			<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
+			<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_active_flag" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
