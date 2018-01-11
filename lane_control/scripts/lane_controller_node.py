@@ -105,6 +105,7 @@ class lane_controller(object):
         else:
             if pose_source == "lane_filter":
                 self.pose_msg = input_pose_msg
+                self.pose_msg.curvature_ref = input_pose_msg.curvature
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
                 self.pose_initialized = True
 
@@ -369,7 +370,7 @@ class lane_controller(object):
         #     self.curvature  = self.curvature_inner
         # else:
         #     self.curvature = self.curvature_outer
-        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature * 2 * math.pi
+        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * lane_pose_msg.curvature_ref * 2 * math.pi
         if self.turn_off_feedforward_part:
             omega_feedforward = 0
 
