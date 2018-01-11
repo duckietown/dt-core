@@ -162,7 +162,7 @@
 
 	    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
 		<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
-		<remap from="inverse_kinematics_node/actuator_params_received" to="lane_controller_node/actuator_params_received" />
+		<remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
 		<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
 		<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
@@ -303,7 +303,7 @@
 			<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 			<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 			<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
-			<remap from="lane_controller_node/actuator_params" to="inverse_kinematics_node/actuator_params" />
+			<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
 			<include file="$(find lane_control)/launch/lane_controller_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
 				<arg name="config" value="$(arg config)"/>
