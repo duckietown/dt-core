@@ -184,6 +184,7 @@ class lane_controller(object):
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
         if flag_name == "obstacle_detected":
+            print "flag obstacle_detected changed"
             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
         
     
