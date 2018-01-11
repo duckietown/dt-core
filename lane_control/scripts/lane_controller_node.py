@@ -19,7 +19,7 @@ class lane_controller(object):
 
         # Publicaiton
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
-        self.pub_actuator_params_received = rospy.Publisher("~actuator_params_received", BoolStamped, queue_size=1)
+        self.pub_actuator_limits_received = rospy.Publisher("~actuator_limits_received", BoolStamped, queue_size=1)
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
         # Subscriptions
@@ -45,7 +45,7 @@ class lane_controller(object):
         # self.sub_implicit_coord_velocity_limit_active = rospy.Subscriber("~implicit_coord_velocity_limit_active", BoolStamped, self.setFlag, "implicit_coord_velocity_limit_active", queue_size=1)   # TODO: remap topic in file catkin_ws/src/70-convenience-packages/duckietown_demos/launch/master.launch !
 
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
-        self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
+        self.sub_actuator_limits = rospy.Subscriber("~actuator_limits", Twist2DStamped, self.updateActuatorLimits, queue_size=1)
 
         # FSM 
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
@@ -147,14 +147,10 @@ class lane_controller(object):
         turn_off_feedforward_part = False
         self.wheels_cmd_executed = WheelsCmdStamped()
 
-        self.actuator_params = ActuatorParameters()
-        self.actuator_params.gain = 0.0
-        self.actuator_params.trim = 0.0
-        self.actuator_params.baseline = 0.0
-        self.actuator_params.radius = 0.0
-        self.actuator_params.k = 0.0
-        self.actuator_params.limit = 0.0
-        self.omega_max = 999.0     # TODO: change!
+        self.actuator_limits = Twist2DStamped()
+        self.actuator_limits.v = 999.0     # to make sure the limit is not hit before the message is received
+        self.actuator_limits.omega = 999.0     # to make sure the limit is not hit before the message is received
+        self.omega_max = 999.0     # considering radius limitation and actuator limits   # to make sure the limit is not hit before the message is received
 
         self.use_radius_limit = True
 
@@ -185,6 +181,7 @@ class lane_controller(object):
         # self.incurvature = self.setupParameter("~incurvature",incurvature)
         # self.curve_inner = self.setupParameter("~curve_inner",curve_inner)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
+        self.min_radius = self.setupParameter("~min_rad", 0.0)
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -243,18 +240,14 @@ class lane_controller(object):
         self.wheels_cmd_executed = msg_wheels_cmd
 
 
-    def updateActuatorParameters(self, msg_actuator_params):
-        self.actuator_params = msg_actuator_params
-        rospy.loginfo("actuator_params updated to: ")
-        rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
-        rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
-        rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
-        rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
-        rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
-        rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
-        msg_actuator_params_received = BoolStamped()
-        msg_actuator_params_received.data = True
-        self.pub_actuator_params_received.publish(msg_actuator_params_received)
+    def updateActuatorLimits(self, msg_actuator_limits):
+        self.actuator_limits = msg_actuator_limits
+        rospy.loginfo("actuator limits updated to: ")
+        rospy.loginfo("actuator_limits.v: " + str(self.actuator_limits.v))
+        rospy.loginfo("actuator_limits.omega: " + str(self.actuator_limits.omega))
+        msg_actuator_limits_received = BoolStamped()
+        msg_actuator_limits_received.data = True
+        self.pub_actuator_limits_received.publish(msg_actuator_limits_received)
 
 
     def setFlag(self, msg_flag, flag_name):
@@ -381,9 +374,8 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        ### omega_max_actuator_params = .....  # TODO: complete (based on parameters from self.actuator_params)
         ### omega_max_radius_limitation = .....  # TODO: complete (based on radius limitation)
-        ### self.omega_max = min(omega_max_actuator_params, omega_max_radius_limitation)
+        ### self.omega_max = min(self.actuator_limits.omega, omega_max_radius_limitation)
 
         if omega > self.omega_max:
             self.cross_track_integral -= self.cross_track_err * dt
@@ -425,12 +417,8 @@ class lane_controller(object):
         rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
         rospy.loginfo("turn_off_feedforward_part: " + str(self.turn_off_feedforward_part))
         print "fsm_state in lane_controller_node: ", self.fsm_state
-        # rospy.loginfo("actuator_params.gain: " + str(self.actuator_params.gain))
-        # rospy.loginfo("actuator_params.trim: " + str(self.actuator_params.trim))
-        # rospy.loginfo("actuator_params.baseline: " + str(self.actuator_params.baseline))
-        # rospy.loginfo("actuator_params.radius: " + str(self.actuator_params.radius))
-        # rospy.loginfo("actuator_params.k: " + str(self.actuator_params.k))
-        # rospy.loginfo("actuator_params.limit: " + str(self.actuator_params.limit))
+        # rospy.loginfo("actuator_limits.v: " + str(self.actuator_limits.v))
+        # rospy.loginfo("actuator_limits.omega: " + str(self.actuator_limits.omega))
 
         # controller mapping issue
         # car_control_msg.steering = -car_control_msg.steering
