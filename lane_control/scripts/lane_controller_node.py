@@ -283,7 +283,7 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
-        car_control_msg.v = pose_msg #*self.speed_gain #Left stick V-axis. Up is positive
+        car_control_msg.v = pose_msg.v_ref #*self.speed_gain #Left stick V-axis. Up is positive
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
