@@ -125,6 +125,8 @@ class lane_controller(object):
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
+        self.v_ref_possible["default"] = self.v_bar
+
 
     def getGains_event(self, event):
         v_bar = rospy.get_param("~v_bar")
@@ -194,6 +196,7 @@ class lane_controller(object):
         if self.pose_initialized:
             v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
             self.v_ref_possible.clear()
+            self.v_ref_possible["default"] = self.v_bar
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
