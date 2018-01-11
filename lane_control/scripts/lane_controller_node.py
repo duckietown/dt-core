@@ -340,13 +340,13 @@ class lane_controller(object):
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
 
-        rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
-        rospy.loginfo("heading_err: " + str(self.heading_err))
-        rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
-        rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        rospy.loginfo("use_feedforward_part: " + str(self.use_feedforward_part))
-        rospy.loginfo("fsm_state in lane_controller_node: " + str(self.fsm_state))
+        # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
+        # rospy.loginfo("heading_err: " + str(self.heading_err))
+        # rospy.loginfo("heading_integral: " + str(self.heading_integral))
+        # rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
+        # rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
+        # rospy.loginfo("use_feedforward_part: " + str(self.use_feedforward_part))
+        # rospy.loginfo("fsm_state in lane_controller_node: " + str(self.fsm_state))
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
 
