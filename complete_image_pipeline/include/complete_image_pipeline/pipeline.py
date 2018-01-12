@@ -3,8 +3,7 @@ from collections import OrderedDict
 import cv2
 
 from anti_instagram import AntiInstagramInterface
-from duckietown_msgs.msg import Segment
-from duckietown_msgs.msg import SegmentList
+from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
 from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
 from duckietown_segmaps.transformations import TransformationsInfo
@@ -151,13 +150,15 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
                                                  ground_truth=ground_truth)
 
     assumed = localization_template.get_map()
-    res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
+
+    with pts.phase('plot_map_and_segments'):
+        res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
                                            ground_truth=ground_truth)
 
-    dtu.logger.debug('plot_map')
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
 
-    res['map reprojected on image'] = plot_map(rectified, assumed_axle, gpg,
+    with pts.phase('plot_map reprojected'):
+        res['map reprojected on image'] = plot_map(rectified, assumed_axle, gpg,
                                                do_ground=False, do_horizon=True,
                                                do_faces=False, do_faces_outline=True,
                                                do_segments=False)

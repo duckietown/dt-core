@@ -38,5 +38,25 @@ subscriptions:
         topic: ~lane_pose
         type: duckietown_msgs/LanePose
         queue_size: 1
+    lane_reading_intersection_navigation:
+        topic: ~lane_pose_intersection_navigation
+        type: duckietown_msgs/LanePose
+        queue_size: 1
+    lane_reading_obstacle_avoidance:
+        topic: ~lane_pose_obstacle_avoidance
+        type: duckietown_msgs/LanePose
+        queue_size: 1
+    lane_reading_parking:
+        topic: ~lane_pose_parking
+        type: duckietown_msgs/LanePose
+        queue_size: 1
+    velocity_command:
+        topic: ~implicit_coordination_velocity
+        type: duckietown_msgs/LanePose
+        queue_size: 1
+    fsm_mode:
+        topic: ~mode
+        type: duckietown_msgs/FSMState
+        queue_size: 1
 
 contracts: {}
