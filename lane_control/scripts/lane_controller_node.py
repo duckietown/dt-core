@@ -194,9 +194,10 @@ class lane_controller(object):
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
         if self.pose_initialized:
+            v_ref_possible_default = self.v_ref_possible["default"]
             v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
             self.v_ref_possible.clear()
-            self.v_ref_possible["default"] = self.v_bar
+            self.v_ref_possible["default"] = v_ref_possible_default
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
