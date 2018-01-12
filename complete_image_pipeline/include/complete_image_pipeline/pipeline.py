@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import cv2
+import matplotlib
 
 from anti_instagram import AntiInstagramInterface
 from duckietown_msgs.msg import Segment, SegmentList
@@ -35,6 +36,9 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         ground_truth = pose
     """
+    print('backend: %s' % matplotlib.get_backend())
+
+    quick = False
 
     dtu.check_isinstance(image, np.ndarray)
 
@@ -122,8 +126,9 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     with pts.phase('lane filter update'):
         _likelihood = lane_filter.update(sg)
 
-    with pts.phase('lane filter plot'):
-        res['likelihood'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
+    if not quick:
+        with pts.phase('lane filter plot'):
+            res['likelihood'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
     easy_algo_db = get_easy_algo_db()
 
     if isinstance(lane_filter, (LaneFilterMoreGeneric)):
@@ -151,9 +156,10 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     assumed = localization_template.get_map()
 
-    with pts.phase('plot_map_and_segments'):
-        res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
-                                           ground_truth=ground_truth)
+    if not quick:
+        with pts.phase('plot_map_and_segments'):
+            res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
+                                               ground_truth=ground_truth)
 
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
 
