@@ -4,21 +4,24 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 import numpy as np
 from std_msgs.msg import Float32
-from duckietown_msgs.msg import (SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped,
-    FSMState)
+from duckietown_msgs.msg import SegmentList, Segment, Pixel, LanePose, BoolStamped, Twist2DStamped
 from duckietown_utils.instantiate_utils import instantiate
 
 class LaneFilterNode(object):
     def __init__(self):
-        self.node_name = rospy.get_name()
+        self.node_name = "Lane Filter"
         self.active = True
         self.filter = None
         self.updateParams(None)
         
         self.t_last_update = rospy.get_time()
         self.velocity = Twist2DStamped()
-        self.d_median = []
-        self.phi_median = []
+
+        # Define Constants
+        self.curvature_res = self.filter.curvature_res
+
+        # Set parameters to server
+        rospy.set_param('~curvature_res', self.curvature_res) #Write to parameter server for transparancy
         
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
@@ -28,18 +31,12 @@ class LaneFilterNode(object):
         # Publishers
         self.pub_lane_pose  = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
-        self.pub_ml_img = rospy.Publisher("~ml_img",Image,queue_size=1)
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
-        
-        # FSM 
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
-        self.active = True
-     
-
+      
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+        self.latencyArray = []
 
 
     def updateParams(self, event):
@@ -52,15 +49,19 @@ class LaneFilterNode(object):
             
 
     def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data # true or false given by FSM
-
-    def cbMode(self,switch_msg):
-        self.fsm_state = switch_msg.state # String of current FSM state
-        print "fsm_state: " , self.fsm_state
+        self.active = switch_msg.data
 
     def processSegments(self,segment_list_msg):
+        # Get actual timestamp for latency measurement
+        timestamp_now = rospy.Time.now()
+
         if not self.active:
             return
+
+        # Step 0: get values from server
+        if (rospy.get_param('~curvature_res') is not self.curvature_res):
+            self.curvature_res = rospy.get_param('~curvature_res')
+            self.filter.updateRangeArray(self.curvature_res)
 
         # Step 1: predict
         current_time = rospy.get_time()
@@ -68,45 +69,16 @@ class LaneFilterNode(object):
         self.t_last_update = current_time
 
         # Step 2: update
-        range_arr = np.zeros(self.filter.num_belief+1)
-        range_max = 0.6  # range to consider edges in general
-        range_min = 0.2
-        range_diff = (range_max - range_min)/(self.filter.num_belief - 1)
-        
-        for i in range(1,self.filter.num_belief + 1):
-            range_arr[i] = range_min + (i-1)*range_diff
-
-        self.filter.update(segment_list_msg.segments, range_arr)
+        self.filter.update(segment_list_msg.segments)
 
         # Step 3: build messages and publish things
-        [d_max,phi_max] = self.filter.getEstimate()
-        #print "d_max = ", d_max
-        #print "phi_max = ", phi_max
-        sum_phi_l = np.sum(phi_max[1:self.filter.num_belief])
-        sum_d_l   = np.sum(d_max[1:self.filter.num_belief])
-        av_phi_l  = np.average(phi_max[1:self.filter.num_belief])
-        av_d_l    = np.average(d_max[1:self.filter.num_belief])
-
+        [d_max, phi_max] = self.filter.getEstimate()
+        print "d_max = ", d_max
+        print "phi_max = ", phi_max
 
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
 
-        #if (sum_phi_l<-1.6 and av_d_l>0.05):
-        #    print "I see a left curve"
-        #elif (sum_phi_l>1.6 and av_d_l <-0.05):
-        #    print "I see a right curve"
-        #else:
-        #    print "I am on a straight line" 
-
-        delta_dmax = np.median(d_max[1:]) # - d_max[0]
-        delta_phimax = np.median(phi_max[1:]) #- phi_max[0]
-
-        if len(self.d_median) >= 5:
-            self.d_median.pop(0)
-            self.phi_median.pop(0)
-        self.d_median.append(delta_dmax)
-        self.phi_median.append(delta_phimax)
-        
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
@@ -115,17 +87,8 @@ class LaneFilterNode(object):
         lanePose.in_lane = in_lane
         lanePose.status = lanePose.NORMAL
 
-        #print "Delta dmax", delta_dmax
-        #print "Delta phimax", delta_phimax
-        if np.median(self.phi_median) < -0.3 and np.median(self.d_median) > 0.05:
-            # print "left curve"
-            lanePose.curvature = 0.025
-        elif np.median(self.phi_median) > 0.2 and np.median(self.d_median) < -0.02:
-            # print "right curve"
-            lanePose.curvature = -0.054
-        else:
-            # print "straight line"
-            lanePose.curvature = 0.0
+        if self.curvature_res > 0:
+            lanePose.curvature = self.filter.getCurvature(d_max[1:], phi_max[1:])
 
         # publish the belief image
         bridge = CvBridge()
@@ -133,6 +96,18 @@ class LaneFilterNode(object):
         belief_img.header.stamp = segment_list_msg.header.stamp
         
         self.pub_lane_pose.publish(lanePose)
+
+        # Latency of Estimation including curvature estimation
+        estimation_latency_stamp = rospy.Time.now() - timestamp_now
+        estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs/1e9
+        self.latencyArray.append(estimation_latency)
+
+        if (len(self.latencyArray) >= 20):
+            self.latencyArray.pop(0)
+
+        # print "Latency of segment list: ", segment_latency
+        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+
         self.pub_belief_img.publish(belief_img)
 
         # also publishing a separate Bool for the FSM
@@ -141,12 +116,6 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
-    def getDistributionImage(self,mat,stamp):
-        bridge = CvBridge()
-        img = bridge.cv2_to_imgmsg((255*mat).astype('uint8'), "mono8")
-        img.header.stamp = stamp
-        return img
-        
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
 
