@@ -15,9 +15,11 @@ class StopLineFilterNode(object):
         self.lane_pose = LanePose()
 
         ## params
-        self.stop_distance = self.setupParam("~stop_distance", 0.25) # distance from the stop line that we should stop
+        self.stop_distance = self.setupParam("~stop_distance", 0.22) # distance from the stop line that we should stop
         self.min_segs      = self.setupParam("~min_segs", 2) # minimum number of red segments that we should detect to estimate a stop
         self.off_time      = self.setupParam("~off_time", 2)
+        self.max_y         = self.setupParam("~max_y ", 0.2) # If y value of detected red line is smaller than max_y we will not set at_stop_line true.
+
 
         self.state = "JOYSTICK_CONTROL"
         self.sleep = False
@@ -43,6 +45,8 @@ class StopLineFilterNode(object):
         self.stop_distance = rospy.get_param("~stop_distance")
         self.min_segs      = rospy.get_param("~min_segs")
         self.off_time      = rospy.get_param("~off_time")
+        self.max_y         = rospy.get_param("~max_y")
+
 
     def processStateChange(self, msg):
         if self.state == "INTERSECTION_CONTROL" and (msg.state == "LANE_FOLLOWING" or msg.state == "PARALLEL_AUTONOMY"):
@@ -101,7 +105,7 @@ class StopLineFilterNode(object):
         stop_line_point.x = stop_line_x_accumulator/good_seg_count
         stop_line_point.y = stop_line_y_accumulator/good_seg_count
         stop_line_reading_msg.stop_line_point = stop_line_point
-        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < 0.5
+        stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and math.fabs(stop_line_point.y) < self.max_y #Only detect redline if y is within max_y distance
         self.pub_stop_line_reading.publish(stop_line_reading_msg)
         if stop_line_reading_msg.at_stop_line:
             msg = BoolStamped()
