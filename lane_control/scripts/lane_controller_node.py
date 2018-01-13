@@ -70,15 +70,15 @@ class lane_controller(object):
     
 
     def setGains(self):
-        v_bar = 0.5 # nominal speed, 0.5m/s
-        k_theta = -2.0
-        k_d = - (k_theta ** 2) / ( 4.0 * v_bar)
-        theta_thres = math.pi / 6
-        d_thres = math.fabs(k_theta / k_d) * theta_thres
-        d_offset = 0.0
+        v_bar_fallback = 0.5 # nominal speed, 0.5m/s
+        k_theta_fallback = -2.0
+        k_d_fallback = - (k_theta_fallback ** 2) / ( 4.0 * v_bar_fallback)
+        theta_thres_fallback = math.pi / 6
+        d_thres_fallback = math.fabs(k_theta_fallback / k_d_fallback) * theta_thres_fallback
+        d_offset_fallback = 0.0
 
-        k_Id = 2.5
-        k_Iphi = 1.25
+        k_Id_fallback = 2.5
+        k_Iphi_fallback = 1.25
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
@@ -88,7 +88,7 @@ class lane_controller(object):
         self.heading_integral_top_cutoff = 1.2
         self.heading_integral_bottom_cutoff = -1.2
         self.time_start_curve = 0
-        use_feedforward_part = False
+        use_feedforward_part_fallback = False
         self.wheels_cmd_executed = WheelsCmdStamped()
 
         self.actuator_limits = Twist2DStamped()
@@ -96,7 +96,7 @@ class lane_controller(object):
         self.actuator_limits.omega = 999.0     # to make sure the limit is not hit before the message is received
         self.omega_max = 999.0     # considering radius limitation and actuator limits   # to make sure the limit is not hit before the message is received
 
-        self.use_radius_limit = True
+        self.use_radius_limit_fallback = True
 
         self.flag_dict = {"obstacle_detected": False,
                             "parking_stop": False,
@@ -112,18 +112,20 @@ class lane_controller(object):
         self.active = True
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file (see launch-file of this node))
-        self.v_bar = self.setupParameter("~v_bar",v_bar) # Linear velocity
-        self.k_d = self.setupParameter("~k_d",k_d) # P gain for theta
-        self.k_theta = self.setupParameter("~k_theta",k_theta) # P gain for d
-        self.d_thres = self.setupParameter("~d_thres",d_thres) # Cap for error in d
-        self.theta_thres = self.setupParameter("~theta_thres",theta_thres) # Maximum desire theta
-        self.d_offset = self.setupParameter("~d_offset",d_offset) # a configurable offset from the lane position
+        self.v_bar = self.setupParameter("~v_bar",v_bar_fallback) # Linear velocity
+        self.k_d = self.setupParameter("~k_d",k_d_fallback) # P gain for theta
+        self.k_theta = self.setupParameter("~k_theta",k_theta_fallback) # P gain for d
+        self.d_thres = self.setupParameter("~d_thres",d_thres_fallback) # Cap for error in d
+        self.theta_thres = self.setupParameter("~theta_thres",theta_thres_fallback) # Maximum desire theta
+        self.d_offset = self.setupParameter("~d_offset",d_offset_fallback) # a configurable offset from the lane position
 
-        self.k_Id = self.setupParameter("~k_Id", k_Id)
-        self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi)
-        self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part)
-        self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit)
+        self.k_Id = self.setupParameter("~k_Id", k_Id_fallback)
+        self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)
+        self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
+        self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
+
+        self.v_ref_possible["default"] = self.v_bar
 
 
     def getGains_event(self, event):
@@ -200,8 +202,10 @@ class lane_controller(object):
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
         if self.pose_initialized:
+            v_ref_possible_default = self.v_ref_possible["default"]
             v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
             self.v_ref_possible.clear()
+            self.v_ref_possible["default"] = v_ref_possible_default
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
