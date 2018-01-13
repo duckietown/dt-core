@@ -1,6 +1,6 @@
 description: >
-    The Fall 2017 controllers lane filter.
-constructor: lane_filter.LaneFilterHistogram
+    The original lane filter from Liam.
+constructor: lane_filter.LaneFilterClassic
 parameters:
   configuration:
       mean_d_0: 0

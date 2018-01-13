@@ -1,6 +1,8 @@
+import os
+
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from ground_projection.ground_projection_interface import GroundProjection
+from ground_projection import GroundProjection
 
 from .pipeline import run_pipeline
 
@@ -27,6 +29,10 @@ class SingleImagePipeline(D8App):
         params.add_string('lane_filter', default='baseline', help="Which lane_filter to use", group=g)
 
     def go(self):
+        output = self.options.output
+        if output is None:
+            output = 'out-pipeline'  #  + dtu.get_md5(self.options.image)[:6]
+            self.info('No --output given, using %s' % output)
 
         if self.options.image is not None:
             image_filename = self.options.image
@@ -36,7 +42,8 @@ class SingleImagePipeline(D8App):
             bgr = dtu.bgr_from_jpg_fn(image_filename)
         else:
             self.info('Taking a picture. Say cheese!')
-            bgr = dtu.bgr_from_raspistill()
+            out = os.path.join(output, 'frame.jpg')
+            bgr = dtu.bgr_from_raspistill(out)
             self.info('Picture taken: %s ' % str(bgr.shape))
 
             bgr = dtu.d8_image_resize_fit(bgr, 640)
@@ -58,11 +65,6 @@ class SingleImagePipeline(D8App):
                             image_prep_name=self.options.image_prep,
                             anti_instagram_name=self.options.anti_instagram,
                             lane_filter_name=self.options.lane_filter)
-
-        output = self.options.output
-        if output is None:
-            output = 'out-pipeline'  #  + dtu.get_md5(self.options.image)[:6]
-            self.info('No --output given, using %s' % output)
 
         self.info('resizing')
         res = dtu.resize_small_images(res)

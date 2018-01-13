@@ -100,21 +100,10 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['grid'] = grid
         res['grid_remapped'] = gpg.rectify(grid)
 
-    with pts.phase('rectify'):
-        rectified0 = gpg.rectify(image)
-
-    rectified = ai.applyTransform(rectified0)
-
-    if all_details:
-        res['image_input_rect'] = rectified
-
 #     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
 
     with pts.phase('rectify_segments'):
         segment_list2_rect = rectify_segments(gpg, segment_list2)
-
-    res['segments rectified on image rectified'] = \
-        vs_fancy_display(rectified, segment_list2_rect)
 
     # Project to ground
     with pts.phase('find_ground_coordinates'):
@@ -154,6 +143,17 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     #         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
             res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
                                                  ground_truth=ground_truth)
+
+    with pts.phase('rectify'):
+        rectified0 = gpg.rectify(image)
+
+    rectified = ai.applyTransform(rectified0)
+
+    if all_details:
+        res['image_input_rect'] = rectified
+
+    res['segments rectified on image rectified'] = \
+        vs_fancy_display(rectified, segment_list2_rect)
 
     assumed = localization_template.get_map()
 
