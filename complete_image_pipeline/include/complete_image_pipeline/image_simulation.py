@@ -9,7 +9,6 @@ import duckietown_utils as dtu
 from ground_projection.ground_projection_geometry import GroundProjectionGeometry
 import numpy as np
 
-
 __all__ = [
     'simulate_image',
 ]
@@ -49,16 +48,16 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
 
     distorted_synthetic = add_noise(distorted_synthetic)
 #     distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)
-    distorted_synthetic = cv2.GaussianBlur(distorted_synthetic, (0,0), blur_sigma)
+    distorted_synthetic = cv2.GaussianBlur(distorted_synthetic, (0, 0), blur_sigma)
 
     return SimulationData(distorted_synthetic_bgr=distorted_synthetic,
                           rectified_synthetic_bgr=rectified_synthetic,
                           rectified_segments_bgr=rectified_segments)
 
 
-def add_noise(image, intensity = 20, noise_blur = 1):
+def add_noise(image, intensity=20, noise_blur=1):
     noise = np.random.randn(image.shape[0], image.shape[1], 3) * intensity
-    noise = cv2.GaussianBlur(noise, (0,0), noise_blur)
-    image = image*1.0 + noise
+    noise = cv2.GaussianBlur(noise, (0, 0), noise_blur)
+    image = image * 1.0 + noise
     image = image.clip(0, 255).astype('uint8')
     return image

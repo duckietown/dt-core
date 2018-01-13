@@ -37,6 +37,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         ground_truth = pose
     """
     print('backend: %s' % matplotlib.get_backend())
+    print('fname: %s' % matplotlib.matplotlib_fname())
 
     quick = False
 
