@@ -57,13 +57,6 @@ class GroundProjectionGeometry(object):
         ch = self.ci.height
         pixel.u = cw * vec.x
         pixel.v = ch * vec.y
-
-#         if False:
-#             # Nope, not this. Maybe set to NaN or throw an exception
-#             if (pixel.u < 0): pixel.u = 0
-#             if (pixel.u > cw -1): pixel.u = cw - 1
-#             if (pixel.v < 0): pixel.v = 0
-#             if (pixel.v > ch - 1): pixel.v = 0
         return pixel
 
     @dtu.contract(pixel=Pixel, returns=Vector2D)
@@ -152,16 +145,19 @@ class GroundProjectionGeometry(object):
         self.mapy = mapy
         self._rectify_inited = True
 
-    def rectify(self, cv_image_raw):
-        ''' Undistort an image'''
+    def rectify(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
+        ''' Undistort an image.
+
+            To be more precise, pass interpolation= cv2.INTER_CUBIC
+        '''
         if not self._rectify_inited:
             self._init_rectify_maps()
 #
-        inter = cv2.INTER_NEAREST  # 30 ms
+#        inter = cv2.INTER_NEAREST  # 30 ms
 #         inter = cv2.INTER_CUBIC # 80 ms
 #         cv_image_rectified = np.zeros(np.shape(cv_image_raw))
         cv_image_rectified = np.empty_like(cv_image_raw)
-        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, inter,
+        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
                         cv_image_rectified)
         return res
 

@@ -47,7 +47,7 @@ Example:
         db = get_easy_algo_db()
 
         if len(extra) == 0:
-            query = '*'
+            query = dtu.get_current_robot_name()
         else:
             query = extra
 

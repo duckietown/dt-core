@@ -3,7 +3,6 @@ from collections import OrderedDict
 import cv2
 import matplotlib
 
-from anti_instagram import AntiInstagramInterface
 from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
 from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
@@ -36,6 +35,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         ground_truth = pose
     """
+    from anti_instagram import AntiInstagramInterface
+
     print('backend: %s' % matplotlib.get_backend())
     print('fname: %s' % matplotlib.matplotlib_fname())
 

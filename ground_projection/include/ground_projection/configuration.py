@@ -1,8 +1,10 @@
 import os
+import shutil
 
 import yaml
 
 import duckietown_utils as dtu
+from duckietown_utils.logging_logger import logger
 import numpy as np
 
 
@@ -60,14 +62,40 @@ def get_homography_info_config_file(robot_name):
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 
+    found = []
     for df in roots:
     # Load camera information
         fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
         if os.path.exists(fn):
-            return fn
+            found.append(fn)
+            logger.info("Using filename %s" % fn)
 
-    msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
-    raise NoHomographyInfoAvailable(msg)
+    if len(found) == 0:
+        msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
+        raise NoHomographyInfoAvailable(msg)
+    elif len(found) == 1:
+        return found[0]
+    else:
+        msg = 'Found more than one configuration file: \n%s' % "\n".join(found)
+        msg += "\n Please delete one of those."
+        raise Exception(msg)
+
+
+def get_extrinsics_filename(robot_name):
+    fn = dtu.get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + robot_name + ".yaml"
+    return fn
+
+
+def disable_old_homography(robot_name):
+    fn = get_extrinsics_filename(robot_name)
+    if os.path.exists(fn):
+        for i in range(100):
+            fn2 = fn + '.disabled.%03d' % i
+            if not os.path.exists(fn2):
+                break
+        msg = 'Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as %s' % fn2
+        dtu.logger.warning(msg)
+        shutil.move(fn, fn2)
 
 
 def check_homography_sane_for_DB17(homography):

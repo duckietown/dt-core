@@ -26,7 +26,10 @@ class SingleImagePipeline(D8App):
         params.add_string('line_detector', default='baseline', help="Which line detector to use", group=g)
         params.add_string('image_prep', default='baseline', help="Which image prep to use", group=g)
         params.add_string('anti_instagram', default='baseline', help="Which anti_instagram to use", group=g)
-        params.add_string('lane_filter', default='baseline', help="Which lane_filter to use", group=g)
+        params.add_string('lane_filter',
+                          # default='baseline',
+                           default='moregeneric_straight',
+                          help="Which lane_filter to use", group=g)
 
     def go(self):
         output = self.options.output

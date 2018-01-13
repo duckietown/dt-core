@@ -57,7 +57,7 @@ class GroundProjectionNode(object):
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="mono8")
         except CvBridgeError as e:
             dtu.logger.error(e)
-        return self.gp.rectify(cv_image)
+        return self.gpg.rectify(cv_image)
 
     def lineseglist_cb(self, seglist_msg):
         seglist_out = SegmentList()
