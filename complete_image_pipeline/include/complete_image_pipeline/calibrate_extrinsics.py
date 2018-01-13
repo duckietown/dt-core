@@ -70,11 +70,14 @@ class CalibrateExtrinsics(D8App):
                 res['equalized'] = bgr
             res['bgr_rectified'] = bgr_rectified
 
+            if True:
+#                _, res['rectified_full'] = gpg.rectify_full(bgr)
+                new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
             result = estimate_homography(bgr_rectified)
             dtu.check_isinstance(result, HomographyEstimationResult)
-
-            if result.bgr_detected is not None:
-                res['bgr_detected'] = result.bgr_detected
+#
+#            if result.bgr_detected is not None:
+#                res['bgr_detected'] = result.bgr_detected
 
             if result.bgr_detected_refined is not None:
                 res['bgr_detected_refined'] = result.bgr_detected_refined
