@@ -65,14 +65,14 @@ class CalibrateExtrinsics(D8App):
             bgr_rectified = gpg.rectify(bgr, interpolation=cv2.INTER_CUBIC)
 
             res['bgr'] = bgr
-            if False:
-                bgr = equalize(bgr)
-                res['equalized'] = bgr
+#            if False:
+#                bgr = equalize(bgr)
+#                res['equalized'] = bgr
             res['bgr_rectified'] = bgr_rectified
 
             if True:
 #                _, res['rectified_full'] = gpg.rectify_full(bgr)
-                new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
+                _new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
             result = estimate_homography(bgr_rectified)
             dtu.check_isinstance(result, HomographyEstimationResult)
 #
@@ -100,36 +100,13 @@ Look at the produced jpgs.
         finally:
             dtu.write_bgr_images_as_jpgs(res, output)
 
-
-def equalize(bgr):
-    img_yuv = cv2.cvtColor(bgr, cv2.COLOR_BGR2YUV)
-
-    # equalize the histogram of the Y channel
-    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
-
-    # convert the YUV image back to RGB format
-    img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
-    return img_output
-
 #
+#def equalize(bgr):
+#    img_yuv = cv2.cvtColor(bgr, cv2.COLOR_BGR2YUV)
 #
-#        if False:
-#            _res = run_pipeline(bgr, gp,
-#                                line_detector_name=self.options.line_detector,
-#                                image_prep_name=self.options.image_prep,
-#                                anti_instagram_name=self.options.anti_instagram,
-#                                lane_filter_name=self.options.lane_filter)
+#    # equalize the histogram of the Y channel
+#    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
 #
-#        dtu.DuckietownConstants.show_timeit_benchmarks = True
-#        res, _stats = run_pipeline(bgr, gp,
-#                            line_detector_name=self.options.line_detector,
-#                            image_prep_name=self.options.image_prep,
-#                            anti_instagram_name=self.options.anti_instagram,
-#                            lane_filter_name=self.options.lane_filter)
-#
-#        self.info('resizing')
-#        res = dtu.resize_small_images(res)
-#        self.info('writing')
-#        dtu.write_bgr_images_as_jpgs(res, output)
-
-#        dtu.write_jpgs_to_dir(res, output)
+#    # convert the YUV image back to RGB format
+#    img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+#    return img_output

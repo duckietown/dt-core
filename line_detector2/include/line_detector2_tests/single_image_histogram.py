@@ -1,17 +1,18 @@
 from collections import OrderedDict
-import duckietown_utils as dtu
 import os
+
 import cv2
 
+import duckietown_utils as dtu
+from duckietown_utils.download import require_resource
 import numpy as np
 from reprep.graphics.filter_posneg import posneg
 
+
 @dtu.unit_test
 def single_image_histograms():
-    url = 'https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=0'
-    p = os.path.join(dtu.get_ros_package_path('line_detector2'),
-                     'include', 'line_detector2_tests', 'frame0002.jpg')
-    dtu.download_if_not_exist(url, p)
+    p = require_resource('frame0002.jpg')
+
     image_cv = dtu.image_cv_from_jpg_fn(p)
 
     res = go(image_cv)
@@ -19,22 +20,21 @@ def single_image_histograms():
     dtu.write_bgr_images_as_jpgs(res, outd)
 
 
-
 def go(image_bgr):
     res = OrderedDict()
 
     H, _W = image_bgr.shape[:2]
     cut = 0.3
-    image_bgr_cut = image_bgr[int(cut*H):,:,:]
+    image_bgr_cut = image_bgr[int(cut * H):, :, :]
 
     res['image_bgr'] = image_bgr
     res['image_bgr_cut'] = image_bgr_cut
 
     hsv_map = np.zeros((180, 256, 3), np.uint8)
     hsv_map_h, hsv_map_s = np.indices(hsv_map.shape[:2])
-    hsv_map[:,:,0] = hsv_map_h
-    hsv_map[:,:,1] = hsv_map_s
-    hsv_map[:,:,2] = 255
+    hsv_map[:, :, 0] = hsv_map_h
+    hsv_map[:, :, 1] = hsv_map_s
+    hsv_map[:, :, 2] = 255
     hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2BGR)
 #     cv2.imshow('hsv_map', hsv_map)
     res['hsv_map'] = hsv_map
@@ -57,12 +57,13 @@ def go(image_bgr):
 
     h = h0 * hist_scale
 #     h = np.clip(h*0.005*hist_scale, 0, 1)
-    vis = hsv_map*h[:,:,np.newaxis] / 255.0
+    vis = hsv_map * h[:, :, np.newaxis] / 255.0
     res['vis'] = vis
 
-    used = h> 0
-    res['vis2'] = hsv_map * used[:,:,np.newaxis]
+    used = h > 0
+    res['vis2'] = hsv_map * used[:, :, np.newaxis]
     return res
+
 
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()

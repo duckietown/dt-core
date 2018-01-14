@@ -13,7 +13,7 @@ where `![image]` can be a filename or a URL.
 
 For example, this:
 
-    $ rosrun complete_image_pipeline single_image_pipeline --image "https://www.dropbox.com/s/bzezpw8ivlfu4b0/frame0002.jpg?dl=1"
+    $ rosrun complete_image_pipeline single_image_pipeline --image "https://www.dropbox.com/s/r1bpyb8fd5577dm/frame0002.jpg?dl=1"
 
 results in an output as in [](#fig:output-frame2).
 
