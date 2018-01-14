@@ -18,7 +18,10 @@ __all__ = [
 
 
 class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
-    """ """
+    '''
+
+
+    '''
 
     def __init__(self, configuration):
         param_names = [

@@ -1,12 +1,12 @@
 from complete_image_pipeline.pipeline import run_pipeline
 import duckietown_utils as dtu
-from duckietown_utils.download import require_resource
+
 from ground_projection import GroundProjection
 
 
 @dtu.unit_test
 def single_image1():
-    p = require_resource('frame0002.jpg')
+    p = dtu.require_resource('frame0002.jpg')
     image_cv = dtu.image_cv_from_jpg_fn(p)
 
     line_detector_name = 'baseline'

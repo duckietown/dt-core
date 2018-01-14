@@ -1,17 +1,15 @@
 from collections import OrderedDict
-import os
 
 import cv2
 
 import duckietown_utils as dtu
-from duckietown_utils.download import require_resource
 import numpy as np
 from reprep.graphics.filter_posneg import posneg
 
 
 @dtu.unit_test
 def single_image_histograms():
-    p = require_resource('frame0002.jpg')
+    p = dtu.require_resource('frame0002.jpg')
 
     image_cv = dtu.image_cv_from_jpg_fn(p)
 
