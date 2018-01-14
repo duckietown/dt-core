@@ -4,7 +4,6 @@ import shutil
 import yaml
 
 import duckietown_utils as dtu
-from duckietown_utils.logging_logger import logger
 import numpy as np
 
 
@@ -69,7 +68,7 @@ def get_homography_info_config_file(robot_name):
         fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
         if os.path.exists(fn):
             found.append(fn)
-            logger.info("Using filename %s" % fn)
+            dtu.logger.info("Using filename %s" % fn)
 
     if len(found) == 0:
         msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
@@ -82,7 +81,7 @@ def get_homography_info_config_file(robot_name):
         if strict:
             raise Exception(msg)
         else:
-            logger.error(msg)
+            dtu.logger.error(msg)
 
 
 def get_extrinsics_filename(robot_name):
