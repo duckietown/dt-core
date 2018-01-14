@@ -59,6 +59,7 @@ def homography_from_yaml(data):
 
 
 def get_homography_info_config_file(robot_name):
+    strict = False
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 
@@ -78,7 +79,10 @@ def get_homography_info_config_file(robot_name):
     else:
         msg = 'Found more than one configuration file: \n%s' % "\n".join(found)
         msg += "\n Please delete one of those."
-        raise Exception(msg)
+        if strict:
+            raise Exception(msg)
+        else:
+            logger.error(msg)
 
 
 def get_extrinsics_filename(robot_name):
