@@ -2,7 +2,7 @@
 from __future__ import print_function
 from random import random
 import rospy
-from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfo
 from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
 from std_msgs.msg import String
 from time import time
@@ -42,14 +42,15 @@ class VehicleCoordinator():
         self.node = rospy.init_node('veh_coordinator', anonymous=True)
 
         # Parameters
+        self.traffic_light_intersection = UNKNOWN
 
         # Are we in a situation with traffic lights? Initially always false.
-        if rospy.get_param("~intersectionType") == "trafficLight":
-            self.traffic_light_intersection = True
-        else:
-            self.traffic_light_intersection = False
+        #if rospy.get_param("~intersectionType") == "trafficLight":
+        #    self.traffic_light_intersection = True
+        #else:
+        #    self.traffic_light_intersection = False
 
-        rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
+        #rospy.loginfo('[coordination_node]: trafficLight=%s' % str(self.traffic_light_intersection))
 
         # Subscriptions
 
@@ -67,6 +68,7 @@ class VehicleCoordinator():
         # Initializing the unknown presence of a car
         #self.detected_car = UNKNOWN
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
+        rospy.Subscriber('~apriltags', AprilTagsWithInfo, self.set_traffic_light)
 
         # Publishing
         self.clearance_to_go = CoordinationClearance.NA
@@ -87,6 +89,17 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
 #############################################################################################################
+def set_traffic_light(self,msg):
+    for item in msg.info:
+        if item.traffic_sign_type == 17:
+            self.traffic_light_intersection = True
+            break
+        else:
+            self.traffic_light_intersection = False
+
+    rospy.loginfo('Traffic light = %s' %str(self.traffic_light_intersection))
+
+#############################################################################################################
     def set_state(self, state):
 
         # update only when changing state
@@ -103,6 +116,8 @@ class VehicleCoordinator():
             self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
+        elif self.state == State.LANE_FOLLOWING or self.state == State.TL_SENSING:
+            self.roof_light = CoordinationSignal.OFF
 
         rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 #################################################################################################################
@@ -113,6 +128,10 @@ class VehicleCoordinator():
 
     def set(self, name, value):
         self.__dict__[name] = value
+
+        if name == 'mode':
+            if value == 'JOYSTICK_CONTROL' or value == 'COORDINATION':
+                self.roof_light = CoordinationSignal.OFF
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
@@ -153,7 +172,8 @@ class VehicleCoordinator():
 
     # definition of the loop
     def loop(self):
-        self.reconsider()
+        if self.traffic_light_intersection != UNKNOWN:
+            self.reconsider()
         self.publish_topics()
 
     def reconsider(self):
