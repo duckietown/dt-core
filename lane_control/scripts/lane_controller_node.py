@@ -335,8 +335,9 @@ class lane_controller(object):
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if omega > self.omega_max:
-            self.cross_track_integral -= self.cross_track_err * dt
-            self.heading_integral -= self.heading_err * dt
+            if self.last_ms is not None: 
+                self.cross_track_integral -= self.cross_track_err * dt
+                self.heading_integral -= self.heading_err * dt
             car_control_msg.omega = self.omega_max
         else:
             car_control_msg.omega = omega
