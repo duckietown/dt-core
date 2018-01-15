@@ -272,7 +272,7 @@ class LEDDetectorNode(object):
                     BlobsTL[-1]['Signal'][t] = 1
                 else:
                     # Thereafter, check whether the detected LED belongs to a blob
-                    Distance = np.empty(len(FrameTL))
+                    Distance = np.empty(len(BlobsTL))
                     for k in range(len(BlobsTL)):
                         Distance[k] = np.linalg.norm(BlobsTL[k]['p'] - FrameTL[t][:, n])
                     if np.min(Distance) < self.DTOL:
