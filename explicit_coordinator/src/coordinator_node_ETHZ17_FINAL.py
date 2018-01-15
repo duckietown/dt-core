@@ -133,6 +133,7 @@ class VehicleCoordinator():
         if name == 'mode':
             if value == 'JOYSTICK_CONTROL' or value == 'COORDINATION':
                 self.roof_light = CoordinationSignal.OFF
+		self.state = State.LANE_FOLLOWING
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
