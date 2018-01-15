@@ -2,7 +2,7 @@
 from __future__ import print_function
 from random import random
 import rospy
-from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfo
+from duckietown_msgs.msg import CoordinationClearance, FSMState, BoolStamped, Twist2DStamped, AprilTagsWithInfos
 from duckietown_msgs.msg import SignalsDetection, CoordinationSignal
 from std_msgs.msg import String
 from time import time
@@ -64,11 +64,12 @@ class VehicleCoordinator():
         self.right_veh = UNKNOWN
         self.opposite_veh = UNKNOWN
         # self.veh_detected = UNKNOWN
+	
+	rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
 
         # Initializing the unknown presence of a car
         #self.detected_car = UNKNOWN
-        rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection) # see below for the def. of process_signals_detection
-        rospy.Subscriber('~apriltags', AprilTagsWithInfo, self.set_traffic_light)
+        rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
 
         # Publishing
         self.clearance_to_go = CoordinationClearance.NA
@@ -89,15 +90,15 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
 #############################################################################################################
-def set_traffic_light(self,msg):
-    for item in msg.info:
-        if item.traffic_sign_type == 17:
-            self.traffic_light_intersection = True
-            break
-        else:
-            self.traffic_light_intersection = False
+    def set_traffic_light(self,msg):
+    	for item in msg.infos:
+        	if item.traffic_sign_type == 17:
+            		self.traffic_light_intersection = True
+            		break
+        	else:
+            		self.traffic_light_intersection = False
 
-    rospy.loginfo('Traffic light = %s' %str(self.traffic_light_intersection))
+    	rospy.loginfo('Traffic light = %s' %str(self.traffic_light_intersection))
 
 #############################################################################################################
     def set_state(self, state):
