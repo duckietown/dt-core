@@ -491,6 +491,7 @@
 		<!-- <remap from="simple_coordinator_node/intersection_go" to="coordinator_node/intersection_go" /> -->
 		<!-- <remap from="simple_coordinator_node/car_cmd" to="coordinator_node/car_cmd" /> -->
 		<!-- <remap from="coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />-->
+		<remap from="coordinator_node/apriltags" to "apriltags_postprocessing_node/apriltags_out" />
 		<!--the following remap is done through led_patter_switch_node -->
        	 <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 
