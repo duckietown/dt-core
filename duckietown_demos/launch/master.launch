@@ -524,12 +524,12 @@
 	<!-- Start Implicit Coordination -->
 	<group if="$(arg implicit_coordination)">
 		<!-- Vehicle Coordinator-->
-		<remap from="implicit_coordination/fsm" to="fsm_node/mode" />
-		<remap from="implicit_coordination/vehicle_detection_node" to="/multivehicle_tracker_node/tracking" />
-		<remap from="implicit_coordination/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" />
+		<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
+		<remap from="implicit_coordination_node/vehicle_detection_node" to="/multivehicle_tracker_node/tracking" />
+		<remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" />
 		<!--the following remap is done through led_patter_switch_node -->
 				<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
-		<include file="$(find implicit_coord)/launch/implicit.launch">
+		<include file="$(find implicit_coordination)/launch/implicit.launch">
 			<arg name="veh" value="$(arg veh)"/>
 		</include>
 	</group>
