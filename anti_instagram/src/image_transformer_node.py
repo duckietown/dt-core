@@ -172,6 +172,8 @@ class ImageTransformerNode():
         self.ai.ThLow = th_msg.th[0:3]
         self.ai.ThHi = th_msg.th[3:6]
 
+        if (abs(self.ai.shift[0]-0)>0.2): #this tells whether we can start or not!!!
+            rospy.logwarn('!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!')
 
 
 if __name__ == '__main__':
