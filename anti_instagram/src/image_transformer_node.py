@@ -30,6 +30,7 @@ class ImageTransformerNode():
         self.r = rospy.Rate(4) # Rate in Hz
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
         cont_mode = rospy.get_param("~cont_mode", "") #tells which topic to listen to
+        cont_mode = False
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
