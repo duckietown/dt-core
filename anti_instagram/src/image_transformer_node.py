@@ -30,7 +30,7 @@ class ImageTransformerNode():
         self.r = rospy.Rate(4) # Rate in Hz
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
         cont_mode = rospy.get_param("~cont_mode", "") #tells which topic to listen to
-        cont_mode = False
+        print cont_mode
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -46,7 +46,7 @@ class ImageTransformerNode():
                 '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
                 # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
         else:
-            print "HERE"
+            #print "HERE"
             self.sub_trafo = rospy.Subscriber(
                 '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
                 # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
