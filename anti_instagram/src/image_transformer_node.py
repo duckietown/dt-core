@@ -46,6 +46,7 @@ class ImageTransformerNode():
                 '/{}/cont_anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
                 # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
         else:
+            print "HERE"
             self.sub_trafo = rospy.Subscriber(
                 '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, self.cbNewTrafo, queue_size=1)
                 # "/duckierick/cont_anti_instagram_node/transform", AntiInstagramTransform, self.cbNewTrafo, queue_size = 1)
@@ -164,6 +165,9 @@ class ImageTransformerNode():
         self.ai.shift = trafo_msg.s[0:3]         #copied from line_detector2 ldn.py
         self.ai.scale = trafo_msg.s[3:6]
 
+        if (abs(self.ai.shift[0]-0)>0.2): #this tells whether we can start or not!!!
+            rospy.logwarn('!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!')
+
     def cbNewTrafo_CB(self, th_msg):
         # print('image transformer: received new Color Balance trafo!')
         if self.verbose:
@@ -173,8 +177,7 @@ class ImageTransformerNode():
         self.ai.ThLow = th_msg.th[0:3]
         self.ai.ThHi = th_msg.th[3:6]
 
-        if (abs(self.ai.shift[0]-0)>0.2): #this tells whether we can start or not!!!
-            rospy.logwarn('!!!!!!!!!!!!!!!!!!!!TRAFO WAS COMPUTED SO WE ARE READY TO GO!!!!!!!!!!!!')
+
 
 
 if __name__ == '__main__':

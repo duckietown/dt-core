@@ -29,8 +29,7 @@ class ContAntiInstagramNode():
 
         # Initialize publishers and subscribers
         self.pub_trafo = rospy.Publisher(
-            #"~transform", AntiInstagramTransform, queue_size=1)
-            '/{}/anti_instagram_node/transform'.format(robot_name), AntiInstagramTransform, queue_size=1)
+            "~transform", AntiInstagramTransform, queue_size=1)
         self.pub_trafo_CB = rospy.Publisher(
             "~colorBalanceTrafo", AntiInstagramTransform_CB, queue_size=1)
         self.pub_health = rospy.Publisher(
