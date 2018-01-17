@@ -322,7 +322,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = self.v_bar * self.velocity_to_m_per_s * pose_msg.curvature_ref * 2 * math.pi
+        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref * 2 * math.pi
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -331,7 +331,7 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        self.omega_max_radius_limitation = self.v_bar * self.velocity_to_m_per_s / self.min_radius * 2 * math.pi * self.omega_to_rad_per_s
+        self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * 2 * math.pi * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if omega > self.omega_max:
