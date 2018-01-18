@@ -42,6 +42,7 @@ class VehicleCoordinator():
         # Node name
         self.node_name = rospy.get_name()
 
+        # Initialize flag
         self.intersection_go_published = False
 
         self.node = rospy.init_node('veh_coordinator', anonymous=True)
@@ -97,7 +98,7 @@ class VehicleCoordinator():
     def set_state(self, state):
         # Update only when changing state
         if self.state != state:
-            rospy.loginfo('[%s] Transitioned from %s to %s' %(self.node_name,state,self.state))
+            rospy.loginfo('[%s] Transitioned from %s to %s' %(self.node_name,self.state,state))
             self.last_state_transition = time()
             self.state = state
 

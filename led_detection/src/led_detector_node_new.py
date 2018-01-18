@@ -25,6 +25,9 @@ class LEDDetectorNode(object):
         # Needed to publish images
         self.bridge = CvBridge()
 
+        # Node name
+        self.node_name = rospy.get_name()
+
         # Parameters
         self.capture_time = 0.5 # capture time
         self.DTOL = 25
@@ -64,12 +67,6 @@ class LEDDetectorNode(object):
         # Create a detector with the parameters
         self.detector_car = cv2.SimpleBlobDetector_create(params_car)
         self.detector_tl  = cv2.SimpleBlobDetector_create(params_tl)
-
-        # Node name
-        self.node_name = rospy.get_name()
-
-        # Traffic light
-        #self.traffic_light_state = SignalsDetection.NO_TRAFFIC_LIGHT
 
         # Publish
         #self.pub_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
@@ -311,7 +308,7 @@ class LEDDetectorNode(object):
         keypointBlobTL = []
         for k in range(len(keypointBlobTL)):
             assert np.sum(BlobsTL[k]['Signal']) == BlobsTL[k]['N']
-            keypointBlobTL.append(cv2.KeyPoint(keypointBlobTL[k]['p'][0], keypointBlobTL[k]['p'][1], self.DTOL))
+            keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL))
 
         # Images
         imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
