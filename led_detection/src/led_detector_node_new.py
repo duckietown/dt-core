@@ -58,8 +58,8 @@ class LEDDetectorNode(object):
         params_tl  = params
 
         # Change parameters for the traffic light
-        params_tl.minArea = 20
-        params_tl.maxArea = 100
+        params_tl.minArea = 10
+        params_tl.maxArea = 200
 
         # Create a detector with the parameters
         self.detector_car = cv2.SimpleBlobDetector_create(params_car)
@@ -337,7 +337,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Right: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Detection Right: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if  apperance_percentage < 0.8 and apperance_percentage > 0.2:
@@ -355,7 +355,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Front: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Detection Front: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if apperance_percentage < 0.8 and apperance_percentage > 0.2:
@@ -373,7 +373,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Traffic Light: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Detection Traffic Light: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if apperance_percentage < 0.8 and apperance_percentage > 0.2:

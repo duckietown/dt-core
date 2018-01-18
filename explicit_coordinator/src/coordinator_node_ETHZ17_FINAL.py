@@ -87,10 +87,12 @@ class VehicleCoordinator():
             else:
                     self.traffic_light_intersection = False
 
-        if self.traffic_light_intersection:
-            rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
-        else:
-            rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
+        if self.traffic_light_intersection != UNKNOWN:
+            # Print
+            if self.traffic_light_intersection:
+                rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
+            else:
+                rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
 
     def set_state(self, state):
         # Update only when changing state
