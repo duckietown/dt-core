@@ -53,8 +53,17 @@ class LEDDetectorNode(object):
         params.filterByInertia = False
         params.minInertiaRatio = 0.05
 
+        # Parameters
+        params_car = params
+        params_tl  = params
+
+        # Change parameters for the traffic light
+        params_tl.minArea = 20
+        params_tl.maxArea = 100
+
         # Create a detector with the parameters
-        self.detector = cv2.SimpleBlobDetector_create(params)
+        self.detector_car = cv2.SimpleBlobDetector_create(params_car)
+        self.detector_tl  = cv2.SimpleBlobDetector_create(params_tl)
 
         # Node name
         self.node_name = rospy.get_name()
@@ -194,7 +203,7 @@ class LEDDetectorNode(object):
         # Iterate Right
         for t in range(NIm):
             # Detect blobs.
-            keypoints = self.detector.detect(imRight[:, :, t])
+            keypoints = self.detector_car.detect(imRight[:, :, t])
             FrameRight.append(np.zeros((2, len(keypoints))))
             # im_with_keypoints = cv2.drawKeypoints(imRight[:, :, t], keypoints, np.array([]), (0, 0, 255),cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # im_with_keypoints = cv2.resize(im_with_keypoints, (640*4/6*2, 480))
@@ -225,7 +234,7 @@ class LEDDetectorNode(object):
         # Iterate Front
         for t in range(NIm):
             # Detect blobs.
-            keypoints = self.detector.detect(imFront[:, :, t])
+            keypoints = self.detector_car.detect(imFront[:, :, t])
             FrameFront.append(np.zeros((2, len(keypoints))))
             # im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
@@ -256,7 +265,7 @@ class LEDDetectorNode(object):
         # Iterate TL
         for t in range(NIm):
             # Detect blobs.
-            keypoints = self.detector.detect(imTL[:, :, t])
+            keypoints = self.detector_tl.detect(imTL[:, :, t])
             FrameTL.append(np.zeros((2, len(keypoints))))
             # im_with_keypoints = cv2.drawKeypoints(imFront[:, :, t], keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             # im_with_keypoints = cv2.resize(im_with_keypoints, (640 * 4 / 6 * 2, 480))
@@ -289,16 +298,19 @@ class LEDDetectorNode(object):
         # Extract blobs (right)
         keypointBlobRight = []
         for k in range(len(BlobsRight)):
+            assert np.sum(BlobsRight[k]['Signal']) == BlobsRight[k]['N']
             keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], self.DTOL))
 
         # Extract blobs (front)
         keypointBlobFront = []
         for k in range(len(BlobsFront)):
+            assert np.sum(BlobsFront[k]['Signal']) == BlobsFront[k]['N']
             keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], self.DTOL))
 
         # Extract blobs (TL)
         keypointBlobTL = []
         for k in range(len(keypointBlobTL)):
+            assert np.sum(BlobsTL[k]['Signal']) == BlobsTL[k]['N']
             keypointBlobTL.append(cv2.KeyPoint(keypointBlobTL[k]['p'][0], keypointBlobTL[k]['p'][1], self.DTOL))
 
         # Images
@@ -311,33 +323,60 @@ class LEDDetectorNode(object):
         self.front = SignalsDetection.NO_CAR
         self.traffic_light = SignalsDetection.NO_TRAFFIC_LIGHT
 
+        # Sampling time
+        T = (1.0*self.capture_time)/(NIm)
+
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
-            # print (1.0*BlobsRight[i]['N'])/(1.0*NIm)
+            # Percentage of appearance
+            apperance_percentage = (1.0*BlobsRight[i]['N'])/(1.0*NIm)
 
             # Frequency estimation based on FFT
-            T = 1.0/30 # TODO expecting 30 fps, but RESAMPLE to be sure
             # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
             signal_f      = scipy.fftpack.fft(BlobsRight[i]['Signal']-np.mean(BlobsRight[i]['Signal']))
-            y_f           = 2.0/NIm * np.abs(signal_f[:NIm/2])
+            y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
-            print fft_peak_freq
 
-            if (1.0*BlobsRight[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsRight[i]['N'])/(1.0*NIm) > 0.2:
+            rospy.loginfo('[%s] Detection Right: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+
+            # Take decision
+            if  apperance_percentage < 0.8 and apperance_percentage > 0.2:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
-           #  print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
-            if (1.0*BlobsFront[i]['N'])/(1.0*NIm) < 0.8 and (1.0*BlobsFront[i]['N'])/(1.0*NIm) > 0.2:
+            # Percentage of appearance
+            apperance_percentage = (1.0*BlobsFront[i]['N'])/(1.0*NIm)
+
+            # Frequency estimation based on FFT
+            # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
+            signal_f      = scipy.fftpack.fft(BlobsFront[i]['Signal']-np.mean(BlobsFront[i]['Signal']))
+            y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
+            fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
+
+            rospy.loginfo('[%s] Detection Front: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+
+            # Take decision
+            if apperance_percentage < 0.8 and apperance_percentage > 0.2:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsTL)):
-            #  print (1.0* BlobsFront[i]['N'])/(1.0*NIm)
-            if (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) < 0.8 and (1.0 * BlobsTL[i]['N'])/(1.0 * NIm) > 0.2:
+            # Percentage of appearance
+            apperance_percentage = (1.0*BlobsTL[i]['N'])/(1.0*NIm)
+
+            # Frequency estimation based on FFT
+            # f = np.linspace(0.0, 1.0/(2.0*T), n/2)
+            signal_f      = scipy.fftpack.fft(BlobsTL[i]['Signal']-np.mean(BlobsTL[i]['Signal']))
+            y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
+            fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
+
+            rospy.loginfo('[%s] Detection Traffic Light: appearance percentage = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+
+            # Take decision
+            if apperance_percentage < 0.8 and apperance_percentage > 0.2:
                 self.traffic_light = SignalsDetection.GO
                 break
             else:
