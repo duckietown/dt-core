@@ -139,7 +139,7 @@ class lane_controller(object):
 
         #FeedForward
         self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
-        self.omega_to_rad_per_s = 0.45
+        self.omega_to_rad_per_s = 0.45 * 2 * math.pi
         self.curvature_outer = 1 / (0.39)
         self.curvature_inner = 1 / 0.175
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
@@ -322,7 +322,7 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
-        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref * 2 * math.pi
+        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
@@ -331,14 +331,14 @@ class lane_controller(object):
         omega -= self.k_Iphi * self.heading_integral
         omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
 
-        self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * 2 * math.pi * self.omega_to_rad_per_s
+        self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
-        if omega > self.omega_max:
+        if math.fabs(omega) > self.omega_max:
             if self.last_ms is not None: 
                 self.cross_track_integral -= self.cross_track_err * dt
                 self.heading_integral -= self.heading_err * dt
-            car_control_msg.omega = self.omega_max
+            car_control_msg.omega = self.omega_max * np.sign(omega)
         else:
             car_control_msg.omega = omega
 
