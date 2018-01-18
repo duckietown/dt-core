@@ -306,7 +306,7 @@ class LEDDetectorNode(object):
 
         # Extract blobs (TL)
         keypointBlobTL = []
-        for k in range(len(keypointBlobTL)):
+        for k in range(len(BlobsTL)):
             assert np.sum(BlobsTL[k]['Signal']) == BlobsTL[k]['N']
             keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL))
 
@@ -334,7 +334,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Right: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Right: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if  apperance_percentage < 0.8 and apperance_percentage > 0.2:
@@ -352,7 +352,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Front: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Front: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if apperance_percentage < 0.8 and apperance_percentage > 0.2:
@@ -370,7 +370,7 @@ class LEDDetectorNode(object):
             y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
             fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-            rospy.loginfo('[%s] Detection Traffic Light: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
+            rospy.loginfo('[%s] Traffic Light: appearance perc. = %s, frequency = %s' %(self.node_name,apperance_percentage,fft_peak_freq))
 
             # Take decision
             if apperance_percentage < 0.8 and apperance_percentage > 0.2:

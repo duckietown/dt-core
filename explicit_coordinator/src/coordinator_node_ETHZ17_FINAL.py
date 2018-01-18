@@ -127,7 +127,7 @@ class VehicleCoordinator():
         # Initialization of the state and of the type of intersection
         if name == 'mode':
             if value == 'JOYSTICK_CONTROL' or value == 'COORDINATION':
-                self.state = State.LANE_FOLLOWING
+                self.set_state(State.LANE_FOLLOWING)
                 self.traffic_light_intersection = UNKNOWN
 
     # Definition of each signal detection
