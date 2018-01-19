@@ -30,18 +30,18 @@ class LEDDetectorNode(object):
 
         # Parameters
         self.capture_time = 0.5 # capture time
-        self.DTOL = 25
+        self.DTOL = 20
 
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
         params.minThreshold = 5
         # params.maxThreshold = 200
-        params.maxThreshold = 200
+        params.maxThreshold = 75
         params.thresholdStep = 10
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 50
+        params.minArea = 60
         params.maxArea = 400
 
         # Filter by Circularity
@@ -61,7 +61,7 @@ class LEDDetectorNode(object):
         params_tl  = params
 
         # Change parameters for the traffic light
-        params_tl.minArea = 10
+        params_tl.minArea = 20
         params_tl.maxArea = 200
 
         # Create a detector with the parameters
@@ -311,8 +311,8 @@ class LEDDetectorNode(object):
             keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL))
 
         # Images
-        imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        imPublishFront = cv2.drawKeypoints(imFront[:,:,-1], keypointBlobFront, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        imPublishFront = cv2.drawKeypoints(imFront[:,:,-1], keypointBlobFront, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         imPublishTL    = cv2.drawKeypoints(imTL[:,:,-1], keypointBlobTL, np.array([]),(0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         # Initialize detection
@@ -321,7 +321,7 @@ class LEDDetectorNode(object):
         self.traffic_light = SignalsDetection.NO_TRAFFIC_LIGHT
 
         # Sampling time
-        T = (1.0*self.capture_time)/(NIm)
+        T = (1.0*self.capture_time)/(1.0*NIm)
 
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
@@ -403,21 +403,23 @@ class LEDDetectorNode(object):
 
         # Loginfo (right)
         if self.right != SignalsDetection.NO_CAR:
-            rospy.loginfo('LED detected (right)')
+            rospy.loginfo('Right: LED detected')
         else:
-            rospy.loginfo('No LED detected (right)')
+            rospy.loginfo('Right: No LED detected')
 
         # Loginfo (front)
         if self.front != SignalsDetection.NO_CAR:
-            rospy.loginfo('LED detected (front)')
+            rospy.loginfo('Front: LED detected')
         else:
-            rospy.loginfo('No LED detected (front)')
+            rospy.loginfo('Front: No LED detected')
 
         # Loginfo (TL)
         if self.traffic_light == SignalsDetection.STOP:
-            rospy.loginfo('TL red')
+            rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
         elif self.traffic_light == SignalsDetection.GO:
-            rospy.loginfo('TL green')
+            rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
+        else:
+            rospy.loginfo('[%s] No traffic light' %(self.node_name))
 
         # Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
