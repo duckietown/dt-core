@@ -30,7 +30,7 @@ class LEDDetectorNode(object):
 
         # Parameters
         self.capture_time = 0.5 # capture time
-        self.DTOL = 20
+        self.DTOL = 15
 
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
@@ -41,16 +41,16 @@ class LEDDetectorNode(object):
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 60
-        params.maxArea = 400
+        params.minArea = 10*10*3.14
+        params.maxArea = 20*20*3.14
 
         # Filter by Circularity
         params.filterByCircularity = True
-        params.minCircularity = 0.9
+        params.minCircularity = 0.8
 
         # Filter by Convexity
         params.filterByConvexity = True
-        params.minConvexity = 0.5
+        params.minConvexity = 0.8
 
         # Filter by Inertia
         params.filterByInertia = False
@@ -61,8 +61,8 @@ class LEDDetectorNode(object):
         params_tl  = params
 
         # Change parameters for the traffic light
-        params_tl.minArea = 20
-        params_tl.maxArea = 200
+        params_tl.minArea = 5*5*3.14
+        params_tl.maxArea = 15*15*3.14
 
         # Create a detector with the parameters
         self.detector_car = cv2.SimpleBlobDetector_create(params_car)
@@ -411,7 +411,7 @@ class LEDDetectorNode(object):
         if self.front != SignalsDetection.NO_CAR:
             rospy.loginfo('Front: LED detected')
         else:
-            rospy.loginfo('Front: No LED detected')
+            rospy.loginfo('Front: No LED detected')
 
         # Loginfo (TL)
         if self.traffic_light == SignalsDetection.STOP:

@@ -81,19 +81,28 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
     def set_traffic_light(self,msg):
+	# Save old traffic light
+	traffic_light_old = self.traffic_light_intersection
+
+	# New traffic light
         for item in msg.infos:
             if item.traffic_sign_type == 17:
                     self.traffic_light_intersection = True
                     break
             else:
                     self.traffic_light_intersection = False
+	
+	# If different, restart
+	if traffic_light_old != self.traffic_light_intersection:
+		self.set_state(State.LANE_FOLLOWING)
 
-        if self.traffic_light_intersection != UNKNOWN:
-            # Print
-            if self.traffic_light_intersection:
-                rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
-            else:
-                rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
+		# Print result
+        	if self.traffic_light_intersection != UNKNOWN:
+            		# Print
+            		if self.traffic_light_intersection:
+                		rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
+            		else:
+                		rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
 
     def set_state(self, state):
         # Update only when changing state
@@ -145,6 +154,11 @@ class VehicleCoordinator():
     # publishing the topics
     def publish_topics(self):
         now = rospy.Time.now()
+
+	# Publish LEDs
+        self.roof_light_pub.publish(self.roof_light)
+
+	# Clearance to go
         self.clearance_to_go_pub.publish(CoordinationClearance(status=self.clearance_to_go))
 
         # Publish intersection_go flag
@@ -157,7 +171,7 @@ class VehicleCoordinator():
             rospy.loginfo('[%s] Go!' %(self.node_name))
 
         # Publish LEDs
-        self.roof_light_pub.publish(self.roof_light)
+        # self.roof_light_pub.publish(self.roof_light)
 
         car_cmd_msg = Twist2DStamped(v=0.0,omega=0.0)
         car_cmd_msg.header.stamp = now
