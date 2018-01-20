@@ -66,7 +66,7 @@ class LogicGateNode(object):
 
         for event_name, event_msg in self.event_msg_dict.items():
             if event_name in inputs:    # one of the inputs to gate
-                print event_name
+                print "event: " + event_name
                 if event_msg is None:
                     if "default" in self.events_dict[event_name]:
                         bool_list.append(self.events_dict[event_name]["default"])
@@ -97,16 +97,16 @@ class LogicGateNode(object):
             msg.data = all(bool_list)
         elif gate_type == "OR":
             msg.data = any(bool_list)
-        print bool_list, msg.data
+        print bool_list + "->" + msg.data
         return msg
 
     def cbBoolStamped(self, msg, event_name):
         self.event_msg_dict[event_name] = msg
-        print "got something"
+        # print "got something"
         for gate_name, gate_dict in self.gates_dict.items():
             inputs = gate_dict.get("inputs")
             if event_name in inputs:
-                print "in the inputs"
+                # print "in the inputs"
                 self.publish(self.getOutputMsg(gate_name,inputs),gate_name)
 
     def on_shutdown(self):
