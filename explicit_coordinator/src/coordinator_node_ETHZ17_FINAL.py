@@ -81,28 +81,28 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
     def set_traffic_light(self,msg):
-	# Save old traffic light
-	traffic_light_old = self.traffic_light_intersection
+        # Save old traffic light
+        traffic_light_old = self.traffic_light_intersection
 
-	# New traffic light
+        # New traffic light
         for item in msg.infos:
-       		if item.traffic_sign_type == 17:
-                    self.traffic_light_intersection = True
-                    break
-            	else:
-                    self.traffic_light_intersection = False
-	
-	# If different from the one before, restart from lane following
-	if traffic_light_old != self.traffic_light_intersection:
-	    self.set_state(State.LANE_FOLLOWING)
+            if item.traffic_sign_type == 17:
+                self.traffic_light_intersection = True
+                break
+            else:
+                self.traffic_light_intersection = False
 
-	    # Print result
-       	    if self.traffic_light_intersection != UNKNOWN:
-            	# Print
-            	if self.traffic_light_intersection:
-                	rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
-            	else:
-                	rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
+        # If different from the one before, restart from lane following
+        if traffic_light_old != self.traffic_light_intersection:
+            self.set_state(State.LANE_FOLLOWING)
+
+            # Print result
+            if self.traffic_light_intersection != UNKNOWN:
+                # Print
+                if self.traffic_light_intersection:
+                    rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
+                else:
+                    rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
 
     def set_state(self, state):
         # Update only when changing state
@@ -155,10 +155,10 @@ class VehicleCoordinator():
     def publish_topics(self):
         now = rospy.Time.now()
 
-	# Publish LEDs
+    # Publish LEDs
         self.roof_light_pub.publish(self.roof_light)
 
-	# Clearance to go
+    # Clearance to go
         self.clearance_to_go_pub.publish(CoordinationClearance(status=self.clearance_to_go))
 
         # Publish intersection_go flag
