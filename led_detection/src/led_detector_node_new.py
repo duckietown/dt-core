@@ -172,6 +172,9 @@ class LEDDetectorNode(object):
         self.trigger = True
 
     def process_and_publish(self):
+        # Initial time
+        tic = time.time()
+        
         # Get sizes
         H,W,_ = self.data.shape
 
@@ -196,7 +199,7 @@ class LEDDetectorNode(object):
         NIm = imRight.shape[2]
         
         # Print on screen
-        loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
+        rospy.loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
 
         # Iterate Right
         for t in range(NIm):
@@ -379,9 +382,16 @@ class LEDDetectorNode(object):
 
         # Left bot (also UNKNOWN)
         self.left = "UNKNOWN"
+        
+        # Final time
+        processing_time = time.time()-tic
+        total_time      = time.time()-self.tinit
 
         # Publish results
         self.publish(imPublishRight,imPublishFront,imPublishTL)
+        
+        # Print performance
+        rospy.loginfo('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %(self.node_name,processing_time,total_time))
 
         # Keep going
         if self.continuous:
