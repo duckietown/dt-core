@@ -29,7 +29,7 @@ class LEDDetectorNode(object):
         self.node_name = rospy.get_name()
 
         # Parameters
-        self.capture_time = 0.5 # capture time
+        self.capture_time = 0.5
         self.DTOL = 15
 
         # Setup SimpleBlobDetector parameters
@@ -194,8 +194,9 @@ class LEDDetectorNode(object):
 
         # Number of images
         NIm = imRight.shape[2]
-
-        #print NIm
+        
+        # Print on screen
+        loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
 
         # Iterate Right
         for t in range(NIm):
@@ -219,8 +220,6 @@ class LEDDetectorNode(object):
                     for k in range(len(BlobsRight)):
                         Distance[k] = np.linalg.norm(BlobsRight[k]['p'] - FrameRight[t][:, n])
                     if np.min(Distance) < self.DTOL:
-                        # print np.min(Distance)
-                        # print np.argmin(Distance)
                         if BlobsRight[np.argmin(Distance)]['Signal'][t] == 0:
                             BlobsRight[np.argmin(Distance)]['N'] += 1
                             BlobsRight[np.argmin(Distance)]['Signal'][t] = 1
@@ -250,8 +249,6 @@ class LEDDetectorNode(object):
                     for k in range(len(BlobsFront)):
                         Distance[k] = np.linalg.norm(BlobsFront[k]['p'] - FrameFront[t][:, n])
                     if np.min(Distance) < self.DTOL:
-                        # print np.min(Distance)
-                        # print np.argmin(Distance)
                         if BlobsFront[np.argmin(Distance)]['Signal'][t] == 0:
                             BlobsFront[np.argmin(Distance)]['N'] += 1
                             BlobsFront[np.argmin(Distance)]['Signal'][t] = 1
@@ -282,8 +279,6 @@ class LEDDetectorNode(object):
                     for k in range(len(BlobsTL)):
                         Distance[k] = np.linalg.norm(BlobsTL[k]['p'] - FrameTL[t][:, n])
                     if np.min(Distance) < self.DTOL:
-                        # print np.min(Distance)
-                        # print np.argmin(Distance)
                         if BlobsTL[np.argmin(Distance)]['Signal'][t] == 0:
                             BlobsTL[np.argmin(Distance)]['N'] += 1
                             BlobsTL[np.argmin(Distance)]['Signal'][t] = 1
@@ -294,21 +289,24 @@ class LEDDetectorNode(object):
 
         # Extract blobs (right)
         keypointBlobRight = []
+        radiusRight       = self.DTOL/2.0
         for k in range(len(BlobsRight)):
             assert np.sum(BlobsRight[k]['Signal']) == BlobsRight[k]['N']
-            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], self.DTOL))
+            keypointBlobRight.append(cv2.KeyPoint(BlobsRight[k]['p'][0], BlobsRight[k]['p'][1], radiusRight))
 
         # Extract blobs (front)
         keypointBlobFront = []
+        radiusFront       = self.DTOL/2.0
         for k in range(len(BlobsFront)):
             assert np.sum(BlobsFront[k]['Signal']) == BlobsFront[k]['N']
-            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], self.DTOL))
+            keypointBlobFront.append(cv2.KeyPoint(BlobsFront[k]['p'][0], BlobsFront[k]['p'][1], radiusFront))
 
         # Extract blobs (TL)
         keypointBlobTL = []
+        radiusTL       = self.DTOL/2.0
         for k in range(len(BlobsTL)):
             assert np.sum(BlobsTL[k]['Signal']) == BlobsTL[k]['N']
-            keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], self.DTOL))
+            keypointBlobTL.append(cv2.KeyPoint(BlobsTL[k]['p'][0], BlobsTL[k]['p'][1], radiusTL))
 
         # Images
         imPublishRight = cv2.drawKeypoints(imRight[:,:,-1], keypointBlobRight, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
