@@ -86,23 +86,23 @@ class VehicleCoordinator():
 
 	# New traffic light
         for item in msg.infos:
-            if item.traffic_sign_type == 17:
+       		if item.traffic_sign_type == 17:
                     self.traffic_light_intersection = True
                     break
-            else:
+            	else:
                     self.traffic_light_intersection = False
 	
-	# If different, restart
+	# If different from the one before, restart from lane following
 	if traffic_light_old != self.traffic_light_intersection:
-		self.set_state(State.LANE_FOLLOWING)
+	    self.set_state(State.LANE_FOLLOWING)
 
-		# Print result
-        	if self.traffic_light_intersection != UNKNOWN:
-            		# Print
-            		if self.traffic_light_intersection:
-                		rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
-            		else:
-                		rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
+	    # Print result
+       	    if self.traffic_light_intersection != UNKNOWN:
+            	# Print
+            	if self.traffic_light_intersection:
+                	rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
+            	else:
+                	rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
 
     def set_state(self, state):
         # Update only when changing state
