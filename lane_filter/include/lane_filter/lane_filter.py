@@ -56,6 +56,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.initialize()
         self.updateRangeArray(self.curvature_res)
 
+    # predict the state
     def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v * delta_t * np.sin(self.phi)
@@ -84,9 +85,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 return
             self.beliefArray[k] = s_belief / np.sum(s_belief)
 
+    # prepare the segments for the creation of the belief arrays
     def prepareSegments(self, segments):
         segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
-
+        
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -95,22 +97,27 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
 
-            # only consider points in a certain range from the Duckiebot
+            # only consider points in a certain range from the Duckiebot for the position estimation
             point_range = self.getSegmentDistance(segment)
             if point_range < self.range_est:
                 segmentsRangeArray[0].append(segment)
+                # print functions to help understand the functionality of the code
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
                 # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
+              
+            # split segments ot different domains for the curvature estimation
             if self.curvature_res is not 0:
                 for i in range(self.curvature_res):
                     if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
                         segmentsRangeArray[i + 1].append(segment)
+                        # print functions to help understand the functionality of the code
                         # print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
                         # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
                         # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
                         continue
 
+        # print functions to help understand the functionality of the code
         # for i in range(len(segmentsRangeArray)):
         #     print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
         #     for j in range(len(segmentsRangeArray[i])):
@@ -133,8 +140,11 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             for i in range(len(self.range_arr)):
                 self.range_arr[i] = self.range_min + (i * range_diff)
 
+    # generate the belief arrays
     def update(self, segments):
+        # prepare the segments for each belief array
         segmentsRangeArray = self.prepareSegments(segments)
+        # generate all belief arrays
         for i in range(self.curvature_res + 1):
             measurement_likelihood = self.generate_measurement_likelihood(segmentsRangeArray[i])
             if measurement_likelihood is not None:
@@ -165,6 +175,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             np.sum(measurement_likelihood)
         return measurement_likelihood
 
+    # get the maximal values d_max and phi_max from the belief array. The first belief array (beliefArray[0]) includes the actual belief of the Duckiebots position. The further belief arrays are used for the curvature estimation.
     def getEstimate(self):
         d_max = np.zeros(self.curvature_res + 1)
         phi_max = np.zeros(self.curvature_res + 1)
@@ -175,10 +186,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             phi_max[i] = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
         return [d_max, phi_max]
 
+    # get the curvature estimation 
     def getCurvature(self, d_max, phi_max):
-        d_med_act = np.median(d_max)
-        phi_med_act = np.median(phi_max)
+        d_med_act = np.median(d_max) # actual median d value
+        phi_med_act = np.median(phi_max) # actual median phi value
 
+        # store median values over a few time step to smoothen out the estimation
         if len(self.d_med_arr) >= self.median_filter_size:
             self.d_med_arr.pop(0)
             self.phi_med_arr.pop(0)
@@ -197,6 +210,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             print "Curvature estimation: straight lane"
             return 0
 
+    # return the maximal value of the beliefArray
     def getMax(self):
         return self.beliefArray[0].max()
 
@@ -209,6 +223,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         for i in range(self.curvature_res + 1):
             self.beliefArray[i] = RV.pdf(pos)
 
+    # generate a vote for one segment
     def generateVote(self, segment):
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
@@ -243,6 +258,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         return d_i, phi_i, l_i
 
+    # get the distance from the center of the Duckiebot to the center point of a segment
     def getSegmentDistance(self, segment):
         x_c = (segment.points[0].x + segment.points[1].x) / 2
         y_c = (segment.points[0].y + segment.points[1].y) / 2
