@@ -15,4 +15,4 @@ Additionally there is a basic curvature estimation implemented. This functionali
 
 To run the code the lane following demo can be used.
 
-$ make demo-lane-following 
+    $ make demo-lane-following 
