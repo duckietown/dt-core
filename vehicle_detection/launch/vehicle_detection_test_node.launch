@@ -1,6 +1,6 @@
 <launch>
 	<arg name="veh" doc="Name of vehicle" />
-	<arg name="original_image_file" doc="full path to original image" />
+	<arg name="original_image_file" default="$(find vehicle_detection)/CircleGrid.png" doc="full path to original image" />
 
 	<remap from="vehicle_detection_node/image" to="vehicle_detection_test_node/image" />
 	<include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
