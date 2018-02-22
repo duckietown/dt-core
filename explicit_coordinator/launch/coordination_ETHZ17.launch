@@ -1,7 +1,7 @@
 <launch>
     <arg name="pkg_name" value="explicit_coordinator"/>
     <arg name="node_name" default="coordinator_node"/>
-    <arg name="src_name" value="coordinator_node_ETHZ17.py"/>
+    <arg name="src_name" value="coordinator_node.py"/>
     <arg name="verbose" default="false" />
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
     <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>

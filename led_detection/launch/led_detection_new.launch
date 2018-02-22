@@ -1,7 +1,7 @@
 <launch>
 	<include file="$(find duckietown)/machines"/>
 	<arg name="pkg_name" value="led_detection"/>
-	<arg name="src_name" value="led_detector_node_new.py"/>
+	<arg name="src_name" value="led_detector_node.py"/>
 	<arg name="node_name" value="led_detector_node"/>
 	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
 	<arg name="local" default="false" doc="true for running on laptop. false for running on vehicle."/>

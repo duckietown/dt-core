@@ -1,6 +1,6 @@
 <launch>
 	<arg name="pkg_name" value="led_emitter"/>
-	<arg name="src_name" value="led_emitter_node_ETHZ17.py"/>
+	<arg name="src_name" value="led_emitter_node.py"/>
 	<arg name="node_name" value="led_emitter_node"/>
 	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
 	<include file="$(find duckietown)/machines"/>
