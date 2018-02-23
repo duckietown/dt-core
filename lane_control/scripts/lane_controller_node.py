@@ -23,9 +23,7 @@ class lane_controller(object):
 
         # Subscriptions
         self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.PoseHandling, "lane_filter", queue_size=1)
-        # self.sub_lane_reading = rospy.Subscriber("~lane_pose", LanePose, self.cbPose, queue_size=1)
         
-        #TO DO find node/topic in their branch
         self.sub_obstacle_avoidance_pose = rospy.Subscriber("~obstacle_avoidance_pose", LanePose, self.PoseHandling, "obstacle_avoidance",queue_size=1)
         self.sub_obstacle_detected = rospy.Subscriber("~obstacle_detected", BoolStamped, self.setFlag, "obstacle_detected", queue_size=1)
         
@@ -64,7 +62,7 @@ class lane_controller(object):
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
-        rospy.set_param(param_name,value) # Write to parameter server for transparancy
+        rospy.set_param(param_name,value)   # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
     
@@ -112,15 +110,15 @@ class lane_controller(object):
         self.active = True
 
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file (see launch-file of this node))
-        self.v_bar = self.setupParameter("~v_bar",v_bar_fallback) # Linear velocity
-        self.k_d = self.setupParameter("~k_d",k_d_fallback) # P gain for theta
-        self.k_theta = self.setupParameter("~k_theta",k_theta_fallback) # P gain for d
-        self.d_thres = self.setupParameter("~d_thres",d_thres_fallback) # Cap for error in d
-        self.theta_thres = self.setupParameter("~theta_thres",theta_thres_fallback) # Maximum desire theta
-        self.d_offset = self.setupParameter("~d_offset",d_offset_fallback) # a configurable offset from the lane position
+        self.v_bar = self.setupParameter("~v_bar",v_bar_fallback)   # Linear velocity
+        self.k_d = self.setupParameter("~k_d",k_d_fallback)     # P gain for d
+        self.k_theta = self.setupParameter("~k_theta",k_theta_fallback)     # P gain for theta
+        self.d_thres = self.setupParameter("~d_thres",d_thres_fallback)     # Cap for error in d
+        self.theta_thres = self.setupParameter("~theta_thres",theta_thres_fallback)     # Maximum desire theta
+        self.d_offset = self.setupParameter("~d_offset",d_offset_fallback)  # a configurable offset from the lane position
 
-        self.k_Id = self.setupParameter("~k_Id", k_Id_fallback)
-        self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)
+        self.k_Id = self.setupParameter("~k_Id", k_Id_fallback)     # gain for integrator of d
+        self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)    # gain for integrator of phi (phi = theta) 
         self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
@@ -138,10 +136,8 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
 
         #FeedForward
-        self.velocity_to_m_per_s = 0.67 # TODO: change according to information from team System ID!
-        self.omega_to_rad_per_s = 0.45 * 2 * math.pi
-        self.curvature_outer = 1 / (0.39)
-        self.curvature_inner = 1 / 0.175
+        self.velocity_to_m_per_s = 0.67     # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
+        self.omega_to_rad_per_s = 0.45 * 2 * math.pi    # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
         use_feedforward_part = rospy.get_param("~use_feedforward_part")
 
         k_Id = rospy.get_param("~k_Id")
@@ -173,13 +169,13 @@ class lane_controller(object):
 
     # FSM
     def cbSwitch(self,fsm_switch_msg):
-        self.active = fsm_switch_msg.data # True or False
+        self.active = fsm_switch_msg.data   # True or False
         rospy.loginfo("active: " + str(self.active))
 
 
     # FSM
     def cbMode(self,fsm_state_msg):
-        self.fsm_state = fsm_state_msg.state # String of current FSM state
+        self.fsm_state = fsm_state_msg.state    # String of current FSM state
         print "fsm_state changed in lane_controller_node to: " , self.fsm_state
 
 
@@ -257,13 +253,25 @@ class lane_controller(object):
 
         # Stop listening
         self.sub_lane_reading.unregister()
+        self.sub_obstacle_avoidance_pose.unregister()
+        self.sub_obstacle_detected.unregister()
+        # self.sub_intersection_navigation_pose.unregister()
+        # self.sub_parking_pose.unregister()
+        # self.sub_fleet_planning_pose.unregister()
+        # self.sub_fleet_planning_lane_following_override_active.unregister()
+        # self.sub_implicit_coord_pose.unregister()
+        # self.sub_implicit_coord_velocity_limit_active.unregister()
+        self.sub_wheels_cmd_executed.unregister()
+        self.sub_actuator_limits.unregister()
+        self.sub_switch.unregister()
+        self.sub_fsm_mode.unregister()
 
         # Send stop command
         car_control_msg = Twist2DStamped()
         car_control_msg.v = 0.0
         car_control_msg.omega = 0.0
         self.publishCmd(car_control_msg)
-        rospy.sleep(0.5) #To make sure that it gets published.
+        rospy.sleep(0.5)    #To make sure that it gets published.
         rospy.loginfo("[%s] Shutdown" %self.node_name)
 
 
@@ -287,7 +295,10 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
-        car_control_msg.v = pose_msg.v_ref #*self.speed_gain #Left stick V-axis. Up is positive
+        car_control_msg.v = pose_msg.v_ref
+
+        if car_control_msg.v > self.actuator_limits.v:
+            car_control_msg.v = self.actuator_limits.v
 
         if math.fabs(self.cross_track_err) > self.d_thres:
             rospy.logerr("inside threshold ")
@@ -329,37 +340,27 @@ class lane_controller(object):
         omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         omega -= self.k_Id * self.cross_track_integral
         omega -= self.k_Iphi * self.heading_integral
-        omega +=  ( omega_feedforward) * self.omega_to_rad_per_s
+        omega += omega_feedforward * self.omega_to_rad_per_s
 
         self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * self.omega_to_rad_per_s
         self.omega_max = min(self.actuator_limits.omega, self.omega_max_radius_limitation)
 
         if math.fabs(omega) > self.omega_max:
             if self.last_ms is not None: 
-                self.cross_track_integral -= self.cross_track_err * dt
-                self.heading_integral -= self.heading_err * dt
+                self.cross_track_integral -= self.cross_track_err * dt     # Anti Reset Windup
+                self.heading_integral -= self.heading_err * dt     # Anti Reset Windup
             car_control_msg.omega = self.omega_max * np.sign(omega)
         else:
             car_control_msg.omega = omega
 
-        if car_control_msg.v > self.actuator_limits.v:
-            car_control_msg.v = self.actuator_limits.v
-
         if car_control_msg.v == 0:
             car_control_msg.omega = 0
 
-        # rospy.loginfo("pose_msg.curvature_ref: " + str(pose_msg.curvature_ref))
-        # rospy.loginfo("heading_err: " + str(self.heading_err))
-        # rospy.loginfo("heading_integral: " + str(self.heading_integral))
-        # rospy.loginfo("cross_track_err: " + str(self.cross_track_err))
-        # rospy.loginfo("cross_track_integral: " + str(self.cross_track_integral))
-        # rospy.loginfo("use_feedforward_part: " + str(self.use_feedforward_part))
-        # rospy.loginfo("fsm_state in lane_controller_node: " + str(self.fsm_state))
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
 
 
 if __name__ == "__main__":
-    rospy.init_node("lane_controller_node",anonymous=False) #adapted to sonjas default file
+    rospy.init_node("lane_controller_node",anonymous=False)
     lane_control_node = lane_controller()
     rospy.spin()
