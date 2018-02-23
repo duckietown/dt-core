@@ -28,20 +28,29 @@ class LEDDetectorNode(object):
         # Node name
         self.node_name = rospy.get_name()
 
+	# Capture time
+	self.capture_time = 0.5
+
         # Parameters
         self.DTOL = 15
 
-        # Use FFT or heuristics
+        # Use FFT or heuristics
         self.useFFT = True
         self.freqIdentify = []
 
         # Cropping
-        self.cropNormalized.append({'side': 'right', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.67)})
-        self.cropNormalized.append({'side': 'right', 'crop': 'width', 'cropNorm': Vector2D(0.6,1.0)})
-        self.cropNormalized.append({'side': 'front', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.5)})
-        self.cropNormalized.append({'side': 'front', 'crop': 'width', 'cropNorm': Vector2D(0.13,0.5)})
-        self.cropNormalized.append({'side': 'traffic_light', 'crop': 'height', 'cropNorm': Vector2D(0.0,0.25)})
-        self.cropNormalized.append({'side': 'traffic_light', 'crop': 'width', 'cropNorm': Vector2D(0.25,0.75)})
+	#self.cropNormalized = []
+        #self.cropNormalized.append({'side': 'right', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.67)})
+        #self.cropNormalized.append({'side': 'right', 'crop': 'width', 'cropNorm': Vector2D(0.6,1.0)})
+        #self.cropNormalized.append({'side': 'front', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.5)})
+        #self.cropNormalized.append({'side': 'front', 'crop': 'width', 'cropNorm': Vector2D(0.13,0.5)})
+        #self.cropNormalized.append({'side': 'traffic_light', 'crop': 'height', 'cropNorm': Vector2D(0.0,0.25)})
+        #self.cropNormalized.append({'side': 'traffic_light', 'crop': 'width', 'cropNorm': Vector2D(0.25,0.75)})
+	
+	self.cropNormalizedRight = [[0.1,0.67],[0.6,1.0]]
+	self.cropNormalizedFront = [[0.1,0.5],[0.13,0.5]]
+        self.cropNormalizedTL = [[0.0,0.25],[0.25,0.75]]
+
 
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
@@ -80,13 +89,13 @@ class LEDDetectorNode(object):
         self.detector_tl  = cv2.SimpleBlobDetector_create(params_tl)
 
         # Publish
-        self.pub_detections  = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
-        self.pub_image_right = rospy.Publisher("~image_detection_right",Image,queue_size=1)
-        self.pub_image_front = rospy.Publisher("~image_detection_front", Image, queue_size=1)
-        self.pub_image_TL    = rospy.Publisher("~image_detection_TL", Image, queue_size=1)
-        self.pub_detections  = rospy.Publisher("~led_detection", SignalsDetection, queue_size=1)
-        self.pub_debug       = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
-        self.veh_name        = rospy.get_namespace().strip("/")
+        self.pub_raw_detections = rospy.Publisher("~raw_led_detection",LEDDetectionArray,queue_size=1)
+        self.pub_image_right    = rospy.Publisher("~image_detection_right",Image,queue_size=1)
+        self.pub_image_front    = rospy.Publisher("~image_detection_front", Image, queue_size=1)
+        self.pub_image_TL       = rospy.Publisher("~image_detection_TL", Image, queue_size=1)
+        self.pub_detections     = rospy.Publisher("~led_detection", SignalsDetection, queue_size=1)
+        self.pub_debug          = rospy.Publisher("~debug_info",LEDDetectionDebugInfo,queue_size=1)
+        self.veh_name           = rospy.get_namespace().strip("/")
 
         # Subscribed
         self.sub_cam    = rospy.Subscriber("camera_node/image/compressed", CompressedImage, self.camera_callback)
@@ -96,7 +105,7 @@ class LEDDetectorNode(object):
         # Additional parameters
         self.protocol            = rospy.get_param("~LED_protocol")
         #self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
-        self.capture_time         = rospy.get_param("~capture_time")
+        #self.capture_time         = rospy.get_param("~capture_time")
         #self.cell_size            = rospy.get_param("~cell_size")
         self.continuous           = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
@@ -164,7 +173,7 @@ class LEDDetectorNode(object):
                 #    self.data = rgb
                 #else:
                 #    self.data = np.dstack((self.data,rgb))
-                self.data.append({'timestamp': float_time, 'rgb': rgb})
+                self.data.append({'timestamp': float_time, 'rgb': rgb[:,:]})
                 debug_msg.capture_progress = 100.0*rel_time/self.capture_time
 
             # Start processing
@@ -189,10 +198,10 @@ class LEDDetectorNode(object):
         # Get size
         H,W,_ = images.shape
         # Compute indices
-        hStart = np.floor(H*cropNorm['height'][0])
-        hEnd   = np.ceil(H*cropNorm['height'][1])
-        wStart = W*cropNorm['width'][0]
-        wEnd   = W*cropNorm['width'][1]
+        hStart = np.floor(H*cropNorm[0][0])
+        hEnd   = np.ceil(H*cropNorm[0][1])
+        wStart = np.floor(W*cropNorm[1][0])
+        wEnd   = np.ceil(W*cropNorm[1][1])
         # Crop image
         imageCropped = images[hStart:hEnd,wStart:wEnd,:]
         # Return cropped image
@@ -203,20 +212,20 @@ class LEDDetectorNode(object):
         tic = time.time()
 
         # Get dimensions
-        H,W,_ = self.data[0]['rgb'].shape
+        H,W = self.data[0]['rgb'].shape
         NIm = len(self.data)
 
         # Save in proper vectors
-        images     = np.zeros((H,W,NIm))
+        images     = np.zeros((H,W,NIm),dtype=np.uint8)
         timestamps = np.zeros((NIm))
         for i, v in enumerate(self.data):
             timestamps[i] = v['timestamp']
             images[:,:,i] = v['rgb']
 
         # Crop images
-        imRight = self.crop_image(images,self.cropNormalized['right'])
-        imFront = self.crop_image(images,self.cropNormalized['front'])
-        imTL    = self.crop_image(images,self.cropNormalized['traffic_light'])
+        imRight = self.crop_image(images,self.cropNormalizedRight)
+        imFront = self.crop_image(images,self.cropNormalizedFront)
+        imTL    = self.crop_image(images,self.cropNormalizedTL)
 
         # Allocate space
         FrameRight = []
@@ -346,27 +355,27 @@ class LEDDetectorNode(object):
         for i in range(len(BlobsRight)):
             rospy.loginfo('[%s] Detection on the right' % (self.node_name))
             # Detection
-            detected,result = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalized['right'],timestamps,result)
+            detected,result = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
             # Take decision
             if detected:
                 self.right = SignalsDetection.SIGNAL_A
                 break
 
-        # Decide whether LED or not (right)
+        # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
             rospy.loginfo('[%s] Detection on the front' % (self.node_name))
             # Detection
-            detected, result = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalized['front'],timestamps,result)
+            detected, result = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
             # Take decision
             if detected:
                 self.front = SignalsDetection.SIGNAL_A
                 break
 
-        # Decide whether LED or not (right)
+        # Decide whether LED or not (traffic light)
         for i in range(len(BlobsTL)):
             rospy.loginfo('[%s] Detection of the traffic light' % (self.node_name))
             # Detection
-            detected, result = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalized['traffic_light'],timestamps,result)
+            detected, result = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
             # Take decision
             if detected:
                 self.traffic_light = SignalsDetection.GO
@@ -409,7 +418,7 @@ class LEDDetectorNode(object):
             # Decision
             detected = True
             # Raw detection
-            coord_norm = Vector2D(1.0*(crop['Width'][0]+Blob['p'][0])/W, 1.0*(crop['Height'][0]+Blob['p'][1])/H)
+            coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
             result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
         else:
             detected = False
@@ -428,7 +437,7 @@ class LEDDetectorNode(object):
         self.pub_image_TL.publish(imTLCircle_msg)
 
         # Publish results
-        self.pub_detections.publish(results)
+        self.pub_raw_detections.publish(results)
 
         # Loginfo (right)
         if self.right != SignalsDetection.NO_CAR:

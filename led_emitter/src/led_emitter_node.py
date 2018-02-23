@@ -75,26 +75,28 @@ class LEDEmitter(object):
 
             # With joystick
             if self.current_pattern_name == 'ON_WHITE':
-                self.pattern = self.protocol['colors']['white']*5
+                self.pattern = [self.protocol['colors']['white']]*5
             elif self.current_pattern_name == 'ON_RED':
-                self.pattern = self.protocol['colors']['red']*5
+                self.pattern = [self.protocol['colors']['red']]*5
             elif self.current_pattern_name == 'ON_BLUE':
-                self.pattern = self.protocol['colors']['blue']*5
+                self.pattern = [self.protocol['colors']['blue']]*5
             elif self.current_pattern_name == 'ON_GREEN':
-                self.pattern = self.protocol['colors']['green']*5
+                self.pattern = [self.protocol['colors']['green']]*5
             else:
-                self.pattern = self.protocol['colors']['black']*5
+                self.pattern = [self.protocol['colors']['black']]*5
 
             # With coordination (new)
             if self.current_pattern_name == CoordinationSignal.SIGNAL_A:
-                self.pattern    = self.protocol['colors']['black']*5
-                self.pattern[2] = self.protocol['signals'][pattern_name]['color']
-                self.pattern[0] = self.protocol['signals'][pattern_name]['color']
-                self.pattern[4] = self.protocol['signals'][pattern_name]['color']
+		color           = self.protocol['signals'][pattern_name]['color']
+                self.pattern    = [self.protocol['colors']['black']]*5
+                self.pattern[2] = self.protocol['colors'][color]
+                self.pattern[0] = self.protocol['colors'][color]
+                self.pattern[4] = self.protocol['colors'][color]
             elif self.current_pattern_name == CoordinationSignal.SIGNAL_GREEN:
-                self.pattern = self.protocol['signals'][pattern_name]['color']*5
+		color        = self.protocol['signals'][pattern_name]['color']
+                self.pattern = [self.protocol['colors'][color]]*5
             elif self.current_pattern_name == CoordinationSignal.OFF:
-                self.pattern = self.protocol['colors']['black']
+                self.pattern = [self.protocol['colors']['black']]*5
 
             # Change frequency (frequency does not change)
             # self.cycle = self.protocol['signals'][pattern_name]['frequency']
