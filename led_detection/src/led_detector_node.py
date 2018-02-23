@@ -28,8 +28,8 @@ class LEDDetectorNode(object):
         # Node name
         self.node_name = rospy.get_name()
 
-	# Capture time
-	self.capture_time = 0.5
+        # Capture time
+        self.capture_time = 0.5
 
         # Parameters
         self.DTOL = 15
@@ -39,18 +39,9 @@ class LEDDetectorNode(object):
         self.freqIdentify = []
 
         # Cropping
-	#self.cropNormalized = []
-        #self.cropNormalized.append({'side': 'right', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.67)})
-        #self.cropNormalized.append({'side': 'right', 'crop': 'width', 'cropNorm': Vector2D(0.6,1.0)})
-        #self.cropNormalized.append({'side': 'front', 'crop': 'height', 'cropNorm': Vector2D(0.1,0.5)})
-        #self.cropNormalized.append({'side': 'front', 'crop': 'width', 'cropNorm': Vector2D(0.13,0.5)})
-        #self.cropNormalized.append({'side': 'traffic_light', 'crop': 'height', 'cropNorm': Vector2D(0.0,0.25)})
-        #self.cropNormalized.append({'side': 'traffic_light', 'crop': 'width', 'cropNorm': Vector2D(0.25,0.75)})
-	
-	self.cropNormalizedRight = [[0.1,0.67],[0.6,1.0]]
-	self.cropNormalizedFront = [[0.1,0.5],[0.13,0.5]]
-        self.cropNormalizedTL = [[0.0,0.25],[0.25,0.75]]
-
+        self.cropNormalizedRight = [[0.1,0.67],[0.6,1.0]]
+        self.cropNormalizedFront = [[0.1,0.5],[0.13,0.5]]
+        self.cropNormalizedTL    = [[0.0,0.25],[0.25,0.75]]
 
         # Setup SimpleBlobDetector parameters
         params = cv2.SimpleBlobDetector_Params()  # Change thresholds
@@ -106,9 +97,11 @@ class LEDDetectorNode(object):
         self.protocol            = rospy.get_param("~LED_protocol")
         #self.crop_rect_normalized = rospy.get_param("~crop_rect_normalized")
         #self.capture_time         = rospy.get_param("~capture_time")
-        #self.cell_size            = rospy.get_param("~cell_size")
         self.continuous           = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
+        # Cell size (needed for visualization)
+        self.cell_size = rospy.get_param("~cell_size")
+
         # Get frequency to indentify
         self.freqIdentify = self.protocol['signals']['CAR_SIGNAL_A']['frequency']
 
@@ -437,6 +430,14 @@ class LEDDetectorNode(object):
 
         # Publish results
         self.pub_raw_detections.publish(results)
+
+        # Publish debug
+        debug_msg = LEDDetectionDebugInfo()
+        debug_msg.cell_size          = self.cell_size
+        debug_msg.crop_rect_norm     = self.crop_rect_norm
+        debug_msg.led_all_unfiltered = results
+        debug_msg.state              = 0
+        self.pub_debug.publish(debug_msg)
 
         # Loginfo (right)
         if self.right != SignalsDetection.NO_CAR:
