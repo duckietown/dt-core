@@ -85,6 +85,7 @@ class VehicleCoordinator():
         traffic_light_old = self.traffic_light_intersection
 
         # New traffic light
+        # TODO: only consider two closest signs
         for item in msg.infos:
             if item.traffic_sign_type == 17:
                 self.traffic_light_intersection = True
