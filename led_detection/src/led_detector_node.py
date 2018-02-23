@@ -109,9 +109,8 @@ class LEDDetectorNode(object):
         #self.cell_size            = rospy.get_param("~cell_size")
         self.continuous           = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
-        # Get frequency and frequencies to indentify
-        self.frequencies  = self.protocol['frequencies'].values()
-        self.freqIdentify = self.frequencies[2]
+        # Get frequency to indentify
+        self.freqIdentify = self.protocol['signals']['CAR_SIGNAL_A']['frequency']
 
         #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
