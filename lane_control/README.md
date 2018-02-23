@@ -9,10 +9,9 @@
 
 This node takes pose estimations and reference values, such as velocity and curvature, from different nodes. It decides on which values to use from which node, based on the current mode of the state machine and outputs the yaw rate omega. It thereby provides a controller for lane following and path following (e.g. on intersections and parking lots). The code for the input of some nodes is not yet activated (still commented out).
 
-* After doing the new kinematic calibration provided by the System Identification group:
+* TODO: After doing the new kinematic calibration provided by the System Identification group:
     - The controller parameters should be adjusted according to the output of the calibration.
     - The correction factors **velocity_to_m_per_s** and **omega_to_rad_per_s** need to be adjusted or ideally become obsolete and thus need to be deleted.
-
 
 To run the code the lane following demo can be used.
 
