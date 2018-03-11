@@ -74,7 +74,6 @@ class FSMNode(object):
     def _validateEvents(self,events_dict):
         pass_flag = True
         for event_name, event_dict in events_dict.items():
-            print 
             if "topic" not in event_dict:
                 rospy.logerr("[%s] Event %s missing topic definition." %(self.node_name,event_name))
                 pass_flag = False
