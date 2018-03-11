@@ -28,6 +28,7 @@ homography: [-5.828719e-05, -0.0001358896, -0.2350442, 0.001113641, -2.290353e-0
 
 @dtu.contract(robot_name=str, returns='array[3x3]')
 def get_homography_for_robot(robot_name):
+    dtu.check_isinstance(robot_name, str)
     # find the file
     if robot_name == dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS:
         data = dtu.yaml_load(homography_default)
@@ -82,6 +83,7 @@ def get_homography_info_config_file(robot_name):
             raise Exception(msg)
         else:
             dtu.logger.error(msg)
+            return found[0]
 
 
 def get_extrinsics_filename(robot_name):
