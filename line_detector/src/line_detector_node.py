@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+
+from anti_instagram.AntiInstagram import AntiInstagram
+from cv_bridge import CvBridge, CvBridgeError
+from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
+    SegmentList, Vector2D, FSMState)
+from duckietown_utils.instantiate_utils import instantiate
+from duckietown_utils.jpg import image_cv_from_jpg
+from geometry_msgs.msg import Point
+from sensor_msgs.msg import CompressedImage, Image
+from visualization_msgs.msg import Marker
+
+from line_detector.timekeeper import TimeKeeper
+import cv2
+import rospy
+
 import threading
 import time
 
@@ -19,7 +34,7 @@ from sensor_msgs.msg import CompressedImage, Image
 class LineDetectorNode(object):
 
     def __init__(self):
-        self.node_name = "LineDetectorNode"
+        self.node_name = rospy.get_name()
 
         # Thread lock
         self.thread_lock = threading.Lock()
@@ -53,7 +68,9 @@ class LineDetectorNode(object):
         # Subscribers
         self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
+        # FSM
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." % (self.node_name, self.verbose))
 
@@ -83,8 +100,14 @@ class LineDetectorNode(object):
             self.pub_edge = rospy.Publisher("~edge", Image, queue_size=1)
             self.pub_colorSegment = rospy.Publisher("~colorSegment", Image, queue_size=1)
 
+
+            #FSM
+
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
+        #FSM
+    def cbMode(self, mode_msg):
+        self.fsm_state = mode_msg.state # String of current FSM state
 
     def cbImage(self, image_msg):
         self.stats.received()
