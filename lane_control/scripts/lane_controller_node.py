@@ -34,16 +34,14 @@ class lane_controller(object):
         self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.updateWheelsCmdExecuted, queue_size=1)
         self.sub_actuator_params = rospy.Subscriber("~actuator_params", ActuatorParameters, self.updateActuatorParameters, queue_size=1)
 
-        robot_name = rospy.get_param("~veh", "")  # ToDo Controllers: potentially update param to get the robot name
-        self.sub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, bool, self.obstacleFlagCallback)
-
-        self.sub_topic = '/{}/obst_avoid/d_target'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, Float32,
-                                           self.obstAvoidDUpdate)  # Absolute value, with 0 on center line
-
-        self.sub_topic = '/obstacle_emergency_stop_flag'.format(robot_name)
-        self.subscriber = rospy.Subscriber(self.sub_topic, Bool, self.obstEmergBrakeUpdate)
+        #robot_name = rospy.get_param("~veh", "")  # ToDo Controllers: potentially update param to get the robot name
+        #self.sub_topic = '/{}/obstacle_avoidance_active_flag'.format(robot_name)
+        #self.subscriber = rospy.Subscriber(self.sub_topic, bool, self.obstacleFlagCallback)
+        #self.sub_topic = '/{}/obst_avoid/d_target'.format(robot_name)
+        #self.subscriber = rospy.Subscriber(self.sub_topic, Float32,
+    #                                       self.obstAvoidDUpdate)  # Absolute value, with 0 on center line
+    #    self.sub_topic = '/obstacle_emergency_stop_flag'.format(robot_name)
+    #    self.subscriber = rospy.Subscriber(self.sub_topic, Bool, self.obstEmergBrakeUpdate)
 
         #####JULIEN self.sub_curvature = rospy.Subscriber("~curvature", LaneCurvature, self.cbCurve, queue_size=1)
         #####JULIEN self.k_forward = 0.0

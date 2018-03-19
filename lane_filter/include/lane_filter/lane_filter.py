@@ -155,7 +155,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     @dtu.contract(segment_list=SegmentList)
     def generate_measurement_likelihood(self, segment_list, range_min, range_max):
-        segments = segment_list.segments
+        segments = segment_list
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
         for segment in segments:
