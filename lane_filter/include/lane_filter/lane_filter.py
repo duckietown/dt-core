@@ -23,13 +23,13 @@ from math import floor, sqrt
 import copy
 
 
-__all__ = [
-    'LaneFilterHistogram',
-]
+#__all__ = [
+#    'LaneFilterHistogram',
+#]
 
 
 class LaneFilterHistogram(Configurable, LaneFilterInterface):
-    """LaneFilterHistogram"""
+    #"""LaneFilterHistogram"""
 
 
     def __init__(self, configuration):

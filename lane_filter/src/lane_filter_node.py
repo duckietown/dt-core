@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped
-import duckietown_utils as dtu
+from duckietown_utils.instantiate_utils import instantiate
 import numpy as np
 import rospy
 from sensor_msgs.msg import Image
@@ -58,7 +58,7 @@ class LaneFilterNode(object):
             assert isinstance(c, list) and len(c) == 2, c
 
             self.loginfo('new filter config: %s' % str(c))
-            self.filter = dtu.instantiate(c[0], c[1])
+            self.filter = instantiate(c[0], c[1])
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
