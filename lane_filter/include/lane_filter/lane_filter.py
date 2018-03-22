@@ -187,7 +187,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         measurement_likelihood = np.zeros(self.d.shape)
 
         for segment in segments:
-            d_i, phi_i, l_i = self.generateVote(segment)
+            d_i, phi_i, l_i, weight =  self.generateVote(segment)
 
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i > self.phi_max:
@@ -214,6 +214,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             phi_max[i] = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
         return [d_max, phi_max]
 
+    # TODO: Method is needed (this caused the abstract class error, where is it gone?) (Julien)
+    def getStatus(self):
+        return
 
     # get the curvature estimation
     def getCurvature(self, d_max, phi_max):

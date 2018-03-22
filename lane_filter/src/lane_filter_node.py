@@ -113,9 +113,9 @@ class LaneFilterNode(object):
         if self.curvature_res > 0:
             lanePose.curvature = self.filter.getCurvature(d_max[1:], phi_max[1:])
 
-
+        #TODO (1): this method does not exist, where is it gone? (Julien)
         # publish the belief image
-        belief_img = self.getDistributionImage(self.filter.belief, segment_list_msg.header.stamp)
+        #belief_img = self.getDistributionImage(self.filter.belief, segment_list_msg.header.stamp)
         self.pub_lane_pose.publish(lanePose)
 
         # Latency of Estimation including curvature estimation
@@ -129,7 +129,8 @@ class LaneFilterNode(object):
         # print "Latency of segment list: ", segment_latency
         print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
 
-        self.pub_belief_img.publish(belief_img)
+        # TODO (1): see above, method does not exist
+        #self.pub_belief_img.publish(belief_img)
 
         # also publishing a separate Bool for the FSM
         in_lane_msg = BoolStamped()

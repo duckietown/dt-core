@@ -20,6 +20,10 @@ class lane_controller(object):
         self.last_ms = None
         self.pub_counter = 0
 
+
+        self.velocity_to_m_per_s = 0.67
+        self.omega_to_rad_per_s = 0.45 * 2 * math.pi
+
         # Setup parameters
         self.setGains()
 
@@ -87,6 +91,7 @@ class lane_controller(object):
         k_Id_fallback = 2.5
         k_Iphi_fallback = 1.25
 
+        self.fsm_state = None
         self.cross_track_err = 0
         self.heading_err = 0
         self.cross_track_integral = 0
@@ -130,7 +135,8 @@ class lane_controller(object):
 
         self.k_Id = self.setupParameter("~k_Id", k_Id_fallback)     # gain for integrator of d
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)    # gain for integrator of phi (phi = theta)
-        self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
+        #TODO: Feedforward was not working, go away with this error source! (Julien)
+        #self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
@@ -151,10 +157,11 @@ class lane_controller(object):
         object_detected = rospy.get_param("~object_detected")
 
         #FeedForward
+        #TODO: Feedforward was not working, go away with this error source! (Julien)
 
         self.velocity_to_m_per_s = 0.67     # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
-        self.omega_to_rad_per_s = 0.45 * 2 * math.pi    # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
-        use_feedforward_part = rospy.get_param("~use_feedforward_part")
+        #self.omega_to_rad_per_s = 0.45 * 2 * math.pi    # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
+        #use_feedforward_part = rospy.get_param("~use_feedforward_part")
 
 
         k_Id = rospy.get_param("~k_Id")
@@ -323,7 +330,10 @@ class lane_controller(object):
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
-        car_control_msg.v = pose_msg.v_ref
+
+        #TODO: I adjusted this such that gain of 1 is working (and not tweaked gain of 0.6 like we did.. that way v_ref is REALLY
+        #in m/s and not just a random number, I have the feeling this was forgotten somehow..) (Julien)
+        car_control_msg.v = pose_msg.v_ref * 0.6
 
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
@@ -362,15 +372,16 @@ class lane_controller(object):
             self.cross_track_integral = 0
             self.heading_integral = 0
 
+        #TODO: Feedforward was not working, go away with this error source! (Julien)
 
-        omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref
-        if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
-            omega_feedforward = 0
+        #omega_feedforward = car_control_msg.v * self.velocity_to_m_per_s * pose_msg.curvature_ref
+        #if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
+        #    omega_feedforward = 0
 
         omega =  self.k_d * self.cross_track_err + self.k_theta * self.heading_err
         omega -= self.k_Id * self.cross_track_integral
         omega -= self.k_Iphi * self.heading_integral
-        omega += omega_feedforward * self.omega_to_rad_per_s
+        #omega += omega_feedforward * self.omega_to_rad_per_s
 
 
         self.omega_max_radius_limitation = car_control_msg.v * self.velocity_to_m_per_s / self.min_radius * self.omega_to_rad_per_s
