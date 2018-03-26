@@ -76,7 +76,8 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return LaneFilterInterface.GOOD
 
     def getStatus(self):
-        get_status();
+        return get_status()
+
 
     def update(self, segment_list):
         """ Returns the likelihood """
