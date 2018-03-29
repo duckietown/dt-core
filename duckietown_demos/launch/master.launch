@@ -56,6 +56,8 @@
 
 	<arg name="vehicle_avoidance" default="false"/>
 	<arg name="/vehicle_avoidance/detection" default="true" />
+	<arg name="/vehicle_avoidance/multivehicle_detection" default="false" />
+	<arg name="/vehicle_avoidance/filter" default="true" />
 	<arg name="/vehicle_avoidance/control" default="true"/>
 
 	<arg name="apriltags" default="false"/>
@@ -75,7 +77,7 @@
 	<arg name="/odometry_learning/visual_odometry" default="false"/>
 
 	<arg name="coordination" default="false"/>
-
+	<arg name="implicit_coordination" default="false"/>
 	<arg name="navigation" default="false"/>
 	<arg name="/navigation/intersection_control" default="true"/>
 	<arg name="/navigation/apriltags_random" default="true"/>
@@ -372,9 +374,32 @@
 				<arg name="veh" value="$(arg veh)"/>
 			</include>
 		</group>
+		<!-- Object Detection Node -->
+		<remap from="camera_node/image/compressed" to="decoder_node/image/compressed" />
+		<group if="$(arg /vehicle_avoidance/multivehicle_detection)">
+			<include file="$(find object_detection)/launch/object_detection.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="local" value="$(arg local)"/>
+			</include>
+		<!-- Multivehicle Detection Node -->
+			<include file="$(find multivehicle_tracker)/launch/multivehicle_tracker.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="local" value="$(arg local)"/>
+			</include>
+		</group>
+		<!-- Vehicle Filter Node -->
+		<remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
+		<remap from="vehicle_filter_node/corners" to="vehicle_detection_node/corners" />
+		<group if="$(arg /vehicle_avoidance/filter)">
+			<include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+			</include>
+		</group>
 		<!-- Vehicle Control Node -->
 		<group if="$(arg /vehicle_avoidance/control)">
 			<remap from="vehicle_avoidance_control_node/detection" to="vehicle_detection_node/detection"/>
+			<remap from="vehicle_avoidance_control_node/vehicle_pose" to="vehicle_filter_node/pose"/>
+			<remap from="vehicle_avoidance_control_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
 			<include file="$(find vehicle_detection)/launch/vehicle_avoidance_control_node.launch" >
 				<arg name="veh" value="$(arg veh)"/>
 			</include>
@@ -507,10 +532,25 @@
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
             <arg name="intersectionType" value="$(arg intersectionType)" />
+
 		</include>
 	</group>
 
-	<group unless="$(arg coordination)">
+	<!-- Start Implicit Coordination -->
+	<group if="$(arg implicit_coordination)">
+		<!-- Vehicle Coordinator-->
+		<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
+		<remap from="implicit_coordination_node/vehicle_detection_node" to="/multivehicle_tracker_node/tracking" />
+		<remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" />
+		<!--the following remap is done through led_patter_switch_node -->
+				<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+		<include file="$(find implicit_coordination)/launch/implicit.launch">
+			<arg name="veh" value="$(arg veh)"/>
+
+		</include>
+	</group>
+
+	<group unless="$(arg implicit_coordination)">
 	  <!-- Vehicle Coordinator-->
 	  <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
 	  <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
@@ -540,7 +580,7 @@
 			</include>
 		</group>
 
-        <group if="$(arg /navigation/random_sr_turns)">
+    <group if="$(arg /navigation/random_sr_turns)">
 			<!-- random april tags -->
 			<remap from="sr_turns_node/mode" to="fsm_node/mode"/>
 			<!-- remapping outputs since there are two different possible turn types -->
