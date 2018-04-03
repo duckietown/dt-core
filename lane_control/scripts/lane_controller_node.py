@@ -136,10 +136,13 @@ class lane_controller(object):
         self.k_Id = self.setupParameter("~k_Id", k_Id_fallback)     # gain for integrator of d
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)    # gain for integrator of phi (phi = theta)
         #TODO: Feedforward was not working, go away with this error source! (Julien)
-        #self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
+        self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
+        self.d_ref = self.setupParameter("~d_ref", 0)
+        self.phi_ref = self.setupParameter("~phi_ref",0)
+        self.object_detected = self.setupParameter("~object_detected", 0)
         self.v_ref_possible["default"] = self.v_bar
 
 
@@ -159,9 +162,9 @@ class lane_controller(object):
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
-        self.velocity_to_m_per_s = 0.67     # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
+        self.velocity_to_m_per_s = 1#0.67     # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
         #self.omega_to_rad_per_s = 0.45 * 2 * math.pi    # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
-        #use_feedforward_part = rospy.get_param("~use_feedforward_part")
+        use_feedforward_part = rospy.get_param("~use_feedforward_part")
 
 
         k_Id = rospy.get_param("~k_Id")
@@ -331,9 +334,8 @@ class lane_controller(object):
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
 
-        #TODO: I adjusted this such that gain of 1 is working (and not tweaked gain of 0.6 like we did.. that way v_ref is REALLY
-        #in m/s and not just a random number, I have the feeling this was forgotten somehow..) (Julien)
-        car_control_msg.v = pose_msg.v_ref * 0.6
+
+        car_control_msg.v = pose_msg.v_ref
 
         if car_control_msg.v > self.actuator_limits.v:
             car_control_msg.v = self.actuator_limits.v
