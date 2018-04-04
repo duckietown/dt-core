@@ -54,7 +54,7 @@
 <arg name="/obstacle_avoidance/detection" default="true"/>
 <arg name="/obstacle_avoidance/safety" default="true"/>
 
-<arg name="vehicle_avoidance" default="false"/>
+<arg name="vehicle_avoidance" default="true"/>
 <arg name="/vehicle_avoidance/detection" default="true" />
 <arg name="/vehicle_avoidance/multivehicle_detection" default="false" />
 <arg name="/vehicle_avoidance/filter" default="true" />
@@ -95,6 +95,17 @@
 <arg name="/localization/local" default="false" />
 <arg name="/localization/map_name" default="open_house_dp6" />
 <arg name="/localization/gui" default="false"/>
+
+
+<!-- TODO if vehicle avoidance is turned off, bot will not move... -->
+<!-- Vehicle avoidance control for lane following -->
+		<group unless="$(arg vehicle_avoidance)">
+				<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
+
+		</group>
+
+		<!-- Vehicle avoidance control for lane following end -->
+
 
 <!-- end switch args -->
 
@@ -313,6 +324,11 @@
 		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
 		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_active_flag" />
+
+
+
+
+
 		<include file="$(find lane_control)/launch/lane_controller_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -401,6 +417,8 @@
 		<remap from="vehicle_avoidance_control_node/vehicle_pose" to="vehicle_filter_node/pose"/>
 		<remap from="vehicle_avoidance_control_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
 		<include file="$(find vehicle_detection)/launch/vehicle_avoidance_control_node.launch" >
+
+
 			<arg name="veh" value="$(arg veh)"/>
 		</include>
 	</group>
