@@ -91,6 +91,7 @@ class VehicleDetectionNode(object):
 				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
 			except CvBridgeError as e:
 				print e
+				
 			start = rospy.Time.now()
 			params = cv2.SimpleBlobDetector_Params()
 			params.minArea = self.blobdetector_min_area
@@ -99,6 +100,8 @@ class VehicleDetectionNode(object):
 			(detection, corners) = cv2.findCirclesGrid(image_cv,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=simple_blob_detector)
+			
+			#print(corners)
 			
 			vehicle_detected_msg_out.data = detection
 			self.pub_detection.publish(vehicle_detected_msg_out)
@@ -113,7 +116,7 @@ class VehicleDetectionNode(object):
 					corner.y = point[0,1]
 					corner.z = 0
 					points_list.append(corner)
-				vehicle_corners_msg_out.header.stamp = image_msg.header.stamp
+				vehicle_corners_msg_out.header.stamp = rospy.Time.now()
 				vehicle_corners_msg_out.corners = points_list
 				vehicle_corners_msg_out.detection.data = detection
 				vehicle_corners_msg_out.H = self.circlepattern_dims[1]
