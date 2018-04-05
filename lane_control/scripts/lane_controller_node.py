@@ -81,6 +81,7 @@ class lane_controller(object):
 
 
     def setGains(self):
+        self.v_max = 1
         v_bar_fallback = 0.5 # nominal speed, 0.5m/s
         k_theta_fallback = -2.0
         k_d_fallback = - (k_theta_fallback ** 2) / ( 4.0 * v_bar_fallback)
@@ -100,6 +101,7 @@ class lane_controller(object):
         self.cross_track_integral_bottom_cutoff = -0.3
         self.heading_integral_top_cutoff = 1.2
         self.heading_integral_bottom_cutoff = -1.2
+        #-1.2
         self.time_start_curve = 0
 
         use_feedforward_part_fallback = False
@@ -143,7 +145,7 @@ class lane_controller(object):
         self.d_ref = self.setupParameter("~d_ref", 0)
         self.phi_ref = self.setupParameter("~phi_ref",0)
         self.object_detected = self.setupParameter("~object_detected", 0)
-        self.v_ref_possible["default"] = self.v_bar
+        self.v_ref_possible["default"] = self.v_max
 
 
 
