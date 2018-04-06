@@ -96,6 +96,8 @@
 <arg name="/localization/map_name" default="open_house_dp6" />
 <arg name="/localization/gui" default="false"/>
 
+<arg name="charging_control" default="false"/>
+
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
@@ -672,6 +674,19 @@
 	</include>
 </group>
 <!-- End Parallel Autonomy -->
+
+
+<!-- Start Charging Control -->
+<group if="$(arg charging_control)">
+	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
+	<include file="$(find charging_control)/launch/charging_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End Charging Control -->
+
 
 <!-- Start Global Localization -->
 <group if="$(arg global_localizer)">

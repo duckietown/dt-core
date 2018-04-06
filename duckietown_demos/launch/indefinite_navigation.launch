@@ -12,5 +12,8 @@
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
 		<arg name="implicit_coordination" default="true"/>
+		
+		<!-- Charging control enabled for Megacity -->
+		<arg name="charging_control" default="true"/>
 	</include>
 </launch>
