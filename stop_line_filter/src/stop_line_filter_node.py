@@ -49,7 +49,7 @@ class StopLineFilterNode(object):
 
 
     def processStateChange(self, msg):
-        if self.state == "INTERSECTION_CONTROL" and (msg.state == "LANE_FOLLOWING" or msg.state == "PARALLEL_AUTONOMY"):
+        if (self.state == "INTERSECTION_CONTROL" or self.state == "CHARGING_FIRST_IN_LINE") and (msg.state == "LANE_FOLLOWING" or msg.state == "PARALLEL_AUTONOMY"):
             self.afterIntersectionWork()
         self.state=msg.state
 
@@ -98,6 +98,13 @@ class StopLineFilterNode(object):
             stop_line_reading_msg.stop_line_detected = False
             stop_line_reading_msg.at_stop_line = False
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
+
+            ### CRITICAL: publish false to at stop line output_topic
+            msg = BoolStamped()
+            msg.header.stamp = stop_line_reading_msg.header.stamp
+            msg.data = False
+            self.pub_at_stop_line.publish(msg)
+            ### CRITICAL END
             return
 
         stop_line_reading_msg.stop_line_detected = True
