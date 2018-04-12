@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from cv_bridge import CvBridge
-from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped
+from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped, FSMState
 from duckietown_utils.instantiate_utils import instantiate
 import numpy as np
 import rospy
@@ -47,6 +47,10 @@ class LaneFilterNode(object):
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
         self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
 
+        # FSM
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+        self.active = True
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -138,6 +142,8 @@ class LaneFilterNode(object):
         in_lane_msg.data = in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
+    def cbMode(self, msg):
+        return #TODO adjust self.active
 
     def updateVelocity(self,twist_msg):
         self.velocity = twist_msg
