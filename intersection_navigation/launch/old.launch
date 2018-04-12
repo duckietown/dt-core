@@ -1,0 +1,216 @@
+<launch>
+	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+    <arg name="local" default="false" doc="true for running everything you possibly can on laptop. false for everything running on vehicle."/>
+    <arg name="config" default="baseline" doc="Specify a config."/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
+    <arg name="raw" default="true" doc="If set to true, also publish raw image using decoder."/>
+    <arg name="cam_info" default="true" doc="If set to true, use cam_info_reader_node to pusblish CameraInfo."/>
+    <arg name="live" default="true" doc="live set to false means we don't run the actual camera (i.e. running from a log file" />
+    <arg name="fsm_file_name" default="default" />
+
+    <!-- run inverse_kinematics_node -->
+    <remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+    <remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd"/>
+    <remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
+	<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
+
+    <include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+    </include>
+    <!-- End inverse_kinematic_node -->
+
+    <!-- run forward_kinematics_node -->
+    <remap from="forward_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd_executed" />
+
+    <include file="$(find dagu_car)/launch/forward_kinematics_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+    </include>
+    <!-- End forward_kinematic_node -->
+
+    <!-- Wheels Driver -->
+    <include file="$(find dagu_car)/launch/wheels_driver_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+    <!-- End Wheels Driver -->
+
+    <!-- Start Joystick -->
+    <include file="$(find joy_mapper)/launch/joy_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+    <!-- joy_mapper -->
+    <include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+	<!-- End Joystick -->
+
+    <!-- Camera -->
+    <include file="$(find duckietown)/launch/camera.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+        <arg name="raw" value="$(arg raw)"/>
+        <arg name="cam_info" value="$(arg cam_info)"/>
+        <arg name="live" value="$(arg live)"/>
+        <arg name="rect" value="true" />
+    </include>
+    <!-- End Camera -->
+
+    <!-- AprilTags Detections -->
+    <remap from="image_rect" to="camera_node/image/rect" />
+    <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
+
+    <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+ 	<!-- Postprocessing node -->
+ 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
+
+ 	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
+ 		<arg name="veh" value="$(arg veh)"/>
+        <arg name="local" value="$(arg local)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+ 	</include>
+
+ 	<!-- Random Turn April Tag -->
+    <remap from="~mode" to="fsm_node/mode" />
+    <remap from="~tag"  to="apriltags_postprocessing_node/apriltags_out"/>
+    <include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+ 	<!-- End AprilTags nodes -->
+
+    <!-- Lane following nodes -->
+
+    <!-- Ground projection -->
+	<include file="$(find duckietown)/launch/line_detector.launch">
+		 <arg name="veh" value="$(arg veh)"/>
+		 <arg name="local" value="$(arg local)"/>
+		 <arg name="config" value="$(arg config)"/>
+		 <arg name="param_file_name" value="$(arg param_file_name)"/>
+		 <arg name="live" value="$(arg live)"/>
+		 <arg name="camera" value="false" />
+	</include>
+
+	<include file="$(find ground_projection)/launch/ground_projection.launch">
+		 <arg name="veh" value="$(arg veh)"/>
+		 <arg name="local" value="$(arg local)"/>
+		 <arg name="config" value="$(arg config)"/>
+		 <arg name="param_file_name" value="$(arg param_file_name)"/>
+		 <arg name="camera_topic" value="camera_node"/>
+	</include>
+
+    <!-- Lane Filter -->
+	<remap from="lane_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+    <remap from="lane_filter_node/velocity" to="forward_kinematics_node/velocity"/>
+
+	<include file="$(find lane_filter)/launch/lane_filter_node.launch">
+	    <arg name="veh" value="$(arg veh)"/>
+	    <arg name="local" value="$(arg local)"/>
+	    <arg name="config" value="$(arg config)"/>
+	    <arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+
+	<!-- Stop Line Filter -->
+
+	<remap from="stop_line_filter_node/lanewidth" to="lane_filter_node/lanewidth"/>
+	<remap from="stop_line_filter_node/lane_pose" to="lane_filter_node/lane_pose"/>
+	<remap from="stop_line_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
+
+	<include file="$(find stop_line_filter)/launch/stop_line_filter_node.launch">
+	    <arg name="veh" value="$(arg veh)"/>
+	    <arg name="local" value="$(arg local)"/>
+	    <arg name="config" value="$(arg config)"/>
+	    <arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+
+    <!-- Lane controller -->
+
+    <remap from="~fsm_mode" to="fsm_node/mode" />
+    <remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
+
+	<include file="$(find lane_control)/launch/lane_controller_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+    <!-- End Lane following nodes -->
+
+    <!-- FSM -->
+    <include file="$(find fsm)/launch/fsm_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg fsm_file_name)"/>
+    </include>
+
+    <!-- car_cmd_switch_node -->
+    <!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
+    <include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+    <include file="$(find fsm)/launch/logic_gate_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="config" value="$(arg config)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+    <!-- End FSM -->
+
+    <!-- Intersection navigation fake nodes -->
+    <!-- stop at red line node -->
+	<node ns="$(arg veh)" name="stop_node" pkg="intersection_navigation" type="stop_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+
+    <!-- intersection coordination node -->
+	<node ns="$(arg veh)" name="intersection_coordination_node" pkg="intersection_navigation" type="intersection_coordination_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+	<!-- End Intersection navigation fake nodes -->
+
+    <!-- Intersection localizer -->
+    <remap from="~pose_img_in" to="intersection_navigation_node/pose_img_out" />
+    <remap from="~pose_out" to="intersection_navigation_node/pose_in" />
+
+	<node ns="$(arg veh)" name="intersection_localizer_node" pkg="intersection_navigation" type="intersection_localizer_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+	<!-- End Intersection localizer -->
+
+    <!-- Intersection navigation -->
+    <remap from="~fsm" to="fsm_node/mode" />
+    <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
+    <remap from="~img" to="camera_node/image/compressed" />
+    <remap from="~cmds" to="forward_kinematics_node/velocity" />
+    <remap from="~apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
+    <remap from="~turn_type" to="random_april_tag_turns_node/turn_type"/>
+    <remap from="~in_lane" to="lane_filter_node/in_lane" />
+	 	
+	<node ns="$(arg veh)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation_node.py" output="screen">
+		
+	 <!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+	 <!-- End Intersection navigation -->
+</launch>
