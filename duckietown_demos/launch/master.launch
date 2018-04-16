@@ -568,7 +568,7 @@
 
 		<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
 		<remap from="implicit_coordination_node/vehicle_detection_node" to="multivehicle_tracker_node/tracking" />
-		<!-- <remap from="intersection_coordination_node/intersection_go" to="implicit_coord/flag_go_wait" /> -->
+		<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wai_go_implicit" /> -->
 		<!--TODO create a coordination node which subscribes to both expl or implicit  -->
 		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="intersection_coordination_node/intersection_go" /> -->
 		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" /> -->
@@ -594,20 +594,7 @@
 <!-- Start Navigation -->
 <group if="$(arg navigation)">
 
-	<group if="$(arg /navigation/apriltags_random)">
-		<!-- random april tags -->
-		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
-		<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
-		<!-- remapping outputs since there are two different possible turn types -->
-		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
-
-		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-
+	
 	<group if="$(arg /navigation/intersection_control)">
 		<!-- open loop intersection_controller -->
 		<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
@@ -657,6 +644,21 @@
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
+	
+	<group if="$(arg /navigation/apriltags_random)">
+		<!-- random april tags -->
+		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
+		<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
+		<!-- remapping outputs since there are two different possible turn types -->
+		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
+
+		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+	</group>
+
 
 
 
