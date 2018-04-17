@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy
-from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped
+from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped, TurnIDandType
 from std_msgs.msg import String, Int16 #Imports msg
 
 class RandomAprilTagTurnsNode(object):
@@ -15,12 +15,13 @@ class RandomAprilTagTurnsNode(object):
         # Setup publishers
         # self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
         self.pub_turn_type = rospy.Publisher("~turn_type",Int16, queue_size=1, latch=True)
+        self.pub_id_and_type = rospy.Publisher("~turn_id_and_type",TurnIDandType, queue_size=1, latch=True)
 
         # Setup subscribers
         # self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
-       
+
 
         # Read parameters
         self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
@@ -38,7 +39,7 @@ class RandomAprilTagTurnsNode(object):
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
             rospy.loginfo("Turn type now: %i" %(self.turn_type))
-            
+
     def cbTag(self, tag_msgs):
         if(self.fsm_mode == "INTERSECTION_CONTROL"):
             #loop through list of april tags
@@ -64,6 +65,9 @@ class RandomAprilTagTurnsNode(object):
                         chosenTurn = availableTurns[randomIndex]
                         self.turn_type = chosenTurn
                         self.pub_turn_type.publish(self.turn_type)
+                        turn_msg = TurnIDandType()
+                        turn_msg.tag_id = taginfo.id
+                        turn_msg.turn_type = self.turn_type
                         rospy.loginfo("possible turns %s." %(availableTurns))
                         rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
@@ -83,7 +87,7 @@ if __name__ == '__main__':
     # Create the NodeName object
     node = RandomAprilTagTurnsNode()
 
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()
