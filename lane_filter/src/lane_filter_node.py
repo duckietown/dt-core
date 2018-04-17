@@ -21,6 +21,7 @@ class LaneFilterNode(object):
 
         self.d_median = []
         self.phi_median = []
+        self.latencyArray = []
 
 
 
@@ -54,7 +55,7 @@ class LaneFilterNode(object):
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
-        self.latencyArray = []
+
 
     def updateParams(self, event):
         if self.filter is None:
@@ -96,8 +97,8 @@ class LaneFilterNode(object):
 
         # Step 3: build messages and publish things
         [d_max, phi_max] = self.filter.getEstimate()
-        print "d_max = ", d_max
-        print "phi_max = ", phi_max
+        # print "d_max = ", d_max
+        # print "phi_max = ", phi_max
 
 
         max_val = self.filter.getMax()
@@ -131,7 +132,7 @@ class LaneFilterNode(object):
             self.latencyArray.pop(0)
 
         # print "Latency of segment list: ", segment_latency
-        print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+        #print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
 
         # TODO (1): see above, method does not exist
         #self.pub_belief_img.publish(belief_img)
