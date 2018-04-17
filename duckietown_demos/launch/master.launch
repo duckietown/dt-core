@@ -104,6 +104,7 @@
 		<group unless="$(arg vehicle_avoidance)">
 				<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
 
+
 		</group>
 
 		<!-- Vehicle avoidance control for lane following end -->
@@ -680,6 +681,7 @@
 <group if="$(arg charging_control)">
 	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
 	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 
 
 	<include file="$(find charging_control)/launch/charging_control_node.launch">
