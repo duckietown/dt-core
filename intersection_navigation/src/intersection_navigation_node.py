@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import cv2
-from path_planner.path_planner import PathPlanner
+from path_planner.path_planner import *
 from pose_estimator.pose_estimator import PoseEstimator, VehicleCommand
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
