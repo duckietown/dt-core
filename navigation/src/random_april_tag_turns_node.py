@@ -65,9 +65,12 @@ class RandomAprilTagTurnsNode(object):
                         chosenTurn = availableTurns[randomIndex]
                         self.turn_type = chosenTurn
                         self.pub_turn_type.publish(self.turn_type)
-                        turn_msg = TurnIDandType()
-                        turn_msg.tag_id = taginfo.id
-                        turn_msg.turn_type = self.turn_type
+
+                        id_and_type_msg = TurnIDandType()
+                        id_and_type_msg.tag_id = taginfo.id
+                        id_and_type_msg.turn_type = self.turn_type
+                        self.pub_id_and_type.publish(id_and_type_msg)
+
                         rospy.loginfo("possible turns %s." %(availableTurns))
                         rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
