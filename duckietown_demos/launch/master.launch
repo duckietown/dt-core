@@ -621,8 +621,11 @@
 		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 		<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
 		<!-- remapping outputs since there are two different possible turn types -->
-		<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
 
+
+	<group unless="$(arg charging_control)">
+	<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+</group>
 		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -682,6 +685,9 @@
 	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
 	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
 	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+
+	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
 
 
 	<include file="$(find charging_control)/launch/charging_control_node.launch">
