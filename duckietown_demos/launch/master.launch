@@ -594,7 +594,7 @@
 <!-- Start Navigation -->
 <group if="$(arg navigation)">
 
-	
+
 	<group if="$(arg /navigation/intersection_control)">
 		<!-- open loop intersection_controller -->
 		<remap from="open_loop_intersection_control_node/mode" to="fsm_node/mode"/>
@@ -630,7 +630,7 @@
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
-
+<!-- NOTE This is completely useless, it is not the right localization node!! -->
 	<group if="$(arg /navigation/random_sr_turns)">
 		<!-- random april tags -->
 		<remap from="sr_turns_node/mode" to="fsm_node/mode"/>
@@ -644,7 +644,7 @@
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
-	
+
 	<group if="$(arg /navigation/apriltags_random)">
 		<!-- random april tags -->
 		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
