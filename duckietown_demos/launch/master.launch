@@ -96,6 +96,8 @@
 <arg name="/localization/map_name" default="open_house_dp6" />
 <arg name="/localization/gui" default="false"/>
 
+<arg name="maintenance_control" default="false"/>
+
 <arg name="charging_control" default="false"/>
 
 
@@ -680,12 +682,28 @@
 <!-- End Parallel Autonomy -->
 
 
+<group if="$(arg maintenance_control)">
+	<remap from="maintenance_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+
+	<remap from="maintenance_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+
+
+	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+
 <!-- Start Charging Control -->
 <group if="$(arg charging_control)">
 	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
 	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 
 	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
 
