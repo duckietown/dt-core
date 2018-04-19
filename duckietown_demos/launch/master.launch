@@ -722,6 +722,10 @@
 
 <!-- Start Auto Calibration -->
 <group if="$(arg auto_calibration)">
+
+  <remap from="auto_calibration_node/mode" to="fsm_node/mode"/>
+  <remap from="auto_calibration_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+
 	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
