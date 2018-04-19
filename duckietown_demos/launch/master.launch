@@ -98,6 +98,8 @@
 
 <arg name="charging_control" default="false"/>
 
+<arg name="auto_calibration" default="true"/>
+
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
@@ -697,6 +699,17 @@
 	</include>
 </group>
 <!-- End Charging Control -->
+
+
+<!-- Start Auto Calibration -->
+<group if="$(arg auto_calibration)">
+	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End Auto Calibration -->
 
 
 <!-- Start Global Localization -->
