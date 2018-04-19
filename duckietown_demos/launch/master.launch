@@ -705,6 +705,7 @@
 	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
 	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/go_charging" to="maintenance_control_node/go_charging"/>
+	<remap from="charging_control_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
 
 	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
 
