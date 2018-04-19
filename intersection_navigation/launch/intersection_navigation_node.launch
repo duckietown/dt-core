@@ -6,11 +6,22 @@
 
 
 
+		<!-- run forward_kinematics_node -->
+	    <remap from="forward_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd_executed" />
+
+	    <include file="$(find dagu_car)/launch/forward_kinematics_node.launch">
+	        <arg name="veh" value="$(arg veh)"/>
+	        <arg name="local" value="$(arg local)"/>
+	        <arg name="config" value="$(arg config)"/>
+	    </include>
+	<!-- End forward_kinematic_node -->
+
 
     <!-- Intersection navigation fake nodes -->
     <!-- stop at red line node -->
 	<node ns="$(arg veh)" name="stop_node" pkg="intersection_navigation" type="stop_node.py" output="screen">
 		<!-- Setup parameters -->
+		<!-- TODO check if useless -->
 		<param name="~veh" value="$(arg veh)"/>
 	</node>
 
@@ -25,7 +36,7 @@
  	</node>
  <!-- End Intersection localizer -->
 
- 
+
     <!-- Intersection navigation -->
     <remap from="~fsm" to="fsm_node/mode" />
     <remap from="~intersection_navigation_pose" to="lane_controller_node/intersection_navigation_pose" />
@@ -36,7 +47,6 @@
     <remap from="~in_lane" to="lane_filter_node/in_lane" />
 
 	<node ns="$(arg veh)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation_node.py" output="screen">
-
 	 <!-- Setup parameters -->
 		<param name="~veh" value="$(arg veh)"/>
 	</node>

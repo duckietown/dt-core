@@ -39,7 +39,7 @@ class RandomAprilTagTurnsNode(object):
         if(self.fsm_mode != mode_msg.INTERSECTION_CONTROL):
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
-            rospy.loginfo("Turn type now: %i" %(self.turn_type))
+            #rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
     # def cbTag(self, tag_msgs):
     #     if (self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
@@ -103,15 +103,15 @@ class RandomAprilTagTurnsNode(object):
                             chosenTurn = availableTurns[randomIndex]
                             self.turn_type = chosenTurn
                             self.pub_turn_type.publish(self.turn_type)
-                            rospy.loginfo("possible turns %s." %(availableTurns))
-                            rospy.loginfo("Turn type now: %i" %(self.turn_type))
+                        #    rospy.loginfo("possible turns %s." %(availableTurns))
+                        #    rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
 
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+    #    rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
     def on_shutdown(self):
