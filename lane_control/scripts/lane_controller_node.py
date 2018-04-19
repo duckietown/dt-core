@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 import math
-
 import time
-
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
 import numpy as np
 import rospy
-
-
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 import time
 
@@ -29,7 +24,7 @@ class lane_controller(object):
         self.omega_to_rad_per_s = 4.75
         self.setGains()
 
-        # Publicaiton
+        # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         self.pub_actuator_limits_received = rospy.Publisher("~actuator_limits_received", BoolStamped, queue_size=1)
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
@@ -230,6 +225,7 @@ class lane_controller(object):
         self.flag_dict[flag_name] = msg_flag.data
 
     def PoseHandling(self, input_pose_msg, pose_source):
+        rospy.loginfo("Hellooo")
         if not self.active:
             return
 
@@ -244,18 +240,21 @@ class lane_controller(object):
 
         if self.fsm_state == "INTERSECTION_CONTROL":
             if pose_source == "intersection_navigation":
+                rospy.loginfo("pose source: intersection_navigation")
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
         elif self.fsm_state == "PARKING":
             if pose_source == "parking":
+                rospy.loginfo("pose source: parking!?")
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
         else:
             if pose_source == "lane_filter":
+                rospy.loginfo("pose source: lane_filter")
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
                 self.v_ref_possible["main_pose"] = self.v_bar
@@ -298,7 +297,7 @@ class lane_controller(object):
         self.sub_lane_reading.unregister()
         self.sub_obstacle_avoidance_pose.unregister()
         self.sub_obstacle_detected.unregister()
-        # self.sub_intersection_navigation_pose.unregister()
+        self.sub_intersection_navigation_pose.unregister()
         # self.sub_parking_pose.unregister()
         # self.sub_fleet_planning_pose.unregister()
         # self.sub_fleet_planning_lane_following_override_active.unregister()
