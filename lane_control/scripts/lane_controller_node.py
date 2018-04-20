@@ -225,12 +225,13 @@ class lane_controller(object):
         self.flag_dict[flag_name] = msg_flag.data
 
     def PoseHandling(self, input_pose_msg, pose_source):
-        rospy.loginfo("Hellooo")
+        rospy.loginfo("Hellooo  " + str(pose_source))
         if not self.active:
             return
 
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
+        rospy.loginfo("Two lines after  " + str(pose_source) + str(self.fsm_state))
         if self.pose_initialized:
             v_ref_possible_default = self.v_ref_possible["default"]
             v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
