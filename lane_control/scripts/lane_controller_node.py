@@ -232,6 +232,7 @@ class lane_controller(object):
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
         rospy.loginfo("Two lines after  " + str(pose_source) + str(self.fsm_state))
+        self.fsm_state = "INTERSECTION_CONTROL" #TODO pass this message automatically
         if self.pose_initialized:
             v_ref_possible_default = self.v_ref_possible["default"]
             v_ref_possible_main_pose = self.v_ref_possible["main_pose"]
@@ -240,8 +241,9 @@ class lane_controller(object):
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
+            rospy.loginfo("pose source: " + str(pose_source))
             if pose_source == "intersection_navigation":
-                rospy.loginfo("pose source: intersection_navigation")
+                rospy.loginfo ("im in ")
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
                 self.main_pose_source = pose_source
