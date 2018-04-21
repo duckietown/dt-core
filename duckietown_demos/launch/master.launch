@@ -99,8 +99,9 @@
 <arg name="maintenance_control" default="false"/>
 
 <arg name="charging_control" default="false"/>
-
 <arg name="auto_calibration" default="true"/>
+
+<arg name="auto_ion" default="true"/>
 
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
@@ -725,7 +726,9 @@
 <group if="$(arg auto_calibration)">
 
   <remap from="auto_calibration_node/mode" to="fsm_node/mode"/>
-  <remap from="auto_calibration_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+	<remap from="auto_calibration_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+	<remap from="auto_calibration_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+  <remap from="auto_calibration_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
 
 	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
