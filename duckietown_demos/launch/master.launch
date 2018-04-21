@@ -321,7 +321,7 @@
 	<group if="$(arg /lane_following/lane_controller)">
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<remap from="lane_controller_node/lane_pose_intersection_navigation" to="intersection_navigation_node/lane_pose_intersection_navigation"/>
-		<remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/>
+		<remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> <!--TODO what is this --> 
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
 		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
 		<remap from="lane_controller_node/implicit_coordination_velocity" to="lane_filter_node/implicit_coordination_velocity"/> -->
