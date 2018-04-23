@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import numpy
-import math
-from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped
-from std_msgs.msg import String, Int16  # Imports msg
-
+from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped, TurnIDandType
+from std_msgs.msg import String, Int16 #Imports msg
 
 class RandomAprilTagTurnsNode(object):
     def __init__(self):
@@ -16,7 +14,8 @@ class RandomAprilTagTurnsNode(object):
 
         # Setup publishers
         # self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
-        self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
+        self.pub_turn_type = rospy.Publisher("~turn_type",Int16, queue_size=1, latch=True)
+        self.pub_id_and_type = rospy.Publisher("~turn_id_and_type",TurnIDandType, queue_size=1, latch=True)
 
         # Setup subscribers
         # self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
@@ -39,79 +38,46 @@ class RandomAprilTagTurnsNode(object):
         if(self.fsm_mode != mode_msg.INTERSECTION_CONTROL):
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
-            #rospy.loginfo("Turn type now: %i" %(self.turn_type))
+            rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
-    # def cbTag(self, tag_msgs):
-    #     if (self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
-    #         # loop through list of april tags and select the one that is no further than 0.8m away and facing it directly
-    #         w_max = 0.0
-    #         idx = None
-    #         k = 0
-    #         for detection in tag_msgs.detections:
-    #             if detection.pose.pose.position.x < 0.8 and math.fabs(detection.pose.pose.orientation.w) > w_max:
-    #                 sign_type = tag_msgs.infos[k].traffic_sign_type
-    #                 if sign_type == tag_msgs.infos[k].NO_RIGHT_TURN or sign_type == tag_msgs.infos[k].NO_LEFT_TURN or sign_type == tag_msgs.infos[k].LEFT_T_INTERSECT or sign_type == tag_msgs.infos[k].RIGHT_T_INTERSECT or sign_type == tag_msgs.infos[k].T_INTERSECTION or sign_type == tag_msgs.infos[k].FOUR_WAY:
-    #                     w_max = math.fabs(detection.pose.pose.orientation.w)
-    #                     idx = k
-    #
-    #             k += 1
-    #
-    #         if idx != None:
-    #             taginfo = tag_msgs.infos[idx]
-    #             if (taginfo.tag_type == taginfo.SIGN):
-    #                 availableTurns = []
-    #                 # go through possible intersection types
-    #                 signType = taginfo.traffic_sign_type
-    #                 if (signType == taginfo.NO_RIGHT_TURN or signType == taginfo.LEFT_T_INTERSECT):
-    #                     availableTurns = [0,
-    #                                       1]  # these mystical numbers correspond to the array ordering in open_loop_intersection_control_node (very bad)
-    #                 elif (signType == taginfo.NO_LEFT_TURN or signType == taginfo.RIGHT_T_INTERSECT):
-    #                     availableTurns = [1, 2]
-    #                 elif (signType == taginfo.FOUR_WAY):
-    #                     availableTurns = [0, 1, 2]
-    #                 elif (signType == taginfo.T_INTERSECTION):
-    #                     availableTurns = [0, 2]
-    #
-    #                     # now randomly choose a possible direction
-    #                 if (len(availableTurns) > 0):
-    #                     randomIndex = numpy.random.randint(len(availableTurns))
-    #                     chosenTurn = availableTurns[randomIndex]
-    #                     self.turn_type = chosenTurn
-    #                     self.pub_turn_type.publish(self.turn_type)
     def cbTag(self, tag_msgs):
-            if(self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
-                #loop through list of april tags
-                for taginfo in tag_msgs.infos:
-                    print taginfo
-                    rospy.loginfo("[%s] taginfo." %(taginfo))
-                    if(taginfo.tag_type == taginfo.SIGN):
-                        availableTurns = []
-                        #go through possible intersection types
-                        signType = taginfo.traffic_sign_type
-                        if(signType == taginfo.NO_RIGHT_TURN or signType == taginfo.LEFT_T_INTERSECT):
-                            availableTurns = [0,1] # these mystical numbers correspond to the array ordering in open_loop_intersection_control_node (very bad)
-                        elif (signType == taginfo.NO_LEFT_TURN or signType == taginfo.RIGHT_T_INTERSECT):
-                            availableTurns = [1,2]
-                        elif (signType== taginfo.FOUR_WAY):
-                            availableTurns = [0,1,2]
-                        elif (signType == taginfo.T_INTERSECTION):
-                            availableTurns = [0,2]
+        if(self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION"):
+            #loop through list of april tags
+            for taginfo in tag_msgs.infos:
+                print taginfo
+                rospy.loginfo("[%s] taginfo." %(taginfo))
+                if(taginfo.tag_type == taginfo.SIGN):
+                    availableTurns = []
+                    #go through possible intersection types
+                    signType = taginfo.traffic_sign_type
+                    if(signType == taginfo.NO_RIGHT_TURN or signType == taginfo.LEFT_T_INTERSECT):
+                        availableTurns = [0,1] # these mystical numbers correspond to the array ordering in open_loop_intersection_control_node (very bad)
+                    elif (signType == taginfo.NO_LEFT_TURN or signType == taginfo.RIGHT_T_INTERSECT):
+                        availableTurns = [1,2]
+                    elif (signType== taginfo.FOUR_WAY):
+                        availableTurns = [0,1,2]
+                    elif (signType == taginfo.T_INTERSECTION):
+                        availableTurns = [0,2]
 
-                            #now randomly choose a possible direction
-                        if(len(availableTurns)>0):
-                            randomIndex = numpy.random.randint(len(availableTurns))
-                            chosenTurn = availableTurns[randomIndex]
-                            self.turn_type = chosenTurn
-                            self.pub_turn_type.publish(self.turn_type)
-                        #    rospy.loginfo("possible turns %s." %(availableTurns))
-                        #    rospy.loginfo("Turn type now: %i" %(self.turn_type))
+                        #now randomly choose a possible direction
+                    if(len(availableTurns)>0):
+                        randomIndex = numpy.random.randint(len(availableTurns))
+                        chosenTurn = availableTurns[randomIndex]
+                        self.turn_type = chosenTurn
+                        self.pub_turn_type.publish(self.turn_type)
 
+                        id_and_type_msg = TurnIDandType()
+                        id_and_type_msg.tag_id = taginfo.id
+                        id_and_type_msg.turn_type = self.turn_type
+                        self.pub_id_and_type.publish(id_and_type_msg)
 
+                        rospy.loginfo("possible turns %s." %(availableTurns))
+                        rospy.loginfo("Turn type now: %i" %(self.turn_type))
 
-    def setupParameter(self, param_name, default_value):
-        value = rospy.get_param(param_name, default_value)
-        rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-    #    rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+    def setupParameter(self,param_name,default_value):
+        value = rospy.get_param(param_name,default_value)
+        rospy.set_param(param_name,value) #Write to parameter server for transparancy
+        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
     def on_shutdown(self):

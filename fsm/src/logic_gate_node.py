@@ -8,6 +8,11 @@ classes = {"BoolStamped": BoolStamped, "Twist2DStamped": Twist2DStamped, "AprilT
 
 class LogicGateNode(object):
     def __init__(self):
+
+        # Enable this for printing all logic gate operations
+        self.debugging = False
+
+
         self.node_name = rospy.get_name()
         self.gates_dict = rospy.get_param("~gates")
         # validate gate
@@ -66,7 +71,8 @@ class LogicGateNode(object):
         for event_name, event_msg in self.event_msg_dict.items():
             if event_name in inputs:    # one of the inputs to gate
 
-                print "sub-event: " + event_name
+                if self.debugging:
+                    print "sub-event: " + event_name
 
                 if event_msg is None:
                     if "default" in self.events_dict[event_name]:
@@ -99,7 +105,8 @@ class LogicGateNode(object):
         elif gate_type == "OR":
             msg.data = any(bool_list)
 
-        print bool_list, "->", msg.data
+        if self.debugging:
+            print bool_list, "->", msg.data
 
         # print bool_list, msg.data
 
