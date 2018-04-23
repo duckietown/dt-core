@@ -100,6 +100,10 @@
 <arg name="/localization/map_name" default="open_house_dp6" />
 <arg name="/localization/gui" default="false"/>
 
+<arg name="maintenance_control" default="false"/>
+
+<arg name="charging_control" default="false"/>
+
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
@@ -654,6 +658,10 @@
 		<!-- remapping outputs since there are two different possible turn types -->
 		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
+
+	<group unless="$(arg charging_control)">
+	<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+</group>
 		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -709,6 +717,44 @@
 	</include>
 </group>
 <!-- End Parallel Autonomy -->
+
+
+<group if="$(arg maintenance_control)">
+	<remap from="maintenance_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+
+	<remap from="maintenance_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+
+
+	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+
+<!-- Start Charging Control -->
+<group if="$(arg charging_control)">
+	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
+	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
+	<remap from="charging_control_node/go_charging" to="maintenance_control_node/go_charging"/>
+	<remap from="charging_control_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
+
+	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+
+
+	<include file="$(find charging_control)/launch/charging_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End Charging Control -->
+
 
 <!-- Start Global Localization -->
 <group if="$(arg global_localizer)">
