@@ -24,7 +24,6 @@ class LaneFilterNode(object):
         self.latencyArray = []
 
 
-
         # Define Constants
         self.curvature_res = self.filter.curvature_res
 
@@ -132,7 +131,7 @@ class LaneFilterNode(object):
             self.latencyArray.pop(0)
 
         # print "Latency of segment list: ", segment_latency
-        #print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+        # print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
 
         # TODO (1): see above, method does not exist
         #self.pub_belief_img.publish(belief_img)
