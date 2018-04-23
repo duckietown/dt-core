@@ -568,7 +568,7 @@
 
 		<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
 		<remap from="implicit_coordination_node/vehicle_detection_node" to="multivehicle_tracker_node/tracking" />
-		<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wai_go_implicit" /> -->
+		<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wait_go_implicit" /> -->
 		<!--TODO create a coordination node which subscribes to both expl or implicit  -->
 		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="intersection_coordination_node/intersection_go" /> -->
 		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" /> -->
