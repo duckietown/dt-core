@@ -3,7 +3,7 @@ import math
 
 import time
 
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, ActuatorParameters, BoolStamped
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped
 import numpy as np
 import rospy
 
