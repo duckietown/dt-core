@@ -1,0 +1,9 @@
+<launch>
+	<arg name="veh" default="$(env VEHICLE_NAME)"/>
+	<arg name="config" default="baseline" doc="Specify a config."/>
+	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." />
+	<node ns="$(arg veh)" name="intersection_localization_node" pkg="intersection_localization" type="intersection_localization.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+</launch>
