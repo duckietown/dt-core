@@ -102,8 +102,6 @@ class LaneFilterNode(object):
 
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
-        rospy.loginfo("in lane is: " +str(in_lane))
-
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
