@@ -100,6 +100,8 @@
 
 <arg name="charging_control" default="false"/>
 
+<arg name="tcp_communication" default="false"/>
+
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
@@ -718,6 +720,15 @@
 </group>
 <!-- End Charging Control -->
 
+<!-- Start TCP Communication -->
+<group if="$(arg tcp_communication)">
+	<include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End TCP Communication -->
 
 <!-- Start Global Localization -->
 <group if="$(arg global_localizer)">
