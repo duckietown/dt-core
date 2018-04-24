@@ -14,9 +14,10 @@
 	  </node>
 
 	  <!-- Run detector on remote (vehicle) -->
-	  <node  machine="$(arg veh)" pkg="$(arg pkg_name)" type="LED_detector_node.py" name="LED_detector_node" output="screen">
+	  <node  machine="$(arg veh)" pkg="$(arg pkg_name)" type="led_detector_node.py" name="LED_detector_node" output="screen">
   			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/led_interpreter/LED_protocol.yaml"/>
 			<param name="continuous" type="bool" value="$(arg continuous)" />
+			<rosparam command="load" file="$(find duckietown)/config/$(arg config)/$(arg pkg_name)/LED_detector_node/$(arg param_file_name).yaml"/>
 	  </node>
 	</group>	
 

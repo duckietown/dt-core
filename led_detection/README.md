@@ -14,7 +14,7 @@ In a separate terminal, fire up the LED detector and the custom GUI by running:
 
 NOTE: to operate without a GUI:
 
-    laptop $ roslaunch led_detector LED_detector.launch veh:=![robot name]
+    laptop $ roslaunch led_detector led_detector.launch veh:=![robot name]
 
 The LED_detector_node will be launched on the robot, while LED_visualizer (a simple GUI) will be started on your laptop. Make sure the camera image from the observer-bot is visualized and updated in the visualizer (tip: check that your camera cap is off).
 
