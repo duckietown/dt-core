@@ -10,12 +10,13 @@
 		<arg name="/camera/raw/rect" value="true"/>
 		<arg name="param_file_name" default="default" />
 		<arg name="line_detector_param_file_name" default="default" />
-		<arg name="anti_instagram" default="true" />
-		<arg name="implicit_coordination" default="true"/>
+		<arg name="anti_instagram" value="true" />
+		<arg name="implicit_coordination" value="true"/>
 
 		<!-- Charging control enabled for Megacity -->
-		<arg name="charging_control" default="true"/>
-		<arg name="maintenance_control" default="true"/>
-    <arg name="tcp_communication" default="true"/>
+		<arg name="charging_control" value="true"/>
+		<arg name="maintenance_control" value="true"/>
+    <arg name="tcp_communication" value="true"/>
+		<arg name="auto_calibration" value="true"/>
 	</include>
 </launch>
