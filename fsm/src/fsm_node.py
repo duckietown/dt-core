@@ -168,7 +168,6 @@ class FSMNode(object):
     def cbEvent(self,msg,event_name):
         if (msg.data == self.event_trigger_dict[event_name]):
             # Update timestamp
-            rospy.loginfo("[%s] Event: %s" %(self.node_name,event_name))
             self.state_msg.header.stamp = msg.header.stamp
             next_state = self._getNextState(self.state_msg.state,event_name)
             if next_state is not None:
