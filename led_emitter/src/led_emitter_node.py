@@ -5,7 +5,7 @@ import sys
 import time
 from std_msgs.msg import Float32, Int8, String
 from rgb_led import RGB_LED
-from duckietown_msgs.msg import BoolStamped, CoordinationSignalETHZ17, CoordinationSignal
+from duckietown_msgs.msg import BoolStamped, CoordinationSignal
 
 
 class LEDEmitter(object):
@@ -127,4 +127,3 @@ if __name__ == '__main__':
     rospy.init_node('led_emitter',anonymous=False)
     node = LEDEmitter()
     rospy.spin()
-
