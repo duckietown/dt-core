@@ -13,6 +13,9 @@
 		<arg name="anti_instagram" default="true" />
 		<arg name="implicit_coordination" default="false"/>
 		<arg name="explicit_coordination" default="true"/>
+		<arg name="LED" value="true"/>
+		<arg name="/LED/detector" value="true"/>
+		<arg name="/LED/emitter" value="true"/>
 
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" default="true"/>
