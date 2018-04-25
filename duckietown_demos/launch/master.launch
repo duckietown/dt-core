@@ -496,7 +496,8 @@
 	</group>
 
 	<group if="$(arg /LED/emitter)">
-		<include file="$(find led_emitter)/launch/led_emitter_node.launch">
+		<!-- TODO change to normal name -->
+		<include file="$(find led_emitter)/launch/led_emitter_node_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -563,7 +564,8 @@
 		<!--the following remap is done through led_patter_switch_node -->
        	 <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 
-		<include file="$(find explicit_coordinator)/launch/general.launch">
+		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
+			<!--NOTE we are running this launch instead of general.launch, check if some changes need to be done -->
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>

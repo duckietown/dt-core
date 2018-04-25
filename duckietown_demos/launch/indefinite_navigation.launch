@@ -11,8 +11,9 @@
 		<arg name="param_file_name" default="default" />
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
-		<arg name="coordination" default="false"	/>
-		<arg name="implicit_coordination" default="true"/>
+
+		<arg name="coordination" value="true"/>
+ 		<arg name="intersectionType" default="trafficLight" />
 
 	</include>
 </launch>
