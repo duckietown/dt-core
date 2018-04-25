@@ -13,7 +13,7 @@
 	<arg name="anti_instagram" default="true"/>
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
-	<arg name="intersectionType" />
+	<arg name="intersectionType" default= "stopSign"/>
 	<!-- end basic args -->
 
 	<!-- the things that are "on" by default:
@@ -79,8 +79,8 @@
 
 <arg name="coordination" default="false"/>
 <arg name="/coordination/local" default="false"/>
-<arg name="/implicit_coordination" default="false"/>
-<arg name="/explicit_coordination" default="false"/>
+<arg name="/coordination/implicit_coordination" default="false"/>
+<arg name="/coordination/explicit_coordination" default="false"/>
 
 
 <arg name="parallel_autonomy" default="false"/>
@@ -103,6 +103,14 @@
 <arg name="/localization/local" default="false" />
 <arg name="/localization/map_name" default="open_house_dp6" />
 <arg name="/localization/gui" default="false"/>
+
+<arg name="maintenance_control" default="false"/>
+
+<arg name="charging_control" default="false"/>
+
+<arg name="tcp_communication" default="false"/>
+
+
 
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
@@ -551,13 +559,13 @@
 
 <!-- Start Coordination -->
 <group if="$(arg coordination)">
-	<group if="$(arg explicit_coordination)">
+	<group if="$(arg /coordination/explicit_coordination)">
 		<!-- Vehicle Coordinator-->
 		<remap from="simple_coordinator_node/mode" to="fsm_node/mode" />
 		<remap from="simple_coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />
 		<!--the following remap is done through led_patter_switch_node -->
 		<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
-		<include file="$(find veh_coordinator)/launch/coordination_ETHZ17.launch">
+		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /coordination/local)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -568,7 +576,7 @@
 	</group>
 
 	<!-- Start Implicit Coordination -->
-	<group if="$(arg implicit_coordination)">
+	<group if="$(arg /coordination/implicit_coordination)">
 			<!-- Vehicle Coordinator-->
 			<include file="$(find implicit_coordination)/launch/implicit.launch">
 				<arg name="veh" value="$(arg veh)"/>
@@ -585,8 +593,8 @@
 
 	</group>
 
-	<group unless="$(arg explicit_coordination)">
-		<group unless="$(arg implicit_coordination)">
+	<group unless="$(arg /coordination/explicit_coordination)">
+		<group unless="$(arg /coordination/implicit_coordination)">
 			<!-- Vehicle Coordinator-->
 			<remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
 			<include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
@@ -718,6 +726,53 @@
 	</include>
 </group>
 <!-- End Parallel Autonomy -->
+
+
+<group if="$(arg maintenance_control)">
+	<remap from="maintenance_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+
+	<remap from="maintenance_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+
+
+	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+
+<!-- Start Charging Control -->
+<group if="$(arg charging_control)">
+	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
+	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
+	<remap from="charging_control_node/go_charging" to="maintenance_control_node/go_charging"/>
+	<remap from="charging_control_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
+
+	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+
+
+	<include file="$(find charging_control)/launch/charging_control_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End Charging Control -->
+
+<!-- Start TCP Communication -->
+<group if="$(arg tcp_communication)">
+	<include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End TCP Communication -->
 
 <!-- Start Global Localization -->
 <group if="$(arg global_localizer)">

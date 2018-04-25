@@ -17,10 +17,10 @@
 		<arg name="LED" value="true"/>
 		<arg name="/LED/detector" value="true"/>
 		<arg name="/LED/emitter" value="true"/>
-
+		<arg name="intersectionType" value="stopSign"/>
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
-   		<arg name="tcp_communication" value="true"/>
+   	<arg name="tcp_communication" value="true"/>
 	</include>
 </launch>
