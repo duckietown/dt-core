@@ -23,6 +23,8 @@
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
+
+		<!-- TODO tcp communication is not robust, fix it -->
    	<arg name="tcp_communication" value="false"/>
 	</include>
 </launch>
