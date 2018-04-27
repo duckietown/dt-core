@@ -28,7 +28,7 @@ class AntiInstagramNode(object):
         #self.sub_image = rospy.Subscriber("~uncorrected_image",Image,self.cbNewImage,queue_size=1)
         self.sub_image = rospy.Subscriber("~uncorrected_image", CompressedImage, self.cbNewImage,queue_size=1)
         self.sub_click = rospy.Subscriber("~click", BoolStamped, self.cbClick, queue_size=1)
-
+        
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose',True)
 
@@ -45,6 +45,7 @@ class AntiInstagramNode(object):
 
         self.image_msg = None
         self.click_on = False
+        #runs cb Transform every n seconds
         rospy.Timer(rospy.Duration(10), self.contTransform)
 
     def cbNewImage(self,image_msg):
