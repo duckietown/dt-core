@@ -4,7 +4,7 @@ from anti_instagram.AntiInstagram_rebuild import *
 from cv_bridge import CvBridge  # @UnresolvedImport
 # @UnresolvedImport
 from duckietown_msgs.msg import (AntiInstagramHealth, AntiInstagramTransform, AntiInstagramTransform_CB, BoolStamped)
-from duckietown_utils.jpg import image_cv_from_jpg
+from duckietown_utils.jpg import bgr_from_jpg
 from line_detector.timekeeper import TimeKeeper
 from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
 import numpy as np
@@ -106,7 +106,7 @@ class ImageTransformerNode():
         tk = TimeKeeper(image_msg)
         #cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         try:
-            cv_image = image_cv_from_jpg(image_msg.data)
+            cv_image = bgr_from_jpg(image_msg.data)
         except ValueError as e:
             rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
             return

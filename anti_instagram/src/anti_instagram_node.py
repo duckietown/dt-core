@@ -11,7 +11,7 @@ from anti_instagram.anti_instagram_imp import AntiInstagram
 from anti_instagram.kmeans_rebuild import *
 from anti_instagram.calcLstsqTransform import *
 from anti_instagram.scale_and_shift import *
-from duckietown_utils.jpg import image_cv_from_jpg
+from duckietown_utils.jpg import bgr_from_jpg
 
 
 class AntiInstagramNode(object):
@@ -78,17 +78,6 @@ class AntiInstagramNode(object):
 
             corrected_image_cv2 = np.clip(corrected_image_cv2, 0, 255).astype(np.uint8)
             self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
-"""
-        if False:
-            tk = TimeKeeper(image_msg)
-            cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-
-	    corrected_image_cv2 = scaleandshift2(cv_image, self.scale, self.shift)
-            tk.completed('applyTransform')
-
-    	    corrected_image_cv2 = np.clip(corrected_img, 0, 255).astype(np.uint8)
-	    self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
-"""
 
             tk.completed('encode')
 
@@ -126,7 +115,7 @@ class AntiInstagramNode(object):
 
         #cv_image = self.bridge.imgmsg_to_cv2(msg,"bgr8")
         try:
-            cv_image = dtu.image_cv_from_jpg(msg.data)
+            cv_image = dtu.bgr_from_jpg(msg.data)
         except ValueError as e:
             rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
             return
@@ -169,8 +158,8 @@ class AntiInstagramNode(object):
       	    self.shift = T3.shift
             self.scale = T3.scale
 
-	self.shift = T3.shift
-	self.scale = T3.scale
+	    self.shift = T3.shift
+        self.scale = T3.scale
         tk.completed('calculateTransform')
 
         # if health is much below the threshold value, do not update the color correction and log it.
