@@ -7,9 +7,15 @@ import duckietown_utils as dtu
 from cv_bridge import CvBridge
 from line_detector.timekeeper import TimeKeeper
 from anti_instagram.anti_instagram_imp import AntiInstagram
+#from anti_instagram.AntiInstagram import *
+from anti_instagram.kmeans_rebuild import *
+from anti_instagram.calcLstsqTransform import *
+from anti_instagram.scale_and_shift import *
+from duckietown_utils.jpg import image_cv_from_jpg
+
 
 class AntiInstagramNode(object):
-    
+
     def __init__(self):
         self.node_name = rospy.get_name()
 
@@ -25,8 +31,10 @@ class AntiInstagramNode(object):
 
         #self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         #self.sub_image = rospy.Subscriber("~uncorrected_image",Image,self.cbNewImage,queue_size=1)
-        self.sub_image = rospy.Subscriber("~uncorrected_image", CompressedImage, self.cbNewImage,queue_size=1)
-        self.sub_click = rospy.Subscriber("~click", BoolStamped, self.cbClick, queue_size=1)
+        self.sub_image = rospy.Subscriber(
+            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+        self.sub_click = rospy.Subscriber(
+            "~click", BoolStamped, self.cbClick, queue_size=1)
 
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose',True)
@@ -41,11 +49,23 @@ class AntiInstagramNode(object):
         self.ai = AntiInstagram()
         self.corrected_image = Image()
         self.bridge = CvBridge()
+	# create instance of kMeans
+	self.fancyGeom = rospy.get_param("~fancyGeom", "")
+        self.n_centers = rospy.get_param("~n_centers", "")
+	self.blur = rospy.get_param("~blur","")
+	self.resize = rospy.get_param("~resize","")
+	self.blur_kernel = rospy.get_param("~blur_kernel")
+        self.KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
+
+
+	self.scale = np.array([1, 1, 1])
+	self.shift = np.array([0, 0, 0])
+	self.ai_health = 0.1
 
         self.image_msg = None
         self.click_on = False
 
-    def cbNewImage(self,image_msg):
+    def cbNewImage(self, image_msg):
         # memorize image
         self.image_msg = image_msg
 
@@ -58,6 +78,17 @@ class AntiInstagramNode(object):
 
             corrected_image_cv2 = np.clip(corrected_image_cv2, 0, 255).astype(np.uint8)
             self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
+"""
+        if False:
+            tk = TimeKeeper(image_msg)
+            cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+
+	    corrected_image_cv2 = scaleandshift2(cv_image, self.scale, self.shift)
+            tk.completed('applyTransform')
+
+    	    corrected_image_cv2 = np.clip(corrected_img, 0, 255).astype(np.uint8)
+	    self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
+"""
 
             tk.completed('encode')
 
@@ -75,12 +106,11 @@ class AntiInstagramNode(object):
             if self.click_on:
                 self.processImage(self.image_msg)
             else:
-                self.transform.s = [0,0,0,1,1,1]
+                self.transform.s = [0, 0, 0, 1, 1, 1]
                 self.pub_transform.publish(self.transform)
                 rospy.loginfo('ai: Color transform is turned OFF!')
 
-
-    def processImage(self,msg):
+    def processImage(self, msg):
         '''
         Inputs:
             msg - CompressedImage - uncorrected image from raspberry pi camera
@@ -94,6 +124,7 @@ class AntiInstagramNode(object):
         rospy.loginfo('ai: Computing color transform...')
         tk = TimeKeeper(msg)
 
+        #cv_image = self.bridge.imgmsg_to_cv2(msg,"bgr8")
         try:
             cv_image = dtu.image_cv_from_jpg(msg.data)
         except ValueError as e:
@@ -106,17 +137,52 @@ class AntiInstagramNode(object):
 
         tk.completed('calculateTransform')
 
+        # apply KMeans
+    	self.KM.applyKM(cv_image, fancyGeom=self.fancyGeom)
+
+    	# get the indices of the matched centers
+    	idxBlack, idxRed, idxYellow, idxWhite  = self.KM.determineColor(True, self.KM.trained_centers)
+
+    	# get centers with red
+    	trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
+                                self.KM.trained_centers[idxYellow], self.KM.trained_centers[idxWhite]])
+
+    	# get centers w/o red
+    	trained_centers_woRed = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxYellow],
+                                self.KM.trained_centers[idxWhite]])
+
+    	# calculate transform with 4 centers
+    	T4 = calcTransform(4, trained_centers)
+    	T4.calcTransform()
+
+    	# calculate transform with 3 centers
+    	T3 = calcTransform(3, trained_centers_woRed)
+    	T3.calcTransform()
+
+    	# compare residuals
+	    #in practice, this is NOT a fair way to compare the residuals, 4 will almost always win out,
+	    #causing a serious red shift in any image that has only 3 colors
+    	if T4.returnResidualNorm() >= T3.returnResidualNorm():
+            self.shift = T4.shift
+            self.scale = T4.scale
+    	else:
+      	    self.shift = T3.shift
+            self.scale = T3.scale
+
+	self.shift = T3.shift
+	self.scale = T3.scale
+        tk.completed('calculateTransform')
 
         # if health is much below the threshold value, do not update the color correction and log it.
-        if self.ai.health <= 0.001:
+        if self.ai_health <= 0.001:
             # health is not good
 
             rospy.loginfo("Health is not good")
 
         else:
-            self.health.J1 = self.ai.health
-            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
-            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
+            self.health.J1 = self.ai_health
+            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.shift
+            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.scale
 
             self.pub_health.publish(self.health)
             self.pub_transform.publish(self.transform)
@@ -131,6 +197,6 @@ if __name__ == '__main__':
     node = AntiInstagramNode()
 
     # Setup proper shutdown behavior
-    #rospy.on_shutdown(node.on_shutdown)
+    # rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()

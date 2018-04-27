@@ -225,10 +225,19 @@ class lane_controller(object):
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
+        #if flag_name == "obstacle_detected":
+            # print "flag obstacle_detected changed"
+            # print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
+
 
     def PoseHandling(self, input_pose_msg, pose_source):
         if not self.active:
             return
+
+        #if pose_source == "obstacle_avoidance":
+            # print "obstacle_avoidance pose_msg d_ref: ", input_pose_msg.d_ref
+            # print "obstacle_avoidance pose_msg v_ref: ", input_pose_msg.v_ref
+            # print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
 
         self.prev_pose_msg = self.pose_msg
         self.pose_msg_dict[pose_source] = input_pose_msg
