@@ -252,7 +252,7 @@ AprilTagDetectionArray TagDetector::detectTags (
     if (!findStandaloneTagDescription(tagID, standaloneDescription,
                                       !is_part_of_bundle))
     {
-      continue; 
+      continue;
     }
 
     //=================================================================
@@ -287,7 +287,7 @@ AprilTagDetectionArray TagDetector::detectTags (
                                                      fx, fy, cx, cy);
     Eigen::Matrix3d rot = transform.block(0, 0, 3, 3);
     Eigen::Quaternion<double> rot_quaternion(rot);
-    
+
     geometry_msgs::PoseWithCovarianceStamped tag_pose =
         makeTagPose(transform, rot_quaternion, image->header);
 
@@ -593,8 +593,8 @@ std::map<int, StandaloneTagDescription> TagDetector::parseStandaloneTags (
     }
 
     StandaloneTagDescription description(id, size, frame_name);
-    ROS_INFO_STREAM("Loaded tag config: " << id << ", size: " <<
-                    size << ", frame_name: " << frame_name.c_str());
+    //ROS_INFO_STREAM("Loaded tag config: " << id << ", size: " <<
+    //                size << ", frame_name: " << frame_name.c_str());
     // Add this tag's description to map of descriptions
     descriptions.insert(std::make_pair(id, description));
   }
@@ -631,14 +631,14 @@ std::vector<TagBundleDescription > TagDetector::parseTagBundles (
     }
     TagBundleDescription bundle_i(bundleName);
     ROS_INFO("Loading tag bundle '%s'",bundle_i.name().c_str());
-    
+
     ROS_ASSERT(bundle_description["layout"].getType() ==
                XmlRpc::XmlRpcValue::TypeArray);
     XmlRpc::XmlRpcValue& member_tags = bundle_description["layout"];
 
     // Loop through each member tag of the bundle
     for (int32_t j=0; j<member_tags.size(); j++)
-    {      
+    {
       ROS_ASSERT(member_tags[j].getType() == XmlRpc::XmlRpcValue::TypeStruct);
       XmlRpc::XmlRpcValue& tag = member_tags[j];
 
@@ -653,9 +653,9 @@ std::vector<TagBundleDescription > TagDetector::parseTagBundles (
       StandaloneTagDescription* standaloneDescription;
       if (findStandaloneTagDescription(id, standaloneDescription, false))
       {
-        ROS_ASSERT(size == standaloneDescription->size()); 
+        ROS_ASSERT(size == standaloneDescription->size());
       }
-      
+
       // Get this tag's pose with respect to the bundle origin
       double x  = xmlRpcGetDoubleWithDefault(tag, "x", 0.);
       double y  = xmlRpcGetDoubleWithDefault(tag, "y", 0.);
