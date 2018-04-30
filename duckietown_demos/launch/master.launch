@@ -777,8 +777,18 @@
 	<remap from="auto_calibration_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
 	<remap from="auto_calibration_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
   <remap from="auto_calibration_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
+	<remap from="auto_calibration_node/calibration_calculation_stop" to="auto_calibration_calculation_node/calibration_calculation_stop"/>
+
+	<remap from="auto_calibration_calculation_node/mode" to="fsm_node/mode"/>
+	<remap from="auto_calibration_calculation_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+	<remap from="auto_calibration_calculation_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
 
 	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+	<include file="$(find auto_calibration)/launch/auto_calibration_calculation_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
