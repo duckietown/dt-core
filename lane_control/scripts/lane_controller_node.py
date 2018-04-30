@@ -225,9 +225,9 @@ class lane_controller(object):
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
-        #if flag_name == "obstacle_detected":
-            # print "flag obstacle_detected changed"
-            # print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
+        if flag_name == "obstacle_detected":
+             print "flag obstacle_detected changed"
+             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
 
 
     def PoseHandling(self, input_pose_msg, pose_source):
@@ -277,13 +277,16 @@ class lane_controller(object):
                 self.v_ref_possible["fleet_planning"] = self.pose_msg_dict["fleet_planning"].v_ref
         if self.flag_dict["obstacle_detected"] == True:
             if "obstacle_avoidance" in self.pose_msg_dict:
+                rospy.logerr('JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ')
                 self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
                 self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
+                print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"]
         if self.flag_dict["implicit_coord_velocity_limit_active"] == True:
             if "implicit_coord" in self.pose_msg_dict:
                 self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
 
         self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
+        print 'v_ref global=', self.pose_msg.v_ref
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
             self.cbPose(self.pose_msg)
