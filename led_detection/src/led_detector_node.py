@@ -190,10 +190,10 @@ class LEDDetectorNode(object):
         # Get size
         H,W,_ = images.shape
         # Compute indices
-        hStart = np.floor(H*cropNorm[0][0])
-        hEnd   = np.ceil(H*cropNorm[0][1])
-        wStart = np.floor(W*cropNorm[1][0])
-        wEnd   = np.ceil(W*cropNorm[1][1])
+        hStart = int(np.floor(H*cropNorm[0][0]))
+        hEnd   = int(np.ceil(H*cropNorm[0][1]))
+        wStart = int(np.floor(W*cropNorm[1][0]))
+        wEnd   = int(np.ceil(W*cropNorm[1][1]))
         # Crop image
         imageCropped = images[hStart:hEnd,wStart:wEnd,:]
         # Return cropped image
@@ -226,7 +226,7 @@ class LEDDetectorNode(object):
         BlobsFront = []
         FrameTL    = []
         BlobsTL    = []
-        
+
         # Print on screen
         rospy.loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
 
@@ -377,14 +377,14 @@ class LEDDetectorNode(object):
 
         # Left bot (also UNKNOWN)
         self.left = "UNKNOWN"
-        
+
         # Final time
         processing_time = time.time()-tic
         total_time      = time.time()-self.tinit
 
         # Publish results
         self.publish(imPublishRight,imPublishFront,imPublishTL,result)
-        
+
         # Print performance
         rospy.loginfo('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %(self.node_name,processing_time,total_time))
 
@@ -471,5 +471,3 @@ if __name__ == '__main__':
     rospy.init_node('LED_detector_node',anonymous=False)
     node = LEDDetectorNode()
     rospy.spin()
-
-

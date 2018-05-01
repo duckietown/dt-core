@@ -15,7 +15,7 @@ class State:
     SACRIFICE = 'SACRIFICE'
     SOLVING_UNKNOWN = 'SOLVING_UNKNOWN'
     GO = 'GO'
-    KEEP_CALM = 'KEEP_CALM'	
+    KEEP_CALM = 'KEEP_CALM'
     TL_SENSING = 'TL_SENSING'
     INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
 
@@ -60,7 +60,7 @@ class VehicleCoordinator():
 
         # Subscriptions
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
-        rospy.Subscriber('~apriltags', AprilTagsWithInfos, self.set_traffic_light)
+        rospy.Subscriber('~apriltags_out', AprilTagsWithInfos, self.set_traffic_light)
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
 
         # Initialize clearance to go
@@ -83,7 +83,7 @@ class VehicleCoordinator():
     def set_traffic_light(self,msg):
         # Save old traffic light
         traffic_light_old = self.traffic_light_intersection
-
+        rospy.loginfo("im deciding what instersection this is")
         # New traffic light
         # TODO: only consider two closest signs
         for item in msg.infos:
@@ -92,7 +92,6 @@ class VehicleCoordinator():
                 break
             else:
                 self.traffic_light_intersection = False
-
         # If different from the one before, restart from lane following
         if traffic_light_old != self.traffic_light_intersection:
             self.set_state(State.LANE_FOLLOWING)
@@ -132,22 +131,28 @@ class VehicleCoordinator():
         return time() - self.last_state_transition
 
     def set(self, name, value):
+
+        rospy.loginfo("set " + str(self) + str(name) + str(value))
         self.__dict__[name] = value
 
         # Initialization of the state and of the type of intersection
         if name == 'mode':
-            if value == 'JOYSTICK_CONTROL' or value == 'COORDINATION':
+            rospy.loginfo("in 1")
+            if value == 'JOYSTICK_CONTROL' or value == 'INTERSECTION_COORDINATION':
                 self.set_state(State.LANE_FOLLOWING)
                 self.traffic_light_intersection = UNKNOWN
+                rospy.loginfo("in 2")
 
     # Definition of each signal detection
     def process_signals_detection(self, msg):
+        rospy.loginfo("process")
         self.set('traffic_light', msg.traffic_light_state)
         self.set('right_veh', msg.right)
         self.set('opposite_veh', msg.front)
 
     # definition which resets everything we know
     def reset_signals_detection(self):
+        rospy.loginfo("shit reset")
         self.traffic_light = UNKNOWN
         self.right_veh     = UNKNOWN
         self.opposite_veh  = UNKNOWN
@@ -163,6 +168,7 @@ class VehicleCoordinator():
         self.clearance_to_go_pub.publish(CoordinationClearance(status=self.clearance_to_go))
 
         # Publish intersection_go flag
+#        rospy.loginfo("clearance_to_go is "+str(self.clearance_to_go) + " and CoordinationClearance.GO is "+str(CoordinationClearance.GO))
         if self.clearance_to_go == CoordinationClearance.GO and not self.intersection_go_published:
             msg = BoolStamped()
             msg.header.stamp = now
@@ -181,13 +187,14 @@ class VehicleCoordinator():
 
     # definition of the loop
     def loop(self):
+        #rospy.loginfo("the current self.tli is: " + str(self.traffic_light_intersection))
         if self.traffic_light_intersection != UNKNOWN:
             self.reconsider()
         self.publish_topics()
 
     def reconsider(self):
         if self.state == State.LANE_FOLLOWING:
-            if self.mode == 'COORDINATION':
+            if self.mode == 'INTERSECTION_COORDINATION':
                 # Reset detections
                 self.reset_signals_detection()
 
@@ -236,6 +243,7 @@ class VehicleCoordinator():
 
         elif self.state == State.TL_SENSING:
             if self.traffic_light == SignalsDetection.GO:
+                rospy.loginfo("eurekaaa")
                 self.set_state(State.GO)
 
         # If not GO, pusblish wait
