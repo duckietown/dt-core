@@ -106,7 +106,6 @@
 
 <arg name="tcp_communication" default="false"/>
 
-
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
 <group unless="$(arg vehicle_avoidance)">
