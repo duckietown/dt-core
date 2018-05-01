@@ -277,7 +277,6 @@ class lane_controller(object):
                 self.v_ref_possible["fleet_planning"] = self.pose_msg_dict["fleet_planning"].v_ref
         if self.flag_dict["obstacle_detected"] == True:
             if "obstacle_avoidance" in self.pose_msg_dict:
-                rospy.logerr('JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ')
                 self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
                 self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
                 print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"]
@@ -408,13 +407,15 @@ class lane_controller(object):
         omega -= self.k_Id * self.cross_track_integral
         omega -= self.k_Iphi * self.heading_integral
 
-        # check if velocity is large enough such that car can actually execute desired omega
-        if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
-            car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
-
-
         if car_control_msg.v == 0:
             omega = 0
+        else:
+        # check if velocity is large enough such that car can actually execute desired omega
+            if car_control_msg.v - 0.5 * math.fabs(omega) * 0.1 < 0.065:
+                car_control_msg.v = 0.065 + 0.5 * math.fabs(omega) * 0.1
+
+
+
 
         # apply magic conversion factors
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
