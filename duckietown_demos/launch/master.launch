@@ -564,7 +564,7 @@
 	<group if="$(arg /coordination/explicit_coordination)">
 		<!-- Vehicle Coordinator-->
 		<remap from="coordinator_node/mode" to="fsm_node/mode" />
-		<remap from="coordinator_node/signals_detection" to="led_detector_node/signals_detection" />
+		<remap from="coordinator_node/signals_detection" to="led_detector_node/led_detection" />
 		<remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
 		<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
