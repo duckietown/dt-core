@@ -19,6 +19,7 @@ class IntersectionNavigation(object):
         # save the name of the node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing." % (self.node_name))
+        self.active = True
 
         # read parameters
         self.veh = self.SetupParameter("~veh", "daisy")
@@ -163,6 +164,9 @@ class IntersectionNavigation(object):
 
 
     def MainLoop(self):
+
+        if not self.active:
+            return
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
@@ -476,6 +480,9 @@ class IntersectionNavigation(object):
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
