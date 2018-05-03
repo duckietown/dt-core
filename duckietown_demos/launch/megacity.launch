@@ -8,14 +8,17 @@
 		<arg name="apriltags" value="true" />
 		<arg name="/camera/raw" value="true"/>
 		<arg name="/camera/raw/rect" value="true"/>
-		<arg name="param_file_name" default="default" />
-		<arg name="line_detector_param_file_name" default="default" />
-		<arg name="anti_instagram" default="true" />
-		<arg name="implicit_coordination" default="true"/>
+		<arg name="param_file_name" value="default" />
+		<arg name="line_detector_param_file_name" value="default" />
+		<arg name="anti_instagram" value="true" />
+		<arg name="implicit_coordination" value="true"/>
+
+		<arg name="obstacle_avoidance_and_detection" value="true"/>
+
 
 		<!-- Charging control enabled for Megacity -->
-		<arg name="charging_control" default="true"/>
-		<arg name="maintenance_control" default="true"/>
-    <arg name="tcp_communication" default="true"/>
+		<arg name="charging_control" value="true"/>
+		<arg name="maintenance_control" value="true"/>
+    <arg name="tcp_communication" value="true"/>
 	</include>
 </launch>

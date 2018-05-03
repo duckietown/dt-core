@@ -49,11 +49,13 @@
 
 <arg name="fsm" default="true"/>
 
-<arg name="obstacle_avoidance" default="false"/>
+<arg name="obstacle_avoidance_and_detection" default="false"/>
+
+<!-- TODO: Deprecated?
 <arg name="/obstacle_avoidance/simple_stop" default="true"/>
 <arg name="/obstacle_avoidance/detection" default="true"/>
 <arg name="/obstacle_avoidance/safety" default="true"/>
-
+-->
 <arg name="vehicle_avoidance" default="true"/>
 <arg name="/vehicle_avoidance/detection" default="true" />
 <arg name="/vehicle_avoidance/multivehicle_detection" default="false" />
@@ -320,7 +322,7 @@
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
-	</group>
+	</group>default
 
 	<!-- Lane controller -->
 	<group if="$(arg /lane_following/lane_controller)">
@@ -360,9 +362,18 @@
 <!-- End Lane Control -->
 
 <!-- Start Obstacle Avoidance -->
-<group if="$(arg obstacle_avoidance)">
+<group if="$(arg obstacle_avoidance_and_detection)">
 
-	<!-- Object Detection -->
+	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
+</group>
+
+
+
+<!-- TODO: Deprecated? -->
+<!-- <group if="$(arg obstacle_avoidance)">
+
 	<group if="$(arg /obstacle_avoidance/detection)">
 		<remap from="static_object_detector_node/image_raw" to="camera_node/image/raw"/>
 		<include file="$(find mdoap)/launch/static_object_detector_node.launch">
@@ -372,7 +383,6 @@
 		</include>
 	</group>
 
-	<!-- Object Safety -->
 	<group if="$(arg /obstacle_avoidance/safety)">
 		<remap from="obstacle_safety_node/detection_list" to="static_object_detector_node/detection_list"/>
 		<include file="$(find mdoap)/launch/obstacle_safety_node.launch">
@@ -382,7 +392,6 @@
 		</include>
 	</group>
 
-	<!-- Simple Stop Controller -->
 	<group if="$(arg /obstacle_avoidance/simple_stop)">
 		<remap from="simple_stop_controller_node/too_close" to="obstacle_safety_node/object_too_close"/>
 		<include file="$(find mdoap)/launch/simple_stop_controller_node.launch">
@@ -391,7 +400,8 @@
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
-</group>
+</group> -->
+
 
 <!-- Start Vehicle Avoidance -->
 <group if="$(arg vehicle_avoidance)">
