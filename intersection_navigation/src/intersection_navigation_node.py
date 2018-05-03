@@ -51,7 +51,7 @@ class IntersectionNavigation(object):
         self.in_lane = False
         self.in_lane_time = rospy.Time()
         self.in_lane_timeout = 0.5
-        self.in_lane_wait_time = 2.0
+        self.in_lane_wait_time = 1.0
 
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE',
