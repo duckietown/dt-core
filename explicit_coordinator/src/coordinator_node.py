@@ -34,6 +34,8 @@ class VehicleCoordinator():
         # We communicate that the coordination mode has started
         rospy.loginfo('The Coordination Mode has Started')
 
+        self.active = True
+
         # Determine the state of the bot
         self.state = State.LANE_FOLLOWING
         self.last_state_transition = time()
@@ -59,6 +61,8 @@ class VehicleCoordinator():
         self.mode = 'LANE_FOLLOWING'
 
         # Subscriptions
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
         rospy.Subscriber('~apriltags_out', AprilTagsWithInfos, self.set_traffic_light)
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
@@ -181,7 +185,9 @@ class VehicleCoordinator():
 
     # definition of the loop
     def loop(self):
-        #rospy.loginfo("the current self.tli is: " + str(self.traffic_light_intersection))
+
+        if not self.active:
+            return
         if self.traffic_light_intersection != UNKNOWN:
             self.reconsider()
         self.publish_topics()
@@ -237,8 +243,6 @@ class VehicleCoordinator():
 
         elif self.state == State.TL_SENSING:
 
-            rospy.loginfo(str(self.traffic_light))
-
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
 
@@ -249,6 +253,20 @@ class VehicleCoordinator():
             # Publish wait
             self.clearance_to_go = CoordinationClearance.WAIT
 
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
+
+    # def onShutdown(self):
+    #     rospy.loginfo("[CoordinatorNode] Shutdown.")
+    #     self.clearance_to_go_pub.unregister()
+    #     self.pub_intersection_go.unregister()
+    #     self.pub_coord_cmd.unregister()
+    #     self.roof_light_pub.unregister()
+    #     self.coordination_state_pub.unregister()
+    #
+
+
 if __name__ == '__main__':
     car = VehicleCoordinator()
+#    rospy.on_shutdown(coordinator_node.onShutdown)
     rospy.spin()
