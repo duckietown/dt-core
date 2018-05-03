@@ -33,7 +33,6 @@ class LaneFilterNode(object):
 
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
         # Publishers
@@ -148,6 +147,7 @@ class LaneFilterNode(object):
 
     def onShutdown(self):
         rospy.loginfo("[LaneFilterNode] Shutdown.")
+
 
     def loginfo(self, s):
         rospy.loginfo('[%s] %s' % (self.node_name, s))
