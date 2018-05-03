@@ -109,10 +109,6 @@
 
 <!-- TODO if vehicle avoidance is turned off, bot will not move... -->
 <!-- Vehicle avoidance control for lane following -->
-<group unless="$(arg vehicle_avoidance)">
-		<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
-
-</group>
 
 		<!-- Vehicle avoidance control for lane following end -->
 
@@ -249,6 +245,10 @@
 	<!-- car_cmd_switch_node -->
 	<!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
 	<remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/>
+	<group unless="$(arg vehicle_avoidance)">
+			<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
+	</group>
+
 	<!-- need either lots more of these or none of these -->
 	<include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
