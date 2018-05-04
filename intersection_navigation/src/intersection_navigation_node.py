@@ -249,7 +249,7 @@ class IntersectionNavigation(object):
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = 0.0
                             msg_lane_pose.curvature_ref = 0.0
-
+                            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                             self.state = self.state_dict['DONE']
                             self.done_time = rospy.Time.now()
 
@@ -272,7 +272,9 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['DONE']:
 
                 # switch back to lane following if in lane
+                rospy.loginfo("##########################################")
                 if self.in_lane and (rospy.Time.now() - self.in_lane_time).to_sec() < self.in_lane_timeout:
+                    rospy.loginfo("YYYyyyyYYYYYyyyYyyYYyyyYYYyyyy")
                     msg_done = BoolStamped()
                     msg_done.header.stamp = rospy.Time.now()
                     msg_done.data = True
