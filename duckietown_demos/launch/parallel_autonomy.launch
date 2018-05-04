@@ -1,6 +1,6 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
-	<arg name="vehicle_avoidance" default="false"/>
+	<arg name="vehicle_avoidance" default="true"/>
     <arg name="line_detector_param_file_name" default="default"/>
 
 	<!-- start basic args -->
