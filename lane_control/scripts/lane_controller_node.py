@@ -394,7 +394,8 @@ class lane_controller(object):
         if self.main_pose_source == "lane_filter" and not self.use_feedforward_part:
             omega_feedforward = 0
 
-        omega = self.k_d * self.cross_track_err + self.k_theta * self.heading_err
+        # Scale the parameters linear such that their real value is at 0.22m/s TODO do this nice that  * (0.22/self.v_bar)
+        omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
 
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
@@ -404,9 +405,10 @@ class lane_controller(object):
                 self.heading_integral -= self.heading_err * dt
             omega = math.copysign(car_control_msg.v / self.min_radius, omega)
 
-        # apply integral correction (these should not affect radius, hence checked afterwards)
-        omega -= self.k_Id * self.cross_track_integral
-        omega -= self.k_Iphi * self.heading_integral
+        if not self.fsm_state == "SAFE_JOYSTICK_CONTROL":
+            # apply integral correction (these should not affect radius, hence checked afterwards)
+            omega -= self.k_Id * (0.22/self.v_bar) * self.cross_track_integral
+            omega -= self.k_Iphi * (0.22/self.v_bar) * self.heading_integral
 
         if car_control_msg.v == 0:
             omega = 0

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from sensor_msgs.msg import CompressedImage,Image
+from sensor_msgs.msg import CompressedImage,Image,Joy
 from duckietown_msgs.msg import AntiInstagramHealth, BoolStamped, AntiInstagramTransform
 import duckietown_utils as dtu
 from cv_bridge import CvBridge
@@ -28,7 +28,8 @@ class AntiInstagramNode(object):
         self.pub_image = rospy.Publisher("~corrected_image", Image, queue_size=1)
         self.pub_health = rospy.Publisher("~health", AntiInstagramHealth, queue_size=1,latch=True)
         self.pub_transform = rospy.Publisher("~transform", AntiInstagramTransform, queue_size=1, latch=True)
-
+        #self.pub_anti_instagram = rospy.Publisher("~click",BoolStamped, queue_size=1)
+        #self.pub_anti_instagram = rospy.Publisher("~click",BoolStamped, queue_size=1)
         #self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         #self.sub_image = rospy.Subscriber("~uncorrected_image",Image,self.cbNewImage,queue_size=1)
         self.sub_image = rospy.Subscriber(
@@ -62,8 +63,12 @@ class AntiInstagramNode(object):
 	self.shift = np.array([0, 0, 0])
 	self.ai_health = 0.1
 
+        self.ai_frequency=0.05
+        self.ai_frequency_inverse=1/self.ai_frequency
         self.image_msg = None
         self.click_on = False
+        #runs cb Transform every n seconds
+        rospy.Timer(rospy.Duration(self.ai_frequency_inverse), self.contTransform)
 
     def cbNewImage(self, image_msg):
         # memorize image
@@ -103,7 +108,6 @@ class AntiInstagramNode(object):
         '''
         Inputs:
             msg - CompressedImage - uncorrected image from raspberry pi camera
-
         Uses anti_instagram library to adjust msg so that it looks like the same
         color temperature as a duckietown reference image. Calculates health of the node
         and publishes the corrected image and the health state. Health somehow corresponds
@@ -169,13 +173,23 @@ class AntiInstagramNode(object):
             rospy.loginfo("Health is not good")
 
         else:
+            self.pub_anti_instagram = rospy.Publisher("anti_instagram_node/click",BoolStamped, queue_size=1)
             self.health.J1 = self.ai_health
-            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.shift
-            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.scale
+            self.transform.s[0], self.transform.s[1], self.transform.s[2] = self.ai.shift
+            self.transform.s[3], self.transform.s[4], self.transform.s[5] = self.ai.scale
 
             self.pub_health.publish(self.health)
             self.pub_transform.publish(self.transform)
             rospy.loginfo('ai: Color transform published.')
+
+    def contTransform(self,msg):
+        anti_instagram_msg = BoolStamped()
+        anti_instagram_msg.data = True
+        rospy.loginfo('anti_instagram message')
+        self.cbClick(anti_instagram_msg)
+        #self.pub_anti_instagram.publish(anti_instagram_msg)
+        rospy.sleep(2.)
+        anti_instagram_msg.data = False
 
 
 if __name__ == '__main__':
@@ -188,4 +202,4 @@ if __name__ == '__main__':
     # Setup proper shutdown behavior
     # rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
-    rospy.spin()
+rospy.spin()
