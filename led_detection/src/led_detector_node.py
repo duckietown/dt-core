@@ -134,18 +134,18 @@ class LEDDetectorNode(object):
         debug_msg  = LEDDetectionDebugInfo()
 
         if self.trigger:
-            rospy.loginfo('[%s] GOT TRIGGER! Starting...')
+            #rospy.loginfo('[%s] GOT TRIGGER! Starting...')
             self.trigger          = False
             self.data             = []
             self.capture_finished = False
             # Start capturing images
-            rospy.loginfo('[%s] Start capturing frames'%self.node_name)
+            #rospy.loginfo('[%s] Start capturing frames'%self.node_name)
             self.first_timestamp = msg.header.stamp.to_sec()
             self.tinit           = time.time()
 
         elif self.capture_finished:
             self.node_state = 0
-            rospy.loginfo('[%s] Waiting for trigger...' %self.node_name)
+            #rospy.loginfo('[%s] Waiting for trigger...' %self.node_name)
 
         if self.first_timestamp > 0:
             # TODO sanity check rel_time positive, restart otherwise
@@ -159,7 +159,7 @@ class LEDDetectorNode(object):
                 rgb = cv2.cvtColor(rgb,cv2.COLOR_BGRA2GRAY)
                 rgb = cv2.resize(rgb, (640 * 1, 480 * 1))
                 rgb = 255 - rgb
-                rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
+                #rospy.loginfo('[%s] Capturing frame %s' %(self.node_name, rel_time))
                 # Save image to data
                 #if np.size(self.data) == 0:
                 #    self.data = rgb
@@ -170,7 +170,7 @@ class LEDDetectorNode(object):
 
             # Start processing
             elif not self.capture_finished and self.first_timestamp > 0:
-                rospy.loginfo('[%s] Relative Time %s, processing' %(self.node_name, rel_time))
+                #rospy.loginfo('[%s] Relative Time %s, processing' %(self.node_name, rel_time))
                 self.node_state = 2
                 self.capture_finished = True
                 self.first_timestamp = 0
@@ -228,7 +228,7 @@ class LEDDetectorNode(object):
         BlobsTL    = []
 
         # Print on screen
-        rospy.loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
+        #rospy.loginfo('[%s] Analyzing %s images of size %s X %s' %(self.node_name,NIm,W,H))
 
         # Iterate
         for t in range(NIm):
@@ -345,7 +345,7 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (right)
         for i in range(len(BlobsRight)):
-            rospy.loginfo('[%s] Detection on the right' % (self.node_name))
+            #rospy.loginfo('[%s] Detection on the right' % (self.node_name))
             # Detection
             detected,result = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
             # Take decision
@@ -355,7 +355,7 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
-            rospy.loginfo('[%s] Detection on the front' % (self.node_name))
+            #rospy.loginfo('[%s] Detection on the front' % (self.node_name))
             # Detection
             detected, result = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
             # Take decision
@@ -365,7 +365,7 @@ class LEDDetectorNode(object):
 
         # Decide whether LED or not (traffic light)
         for i in range(len(BlobsTL)):
-            rospy.loginfo('[%s] Detection of the traffic light' % (self.node_name))
+            #rospy.loginfo('[%s] Detection of the traffic light' % (self.node_name))
             # Detection
             detected, result = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
             # Take decision
@@ -386,7 +386,7 @@ class LEDDetectorNode(object):
         self.publish(imPublishRight,imPublishFront,imPublishTL,result)
 
         # Print performance
-        rospy.loginfo('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %(self.node_name,processing_time,total_time))
+        #rospy.loginfo('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %(self.node_name,processing_time,total_time))
 
         # Keep going
         if self.continuous:
@@ -403,7 +403,7 @@ class LEDDetectorNode(object):
         y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
         fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
-        rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
+        #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
 
         # Take decision
         if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify) < 0.3):
@@ -439,25 +439,25 @@ class LEDDetectorNode(object):
         debug_msg.state              = 0
         self.pub_debug.publish(debug_msg)
 
-        # Loginfo (right)
-        if self.right != SignalsDetection.NO_CAR:
-            rospy.loginfo('Right: LED detected')
-        else:
-            rospy.loginfo('Right: No LED detected')
+        # # Loginfo (right)
+        # if self.right != SignalsDetection.NO_CAR:
+        #     #rospy.loginfo('Right: LED detected')
+        # else:
+        #     #rospy.loginfo('Right: No LED detected')
+        #
+        # # Loginfo (front)
+        # if self.front != SignalsDetection.NO_CAR:
+        #     #rospy.loginfo('Front: LED detected')
+        # else:
+        #     #rospy.loginfo('Front: No LED detected')
 
-        # Loginfo (front)
-        if self.front != SignalsDetection.NO_CAR:
-            rospy.loginfo('Front: LED detected')
-        else:
-            rospy.loginfo('Front: No LED detected')
-
-        # Loginfo (TL)
-        if self.traffic_light == SignalsDetection.STOP:
-            rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
-        elif self.traffic_light == SignalsDetection.GO:
-            rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
-        else:
-            rospy.loginfo('[%s] No traffic light' %(self.node_name))
+        # # Loginfo (TL)
+        # if self.traffic_light == SignalsDetection.STOP:
+        #     rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
+        # elif self.traffic_light == SignalsDetection.GO:
+        #     rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
+        # # else:
+        #     rospy.loginfo('[%s] No traffic light' %(self.node_name))
 
         # Publish
         rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
