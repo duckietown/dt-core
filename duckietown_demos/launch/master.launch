@@ -781,7 +781,8 @@
 
 	<remap from="auto_calibration_calculation_node/mode" to="fsm_node/mode"/>
 	<remap from="auto_calibration_calculation_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
-	<remap from="auto_calibration_calculation_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+	<remap from="auto_calibration_calculation_node/wheels_cmd" to="wheels_driver_node/wheels_cmd"/>
+	<remap from="auto_calibration_calculation_node/tag" to="tag_detections"/>
 
 	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
