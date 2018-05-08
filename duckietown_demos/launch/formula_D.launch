@@ -8,7 +8,11 @@
     <include file="$(find duckietown)/machines"/>
 
 
-
+    <include  file="$(find pi_camera)/launch/camera_node.launch">
+    			<arg name="veh" value="$(arg veh)"/>
+    			<arg name="config" value="$(arg config)"/>
+    			<arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
 
     <!-- run inverse_kinematics_node -->
     <include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
