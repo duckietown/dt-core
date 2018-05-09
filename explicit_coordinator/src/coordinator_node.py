@@ -51,6 +51,7 @@ class VehicleCoordinator():
 
         # Parameters
         self.traffic_light_intersection = UNKNOWN
+        self.path_computed = False
 
         # Initialize detection
         self.traffic_light = UNKNOWN
@@ -66,6 +67,7 @@ class VehicleCoordinator():
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
         rospy.Subscriber('~apriltags_out', AprilTagsWithInfos, self.set_traffic_light)
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
+        self.sub_path_computed = rospy.Subscriber('~path_computed', BoolStamped, self.cbPathComputed, queue_size=1)
 
         # Initialize clearance to go
         self.clearance_to_go = CoordinationClearance.NA
@@ -80,9 +82,12 @@ class VehicleCoordinator():
         self.roof_light_pub         = rospy.Publisher('~change_color_pattern', String, queue_size=10)
         self.coordination_state_pub = rospy.Publisher('~coordination_state', String, queue_size=10)
 
+
         while not rospy.is_shutdown():
             self.loop()
             rospy.sleep(0.1)
+
+
 
     def set_traffic_light(self,msg):
         # Save old traffic light
@@ -118,7 +123,13 @@ class VehicleCoordinator():
         # Set roof light
         if self.state == State.AT_STOP_CLEARING:
             # self.reset_signals_detection()
-           self.roof_light = CoordinationSignal.SIGNAL_A
+
+
+
+
+            self.roof_light = CoordinationSignal.SIGNAL_A
+
+
         elif self.state == State.SACRIFICE:
             self.roof_light = CoordinationSignal.OFF
         elif self.state == State.KEEP_CALM:
@@ -189,6 +200,9 @@ class VehicleCoordinator():
 
         if not self.active:
             return
+
+        if not self.path_computed:
+            return
         if self.traffic_light_intersection != UNKNOWN:
             self.reconsider()
         self.publish_topics()
@@ -256,6 +270,10 @@ class VehicleCoordinator():
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
+
+    def cbPathComputed(self, path_computed_msg):
+        self.path_computed = path_computed_msg.data
+
 
     # def onShutdown(self):
     #     rospy.loginfo("[CoordinatorNode] Shutdown.")
