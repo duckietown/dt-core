@@ -100,12 +100,13 @@ class VehicleCoordinator():
             self.set_state(State.LANE_FOLLOWING)
 
         # Print result
-        if self.traffic_light_intersection != UNKNOWN:
-            # Print
-            if self.traffic_light_intersection:
-                rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
-            else:
-                rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
+        # if self.traffic_light_intersection != UNKNOWN:
+        #     #TODO if tl but can't see the led's for too long, switch to april tag intersection
+        #     # Print
+        #     if self.traffic_light_intersection:
+        #         rospy.loginfo('[%s] Intersection with traffic light' %(self.node_name))
+        #     else:
+        #         rospy.loginfo('[%s] Intersection without traffic light' %(self.node_name))
 
     def set_state(self, state):
         # Update only when changing state
@@ -127,7 +128,7 @@ class VehicleCoordinator():
         elif self.state == State.LANE_FOLLOWING or self.state == State.TL_SENSING:
             self.roof_light = CoordinationSignal.OFF
 
-        rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
+    #    rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 
     # Define the time at this current state
     def time_at_current_state(self):

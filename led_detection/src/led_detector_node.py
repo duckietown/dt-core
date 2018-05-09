@@ -460,7 +460,7 @@ class LEDDetectorNode(object):
         #     rospy.loginfo('[%s] No traffic light' %(self.node_name))
 
         # Publish
-        rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
+        #rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
         self.pub_detections.publish(SignalsDetection(front=self.front, right=self.right, left=self.left, traffic_light_state=self.traffic_light))
 
     def send_state(self, msg):

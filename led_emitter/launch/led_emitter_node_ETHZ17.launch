@@ -29,8 +29,9 @@
 		    	<remap from="~change_color_pattern" to="led_joy_mapper_node/change_color_pattern" if="$(arg joystick)"/>
 		    	<!-- run with coordination node -->
 		   	<remap from="~change_color_pattern" to="explicit_coordination/change_color_pattern" unless="$(arg joystick)"/>
+				<remap from="~change_color_pattern" to="coordinator_node/change_color_pattern" />
+				<!-- TODO cleanup -->
 		</node>
 
 	</group>
 </launch>
-
