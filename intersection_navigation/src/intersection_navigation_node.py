@@ -243,6 +243,7 @@ class IntersectionNavigation(object):
                         pose, _ = self.poseEstimator.PredictState(msg_lane_pose.header.stamp)
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
+                        rospy.loginfo("the s is: "+str(self.s))
                         if (self.s > 0.99):
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
@@ -272,9 +273,7 @@ class IntersectionNavigation(object):
             elif self.state == self.state_dict['DONE']:
 
                 # switch back to lane following if in lane
-                rospy.loginfo("##########################################")
                 if self.in_lane and (rospy.Time.now() - self.in_lane_time).to_sec() < self.in_lane_timeout:
-                    rospy.loginfo("YYYyyyyYYYYYyyyYyyYYyyyYYYyyyy")
                     msg_done = BoolStamped()
                     msg_done.header.stamp = rospy.Time.now()
                     msg_done.data = True
