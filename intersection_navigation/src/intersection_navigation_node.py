@@ -125,6 +125,7 @@ class IntersectionNavigation(object):
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         # Needed if open loop
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+        self.pub_path_computed = rospy.Publisher("~path_computed", BoolStamped, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
@@ -424,6 +425,10 @@ class IntersectionNavigation(object):
             return False
 
         else:
+            msg_path_computed = BoolStamped()
+            msg_path_computed.header.stamp = rospy.Time.now()
+            msg_path_computed.data = True
+            self.pub_path_computed.publish(msg_path_computed)
             return True
 
     def InLaneCallback(self,msg):
@@ -443,7 +448,6 @@ class IntersectionNavigation(object):
         #     self.SelfReset()
 
     def TurnTypeCallback(self, msg):
-        rospy.loginfo("I, Robot!")
         self.turn_type = msg.data
         self.turn_type_time = rospy.Time.now()
 
