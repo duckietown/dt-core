@@ -136,7 +136,7 @@ class LaneFilterNode(object):
         # also publishing a separate Bool for the FSM
         in_lane_msg = BoolStamped()
         in_lane_msg.header.stamp = segment_list_msg.header.stamp
-        in_lane_msg.data = in_lane
+        in_lane_msg.data = True #TODO change with in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
     def cbMode(self, msg):
