@@ -567,6 +567,7 @@
 		<remap from="coordinator_node/signals_detection" to="led_detector_node/led_detection" />
 		<remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
 		<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+		<remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
 		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /coordination/local)"/>
