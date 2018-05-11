@@ -272,6 +272,7 @@ class VehicleCoordinator():
         self.active = switch_msg.data
 
     def cbPathComputed(self, path_computed_msg):
+        self.path_computed = False #So that it resets to default
         self.path_computed = path_computed_msg.data
 
 
