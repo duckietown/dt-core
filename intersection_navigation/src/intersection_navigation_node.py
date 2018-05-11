@@ -251,7 +251,6 @@ class IntersectionNavigation(object):
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = 0.0
                             msg_lane_pose.curvature_ref = 0.0
-                            rospy.loginfo("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                             self.state = self.state_dict['DONE']
                             self.done_time = rospy.Time.now()
 
