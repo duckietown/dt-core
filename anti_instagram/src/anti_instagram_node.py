@@ -49,24 +49,20 @@ class AntiInstagramNode(object):
 
         self.ai = AntiInstagram()
         self.corrected_image = Image()
-        self.bridge = CvBridge()
-	# create instance of kMeans
-	self.fancyGeom = rospy.get_param("~fancyGeom", "")
+         self.bridge = CvBridge()
+	    # create instance of kMeans
+     	self.fancyGeom = rospy.get_param("~fancyGeom", "")
         self.n_centers = rospy.get_param("~n_centers", "")
-	self.blur = rospy.get_param("~blur","")
-	self.resize = rospy.get_param("~resize","")
-	self.blur_kernel = rospy.get_param("~blur_kernel")
+	    self.blur = rospy.get_param("~blur","")
+	    self.resize = rospy.get_param("~resize","")
+	    self.blur_kernel = rospy.get_param("~blur_kernel")
         self.KM = kMeansClass(self.n_centers, self.blur, self.resize, self.blur_kernel)
 
 
-	self.scale = np.array([1, 1, 1])
-	self.shift = np.array([0, 0, 0])
-	self.ai_health = 0.1
+	    self.scale = np.array([1, 1, 1])
+	    self.shift = np.array([0, 0, 0])
+	    self.ai_health = 0.1
 
-        self.ai_frequency=0.05
-        self.ai_frequency_inverse=1/self.ai_frequency
-        self.image_msg = None
-        self.click_on = False
         #runs cb Transform every n seconds
         rospy.Timer(rospy.Duration(self.ai_frequency_inverse), self.contTransform)
 
@@ -80,7 +76,6 @@ class AntiInstagramNode(object):
 
             corrected_image_cv2 = self.ai.applyTransform(cv_image)
             tk.completed('applyTransform')
-
             corrected_image_cv2 = np.clip(corrected_image_cv2, 0, 255).astype(np.uint8)
             self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
 
@@ -187,7 +182,7 @@ class AntiInstagramNode(object):
         anti_instagram_msg.data = True
         rospy.loginfo('anti_instagram message')
         self.cbClick(anti_instagram_msg)
-        #self.pub_anti_instagram.publish(anti_instagram_msg)
+        self.pub_anti_instagram.publish(anti_instagram_msg)
         rospy.sleep(2.)
         anti_instagram_msg.data = False
 
