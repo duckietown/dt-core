@@ -428,6 +428,7 @@ class IntersectionNavigation(object):
             msg_path_computed.header.stamp = rospy.Time.now()
             msg_path_computed.data = True
             self.pub_path_computed.publish(msg_path_computed)
+            msg_path_computed.data = False
             return True
 
     def InLaneCallback(self,msg):
