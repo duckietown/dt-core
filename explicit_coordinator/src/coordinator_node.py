@@ -185,6 +185,9 @@ class VehicleCoordinator():
             msg.data = True
             self.pub_intersection_go.publish(msg)
             self.intersection_go_published = True
+
+            #reset path_computed for next intersection
+            self.path_computed = False
             rospy.loginfo('[%s] Go!' %(self.node_name))
 
         # Publish LEDs
@@ -207,7 +210,9 @@ class VehicleCoordinator():
             self.reconsider()
         self.publish_topics()
 
+
     def reconsider(self):
+
         if self.state == State.LANE_FOLLOWING:
             if self.mode == 'INTERSECTION_COORDINATION':
                 # Reset detections
@@ -237,6 +242,7 @@ class VehicleCoordinator():
             self.clearance_to_go = CoordinationClearance.GO
             if self.mode == 'LANE_FOLLOWING':
                 self.set_state(State.LANE_FOLLOWING)
+
 
         elif self.state == State.SACRIFICE:
             # Wait a random delay
