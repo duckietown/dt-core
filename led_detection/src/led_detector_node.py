@@ -96,7 +96,7 @@ class LEDDetectorNode(object):
         # Additional parameters
         self.protocol            = rospy.get_param("~LED_protocol")
         #self.capture_time         = rospy.get_param("~capture_time")
-        self.continuous           = rospy.get_param('~continuous', True) # Detect continuously as long as active
+        self.continuous           = rospy.get_param('~continuous', False) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
         # Cell size (needed for visualization)
         self.cell_size      = rospy.get_param("~cell_size")
