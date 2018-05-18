@@ -46,7 +46,7 @@ class IntersectionNavigation(object):
         # turn type
         self.turn_type = -1
         self.turn_type_time = rospy.Time()
-        self.turn_type_timeout = 5.0
+        self.turn_type_timeout = 10.0
 
         # in lane
         self.in_lane = False
@@ -79,7 +79,7 @@ class IntersectionNavigation(object):
         if self.open_loop:
             self.v = 0.15
         else:
-            self.v = 0.20
+            self.v = 0.12 #TODO was 0.2 before
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
         # 0 relative orientation error
@@ -245,7 +245,7 @@ class IntersectionNavigation(object):
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                         rospy.loginfo("the s is: "+str(self.s))
-                        if (self.s > 0.99):
+                        if (self.s > 0.8): #TODO was 0.99 before
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
@@ -410,11 +410,14 @@ class IntersectionNavigation(object):
 
     def InitializePath(self):
         # waiting for instructions where to go
-        # if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
+         #if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
         #     rospy.loginfo("[%s] No current turn type information." % (self.node_name))
         #     return False
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+
+        rospy.loginfo("YOOOO TURNTYPE IN INITPATH " + str(self.turn_type))
+
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
         rospy.loginfo("[%s] Planning path from (%f,%f,%f) to (%f,%f,%f)." % (self.node_name, pose_init[0], pose_init[1],pose_init[2],pose_final[0],pose_final[1],pose_final[2]))
@@ -444,11 +447,12 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Received go. Start traversing intersection." % (self.node_name))
             self.go = True
 
-        # if msg.state == 'ARRIVE_AT_STOP_LINE':
-        #     self.SelfReset()
+        if msg.state == 'ARRIVE_AT_STOP_LINE':
+            self.SelfReset()
 
     def TurnTypeCallback(self, msg):
         self.turn_type = msg.data
+        rospy.loginfo("YOOOO TURNTYPE  " + str(self.turn_type))
         self.turn_type_time = rospy.Time.now()
 
     def ImageCallback(self, msg):
