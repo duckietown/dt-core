@@ -21,10 +21,10 @@
 		<arg name="/LED/emitter" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
 		<!-- Charging control enabled for Megacity -->
-		<arg name="charging_control" value="false"/>
-		<arg name="maintenance_control" value="false"/>
+		<arg name="charging_control" value="true"/>
+		<arg name="maintenance_control" value="true"/>
 
 		<!-- TODO tcp communication is not robust, fix it -->
-   	<arg name="tcp_communication" value="false"/>
+   	<arg name="tcp_communication" value="true"/>
 	</include>
 </launch>
