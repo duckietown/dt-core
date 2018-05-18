@@ -51,7 +51,6 @@ class VehicleCoordinator():
 
         # Parameters
         self.traffic_light_intersection = UNKNOWN
-        self.path_computed = False
 
         # Initialize detection
         self.traffic_light = UNKNOWN
@@ -67,7 +66,6 @@ class VehicleCoordinator():
         rospy.Subscriber('~mode', FSMState, lambda msg: self.set('mode', msg.state))
         rospy.Subscriber('~apriltags_out', AprilTagsWithInfos, self.set_traffic_light)
         rospy.Subscriber('~signals_detection', SignalsDetection, self.process_signals_detection)
-        self.sub_path_computed = rospy.Subscriber('~path_computed', BoolStamped, self.cbPathComputed, queue_size=1)
 
         # Initialize clearance to go
         self.clearance_to_go = CoordinationClearance.NA
@@ -186,8 +184,7 @@ class VehicleCoordinator():
             self.pub_intersection_go.publish(msg)
             self.intersection_go_published = True
 
-            #reset path_computed for next intersection
-            self.path_computed = False
+
             rospy.loginfo('[%s] Go!' %(self.node_name))
 
         # Publish LEDs
@@ -204,8 +201,6 @@ class VehicleCoordinator():
         if not self.active:
             return
 
-        if not self.path_computed:
-            return
         if self.traffic_light_intersection != UNKNOWN:
             self.reconsider()
         self.publish_topics()
@@ -276,10 +271,6 @@ class VehicleCoordinator():
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
-
-    def cbPathComputed(self, path_computed_msg):
-        self.path_computed = False #So that it resets to default
-        self.path_computed = path_computed_msg.data
 
 
     # def onShutdown(self):
