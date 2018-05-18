@@ -129,6 +129,8 @@ class IntersectionNavigation(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
+
+
     def SelfReset(self):
         self.go = False
         self.turn_type = -1
@@ -416,7 +418,6 @@ class IntersectionNavigation(object):
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
 
-        rospy.loginfo("YOOOO TURNTYPE IN INITPATH " + str(self.turn_type))
 
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
@@ -438,8 +439,17 @@ class IntersectionNavigation(object):
         self.in_lane = msg.data
         self.in_lane_time = rospy.Time.now()
 
+
+    def stopCar(self,event):
+        msg_cmds = Twist2DStamped()
+        msg_cmds.header.stamp = rospy.Time.now()
+        msg_cmds.v = 0.0
+        msg_cmds.omega = 0.0
+        self.pub_cmds.publish(msg_cmds)
+
     def FSMCallback(self, msg):
-        if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_COORDINATION':
+
+        if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_PLANNING':
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
 
