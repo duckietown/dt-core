@@ -14,7 +14,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class LEDDetectorNode(object):
     def __init__(self):
-        self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
+        self.active = False # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
         self.first_timestamp = 0
         self.capture_finished = True
         self.tinit = None
@@ -468,6 +468,6 @@ class LEDDetectorNode(object):
         self.pub_debug.publish(msg)
 
 if __name__ == '__main__':
-    rospy.init_node('LED_detector_node',anonymous=False)
+    rospy.init_node('led_detector_node',anonymous=False)
     node = LEDDetectorNode()
     rospy.spin()
