@@ -42,7 +42,7 @@ class AntiInstagramNode(object):
         self.ai = AntiInstagram()
         self.corrected_image = Image()
         self.bridge = CvBridge()
-        self.ai_frequency=0.2
+        self.ai_frequency=0.1
         self.ai_frequency_inverse=1/self.ai_frequency
         self.image_msg = None
         self.click_on = False
