@@ -13,7 +13,7 @@
 	<arg name="anti_instagram" default="true"/>
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
-	<arg name="intersectionType" />
+	<arg name="intersectionType" default= "stopSign"/>
 	<!-- end basic args -->
 
 	<!-- the things that are "on" by default:
@@ -67,6 +67,7 @@
 
 
 <arg name="LED" default="true" />
+<arg name="/LED/local" default="false" />
 <arg name="/LED/pattern_switch" default="false" />
 <arg name="/LED/detector" default="false" />
 <arg name="/LED/joystick" default="false" />
@@ -79,7 +80,10 @@
 <arg name="/odometry_learning/visual_odometry" default="false"/>
 
 <arg name="coordination" default="false"/>
-<arg name="implicit_coordination" default="false"/>
+<arg name="/coordination/local" default="false"/>
+<arg name="/coordination/implicit_coordination" default="false"/>
+<arg name="/coordination/explicit_coordination" default="false"/>
+
 
 <arg name="parallel_autonomy" default="false"/>
 
@@ -257,6 +261,8 @@
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 
+ <!-- <remap from="implicit_coordination_node/intersection_go" to="logic_gate_node/implicit_intersection_go" />
+ <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
 	<include file="$(find fsm)/launch/logic_gate_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
@@ -328,9 +334,7 @@
 	<group if="$(arg /lane_following/lane_controller)">
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<remap from="lane_controller_node/lane_pose_intersection_navigation" to="intersection_navigation_node/lane_pose_intersection_navigation"/>
- 		<!--TODO what is this -->
-		<!-- <remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/>		  -->
-
+		<remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> <!--TODO what is this -->
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
 		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
 		<remap from="lane_controller_node/implicit_coordination_velocity" to="lane_filter_node/implicit_coordination_velocity"/> -->
@@ -418,7 +422,7 @@
 	<group if="$(arg /vehicle_avoidance/multivehicle_detection)">
 		<include file="$(find object_detection)/launch/object_detection.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="local" value="$(arg local)"/>
+			<arg name="local" value="$(arg /camera/local)"/>
 		</include>
 		<!-- Multivehicle Detection Node -->
 		<include file="$(find multivehicle_tracker)/launch/multivehicle_tracker.launch">
@@ -478,10 +482,11 @@
 
 	<!-- Detection -->
 	<group if="$(arg /LED/detector)">
-		<include file="$(find led_detection)/launch/LED_detection.launch">
+		<include file="$(find led_detection)/launch/led_detection.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="local" value="$(arg /LED/local)"/>
 		</include>
 	</group>
 
@@ -504,16 +509,17 @@
 	</group>
 
 	<group if="$(arg /LED/emitter)">
-		<include file="$(find led_emitter)/launch/led_emitter_node.launch">
+		<include file="$(find led_emitter)/launch/led_emitter_node_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="local" value="$(arg /LED/local)"/>
 
 		</include>
 	</group>
 
 	<!-- TODO do we need some remappings here? -->
-	<remap from="LED_interpreter_node/raw_led_detection" to="LED_detector_node/raw_led_detection" />
+	<remap from="LED_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 	<group if="$(arg /LED/interpreter)">
 		<include file="$(find led_interpreter)/launch/LED_interpreter.launch">
 			<arg name="veh" value="$(arg veh)"/>
@@ -562,50 +568,52 @@
 
 <!-- Start Coordination -->
 <group if="$(arg coordination)">
-	<!-- Vehicle Coordinator-->
-	<remap from="simple_coordinator_node/mode" to="fsm_node/mode" />
-	<remap from="simple_coordinator_node/signals_detection" to="LED_interpreter_node/signals_detection" />
-	<!--the following remap is done through led_patter_switch_node -->
-	<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
-	<include file="$(find veh_coordinator)/launch/simple_coordinator_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-		<!-- <arg name="intersectionType" value="$(arg intersectionType)" /> -->
-
-	</include>
-</group>
-
-<!-- Start Implicit Coordination -->
-<group if="$(arg implicit_coordination)">
+	<group if="$(arg /coordination/explicit_coordination)">
 		<!-- Vehicle Coordinator-->
-		<include file="$(find implicit_coordination)/launch/implicit.launch">
-			<arg name="veh" value="$(arg veh)"/>
-		</include>
-
-		<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
-		<remap from="implicit_coordination_node/vehicle_detection_node" to="multivehicle_tracker_node/tracking" />
-		<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wait_go_implicit" /> -->
-		<!--TODO create a coordination node which subscribes to both expl or implicit  -->
-		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="intersection_coordination_node/intersection_go" /> -->
-		<!-- <remap from="implicit_coordination_node/flag_intersection_wait_go_implicit" to="simple_coordinator_node/intersection_go" /> -->
-		<!--the following remap is done through led_patter_switch_node -->
+		<remap from="coordinator_node/mode" to="fsm_node/mode" />
+		<remap from="coordinator_node/signals_detection" to="led_detector_node/led_detection" />
+		<remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
 		<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+		<remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
+		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg /coordination/local)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="intersectionType" value="$(arg intersectionType)" />
+
+		</include>
+	</group>
+
+	<!-- Start Implicit Coordination -->
+	<group if="$(arg /coordination/implicit_coordination)">
+			<!-- Vehicle Coordinator-->
+			<include file="$(find implicit_coordination)/launch/implicit.launch">
+				<arg name="veh" value="$(arg veh)"/>
+			</include>
+
+			<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
+			<remap from="implicit_coordination_node/vehicle_detection_node" to="multivehicle_tracker_node/tracking" />
+			<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wait_go_implicit" /> -->
+			<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+
+	</group>
+
+	<group unless="$(arg /coordination/explicit_coordination)">
+		<group unless="$(arg /coordination/implicit_coordination)">
+			<!-- Vehicle Coordinator-->
+			<remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
+			<include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+			<!-- Extra Remapping to make the fake coordination car cmds look real -->
+			<remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
+		</group>
+	</group>
 
 </group>
-
-<group unless="$(arg implicit_coordination)">
-	<!-- Vehicle Coordinator-->
-	<remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
-	<include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-	</include>
-	<!-- Extra Remapping to make the fake coordination car cmds look real -->
-	<remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
-</group>
-
 <!-- End Coordination -->
 
 <!-- Start Navigation -->
@@ -666,13 +674,13 @@
 		<!-- random april tags -->
 		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 		<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
-		<!-- remapping outputs since there are two different possible turn types -->
-		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
 
-	<group unless="$(arg charging_control)">
-	<remap from="random_april_tag_turns_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
-</group>
+		<group unless="$(arg charging_control)">
+			<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
+		</group>
+
+
 		<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -734,7 +742,7 @@
 	<remap from="maintenance_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
 	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 
-	<remap from="maintenance_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+	<remap from="maintenance_control_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
 
 
 	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
@@ -750,12 +758,12 @@
 	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
 	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
-	<remap from="charging_control_node/turn_type" to="open_loop_intersection_control_node/turn_type"/>
+	<remap from="charging_control_node/turn_type" to="intersection_navigation_node/turn_type"/>
 	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/go_charging" to="maintenance_control_node/go_charging"/>
 	<remap from="charging_control_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
 
-	<remap from="charging_control_node/intersection_done" to="open_loop_intersection_control_node/intersection_done"/>
+	<remap from="charging_control_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
 
 
 	<include file="$(find charging_control)/launch/charging_control_node.launch">

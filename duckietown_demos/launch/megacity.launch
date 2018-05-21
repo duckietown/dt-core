@@ -6,19 +6,28 @@
 		<arg name="visualization" value="true" />
 		<arg name="navigation" value="true"/>
 		<arg name="apriltags" value="true" />
+
 		<arg name="/camera/raw" value="true"/>
 		<arg name="/camera/raw/rect" value="true"/>
+
 		<arg name="param_file_name" value="default" />
 		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
-		<arg name="implicit_coordination" value="true"/>
 
 		<arg name="obstacle_avoidance_and_detection" value="true"/>
 
-
+		<arg name="coordination" value="true"/>
+		<arg name="/coordination/implicit_coordination" value="false"/>
+		<arg name="/coordination/explicit_coordination" value="true"/>
+		<arg name="LED" value="true"/>
+		<arg name="/LED/detector" value="true"/>
+		<arg name="/LED/emitter" value="true"/>
+		<arg name="intersectionType" value="trafficLight"/>
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
-    <arg name="tcp_communication" value="true"/>
+
+		<!-- TODO tcp communication is not robust, fix it -->
+   	<arg name="tcp_communication" value="true"/>
 	</include>
 </launch>
