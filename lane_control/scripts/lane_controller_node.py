@@ -274,17 +274,16 @@ class lane_controller(object):
                 self.pose_msg.d_ref = self.pose_msg_dict["fleet_planning"].d_ref
                 self.v_ref_possible["fleet_planning"] = self.pose_msg_dict["fleet_planning"].v_ref
         if self.flag_dict["obstacle_detected"] == True:
-            rospy.logerr('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
             if "obstacle_avoidance" in self.pose_msg_dict:
                 self.pose_msg.d_ref = self.pose_msg_dict["obstacle_avoidance"].d_ref
                 self.v_ref_possible["obstacle_avoidance"] = self.pose_msg_dict["obstacle_avoidance"].v_ref
-                print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"] #For debugging
+                #print 'v_ref obst_avoid=' , self.v_ref_possible["obstacle_avoidance"] #For debugging
         if self.flag_dict["implicit_coord_velocity_limit_active"] == True:
             if "implicit_coord" in self.pose_msg_dict:
                 self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
 
         self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
-        print 'v_ref global=', self.pose_msg.v_ref #For debugging
+        #print 'v_ref global=', self.pose_msg.v_ref #For debugging
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
             self.cbPose(self.pose_msg)
