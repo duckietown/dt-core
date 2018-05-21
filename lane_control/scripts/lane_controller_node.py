@@ -257,14 +257,12 @@ class lane_controller(object):
                 self.pose_initialized = True
         elif self.fsm_state == "PARKING":
             if pose_source == "parking":
-                rospy.loginfo("pose source: parking!?")
                 self.pose_msg = input_pose_msg
                 self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
         else:
             if pose_source == "lane_filter":
-                rospy.loginfo("pose source: lane_filter")
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
                 self.v_ref_possible["main_pose"] = self.v_bar

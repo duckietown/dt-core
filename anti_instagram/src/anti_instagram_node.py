@@ -29,6 +29,8 @@ class AntiInstagramNode(object):
         self.sub_image = rospy.Subscriber("~uncorrected_image", CompressedImage, self.cbNewImage,queue_size=1)
         self.sub_click = rospy.Subscriber("~click", BoolStamped, self.cbClick, queue_size=1)
 
+        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose',True)
 
@@ -49,6 +51,10 @@ class AntiInstagramNode(object):
         #runs cb Transform every n seconds
         rospy.Timer(rospy.Duration(self.ai_frequency_inverse), self.contTransform)
 
+
+    def cbSwitch(self, msg):
+        self.active = msg.data
+        
     def cbNewImage(self,image_msg):
         # memorize image
         self.image_msg = image_msg
@@ -127,6 +133,9 @@ class AntiInstagramNode(object):
             rospy.loginfo('ai: Color transform published.')
 
     def contTransform(self,msg):
+        if not self.active:
+            return
+
         anti_instagram_msg = BoolStamped()
         anti_instagram_msg.data = True
         rospy.loginfo('anti_instagram message')

@@ -33,7 +33,6 @@ class LaneFilterNode(object):
 
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
         # Publishers
@@ -137,7 +136,7 @@ class LaneFilterNode(object):
         # also publishing a separate Bool for the FSM
         in_lane_msg = BoolStamped()
         in_lane_msg.header.stamp = segment_list_msg.header.stamp
-        in_lane_msg.data = in_lane
+        in_lane_msg.data = True #TODO change with in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
     def cbMode(self, msg):
@@ -148,6 +147,7 @@ class LaneFilterNode(object):
 
     def onShutdown(self):
         rospy.loginfo("[LaneFilterNode] Shutdown.")
+
 
     def loginfo(self, s):
         rospy.loginfo('[%s] %s' % (self.node_name, s))
