@@ -4,6 +4,7 @@ import cv2
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import IntersectionPoseImgDebug
+from duckietown_utils import robot_name
 import numpy as np
 
 
@@ -21,6 +22,7 @@ class IntersectionVisualizer(object):
         # set up intersection localizer
         self.intersection_types = {0: 'THREE_WAY_INTERSECTION', 1: 'FOUR_WAY_INTERSECTION'}
         self.intersectionLocalizer = IntersectionLocalizer(self.veh)
+        rospy.loginfo ("Veh is set on: " +str(self.veh))
         self.intersectionLocalizer.SetEdgeModel('THREE_WAY_INTERSECTION')
 
         self.sub_img = rospy.Subscriber("~img",

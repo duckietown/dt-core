@@ -43,7 +43,7 @@
     <remap from="~img" to="camera_node/image/compressed" />
     <remap from="~cmds" to="forward_kinematics_node/velocity" />
     <remap from="~apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
-    <remap from="~turn_type" to="random_april_tag_turns_node/turn_type"/>
+  <!--  <remap from="~turn_type" to="random_april_tag_turns_node/turn_type"/> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
     <remap from="~in_lane" to="lane_filter_node/in_lane" />
 
 	<node ns="$(arg veh)" name="intersection_navigation_node" pkg="intersection_navigation" type="intersection_navigation_node.py" output="screen">

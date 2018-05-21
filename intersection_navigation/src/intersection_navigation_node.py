@@ -19,6 +19,7 @@ class IntersectionNavigation(object):
         # save the name of the node
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing." % (self.node_name))
+        self.active = True
 
         # read parameters
         self.veh = self.SetupParameter("~veh", "daisy")
@@ -45,13 +46,13 @@ class IntersectionNavigation(object):
         # turn type
         self.turn_type = -1
         self.turn_type_time = rospy.Time()
-        self.turn_type_timeout = 5.0
+        self.turn_type_timeout = 10.0
 
         # in lane
         self.in_lane = False
         self.in_lane_time = rospy.Time()
         self.in_lane_timeout = 0.5
-        self.in_lane_wait_time = 2.0
+        self.in_lane_wait_time = 1.0
 
         self.state_dict = dict()
         for counter, key in enumerate(['IDLE',
@@ -78,7 +79,7 @@ class IntersectionNavigation(object):
         if self.open_loop:
             self.v = 0.15
         else:
-            self.v = 0.20
+            self.v = 0.12 #TODO was 0.2 before
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
         # 0 relative orientation error
@@ -124,8 +125,11 @@ class IntersectionNavigation(object):
         self.pub_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         # Needed if open loop
         self.pub_cmds = rospy.Publisher("~cmds_out", Twist2DStamped, queue_size=1)
+        self.pub_path_computed = rospy.Publisher("~path_computed", BoolStamped, queue_size=1)
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
+
+
 
     def SelfReset(self):
         self.go = False
@@ -163,6 +167,9 @@ class IntersectionNavigation(object):
 
 
     def MainLoop(self):
+
+        if not self.active:
+            return
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             # run state machine
@@ -239,13 +246,13 @@ class IntersectionNavigation(object):
                         pose, _ = self.poseEstimator.PredictState(msg_lane_pose.header.stamp)
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
-                        if (self.s > 0.99):
+                        rospy.loginfo("the s is: "+str(self.s))
+                        if (self.s > 0.8): #TODO was 0.99 before
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = 0.0
                             msg_lane_pose.curvature_ref = 0.0
-
                             self.state = self.state_dict['DONE']
                             self.done_time = rospy.Time.now()
 
@@ -405,11 +412,13 @@ class IntersectionNavigation(object):
 
     def InitializePath(self):
         # waiting for instructions where to go
-        # if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
+         #if self.turn_type < 0 or (rospy.Time.now() - self.turn_type_time).to_sec() > self.turn_type_timeout:
         #     rospy.loginfo("[%s] No current turn type information." % (self.node_name))
         #     return False
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
+
+
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
         rospy.loginfo("[%s] Planning path from (%f,%f,%f) to (%f,%f,%f)." % (self.node_name, pose_init[0], pose_init[1],pose_init[2],pose_final[0],pose_final[1],pose_final[2]))
@@ -419,14 +428,28 @@ class IntersectionNavigation(object):
             return False
 
         else:
+            msg_path_computed = BoolStamped()
+            msg_path_computed.header.stamp = rospy.Time.now()
+            msg_path_computed.data = True
+            self.pub_path_computed.publish(msg_path_computed)
+            msg_path_computed.data = False
             return True
 
     def InLaneCallback(self,msg):
         self.in_lane = msg.data
         self.in_lane_time = rospy.Time.now()
 
+
+    def stopCar(self,event):
+        msg_cmds = Twist2DStamped()
+        msg_cmds.header.stamp = rospy.Time.now()
+        msg_cmds.v = 0.0
+        msg_cmds.omega = 0.0
+        self.pub_cmds.publish(msg_cmds)
+
     def FSMCallback(self, msg):
-        if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_COORDINATION':
+
+        if self.state == self.state_dict['IDLE'] and msg.state == 'INTERSECTION_PLANNING':
             self.state = self.state_dict['INITIALIZING_LOCALIZATION']
             rospy.loginfo("[%s] Arrived at intersection, initializing intersection localization." % (self.node_name))
 
@@ -434,12 +457,12 @@ class IntersectionNavigation(object):
             rospy.loginfo("[%s] Received go. Start traversing intersection." % (self.node_name))
             self.go = True
 
-        # if msg.state == 'ARRIVE_AT_STOP_LINE':
-        #     self.SelfReset()
+        if msg.state == 'ARRIVE_AT_STOP_LINE':
+            self.SelfReset()
 
     def TurnTypeCallback(self, msg):
-        rospy.loginfo("I, Robot!")
         self.turn_type = msg.data
+        rospy.loginfo("YOOOO TURNTYPE  " + str(self.turn_type))
         self.turn_type_time = rospy.Time.now()
 
     def ImageCallback(self, msg):
@@ -476,6 +499,9 @@ class IntersectionNavigation(object):
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
 
     def OnShutdown(self):
         rospy.loginfo("[%s] Shutting down." % (self.node_name))
