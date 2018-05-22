@@ -12,31 +12,31 @@ class LEDJoyMapper(object):
     def __init__(self):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing " %(self.node_name))
-        
+
         self.joy = None
         self.last_pub_msg = None
         self.last_pub_time = rospy.Time.now()
 
         self.pub_pattern= rospy.Publisher("~change_color_pattern", String, queue_size=1)
-        
+
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
 
         self.button2patterns = {
              # 'a' is pressed
             0: 'ON_WHITE',
             # 'b' is pressed
-            1: 'OFF'
+            1: 'ON_BLUE'
 	    #1: 'ON_RED',
             # 'Y' is pressed
-            #3: 'ON_GREEN',
+    #        3: 'ON_GREEN'
             # 'X' is pressed
-            #4: 'ON_BLUE',
+#            4: 'ON_BLUE',
             # lb is pressed
-            #5: 'OFF',
+#            5: 'OFF',
             # rb is pressed
-            # 5: 'traffic_light_stop',
+#             5: 'traffic_light_stop',
             # logitek button is pressed
-            # 8: 'test_all_1',
+#             8: 'test_all_1',
         }
 
     def cbJoy(self, joy_msg):
