@@ -13,6 +13,8 @@
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
 
+
+
 		<arg name="coordination" value="true"/>
 		<arg name="/coordination/implicit_coordination" value="false"/>
 		<arg name="/coordination/explicit_coordination" value="true"/>
@@ -24,7 +26,8 @@
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
 
-		<!-- TODO tcp communication is not robust, fix it -->
-   	<arg name="tcp_communication" value="true"/>
+    <arg name="tcp_communication" value="true"/>
+		<arg name="auto_calibration" value="true"/>
+
 	</include>
 </launch>
