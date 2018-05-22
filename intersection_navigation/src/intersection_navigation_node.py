@@ -138,6 +138,7 @@ class IntersectionNavigation(object):
         self.in_lane = False
         self.state = self.state_dict['IDLE']
 
+
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
             if turn_type == 0: # left
@@ -247,7 +248,7 @@ class IntersectionNavigation(object):
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                         rospy.loginfo("the s is: "+str(self.s))
-                        if (self.s > 0.99): 
+                        if (self.s > 0.99):
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
@@ -262,6 +263,7 @@ class IntersectionNavigation(object):
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = theta
                             msg_lane_pose.curvature_ref = curvature
+
 
                     else:
                         msg_lane_pose.v_ref = 0.0
@@ -460,6 +462,10 @@ class IntersectionNavigation(object):
             self.go = True
 
         if msg.state == 'ARRIVE_AT_STOP_LINE':
+            self.SelfReset()
+
+        if msg.state == 'NORMAL_JOYSTICK_CONTROL':
+            self.state = self.state_dict['IDLE']
             self.SelfReset()
 
     def TurnTypeCallback(self, msg):
