@@ -247,7 +247,7 @@ class IntersectionNavigation(object):
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                         rospy.loginfo("the s is: "+str(self.s))
-                        if (self.s > 0.99): 
+                        if (self.s > 0.8): 
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
@@ -420,7 +420,7 @@ class IntersectionNavigation(object):
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
 
-
+        rospy.loginfo("The duck will go: " +str(self.turn_type))
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
         rospy.loginfo("[%s] Planning path from (%f,%f,%f) to (%f,%f,%f)." % (self.node_name, pose_init[0], pose_init[1],pose_init[2],pose_final[0],pose_final[1],pose_final[2]))
