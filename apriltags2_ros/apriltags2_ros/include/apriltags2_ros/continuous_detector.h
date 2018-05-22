@@ -43,7 +43,9 @@
 #ifndef APRILTAGS2_ROS_CONTINUOUS_DETECTOR_H
 #define APRILTAGS2_ROS_CONTINUOUS_DETECTOR_H
 
+
 #include "apriltags2_ros/common_functions.h"
+#include <duckietown_msgs/BoolStamped.h>
 
 namespace apriltags2_ros
 {
@@ -57,6 +59,9 @@ class ContinuousDetector
                      const sensor_msgs::CameraInfoConstPtr& camera_info);
 
  private:
+  void switchCB(const duckietown_msgs::BoolStamped::ConstPtr& switch_msg);
+  ros::Subscriber switch_sub_;
+
   TagDetector tag_detector_;
   bool draw_tag_detections_image_;
   cv_bridge::CvImagePtr cv_image_;
@@ -65,6 +70,7 @@ class ContinuousDetector
   image_transport::CameraSubscriber camera_image_subscriber_;
   image_transport::Publisher tag_detections_image_publisher_;
   ros::Publisher tag_detections_publisher_;
+  bool on_switch;
 };
 
 } // namespace apriltags2_ros
