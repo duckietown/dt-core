@@ -11,6 +11,8 @@
 	<arg name="statistics" default="false"/>
 	<arg name="map_name" default="duckietown_map"/>
 	<arg name="anti_instagram" default="true"/>
+	<arg name="ai_trafo_mode" default="cb" doc="'cb' for colo balance only; 'both' for color balance and linear trafo"/>
+	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
@@ -277,9 +279,9 @@
 
 	<!-- Line Detector -->
 	<group if="$(arg /lane_following/line_detection)">
-		<remap from="line_detector_node/image" to="camera_node/image/compressed"/>
 		<remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
 		<remap from="line_detector_node/fsm_mode" to="fsm_node/mode" />
+		<remap from="line_detector_node/corrected_image/compressed" to="image_transformer_node/corrected_image/compressed"/>
 		<include file="$(find line_detector)/launch/line_detector_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -343,7 +345,6 @@
 		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
 		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_active_flag" />
-
 
 
 
@@ -670,6 +671,19 @@
 		</include>
 	</group>
 
+	<!-- Start anti-instagram -->
+	<group if="$(arg anti_instagram)">
+	  <!-- NOT LOADING PARAMS FROM A YAML FILE -->
+      <remap from="cont_anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
+      <include file="$(find anti_instagram)/launch/cont_anti_instagram_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
+			<arg name="ai_interval" value="$(arg ai_interval)"/>
+      </include>
+    </group>
+	<!-- End anti-instagram -->
+
+
 	<group if="$(arg /navigation/apriltags_random)">
 		<!-- random april tags -->
 		<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
@@ -799,13 +813,13 @@
 
 
 <!-- Start anti-instagram -->
-<group if="$(arg anti_instagram)">
-	<!-- NOT LOADING PARAMS FROM A YAML FILE -->
+<!--<group if="$(arg anti_instagram)">
+	NOT LOADING PARAMS FROM A YAML FILE
 	<remap from="anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
 	<include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 	</include>
-</group>
+</group> -->
 <!-- End anti-instagram -->
 
 <!-- Start localization -->
