@@ -344,7 +344,7 @@
 		<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
-		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_active_flag" />
+		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" />
 
 
 
@@ -368,7 +368,7 @@
 
 <!-- Start Obstacle Avoidance -->
 <group if="$(arg obstacle_avoidance_and_detection)">
-
+  <remap from="obstacle_avoidance_node/posearray" to="obstacle_detection_node/posearray"/>
 	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
 		<arg name="veh" value="$(arg veh)"/>
 	</include>
@@ -671,17 +671,7 @@
 		</include>
 	</group>
 
-	<!-- Start anti-instagram -->
-	<group if="$(arg anti_instagram)">
-	  <!-- NOT LOADING PARAMS FROM A YAML FILE -->
-      <remap from="cont_anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
-      <include file="$(find anti_instagram)/launch/cont_anti_instagram_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
-			<arg name="ai_interval" value="$(arg ai_interval)"/>
-      </include>
-    </group>
-	<!-- End anti-instagram -->
+
 
 
 	<group if="$(arg /navigation/apriltags_random)">
@@ -726,6 +716,18 @@
 
 </group>
 <!-- End Navigation -->
+
+<!-- Start anti-instagram -->
+<group if="$(arg anti_instagram)">
+	<!-- NOT LOADING PARAMS FROM A YAML FILE -->
+		<remap from="cont_anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
+		<include file="$(find anti_instagram)/launch/cont_anti_instagram_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
+		<arg name="ai_interval" value="$(arg ai_interval)"/>
+		</include>
+	</group>
+<!-- End anti-instagram -->
 
 <!-- Start Parallel Autonomy -->
 <group if="$(arg parallel_autonomy)">
