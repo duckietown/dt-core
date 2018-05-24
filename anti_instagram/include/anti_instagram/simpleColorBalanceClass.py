@@ -2,7 +2,15 @@
 import cv2
 import numpy as np
 import math
+import rospy
+import time
 
+
+"""
+This class represents a basic color balance algorithm. The routine 'thresholdAnalysis' finds the two thresholds
+    based on an image and a cut-off percentage. The routine 'applyTrafo' takes either two thresholds from input or the
+    class own thresholds amd applies the transform.
+"""
 class simpleColorBalanceClass:
     # initialize
     def __init__(self):
@@ -27,25 +35,18 @@ class simpleColorBalanceClass:
         return matrix
 
     def thresholdAnalysis(self, img, percent):
-        #assert img.shape[2] == 3
-        #assert percent > 0 and percent < 100
-
         self.halfPercent = percent / 200.0
         channels = cv2.split(img)
 
         for idx, channel in enumerate(channels):
-            #assert len(channel.shape) == 2
             # find the low and high precentile values (based on the input percentile)
             height, width = channel.shape
             vec_size = width * height
             flat = channel.reshape(vec_size)
-
-            #assert len(flat.shape) == 1
-
+            # sort entries
             flat = np.sort(flat)
-
             n_cols = flat.shape[0]
-
+            # calculate thresholds
             self.ThLow[idx] = flat[int(math.floor(n_cols * self.halfPercent))]
             self.ThHi[idx] = flat[int(math.ceil(n_cols * (1.0 - self.halfPercent)))]
 
@@ -53,23 +54,14 @@ class simpleColorBalanceClass:
 
 
     def applyTrafo(self, img, ThLow = [], ThHi = []):
-        #for i in range(3):
-        #    assert(self.ThHi[i] >= 0)
-        #    assert(self.ThLow[i] >= 0)
-
         if ThLow == [] and ThHi == []:
             ThLow = self.ThLow
             ThHi = self.ThHi
-
         channels = cv2.split(img)
         out_channels = []
-
         for idx, channel in enumerate(channels):
-            #assert len(channel.shape) == 2
             # saturate below the low percentile and above the high percentile
             thresholded = self.apply_threshold(channel, ThLow[idx], ThHi[idx])
-            # scale the channel
             normalized = cv2.normalize(thresholded, thresholded.copy(), 0, 255, cv2.NORM_MINMAX)
             out_channels.append(normalized)
-
         return cv2.merge(out_channels)

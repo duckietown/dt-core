@@ -5,7 +5,7 @@ import numpy as np
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
 import time
-
+import numpy as np
 
 class lane_controller(object):
 
@@ -431,4 +431,4 @@ if __name__ == "__main__":
     rospy.init_node("lane_controller_node", anonymous=False)  # adapted to sonjas default file
 
     lane_control_node = lane_controller()
-    rospy.spin()
+rospy.spin()

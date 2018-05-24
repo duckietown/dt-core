@@ -46,8 +46,9 @@ def processGeom2(img, grad_th=50, contour_low=30, viz=False):
     fillmask = np.pad(mask,1,mode='constant')
     disp = np.expand_dims(mask,axis=-1)*orig
     #cv2.floodFill(disp,fillmask,(img.shape[0]-1,img.shape[2]),0, flags=cv2.FLOODFILL_MASK_ONLY)
-    
+
     if viz:
+
 	cv2.imshow('img',orig)
 	cv2.waitKey(0)
 	cv2.imshow('img',img)
@@ -59,6 +60,7 @@ def processGeom2(img, grad_th=50, contour_low=30, viz=False):
 	cv2.imshow('img',disp)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
+
     return mask
 
 def processGeom(img, viz=False):

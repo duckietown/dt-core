@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 import rospy
+<<<<<<< HEAD:catkin_ws/src/10-lane-control/anti_instagram/src/anti_instagram_node.py
 import numpy as np
 from sensor_msgs.msg import CompressedImage,Image,Joy
 from duckietown_msgs.msg import AntiInstagramHealth, BoolStamped, AntiInstagramTransform
-import duckietown_utils as dtu
+import duckietown_utils as dtu, image_cv_from_jpg
 from cv_bridge import CvBridge
+from anti_instagram.AntiInstagram import *
 from line_detector.timekeeper import TimeKeeper
-from anti_instagram.anti_instagram_imp import AntiInstagram
+from sensor_msgs.msg import CompressedImage, Image  # @UnresolvedImport
+
 
 class AntiInstagramNode(object):
 
@@ -16,23 +19,31 @@ class AntiInstagramNode(object):
         self.active = True
         self.locked = False
 
-        self.image_pub_switch = rospy.get_param("~publish_corrected_image",False)
+
+        self.image_pub_switch = rospy.get_param(
+            "~publish_corrected_image", True)
 
         # Initialize publishers and subscribers
+
         self.pub_image = rospy.Publisher("~corrected_image", Image, queue_size=1)
         self.pub_health = rospy.Publisher("~health", AntiInstagramHealth, queue_size=1,latch=True)
         self.pub_transform = rospy.Publisher("~transform", AntiInstagramTransform, queue_size=1, latch=True)
         #self.pub_anti_instagram = rospy.Publisher("~click",BoolStamped, queue_size=1)
         #self.pub_anti_instagram = rospy.Publisher("~click",BoolStamped, queue_size=1)
+
         #self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
         #self.sub_image = rospy.Subscriber("~uncorrected_image",Image,self.cbNewImage,queue_size=1)
-        self.sub_image = rospy.Subscriber("~uncorrected_image", CompressedImage, self.cbNewImage,queue_size=1)
-        self.sub_click = rospy.Subscriber("~click", BoolStamped, self.cbClick, queue_size=1)
+        self.sub_image = rospy.Subscriber(
+            "~uncorrected_image", CompressedImage, self.cbNewImage, queue_size=1)
+        self.sub_click = rospy.Subscriber(
+            "~click", BoolStamped, self.cbClick, queue_size=1)
 
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
         # Verbose option
-        self.verbose = rospy.get_param('line_detector_node/verbose',True)
+
+        self.verbose = rospy.get_param('line_detector_node/verbose', True)
+
 
         # Initialize health message
         self.health = AntiInstagramHealth()
@@ -52,22 +63,28 @@ class AntiInstagramNode(object):
         rospy.Timer(rospy.Duration(self.ai_frequency_inverse), self.contTransform)
 
 
+
     def cbSwitch(self, msg):
         self.active = msg.data
-        
+
     def cbNewImage(self,image_msg):
+
         # memorize image
         self.image_msg = image_msg
 
-        if self.image_pub_switch:
+        if self.image_pub_swit<<<<<<< HEAD:catkin_ws/src/10-lane-control/anti_instagram/src/anti_instagram_node.pych:
             tk = TimeKeeper(image_msg)
             cv_image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
             corrected_image_cv2 = self.ai.applyTransform(cv_image)
             tk.completed('applyTransform')
 
-            corrected_image_cv2 = np.clip(corrected_image_cv2, 0, 255).astype(np.uint8)
-            self.corrected_image = self.bridge.cv2_to_imgmsg(corrected_image_cv2, "bgr8")
+
+            corrected_image_cv2 = np.clip(
+                corrected_image_cv2, 0, 255).astype(np.uint8)
+            self.corrected_image = self.bridge.cv2_to_imgmsg(
+                corrected_image_cv2, "bgr8")
+
 
             tk.completed('encode')
 
@@ -85,12 +102,11 @@ class AntiInstagramNode(object):
             if self.click_on:
                 self.processImage(self.image_msg)
             else:
-                self.transform.s = [0,0,0,1,1,1]
+                self.transform.s = [0, 0, 0, 1, 1, 1]
                 self.pub_transform.publish(self.transform)
                 rospy.loginfo('ai: Color transform is turned OFF!')
 
-
-    def processImage(self,msg):
+    def processImage(self, msg):
         '''
         Inputs:
             msg - CompressedImage - uncorrected image from raspberry pi camera
@@ -103,18 +119,18 @@ class AntiInstagramNode(object):
         rospy.loginfo('ai: Computing color transform...')
         tk = TimeKeeper(msg)
 
+
         try:
             cv_image = dtu.bgr_from_jpg(msg.data)
         except ValueError as e:
             rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
             return
 
-        tk.completed('converted')
 
-        self.ai.calculateTransform(cv_image)
+        #cv_image = self.bridge.imgmsg_to_cv2(msg,"bgr8")
+
 
         tk.completed('calculateTransform')
-
 
         # if health is much below the threshold value, do not update the color correction and log it.
         if self.ai.health <= 0.001:
@@ -153,6 +169,6 @@ if __name__ == '__main__':
     node = AntiInstagramNode()
 
     # Setup proper shutdown behavior
-    #rospy.on_shutdown(node.on_shutdown)
+    # rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
 rospy.spin()

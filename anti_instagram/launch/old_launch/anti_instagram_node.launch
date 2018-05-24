@@ -12,6 +12,7 @@
     <group ns="$(arg veh)">
         <!-- run local -->
 	<node name="anti_instagram_node" pkg="anti_instagram" type="anti_instagram_node.py" output="screen">
+	  <remap from="~uncorrected_image" to="camera_node/image/compressed"/>
 	  <param name="n_centers" type="int" value="$(arg cents)"/>
 	  <param name="fancyGeom" type="boolean" value="$(arg geom)"/>
 	  <param name="blur" type="str" value="$(arg blur)"/>
