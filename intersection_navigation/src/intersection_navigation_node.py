@@ -247,7 +247,7 @@ class IntersectionNavigation(object):
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                         rospy.loginfo("the s is: "+str(self.s))
-                        if (self.s > 0.99): 
+                        if (self.s > 0.8): 
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
