@@ -14,7 +14,9 @@
 		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
 
-		<arg name="obstacle_avoidance_and_detection" value="true"/>
+		<arg name="obstacle_avoidance_and_detection" value="false"/> <!-- WAY TOO SLOW NOW SIMON :( -->
+
+
 
 		<arg name="coordination" value="true"/>
 		<arg name="/coordination/implicit_coordination" value="false"/>
@@ -27,7 +29,8 @@
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
 
-		<!-- TODO tcp communication is not robust, fix it -->
-   	<arg name="tcp_communication" value="true"/>
+    <arg name="tcp_communication" value="true"/>
+		<arg name="auto_calibration" value="true"/>
+
 	</include>
 </launch>

@@ -111,6 +111,9 @@
 <arg name="maintenance_control" default="false"/>
 
 <arg name="charging_control" default="false"/>
+<arg name="auto_calibration" default="false"/>
+
+<arg name="auto_ion" default="true"/>
 
 <arg name="tcp_communication" default="false"/>
 
@@ -460,7 +463,7 @@
 	<remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
 	<remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
 	<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
-	<include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
+	<include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="local" value="$(arg /apriltags/local)"/>
 		<arg name="config" value="$(arg config)"/>
@@ -799,6 +802,34 @@
 	</include>
 </group>
 <!-- End TCP Communication -->
+
+<!-- Start Auto Calibration -->
+<group if="$(arg auto_calibration)">
+
+  <remap from="auto_calibration_node/mode" to="fsm_node/mode"/>
+	<remap from="auto_calibration_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+	<remap from="auto_calibration_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+  <remap from="auto_calibration_node/at_stop_line" to="stop_line_filter_node/at_stop_line"/>
+	<remap from="auto_calibration_node/calibration_calculation_stop" to="auto_calibration_calculation_node/calibration_calculation_stop"/>
+
+	<remap from="auto_calibration_calculation_node/mode" to="fsm_node/mode"/>
+	<remap from="auto_calibration_calculation_node/car_cmd_in" to="lane_controller_node/car_cmd"/>
+	<remap from="auto_calibration_calculation_node/wheels_cmd" to="wheels_driver_node/wheels_cmd"/>
+	<remap from="auto_calibration_calculation_node/tag" to="tag_detections"/>
+
+	<include file="$(find auto_calibration)/launch/auto_calibration_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+	<include file="$(find auto_calibration)/launch/auto_calibration_calculation_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
+</group>
+<!-- End Auto Calibration -->
+
 
 <!-- Start Global Localization -->
 <group if="$(arg global_localizer)">
