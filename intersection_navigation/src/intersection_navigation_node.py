@@ -138,6 +138,7 @@ class IntersectionNavigation(object):
         self.in_lane = False
         self.state = self.state_dict['IDLE']
 
+
     def ComputeFinalPose(self, intersection_type, turn_type):
         if intersection_type == self.tag_info.FOUR_WAY:
             if turn_type == 0: # left
@@ -247,7 +248,9 @@ class IntersectionNavigation(object):
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
 
                         rospy.loginfo("the s is: "+str(self.s))
-                        if (self.s > 0.8): 
+
+                        if (self.s > 0.8):
+
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
                             msg_lane_pose.d_ref = 0.0
@@ -262,6 +265,7 @@ class IntersectionNavigation(object):
                             msg_lane_pose.d_ref = 0.0
                             msg_lane_pose.phi = theta
                             msg_lane_pose.curvature_ref = curvature
+
 
                     else:
                         msg_lane_pose.v_ref = 0.0
@@ -420,7 +424,7 @@ class IntersectionNavigation(object):
         #TODO uncomment
         pose_init, _ = self.poseEstimator.PredictState(rospy.Time.now())
 
-
+        rospy.loginfo("The duck will go: " +str(self.turn_type))
         pose_final = self.ComputeFinalPose(self.current_tag_info, self.turn_type)
 
         rospy.loginfo("[%s] Planning path from (%f,%f,%f) to (%f,%f,%f)." % (self.node_name, pose_init[0], pose_init[1],pose_init[2],pose_final[0],pose_final[1],pose_final[2]))
@@ -460,6 +464,10 @@ class IntersectionNavigation(object):
             self.go = True
 
         if msg.state == 'ARRIVE_AT_STOP_LINE':
+            self.SelfReset()
+
+        if msg.state == 'NORMAL_JOYSTICK_CONTROL':
+            self.state = self.state_dict['IDLE']
             self.SelfReset()
 
     def TurnTypeCallback(self, msg):
