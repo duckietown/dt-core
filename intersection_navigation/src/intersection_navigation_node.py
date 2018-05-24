@@ -77,9 +77,9 @@ class IntersectionNavigation(object):
 
         # Set constant velocity
         if self.open_loop:
-            self.v = 0.15
+            self.v = 0.1
         else:
-            self.v = 0.12 #TODO was 0.2 before
+            self.v = 0.2 #TODO was 0.2 before
 
         # nominal stop positions: centered in lane, 0.16m in front of center of red stop line,
         # 0 relative orientation error
@@ -129,7 +129,14 @@ class IntersectionNavigation(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
+        rospy.set_param("~v_inters", 0.2)
+        rospy.set_param("~s_max", 0.2)
 
+        self.param_timer = rospy.Timer(rospy.Duration.from_sec(0.5), self.updateParameter)
+
+    def updateParameter(self, event):
+        self.v = rospy.get_param("~v_inters")
+        self.s_max = rospy.get_param("~s_max")
 
     def SelfReset(self):
         self.go = False
@@ -249,7 +256,7 @@ class IntersectionNavigation(object):
 
                         rospy.loginfo("the s is: "+str(self.s))
 
-                        if (self.s > 0.8):
+                        if (self.s > self.s_max):
 
                             msg_lane_pose.v_ref = self.v
                             msg_lane_pose.d = 0.0
