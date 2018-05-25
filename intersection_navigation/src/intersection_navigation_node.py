@@ -130,9 +130,9 @@ class IntersectionNavigation(object):
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
         rospy.set_param("~v_inters", 0.2)
-        rospy.set_param("~s_max", 0.2)
+        rospy.set_param("~s_max", 0.5)
 
-        self.param_timer = rospy.Timer(rospy.Duration.from_sec(0.5), self.updateParameter)
+        self.param_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParameter)
 
     def updateParameter(self, event):
         self.v = rospy.get_param("~v_inters")
