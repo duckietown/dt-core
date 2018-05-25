@@ -26,6 +26,9 @@ class ImageTransformerNode():
         self.locked = False
         self.thread_lock = threading.Lock()
         self.r = rospy.Rate(5) # Rate in Hz
+        self.scale_percent=45
+        rospy.set_param("~scale_percent", self.scale_percent)
+
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
 
         # Initialize publishers and subscribers
@@ -64,7 +67,11 @@ class ImageTransformerNode():
         # initialize image bridge
         self.bridge = CvBridge()
 
+        rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+
+    def updateParams(self, event):
+        self.scale_percent = rospy.get_param("~scale_percent")
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -95,7 +102,7 @@ class ImageTransformerNode():
             return
 
         #cv_image = cv2.imread(cv_image)
-        scale_percent=45
+        scale_percent=self.scale_percent
         width=int(cv_image.shape[1]*scale_percent / 100)
         height=int(cv_image.shape[0]*scale_percent / 100)
         dim = (width, height)
