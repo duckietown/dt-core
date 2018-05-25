@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from anti_instagram.AntiInstagram_rebuild import AntiInstagram
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
+from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, FSMState, Segment,
     SegmentList, Vector2D)
 from duckietown_utils.instantiate_utils import instantiate
 from duckietown_utils.jpg import bgr_from_jpg
@@ -43,9 +43,17 @@ class LineDetectorNode(object):
         self.pub_edge = None
         self.pub_colorSegment = None
 
+        # We use two different detectors (parameters) for lane following and
+        # intersection navigation (both located in yaml file)
         self.detector = None
+        self.detector_intersection = None
+        self.detector_used = self.detector
+
+
         self.verbose = None
         self.updateParams(None)
+
+        self.fsm_state = "NORMAL_JOYSTICK_CONTROL"
 
         # Publishers
         self.pub_lines = rospy.Publisher("~segment_list", SegmentList, queue_size=1)
@@ -55,10 +63,20 @@ class LineDetectorNode(object):
         self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
 
         rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
         rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
+
+
+    def cbFSM(self, msg):
+        self.fsm_state = msg.state
+
+        if self.fsm_state in ["INTERSECTION_PLANNING", "INTERSECTION_COORDINATION", "INTERSECTION_CONTROL"]:
+            self.detector_used = self.detector_intersection
+        else:
+            self.detector_used = self.detector
 
 
     def updateParams(self, _event):
@@ -79,6 +97,17 @@ class LineDetectorNode(object):
             self.loginfo('new detector config: %s' % str(c))
 
             self.detector = instantiate(c[0], c[1])
+#             self.detector_config = c
+            self.detector_used = self.detector
+
+        if self.detector_intersection is None:
+            c = rospy.get_param('~detector_intersection')
+            assert isinstance(c, list) and len(c) == 2, c
+
+#         if str(self.detector_config) != str(c):
+            self.loginfo('new detector_intersection config: %s' % str(c))
+
+            self.detector_intersection = instantiate(c[0], c[1])
 #             self.detector_config = c
 
         if self.verbose and self.pub_edge is None:
@@ -170,13 +199,13 @@ class LineDetectorNode(object):
         tk.completed('corrected')
         """
         # Set the image to be detected
-        self.detector.setImage(image_cv)
+        self.detector_used.setImage(image_cv)
 
         # Detect lines and normals
 
-        white = self.detector.detectLines('white')
-        yellow = self.detector.detectLines('yellow')
-        red = self.detector.detectLines('red')
+        white = self.detector_used.detectLines('white')
+        yellow = self.detector_used.detectLines('yellow')
+        red = self.detector_used.detectLines('red')
 
         tk.completed('detected')
 
@@ -229,7 +258,7 @@ class LineDetectorNode(object):
 
 #         if self.verbose:
             colorSegment = color_segment(white.area, red.area, yellow.area)
-            edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector.edges, "mono8")
+            edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector_used.edges, "mono8")
             colorSegment_msg_out = self.bridge.cv2_to_imgmsg(colorSegment, "bgr8")
             self.pub_edge.publish(edge_msg_out)
             self.pub_colorSegment.publish(colorSegment_msg_out)
