@@ -479,7 +479,6 @@ class IntersectionNavigation(object):
 
     def TurnTypeCallback(self, msg):
         self.turn_type = msg.data
-        rospy.loginfo("YOOOO TURNTYPE  " + str(self.turn_type))
         self.turn_type_time = rospy.Time.now()
 
     def ImageCallback(self, msg):
