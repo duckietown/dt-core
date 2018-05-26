@@ -2,7 +2,7 @@
 import rospy
 import cv2
 from intersection_localizer.intersection_localizer import IntersectionLocalizer
-from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose, IntersectionPoseImgDebug
+from duckietown_msgs.msg import IntersectionPoseImg, IntersectionPose, IntersectionPoseImgDebug, FSMState
 import numpy as np
 
 
@@ -25,10 +25,16 @@ class IntersectionLocalizerNode(object):
         self.intersection_types = {0: 'THREE_WAY_INTERSECTION', 1: 'FOUR_WAY_INTERSECTION'}
 
         # initializing variables
+        self.active = True
+
         self.sub_pose_img = rospy.Subscriber("~pose_img_in",
                                         IntersectionPoseImg,
                                         self.PoseImageCallback,
                                         queue_size=1, buff_size=2**24)
+        self.sub_fsm = rospy.Subscriber("~fsm",
+                                        FSMState,
+                                        self.FSMCallback,
+                                        queue_size=1)
 
         # set up publishers
         self.pub_pose = rospy.Publisher("~pose_out", IntersectionPose, queue_size=1)
@@ -36,8 +42,15 @@ class IntersectionLocalizerNode(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
+   def cbSwitch(self, switch_msg):
+       self.active = switch_msg.data
+
 
     def PoseImageCallback(self, msg):
+
+
+        if not self.active:
+            return
         # set intersection type
         self.intersectionLocalizer.SetEdgeModel(self.intersection_types[msg.type])
 
@@ -81,6 +94,8 @@ class IntersectionLocalizerNode(object):
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+
 
 
     def OnShutdown(self):
