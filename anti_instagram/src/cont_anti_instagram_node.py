@@ -62,7 +62,7 @@ class ContAntiInstagramNode():
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
             self.trafo_mode == "both"
             rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
-            rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
+         #    rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
 
 
         # Initialize health message
@@ -161,7 +161,7 @@ class ContAntiInstagramNode():
 
                 # publish color balance thresholds
                 self.pub_trafo_CB.publish(self.transform_CB)
-                rospy.loginfo('ai: Color balance thresholds published.')
+            #    rospy.loginfo('ai: Color balance thresholds published.')
 
                 tk.completed('colorBalance analysis')
 
@@ -227,17 +227,17 @@ class ContAntiInstagramNode():
             self.pub_geomImage.publish(geomImgMsg)
 
             if self.verbose:
-                rospy.loginfo('ai:\n' + tk.getall())
+            #    rospy.loginfo('ai:\n' + tk.getall())
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 cb_time = end_cb - start_cb
-                print('CB took: ' + str(cb_time))
+                #print('CB took: ' + str(cb_time))
             if self.trafo_mode == "lin" or self.trafo_mode == "both":
                 if not self.initialized:
                     lin1_time = end_lin - start_lin
-                    print('Lin took: ' + str(lin1_time))
+                #    print('Lin took: ' + str(lin1_time))
                 else:
                     lin2_time = end_lin2 - start_lin2
-                    print('Lin took: ' + str(lin2_time))
+                #    print('Lin took: ' + str(lin2_time))
 
 
 if __name__ == '__main__':
