@@ -10,6 +10,7 @@ from time import time
 UNKNOWN = 'UNKNOWN'
 
 class State:
+    INTERSECTION_PLANNING= 'INTERSECTION_PLANNING'
     LANE_FOLLOWING = 'LANE_FOLLOWING'
     AT_STOP_CLEARING = 'AT_STOP_CLEARING'
     SACRIFICE = 'SACRIFICE'
@@ -17,7 +18,7 @@ class State:
     GO = 'GO'
     KEEP_CALM = 'KEEP_CALM'
     TL_SENSING = 'TL_SENSING'
-    INTERSECTION_NAVIGATION = 'INTERSECTION_NAVIGATION'
+    INTERSECTION_CONTROL = 'INTERSECTION_CONTROL'
 
 class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
@@ -37,7 +38,7 @@ class VehicleCoordinator():
         self.active = True
 
         # Determine the state of the bot
-        self.state = State.LANE_FOLLOWING
+        self.state = State.INTERSECTION_PLANNING
         self.last_state_transition = time()
         self.random_delay = 0
 
@@ -52,13 +53,16 @@ class VehicleCoordinator():
         # Parameters
         self.traffic_light_intersection = UNKNOWN
 
+        
+        self.tl_timeout = 30
+
         # Initialize detection
         self.traffic_light = UNKNOWN
         self.right_veh = UNKNOWN
         self.opposite_veh = UNKNOWN
 
         # Initialize mode
-        self.mode = 'LANE_FOLLOWING'
+        self.mode = 'INTERSECTION_PLANNING'
 
         # Subscriptions
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
@@ -100,7 +104,7 @@ class VehicleCoordinator():
                 self.traffic_light_intersection = False
         # If different from the one before, restart from lane following
         if traffic_light_old != self.traffic_light_intersection:
-            self.set_state(State.LANE_FOLLOWING)
+            self.set_state(State.INTERSECTION_PLANNING)
 
         # Print result
         # if self.traffic_light_intersection != UNKNOWN:
@@ -134,7 +138,7 @@ class VehicleCoordinator():
             self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
-        elif self.state == State.LANE_FOLLOWING or self.state == State.TL_SENSING:
+        elif self.state == State.INTERSECTION_PLANNING or self.state == State.TL_SENSING:
             self.roof_light = CoordinationSignal.OFF
 
     #    rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
@@ -150,7 +154,7 @@ class VehicleCoordinator():
         # Initialization of the state and of the type of intersection
         if name == 'mode':
             if value == 'JOYSTICK_CONTROL' or value == 'INTERSECTION_COORDINATION':
-                self.set_state(State.LANE_FOLLOWING)
+                self.set_state(State.INTERSECTION_PLANNING)
                 self.traffic_light_intersection = UNKNOWN
 
     # Definition of each signal detection
@@ -208,7 +212,7 @@ class VehicleCoordinator():
 
     def reconsider(self):
 
-        if self.state == State.LANE_FOLLOWING:
+        if self.state == State.INTERSECTION_PLANNING:
             if self.mode == 'INTERSECTION_COORDINATION':
                 # Reset detections
                 self.reset_signals_detection()
@@ -216,6 +220,8 @@ class VehicleCoordinator():
                 # Go to state (depending whether there is a traffic light)
                 if self.traffic_light_intersection:
                     self.set_state(State.TL_SENSING)
+                    self.begin_tl = time()
+
                 else:
                     self.set_state(State.AT_STOP_CLEARING)
 
@@ -235,8 +241,8 @@ class VehicleCoordinator():
 
         elif self.state == State.GO:
             self.clearance_to_go = CoordinationClearance.GO
-            if self.mode == 'LANE_FOLLOWING':
-                self.set_state(State.LANE_FOLLOWING)
+            if self.mode == 'INTERSECTION_PLANNING':
+                self.set_state(State.INTERSECTION_PLANNING)
 
 
         elif self.state == State.SACRIFICE:
@@ -258,9 +264,14 @@ class VehicleCoordinator():
                 self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.TL_SENSING:
-
+            rospy.loginfo("I have been waiting for: "+str(time()-self.begin_tl))
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
+
+            #If a tl intersection april tag is present but tl is switched off, wait until tl_timeout then use led coordination
+            elif time()-self.begin_tl > self.tl_timeout:
+                self.set_state(State.AT_STOP_CLEARING)
+
 
         # If not GO, pusblish wait
         if self.state != State.GO:
