@@ -129,6 +129,8 @@ class lane_controller(object):
 
         self.active = True
 
+        self.sleepMaintenance = False
+
         # overwrites some of the above set default values (the ones that are already defined in the corresponding yaml-file (see launch-file of this node))
 
         self.v_bar = self.setupParameter("~v_bar",v_bar_fallback)   # Linear velocity
@@ -219,7 +221,16 @@ class lane_controller(object):
         rospy.loginfo("active: " + str(self.active))
     # FSM
 
+    def unsleepMaintenance(self, event):
+        self.sleepMaintenance = False
+
     def cbMode(self,fsm_state_msg):
+
+        if self.fsm_state != fsm_state_msg.state and fsm_state_msg.state == "IN_CHARGING_AREA":
+            self.sleepMaintenance = True
+            self.sendStop()
+            rospy.Timer(rospy.Duration.from_sec(2.0), self.unsleepMaintenance)
+
         self.fsm_state = fsm_state_msg.state    # String of current FSM state
         print "fsm_state changed in lane_controller_node to: " , self.fsm_state
 
@@ -232,6 +243,9 @@ class lane_controller(object):
 
     def PoseHandling(self, input_pose_msg, pose_source):
         if not self.active:
+            return
+
+        if self.sleepMaintenance:
             return
 
         #if pose_source == "obstacle_avoidance":
@@ -301,6 +315,13 @@ class lane_controller(object):
         msg_actuator_limits_received = BoolStamped()
         msg_actuator_limits_received.data = True
         self.pub_actuator_limits_received.publish(msg_actuator_limits_received)
+
+    def sendStop(self):
+        # Send stop command
+        car_control_msg = Twist2DStamped()
+        car_control_msg.v = 0.0
+        car_control_msg.omega = 0.0
+        self.publishCmd(car_control_msg)
 
     def custom_shutdown(self):
         rospy.loginfo("[%s] Shutting down..." % self.node_name)
