@@ -42,8 +42,8 @@ class IntersectionLocalizerNode(object):
 
         rospy.loginfo("[%s] Initialized." % (self.node_name))
 
-   def cbSwitch(self, switch_msg):
-       self.active = switch_msg.data
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
 
 
     def PoseImageCallback(self, msg):
