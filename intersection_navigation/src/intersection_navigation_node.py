@@ -253,8 +253,7 @@ class IntersectionNavigation(object):
                     if 1.0 < (rospy.Time.now() - self.traversing_start).to_sec() and self.go:
                         pose, _ = self.poseEstimator.PredictState(msg_lane_pose.header.stamp)
                         dist, theta, curvature, self.s = self.pathPlanner.ComputeLaneError(pose, self.s)
-
-                        rospy.loginfo("the s is: "+str(self.s))
+                        #rospy.loginfo("the s is: "+str(self.s))
 
                         if (self.s > self.s_max):
 
