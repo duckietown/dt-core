@@ -9,7 +9,7 @@
 	<arg name="visualization" default="true" />
 	<arg name="verbose" default="false" />
 	<arg name="statistics" default="false"/>
-	<arg name="map_name" default="duckietown_map"/>
+	<arg name="map_name" default="autolab_tiles_map"/>
 	<arg name="anti_instagram" default="true"/>
 	<arg name="ai_trafo_mode" default="cb" doc="'cb' for colo balance only; 'both' for color balance and linear trafo"/>
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
@@ -109,8 +109,10 @@
 
 <arg name="localization" default="false"/>
 <arg name="/localization/local" default="false" />
-<arg name="/localization/map_name" default="open_house_dp6" />
+<arg name="/localization/map_name" default="autolab" />
 <arg name="/localization/gui" default="false"/>
+
+<arg name="fleet_planning" default="false"/>
 
 <arg name="maintenance_control" default="false"/>
 
@@ -805,12 +807,31 @@
 	</include>
 </group>
 
+<!-- Start Maintenance Trajectory Planning -->
+<group if="$(arg fleet_planning)">
+		<!-- remapping outputs since there are two different possible turn types -->
+		<remap from="actions_dispatcher_node/random_turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+		<remap from="actions_dispatcher_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
+
+
+		<include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
+			<arg name="map_name" value="$(arg map_name)"/>
+			<arg name="veh" value="$(arg veh)"/>
+		</include>
+
+				<include file="$(find fleet_planning)/launch/actions_dispatcher_node.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+				</include>
+</group>
+<!-- End Fleet Planning -->
+
 <!-- Start Charging Control -->
 <group if="$(arg charging_control)">
 	<remap from="charging_control_node/fsm_state" to="fsm_node/mode"/>
 	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/april_tags" to="apriltags_postprocessing_node/apriltags_out"/>
-	<remap from="charging_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+	<remap from="charging_control_node/turn_id_and_type" to="actions_dispatcher_node/turn_id_and_type" />
 	<remap from="charging_control_node/turn_type" to="intersection_navigation_node/turn_type"/>
 	<remap from="charging_control_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 	<remap from="charging_control_node/go_charging" to="maintenance_control_node/go_charging"/>

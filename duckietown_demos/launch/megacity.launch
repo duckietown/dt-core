@@ -29,6 +29,7 @@
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
+		<arg name="fleet_planning" value="true"/>
 
     <arg name="tcp_communication" value="true"/>
 		<arg name="auto_calibration" value="true"/>
