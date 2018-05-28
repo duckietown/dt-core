@@ -31,10 +31,6 @@ class IntersectionLocalizerNode(object):
                                         IntersectionPoseImg,
                                         self.PoseImageCallback,
                                         queue_size=1, buff_size=2**24)
-        self.sub_fsm = rospy.Subscriber("~fsm",
-                                        FSMState,
-                                        self.FSMCallback,
-                                        queue_size=1)
 
         # set up publishers
         self.pub_pose = rospy.Publisher("~pose_out", IntersectionPose, queue_size=1)
