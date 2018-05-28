@@ -53,8 +53,9 @@ class VehicleCoordinator():
         # Parameters
         self.traffic_light_intersection = UNKNOWN
 
-        
+
         self.tl_timeout = 30
+        rospy.set_param("~tl_timeout", self.tl_timeout)
 
         # Initialize detection
         self.traffic_light = UNKNOWN
@@ -83,6 +84,9 @@ class VehicleCoordinator():
         self.pub_coord_cmd          = rospy.Publisher('~car_cmd', Twist2DStamped, queue_size=1)
         self.roof_light_pub         = rospy.Publisher('~change_color_pattern', String, queue_size=10)
         self.coordination_state_pub = rospy.Publisher('~coordination_state', String, queue_size=10)
+
+        #Update param timer
+        rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
 
         while not rospy.is_shutdown():
@@ -282,6 +286,9 @@ class VehicleCoordinator():
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
+
+    def updateParams(self, event):
+        self.tl_timeout = rospy.get_param("~tl_timeout")
 
 
     # def onShutdown(self):
