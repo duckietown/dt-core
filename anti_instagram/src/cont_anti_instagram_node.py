@@ -226,7 +226,7 @@ class ContAntiInstagramNode():
                 self.geomImage, "bgr8")
             self.pub_geomImage.publish(geomImgMsg)
 
-            if self.verbose:
+            #if self.verbose:
             #    rospy.loginfo('ai:\n' + tk.getall())
             if self.trafo_mode == "cb" or self.trafo_mode == "both":
                 cb_time = end_cb - start_cb
