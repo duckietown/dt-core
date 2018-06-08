@@ -54,7 +54,7 @@ class VehicleCoordinator():
         self.traffic_light_intersection = UNKNOWN
 
 
-        self.tl_timeout = 30
+        self.tl_timeout = 60
         rospy.set_param("~tl_timeout", self.tl_timeout)
 
         # Initialize detection
