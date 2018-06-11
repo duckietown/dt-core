@@ -97,7 +97,7 @@
 <arg name="/navigation/random_sr_turns" default="false"/>
 <arg name="/navigation/graph_planner" default="false"/>
 
-<arg name="unicorn_intersection" default="true"/>
+<arg name="unicorn_intersection" default="false"/>
 <!-- NOTE: either apriltags_random or graph_planner but not both -->
 
 
@@ -623,14 +623,14 @@
 <!-- End Coordination -->
 
 <!-- Start Unicorn intersection -->
-<group if="$(arg navigation)">
+<group if="$(arg unicorn_intersection)">
 
 </group>
 <!-- End Unicorn intersection -->
-	<remap from="unicorn_intersection_node/mode" to="fsm_node/mode"/>
+	<remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
 	<remap from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 	<remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
-	<remap from="unicorn_intersection_node/intersection_go" to="intersection_navigation_node/intersection_go"/>
+	<remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
 	<remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
 	<remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
 	<include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
