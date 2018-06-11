@@ -51,16 +51,17 @@ class UnicornIntersectionNode(object):
             rospy.sleep(2)
 
         if self.turn_type == 0:
+            # TODO figure out magic
             params = {"param1": 11, "param2": 12}
             self.changeLFParams(params, self.time_left_turn)
             rospy.sleep(self.time_left_turn)
         if self.turn_type == 1:
+            # TODO do not use yellow and replace red by white
             params = {"param1": 11, "param2": 12}
             self.changeLFParams(params, self.time_straight_turn)
             rospy.sleep(self.time_straight_turn)
         if self.turn_type == 2:
-            params = {"param1": 11, "param2": 12}
-            self.changeLFParams(params, self.time_right_turn)
+            #TODO in Lane control add feed forward
             rospy.sleep(self.time_right_turn)
 
         msg_done = BoolStamped()
