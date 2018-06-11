@@ -264,9 +264,10 @@ class lane_controller(object):
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
-            if pose_source == "intersection_navigation":
+            if pose_source == "lane_filter":
                 self.pose_msg = input_pose_msg
-                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.pose_msg.curvature_ref = input_pose_msg.curvature
+                self.v_ref_possible["main_pose"] = self.v_bar
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
         elif self.fsm_state == "PARKING":
