@@ -82,6 +82,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # Additional variables
         self.red_to_white = False
         self.use_yellow = True
+        self.filtered_segments = []
 
     # predict the state
 
@@ -118,7 +119,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     # prepare the segments for the creation of the belief arrays
     def prepareSegments(self, segments):
         segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
-
+        self.filtered_segments = []
         for segment in segments:
             # Optional transform from RED to WHITE
             if self.red_to_white and segment.color == segment.RED:
@@ -126,7 +127,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
             # Optional filtering out YELLOW
             if not self.use_yellow and segment.color == segment.YELLOW: continue
-            
+
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
                 continue
@@ -134,6 +135,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
 
+            self.filtered_segments.append(segment)
             # only consider points in a certain range from the Duckiebot for the position estimation
             point_range = self.getSegmentDistance(segment)
             if point_range < self.range_est:
