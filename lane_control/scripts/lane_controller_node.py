@@ -419,8 +419,10 @@ class lane_controller(object):
         # Scale the parameters linear such that their real value is at 0.22m/s TODO do this nice that  * (0.22/self.v_bar)
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
-        omega += self.omega_ff
+
         if np.abs(omega) > self.omega_max: omega = np.sign(omega)*self.omega_max
+
+        omega += self.omega_ff
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
         if math.fabs(omega) > car_control_msg.v / self.min_radius:
             if self.last_ms is not None:

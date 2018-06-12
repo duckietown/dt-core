@@ -200,7 +200,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
 
-        rospy.loginfo("PHI_MIN:  " + str(self.phi_min))
         for segment in segments:
             d_i, phi_i, l_i, weight =  self.generateVote(segment)
 
