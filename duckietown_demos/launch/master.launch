@@ -340,7 +340,6 @@
 	<!-- Lane controller -->
 	<group if="$(arg /lane_following/lane_controller)">
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
-		<remap from="lane_controller_node/lane_pose_intersection_navigation" to="intersection_navigation_node/lane_pose_intersection_navigation"/>
 		<!--NO!!! <remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> --><!--TODO what is this -->
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
 		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
@@ -633,6 +632,11 @@
 	<remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
 	<remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
 	<remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
+	<remap from="unicorn_intersection_node/lane_controller/omega_ff" to="lane_controller_node/omega_ff"/>
+	<remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
+	<remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
+
+
 	<include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
@@ -649,6 +653,8 @@
 		<remap from="open_loop_intersection_control_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<remap from="open_loop_intersection_control_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
 		<remap from="open_loop_intersection_control_node/in_lane" to="lane_filter_node/in_lane"/>
+		<remap from="intersection_navigation_node/lane_pose_intersection_navigation" to="lane_controller_node/lane_pose_intersection_navigation"/>
+
 		<include file="$(find intersection_control)/launch/open_loop_intersection_controller_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
