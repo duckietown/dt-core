@@ -28,7 +28,6 @@ class UnicornIntersectionNode(object):
         self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_int_go = rospy.Subscriber("~intersection_go", BoolStamped, self.cbIntersectionGo)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose_in", LanePose, self.cbLanePose)
-        #self.sub_debug = rospy.Subscriber("~debugging_start", Bool, self.cbDebugging)
 
         ## Publisher
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
@@ -61,15 +60,16 @@ class UnicornIntersectionNode(object):
             # TODO figure out magic
             params = {"red_to_white": True}
             self.changeLFParams(params, self.time_left_turn)
-            rospy.set_param("~lane_controller/omega_ff", 1.5)
+            rospy.set_param("~lane_controller/omega_ff", self.ff_left)
         if self.turn_type == 1:
             # TODO do not use yellow and replace red by white
             params = {"red_to_white": True}
             self.changeLFParams(params, self.time_straight_turn)
         if self.turn_type == 2:
-            rospy.set_param("~lane_controller/omega_ff", -1)
+            rospy.set_param("~lane_controller/omega_ff", self.ff_right)
 
         rospy.sleep(1)
+        rospy.loginfo("Starting intersection control - driving to " + str(self.turn_type))
         self.forward_pose = True
 
         rospy.sleep(sleeptimes[self.turn_type])
@@ -81,8 +81,7 @@ class UnicornIntersectionNode(object):
         msg_done.data = True
         self.pub_int_done.publish(msg_done)
 
-    def cbDebugging(self, msg):
-        return
+
 
     def cbFSMState(self, msg):
         if self.state != msg.state and msg.state == "INTERSECTION_COORDINATION":
@@ -91,19 +90,21 @@ class UnicornIntersectionNode(object):
         self.state = msg.state
 
     def cbTurnType(self, msg):
-        self.turn_type = msg.data
+        if self.turn_type != -1: self.turn_type = msg.data
 
     def setupParams(self):
         self.time_left_turn = self.setupParam("~time_left_turn", 2)
         self.time_straight_turn = self.setupParam("~time_straight_turn", 2)
         self.time_right_turn = self.setupParam("~time_right_turn", 2)
-
+        self.ff_left = self.setupParam("~ff_left", 1.5)
+        self.ff_right = self.setupParam("~ff_right", -1)
 
     def updateParams(self,event):
         self.time_left_turn = rospy.get_param("~time_left_turn")
         self.time_straight_turn = rospy.get_param("~time_straight_turn")
         self.time_right_turn = rospy.get_param("~time_right_turn")
-
+        self.ff_left = rospy.get_param("~ff_left")
+        self.ff_right = rospy.get_param("~ff_right")
 
 
     def setupParam(self,param_name,default_value):
