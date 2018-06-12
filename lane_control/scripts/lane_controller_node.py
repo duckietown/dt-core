@@ -145,7 +145,7 @@ class lane_controller(object):
         #TODO: Feedforward was not working, go away with this error source! (Julien)
         self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
         self.omega_ff = self.setupParameter("~omega_ff",0)
-
+        self.omega_max = self.setupParameter("~omega_max", 999)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
@@ -167,6 +167,7 @@ class lane_controller(object):
         use_radius_limit = rospy.get_param("~use_radius_limit")
         object_detected = rospy.get_param("~object_detected")
         self.omega_ff = rospy.get_param("~omega_ff")
+        self.omega_max = rospy.get_param("~omega_max")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
@@ -419,6 +420,7 @@ class lane_controller(object):
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
         omega += self.omega_ff
+        if np.abs(omega) > self.omega_max: omega = np.sign(omega)*omega
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
         if math.fabs(omega) > car_control_msg.v / self.min_radius:
             if self.last_ms is not None:
