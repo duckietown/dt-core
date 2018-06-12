@@ -57,10 +57,11 @@ class UnicornIntersectionNode(object):
         sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
         LFparams = [self.LFparams_left, self.LFparams_straight, self.LFparams_right]
         omega_ffs = [self.ff_left, self.ff_straight, self.ff_right]
+        omega_maxs = [self.omega_max_left, self.omega_max_straight, self.omega_max_right]
 
         self.changeLFParams(LFparams[self.turn_type], sleeptimes[self.turn_type]+1.0)
         rospy.set_param("~lane_controller/omega_ff", omega_ffs[self.turn_type])
-
+        rospy.set_param("~lane_controller/omega_max", omega_maxs[self.turn_type])
         # Waiting for LF to adapt to new params
         rospy.sleep(1)
 
@@ -71,6 +72,7 @@ class UnicornIntersectionNode(object):
 
         self.forward_pose = False
         rospy.set_param("~lane_controller/omega_ff", 0)
+        rospy.set_param("~lane_controller/omega_max", 999)
 
         msg_done = BoolStamped()
         msg_done.data = True
@@ -98,6 +100,9 @@ class UnicornIntersectionNode(object):
         self.LFparams_left = self.setupParam("~LFparams_left", 0)
         self.LFparams_straight = self.setupParam("~LFparams_straight", 0)
         self.LFparams_right = self.setupParam("~LFparams_right", 0)
+        self.omega_max_left = self.setupParam("~omega_max_left", 999)
+        self.omega_max_straight = self.setupParam("~omega_max_straight", 999)
+        self.omega_max_right = self.setupParam("~omega_max_right", 999)
 
         self.debug_dir = self.setupParam("~debug_dir", -1)
 
@@ -111,6 +116,9 @@ class UnicornIntersectionNode(object):
         self.LFparams_left = rospy.get_param("~LFparams_left")
         self.LFparams_straight = rospy.get_param("~LFparams_straight")
         self.LFparams_right = rospy.get_param("~LFparams_right")
+        self.omega_max_left = rospy.get_param("~omega_max_left")
+        self.omega_max_straight = rospy.get_param("~omega_max_straight")
+        self.omega_max_right = rospy.get_param("~omega_max_right")
 
         self.debug_dir = rospy.get_param("~debug_dir")
 
