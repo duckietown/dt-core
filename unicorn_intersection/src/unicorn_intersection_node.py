@@ -55,20 +55,15 @@ class UnicornIntersectionNode(object):
             rospy.sleep(2)
 
         sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
+        LFparams = [self.LFparams_left, self.LFparams_straight, self.LFparams_right]
+        omega_ffs = [self.ff_left, self.ff_straight, self.ff_right]
 
-        if self.turn_type == 0:
-            # TODO figure out magic
-            params = {"red_to_white": True}
-            self.changeLFParams(params, self.time_left_turn)
-            rospy.set_param("~lane_controller/omega_ff", self.ff_left)
-        if self.turn_type == 1:
-            # TODO do not use yellow and replace red by white
-            params = {"red_to_white": True}
-            self.changeLFParams(params, self.time_straight_turn)
-        if self.turn_type == 2:
-            rospy.set_param("~lane_controller/omega_ff", self.ff_right)
+        self.changeLFParams(LFparams[self.turn_type], sleeptimes[self.turn_type]+1.0)
+        rospy.set_param("~lane_controller/omega_ff", omega_ffs[self.turn_type])
 
+        # Waiting for LF to adapt to new params
         rospy.sleep(1)
+
         rospy.loginfo("Starting intersection control - driving to " + str(self.turn_type))
         self.forward_pose = True
 
@@ -90,21 +85,34 @@ class UnicornIntersectionNode(object):
         self.state = msg.state
 
     def cbTurnType(self, msg):
-        if self.turn_type != -1: self.turn_type = msg.data
+        if self.turn_type == -1: self.turn_type = msg.data
+        if self.debug_dir != -1: self.turn_type = self.debug_dir
 
     def setupParams(self):
         self.time_left_turn = self.setupParam("~time_left_turn", 2)
         self.time_straight_turn = self.setupParam("~time_straight_turn", 2)
         self.time_right_turn = self.setupParam("~time_right_turn", 2)
         self.ff_left = self.setupParam("~ff_left", 1.5)
+        self.ff_straight = self.setupParam("~ff_straight", 0)
         self.ff_right = self.setupParam("~ff_right", -1)
+        self.LFparams_left = self.setupParam("~LFparams_left", 0)
+        self.LFparams_straight = self.setupParam("~LFparams_straight", 0)
+        self.LFparams_right = self.setupParam("~LFparams_right", 0)
+
+        self.debug_dir = self.setupParam("~debug_dir", -1)
 
     def updateParams(self,event):
         self.time_left_turn = rospy.get_param("~time_left_turn")
         self.time_straight_turn = rospy.get_param("~time_straight_turn")
         self.time_right_turn = rospy.get_param("~time_right_turn")
         self.ff_left = rospy.get_param("~ff_left")
+        self.ff_straight = rospy.get_param("~ff_straight")
         self.ff_right = rospy.get_param("~ff_right")
+        self.LFparams_left = rospy.get_param("~LFparams_left")
+        self.LFparams_straight = rospy.get_param("~LFparams_straight")
+        self.LFparams_right = rospy.get_param("~LFparams_right")
+
+        self.debug_dir = rospy.get_param("~debug_dir")
 
 
     def setupParam(self,param_name,default_value):
