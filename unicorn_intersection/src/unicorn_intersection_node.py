@@ -20,22 +20,27 @@ class UnicornIntersectionNode(object):
         self.state = "JOYSTICK_CONTROL"
         self.active = False
         self.turn_type = -1
+        self.forward_pose = False
 
 
         ## Subscribers
         self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.cbTurnType)
         self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
-        self.sub_int_go = rospy.Subscriber("~intersection_go", FSMState, self.cbIntersectionGo)
+        self.sub_int_go = rospy.Subscriber("~intersection_go", BoolStamped, self.cbIntersectionGo)
+        self.sub_lane_pose = rospy.Subscriber("~lane_pose_in", LanePose, self.cbLanePose)
         #self.sub_debug = rospy.Subscriber("~debugging_start", Bool, self.cbDebugging)
 
         ## Publisher
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_LF_params = rospy.Publisher("~lane_filter_params", String, queue_size=1)
+        self.pub_lane_pose = rospy.Publisher("~lane_pose_out", LanePose, queue_size=1)
 
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
+    def cbLanePose(self, msg):
+        if self.forward_pose: self.pub_lane_pose.publish(msg)
 
     def changeLFParams(self, params, reset_time):
         data = {"params": params, "time": reset_time}
@@ -50,19 +55,27 @@ class UnicornIntersectionNode(object):
             rospy.loginfo("Requested to start intersection, but we do not see an april tag yet.")
             rospy.sleep(2)
 
+        sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
+
         if self.turn_type == 0:
             # TODO figure out magic
-            params = {"param1": 11, "param2": 12}
+            params = {"red_to_white": True}
             self.changeLFParams(params, self.time_left_turn)
-            rospy.sleep(self.time_left_turn)
+            rospy.set_param("~lane_controller/omega_ff", 1.5)
         if self.turn_type == 1:
             # TODO do not use yellow and replace red by white
-            params = {"param1": 11, "param2": 12}
+            params = {"red_to_white": True}
             self.changeLFParams(params, self.time_straight_turn)
-            rospy.sleep(self.time_straight_turn)
         if self.turn_type == 2:
-            #TODO in Lane control add feed forward
-            rospy.sleep(self.time_right_turn)
+            rospy.set_param("~lane_controller/omega_ff", -1)
+
+        rospy.sleep(1)
+        self.forward_pose = True
+
+        rospy.sleep(sleeptimes[self.turn_type])
+
+        self.forward_pose = False
+        rospy.set_param("~lane_controller/omega_ff", 0)
 
         msg_done = BoolStamped()
         msg_done.data = True
