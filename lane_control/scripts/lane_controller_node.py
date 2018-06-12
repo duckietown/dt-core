@@ -420,7 +420,7 @@ class lane_controller(object):
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
         omega += self.omega_ff
-        if np.abs(omega) > self.omega_max: omega = np.sign(omega)*omega
+        if np.abs(omega) > self.omega_max: omega = np.sign(omega)*self.omega_max
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
         if math.fabs(omega) > car_control_msg.v / self.min_radius:
             if self.last_ms is not None:
