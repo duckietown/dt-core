@@ -68,7 +68,7 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.getGains_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
 
@@ -144,7 +144,7 @@ class lane_controller(object):
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)    # gain for integrator of phi (phi = theta)
         #TODO: Feedforward was not working, go away with this error source! (Julien)
         self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
-
+        self.omega_ff = self.setupParameter("~omega_ff",0)
 
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
@@ -166,7 +166,7 @@ class lane_controller(object):
         phi_ref = rospy.get_param("~phi_ref")
         use_radius_limit = rospy.get_param("~use_radius_limit")
         object_detected = rospy.get_param("~object_detected")
-
+        self.omega_ff = rospy.get_param("~omega_ff")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
@@ -264,7 +264,7 @@ class lane_controller(object):
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
-            if pose_source == "lane_filter":
+            if pose_source == "intersection_navigation": # for CL intersection from AMOD use 'intersection_navigation'
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
                 self.v_ref_possible["main_pose"] = self.v_bar
@@ -418,7 +418,7 @@ class lane_controller(object):
         # Scale the parameters linear such that their real value is at 0.22m/s TODO do this nice that  * (0.22/self.v_bar)
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
-
+        omega += self.omega_ff
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
         if math.fabs(omega) > car_control_msg.v / self.min_radius:
             if self.last_ms is not None:

@@ -79,6 +79,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.initialize()
         self.updateRangeArray(self.curvature_res)
 
+        # Additional variables
+        self.red_to_white = False
+        self.use_yellow = True
+
     # predict the state
 
     def predict(self, dt, v, w):
@@ -116,6 +120,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
 
         for segment in segments:
+            # Optional transform from RED to WHITE
+            if self.red_to_white and segment.color == segment.RED:
+                segment.color = segment.WHITE
+
+            # Optional filtering out YELLOW
+            if not self.use_yellow and segment.color == segment.YELLOW: continue
+            
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
                 continue
