@@ -58,10 +58,12 @@ class UnicornIntersectionNode(object):
         LFparams = [self.LFparams_left, self.LFparams_straight, self.LFparams_right]
         omega_ffs = [self.ff_left, self.ff_straight, self.ff_right]
         omega_maxs = [self.omega_max_left, self.omega_max_straight, self.omega_max_right]
+        omega_mins = [self.omega_min_left, self.omega_min_straight, self.omega_min_right]
 
         self.changeLFParams(LFparams[self.turn_type], sleeptimes[self.turn_type]+1.0)
         rospy.set_param("~lane_controller/omega_ff", omega_ffs[self.turn_type])
         rospy.set_param("~lane_controller/omega_max", omega_maxs[self.turn_type])
+        rospy.set_param("~lane_controller/omega_min", omega_mins[self.turn_type])
         # Waiting for LF to adapt to new params
         rospy.sleep(1)
 
@@ -73,6 +75,7 @@ class UnicornIntersectionNode(object):
         self.forward_pose = False
         rospy.set_param("~lane_controller/omega_ff", 0)
         rospy.set_param("~lane_controller/omega_max", 999)
+        rospy.set_param("~lane_controller/omega_min", -999)
 
         msg_done = BoolStamped()
         msg_done.data = True
@@ -103,6 +106,9 @@ class UnicornIntersectionNode(object):
         self.omega_max_left = self.setupParam("~omega_max_left", 999)
         self.omega_max_straight = self.setupParam("~omega_max_straight", 999)
         self.omega_max_right = self.setupParam("~omega_max_right", 999)
+        self.omega_min_left = self.setupParam("~omega_min_left", -999)
+        self.omega_min_straight = self.setupParam("~omega_min_straight", -999)
+        self.omega_min_right = self.setupParam("~omega_min_right", -999)
 
         self.debug_dir = self.setupParam("~debug_dir", -1)
 
@@ -119,6 +125,9 @@ class UnicornIntersectionNode(object):
         self.omega_max_left = rospy.get_param("~omega_max_left")
         self.omega_max_straight = rospy.get_param("~omega_max_straight")
         self.omega_max_right = rospy.get_param("~omega_max_right")
+        self.omega_min_left = rospy.get_param("~omega_min_left")
+        self.omega_min_straight = rospy.get_param("~omega_min_straight")
+        self.omega_min_right = rospy.get_param("~omega_min_right")
 
         self.debug_dir = rospy.get_param("~debug_dir")
 
