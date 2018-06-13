@@ -146,6 +146,7 @@ class lane_controller(object):
         self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
         self.omega_ff = self.setupParameter("~omega_ff",0)
         self.omega_max = self.setupParameter("~omega_max", 999)
+        self.omega_min = self.setupParameter("~omega_min", -999)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
@@ -168,6 +169,7 @@ class lane_controller(object):
         object_detected = rospy.get_param("~object_detected")
         self.omega_ff = rospy.get_param("~omega_ff")
         self.omega_max = rospy.get_param("~omega_max")
+        self.omega_min = rospy.get_param("~omega_min")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
@@ -450,7 +452,8 @@ class lane_controller(object):
         car_control_msg.omega = omega * self.omega_to_rad_per_s
 
         omega = car_control_msg.omega
-        if np.abs(omega) > self.omega_max: omega = np.sign(omega)*self.omega_max
+        if omega > self.omega_max: omega = self.omega_max
+        if omega < self.omega_min: omega = self.omega_min
         omega += self.omega_ff
         car_control_msg.omega = omega
         self.publishCmd(car_control_msg)
