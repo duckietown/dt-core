@@ -634,6 +634,7 @@
 	<remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
 	<remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
 	<remap from="unicorn_intersection_node/lane_controller/omega_ff" to="lane_controller_node/omega_ff"/>
+	<remap from="unicorn_intersection_node/lane_controller/omega_min" to="lane_controller_node/omega_min"/>
 	<remap from="unicorn_intersection_node/lane_controller/omega_max" to="lane_controller_node/omega_max"/>
 	<remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
 	<remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
