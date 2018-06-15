@@ -55,6 +55,10 @@ class StopLineFilterNode(object):
 
     def afterIntersectionWork(self):
         rospy.loginfo("stop line sleep start")
+        stop_line_reading_msg = StopLineReading()
+        stop_line_reading_msg.stop_line_detected = False
+        stop_line_reading_msg.at_stop_line = False
+        self.pub_stop_line_reading.publish(stop_line_reading_msg)
         self.sleep = True
         rospy.sleep(self.off_time)
         self.sleep = False
