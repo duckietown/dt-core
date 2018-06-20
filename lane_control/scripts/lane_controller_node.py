@@ -3,7 +3,7 @@ import math
 import time
 import numpy as np
 import rospy
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState
+from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 import time
 import numpy as np
 
@@ -58,6 +58,9 @@ class lane_controller(object):
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
 
 
+        self.sub_stop_line = rospy.Subscriber("~stop_line_reading",StopLineReading, self.cbStopLineReading,  queue_size=1)     # for this topic, no remapping is required, since it is directly defined in the namespace lane_controller_node by the fsm_node (via it's default.yaml file)
+
+
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
         self.msg_radius_limit = BoolStamped()
@@ -68,9 +71,15 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
-        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.getGains_event)
+        self.gains_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.getGains_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
+        self.stop_line_distance = 999
+        self.stop_line_detected = False
+
+    def cbStopLineReading(self, msg):
+        self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2 + msg.stop_line_point.z**2)
+        self.stop_line_detected = msg.stop_line_detected
 
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
@@ -144,8 +153,9 @@ class lane_controller(object):
         self.k_Iphi = self.setupParameter("~k_Iphi",k_Iphi_fallback)    # gain for integrator of phi (phi = theta)
         #TODO: Feedforward was not working, go away with this error source! (Julien)
         self.use_feedforward_part = self.setupParameter("~use_feedforward_part",use_feedforward_part_fallback)
-
-
+        self.omega_ff = self.setupParameter("~omega_ff",0)
+        self.omega_max = self.setupParameter("~omega_max", 999)
+        self.omega_min = self.setupParameter("~omega_min", -999)
         self.use_radius_limit = self.setupParameter("~use_radius_limit", self.use_radius_limit_fallback)
         self.min_radius = self.setupParameter("~min_rad", 0.0)
 
@@ -166,7 +176,9 @@ class lane_controller(object):
         phi_ref = rospy.get_param("~phi_ref")
         use_radius_limit = rospy.get_param("~use_radius_limit")
         object_detected = rospy.get_param("~object_detected")
-
+        self.omega_ff = rospy.get_param("~omega_ff")
+        self.omega_max = rospy.get_param("~omega_max")
+        self.omega_min = rospy.get_param("~omega_min")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
 
@@ -264,9 +276,10 @@ class lane_controller(object):
             self.v_ref_possible["main_pose"] = v_ref_possible_main_pose
 
         if self.fsm_state == "INTERSECTION_CONTROL":
-            if pose_source == "intersection_navigation":
+            if pose_source == "intersection_navigation": # for CL intersection from AMOD use 'intersection_navigation'
                 self.pose_msg = input_pose_msg
-                self.v_ref_possible["main_pose"] = input_pose_msg.v_ref
+                self.pose_msg.curvature_ref = input_pose_msg.curvature
+                self.v_ref_possible["main_pose"] = self.v_bar
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
         elif self.fsm_state == "PARKING":
@@ -281,7 +294,19 @@ class lane_controller(object):
                 #rospy.loginfo("pose source: lane_filter")
                 self.pose_msg = input_pose_msg
                 self.pose_msg.curvature_ref = input_pose_msg.curvature
+
+
                 self.v_ref_possible["main_pose"] = self.v_bar
+
+                # Adapt speed to stop line!
+                if self.stop_line_detected:
+                    # 60cm -> v_bar, 15cm -> v_bar/2
+                    d1, d2 = 0.8, 0.25
+                    a = self.v_bar/(2*(d1-d2))
+                    b = self.v_bar - a*d1
+                    v_new = a*self.stop_line_distance + b
+                    v_new = np.max([self.v_bar/2.0, np.min([self.v_bar, v_new])])
+                    self.v_ref_possible["main_pose"] = v_new
                 self.main_pose_source = pose_source
                 self.pose_initialized = True
 
@@ -418,6 +443,9 @@ class lane_controller(object):
         omega = self.k_d * (0.22/self.v_bar) * self.cross_track_err + self.k_theta * (0.22/self.v_bar) * self.heading_err
         omega += (omega_feedforward)
 
+
+
+
         # check if nominal omega satisfies min radius, otherwise constrain it to minimal radius
         if math.fabs(omega) > car_control_msg.v / self.min_radius:
             if self.last_ms is not None:
@@ -444,6 +472,11 @@ class lane_controller(object):
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
         car_control_msg.omega = omega * self.omega_to_rad_per_s
 
+        omega = car_control_msg.omega
+        if omega > self.omega_max: omega = self.omega_max
+        if omega < self.omega_min: omega = self.omega_min
+        omega += self.omega_ff
+        car_control_msg.omega = omega
         self.publishCmd(car_control_msg)
         self.last_ms = currentMillis
 

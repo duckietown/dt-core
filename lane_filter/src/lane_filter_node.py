@@ -5,8 +5,8 @@ from duckietown_utils.instantiate_utils import instantiate
 import numpy as np
 import rospy
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float32
-
+from std_msgs.msg import Float32, String
+import json
 
 class LaneFilterNode(object):
 
@@ -34,7 +34,7 @@ class LaneFilterNode(object):
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
-
+        self.sub_change_params = rospy.Subscriber("~change_params", String, self.cbChangeParams)
         # Publishers
         self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
@@ -53,6 +53,25 @@ class LaneFilterNode(object):
 
         # timer for updating the params
         self.timer = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
+
+    def cbChangeParams(self, msg):
+        data = json.loads(msg.data)
+        params = data["params"]
+        reset_time = data["time"]
+        # Set all paramters which need to be updated
+        for param_name in params.keys():
+            param_val = params[param_name]
+            params[param_name] = eval("self.filter." + str(param_name))
+            exec("self.filter." + str(param_name) + "=" + str(param_val))
+
+        # Sleep for reset time
+        rospy.sleep(reset_time)
+
+        # Reset parameters to old values
+        for param_name in params.keys():
+            param_val = params[param_name]
+            exec("self.filter." + str(param_name) + "=" + str(param_val))
 
 
     def updateParams(self, event):
