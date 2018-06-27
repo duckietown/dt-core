@@ -6,7 +6,7 @@
 
 ## Unit tests integrated with `rostest`
 
-Unit tests are integrated with [`rostest`](#rostest).
+Unit tests are integrated with [`rostest`](+software_reference#rostest).
 
 To run manually, use:
 
