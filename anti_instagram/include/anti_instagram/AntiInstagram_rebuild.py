@@ -52,6 +52,7 @@ class AntiInstagram():
         # calculate a trfo using the color balance method
         self.ThLow, self.ThHi = self.CB.thresholdAnalysis(img, CBpercent)
 
+
     def calculateTransform(self, img, max_it, fancyGeom=False):
         # calculate a trafo using a linear approach
 

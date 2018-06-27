@@ -36,6 +36,7 @@ class simpleColorBalanceClass:
 
     def thresholdAnalysis(self, img, percent):
         self.halfPercent = percent / 200.0
+        rospy.loginfo(self.halfPercent)
         channels = cv2.split(img)
 
         for idx, channel in enumerate(channels):

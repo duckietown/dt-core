@@ -56,7 +56,7 @@ class ContAntiInstagramNode():
         self.blur = self.setupParameter("~blur", 'median')
         self.resize = self.setupParameter("~resize", 0.2)
         self.blur_kernel = self.setupParameter("~blur_kernel", 5)
-        self.cb_percentage = self.setupParameter("~cb_percentage", 2)
+        self.cb_percentage = self.setupParameter("~cb_percentage", 50)
         self.trafo_mode = self.setupParameter("~trafo_mode", 'cb')
         if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
@@ -96,12 +96,16 @@ class ContAntiInstagramNode():
         # container for mask and maskedImage
         self.mask255 = []
         self.geomImage = []
+        self.cb_percentage=rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)#Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
+    def updateParams(self, event):
+        self.cb_percentage=rospy.get_param("~cb_percentage")
 
     def cbNewImage(self, image_msg):
         # memorize image
@@ -158,9 +162,13 @@ class ContAntiInstagramNode():
                 # store color balance thresholds to ros message
                 self.transform_CB.th[0], self.transform_CB.th[1], self.transform_CB.th[2] = self.ai.ThLow
                 self.transform_CB.th[3], self.transform_CB.th[4], self.transform_CB.th[5] = self.ai.ThHi
+                self.transform_CB.th[3]=255
+                self.transform_CB.th[4]=255
+                self.transform_CB.th[5]=255
 
                 # publish color balance thresholds
                 self.pub_trafo_CB.publish(self.transform_CB)
+                rospy.loginfo(self.transform_CB)
             #    rospy.loginfo('ai: Color balance thresholds published.')
 
                 tk.completed('colorBalance analysis')
