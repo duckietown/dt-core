@@ -168,7 +168,6 @@ class ContAntiInstagramNode():
 
                 # publish color balance thresholds
                 self.pub_trafo_CB.publish(self.transform_CB)
-                rospy.loginfo(self.transform_CB)
             #    rospy.loginfo('ai: Color balance thresholds published.')
 
                 tk.completed('colorBalance analysis')

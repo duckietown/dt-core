@@ -9,7 +9,7 @@
     <arg name="resize" default="0.2" doc="resizing factor to scale the image down or up"/>
     <arg name="ker" default="5" doc="size of blur kernel"/>
     <arg name="ai_trafo_mode" default="cb" doc="'cb' for colo balance only; 'lin' for linear trafo only; 'both' for both"/>
-    <arg name="cb_percentage" default="2" doc="percentage for auto-colorbalance"/>
+    <arg name="cb_percentage" default="80" doc="percentage for auto-colorbalance"/>
 
     <param name="~veh" value="$(arg veh)"/>
 

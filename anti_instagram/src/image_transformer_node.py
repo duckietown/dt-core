@@ -26,7 +26,7 @@ class ImageTransformerNode():
         self.locked = False
         self.thread_lock = threading.Lock()
         self.r = rospy.Rate(5) # Rate in Hz
-        self.scale_percent=45
+        self.scale_percent=40
         rospy.set_param("~scale_percent", self.scale_percent)
 
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
