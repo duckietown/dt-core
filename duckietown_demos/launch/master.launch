@@ -16,6 +16,7 @@
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
+	<arg name="target_node" default="240"/>
 	<!-- end basic args -->
 
 	<!-- the things that are "on" by default:
@@ -822,6 +823,7 @@
 				<include file="$(find fleet_planning)/launch/actions_dispatcher_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
+			<arg name="target_node" value="$(arg target_node)"/>
 				</include>
 </group>
 <!-- End Fleet Planning -->
