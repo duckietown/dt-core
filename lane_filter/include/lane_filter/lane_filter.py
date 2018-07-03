@@ -88,25 +88,25 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             b = np.ones(self.d.shape) * (1.0 / n)
             self.beliefArray.append(b)
 
-#        pos = np.empty(self.d.shape + (2,))
-#        pos[:, :, 0] = self.d
-#        pos[:, :, 1] = self.phi
-#        # XXX: statement with no effect
-#        # self.cov_0
-#        RV = multivariate_normal(self.mean_0, self.cov_0)
-#
-#        n = pos.shape[0] * pos.shape[1]
-#
-#        gaussian = RV.pdf(pos) * 0.5  #+ 0.5/n
-#
-#        gaussian = gaussian / np.sum(gaussian.flatten())
-#
-#        uniform = np.ones(dtype='float32', shape=self.d.shape) * (1.0 / n)
-#
-#        a = 0.01
-#        self.belief = a * gaussian + (1 - a) * uniform
-#
-#        assert_almost_equal(self.belief.flatten().sum(), 1.0)
+        pos = np.empty(self.d.shape + (2,))
+        pos[:, :, 0] = self.d
+        pos[:, :, 1] = self.phi
+        # XXX: statement with no effect
+        # self.cov_0
+        RV = multivariate_normal(self.mean_0, self.cov_0)
+
+        n = pos.shape[0] * pos.shape[1]
+
+        gaussian = RV.pdf(pos) * 0.5  #+ 0.5/n
+
+        gaussian = gaussian / np.sum(gaussian.flatten())
+
+        uniform = np.ones(dtype='float32', shape=self.d.shape) * (1.0 / n)
+
+        a = 0.01
+        self.belief = a * gaussian + (1 - a) * uniform
+
+        assert_almost_equal(self.belief.flatten().sum(), 1.0)
 
     def get_status(self):
         # TODO: Detect abnormal states (@liam)
@@ -155,7 +155,7 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
 
     @dtu.contract(segment_list=SegmentList)
     def generate_measurement_likelihood(self, segment_list, range_min, range_max):
-        segments = segment_list.segments
+        segments = segment_list
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
         for segment in segments:
