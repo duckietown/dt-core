@@ -799,7 +799,7 @@
 	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 
 	<remap from="maintenance_control_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
-
+  <remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 
 	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
