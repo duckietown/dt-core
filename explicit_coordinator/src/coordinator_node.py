@@ -100,8 +100,7 @@ class VehicleCoordinator():
     def cbMaintenanceState(self, msg):
         if msg.state == "WAY_TO_CHARGING" or msg.state == "WAY_TO_CALIBRATING":
             self.priority = True
-            print 'Granted priority rights on intersections'
-
+            print('Granted priority rights on intersections')
         else:
             self.priority = False
 
