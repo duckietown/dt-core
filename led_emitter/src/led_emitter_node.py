@@ -92,7 +92,7 @@ class LEDEmitter(object):
             elif self.current_pattern_name == CoordinationSignal.OFF:
                 self.pattern = [self.protocol['colors']['black']]*5
             else:
-		        color           = self.protocol['signals'][pattern_name]['color']
+                color           = self.protocol['signals'][pattern_name]['color']
                 self.pattern    = [self.protocol['colors']['black']]*5
                 self.pattern[2] = self.protocol['colors'][color]
                 self.pattern[0] = self.protocol['colors'][color]
