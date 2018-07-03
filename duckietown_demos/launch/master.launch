@@ -799,7 +799,6 @@
 	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 
 	<remap from="maintenance_control_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
-  <remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 
 	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
@@ -813,7 +812,7 @@
 		<!-- remapping outputs since there are two different possible turn types -->
 		<remap from="actions_dispatcher_node/random_turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 		<remap from="actions_dispatcher_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
-
+		<remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 
 		<include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
 			<arg name="map_name" value="$(arg map_name)"/>
