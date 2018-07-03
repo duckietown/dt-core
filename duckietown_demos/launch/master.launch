@@ -586,6 +586,7 @@
 		<remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
 		<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
 		<remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
+		<remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="local" value="$(arg /coordination/local)"/>
@@ -812,7 +813,6 @@
 		<!-- remapping outputs since there are two different possible turn types -->
 		<remap from="actions_dispatcher_node/random_turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 		<remap from="actions_dispatcher_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
-		<remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 
 		<include file="$(find fleet_planning)/launch/graph_search_server_node.launch">
 			<arg name="map_name" value="$(arg map_name)"/>
