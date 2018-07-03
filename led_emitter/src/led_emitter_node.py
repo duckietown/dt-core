@@ -86,20 +86,20 @@ class LEDEmitter(object):
                 self.pattern = [self.protocol['colors']['black']]*5
 
             # With coordination (new)
-            if self.current_pattern_name == CoordinationSignal.SIGNAL_A:
-		color           = self.protocol['signals'][pattern_name]['color']
-                self.pattern    = [self.protocol['colors']['black']]*5
-                self.pattern[2] = self.protocol['colors'][color]
-                self.pattern[0] = self.protocol['colors'][color]
-                self.pattern[4] = self.protocol['colors'][color]
-            elif self.current_pattern_name == CoordinationSignal.SIGNAL_GREEN:
+            if self.current_pattern_name == CoordinationSignal.SIGNAL_GREEN:
 		color        = self.protocol['signals'][pattern_name]['color']
                 self.pattern = [self.protocol['colors'][color]]*5
             elif self.current_pattern_name == CoordinationSignal.OFF:
                 self.pattern = [self.protocol['colors']['black']]*5
+            else:
+		        color           = self.protocol['signals'][pattern_name]['color']
+                self.pattern    = [self.protocol['colors']['black']]*5
+                self.pattern[2] = self.protocol['colors'][color]
+                self.pattern[0] = self.protocol['colors'][color]
+                self.pattern[4] = self.protocol['colors'][color]
 
             # Change frequency (frequency does not change)
-            # self.cycle = self.protocol['signals'][pattern_name]['frequency']
+            self.cycle = self.protocol['signals'][pattern_name]['frequency']
 
             # Change LEDs
             if not self.onOff:
