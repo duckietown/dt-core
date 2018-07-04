@@ -267,6 +267,11 @@ class VehicleCoordinator():
                 self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
                 self.set_state(State.SACRIFICE_FOR_PRIORITY)
                 rospy.loginfo("[%s] Other vehicle are waiting as well. Will wait for %.2f s" %(self.node_name,self.random_delay))
+            # Other cars with priority detected
+            elif self.right_veh == SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY or self.opposite_veh == SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY:
+                self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
+                self.set_state(State.SACRIFICE_FOR_PRIORITY)
+                rospy.loginfo("[%s] Other vehicle are waiting as well. Will wait for %.2f s" %(self.node_name,self.random_delay))
             # Other cars  detected
             elif self.right_veh == SignalsDetection.SIGNAL_A or self.opposite_veh == SignalsDetection.SIGNAL_A:
                 self.random_delay = self.T_MIN_RANDOM + random()*(self.T_MAX_RANDOM-self.T_MIN_RANDOM)
