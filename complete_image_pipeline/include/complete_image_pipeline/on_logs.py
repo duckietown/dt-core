@@ -1,6 +1,7 @@
 import os
 
 import duckietown_utils as dtu
+from easy_logs import get_local_bag_file, NotAvailableLocally
 from easy_logs.app_with_logs import D8AppWithLogs
 from ground_projection import GroundProjection
 from quickapp import QuickApp
@@ -63,7 +64,7 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
 
 
 def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter, all_details):
-    filename = log.filename
+    filename = get_local_bag_file(log)
 
     bag = rosbag.Bag(filename)
 
