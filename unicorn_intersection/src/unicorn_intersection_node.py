@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped
+from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped, TurnIDandType
 from std_msgs.msg import Float32, Int16, Bool, String
 from geometry_msgs.msg import Point, PoseStamped, Pose, PointStamped
 from nav_msgs.msg import Path
@@ -20,11 +20,13 @@ class UnicornIntersectionNode(object):
         self.state = "JOYSTICK_CONTROL"
         self.active = False
         self.turn_type = -1
+        self.tag_id = -1
         self.forward_pose = False
 
 
         ## Subscribers
-        self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.cbTurnType)
+        #self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.cbTurnType)
+        self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_int_go = rospy.Subscriber("~intersection_go", BoolStamped, self.cbIntersectionGo)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose_in", LanePose, self.cbLanePose)
@@ -33,7 +35,7 @@ class UnicornIntersectionNode(object):
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_LF_params = rospy.Publisher("~lane_filter_params", String, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~lane_pose_out", LanePose, queue_size=1)
-
+        self.pub_int_done_detailed = rospy.Publisher("~intersection_done_detailed", TurnIDandType, queue_size=1)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -54,32 +56,42 @@ class UnicornIntersectionNode(object):
             rospy.loginfo("Requested to start intersection, but we do not see an april tag yet.")
             rospy.sleep(2)
 
+        tag_id = self.tag_id
+        turn_type = self.turn_type
+
         sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
         LFparams = [self.LFparams_left, self.LFparams_straight, self.LFparams_right]
         omega_ffs = [self.ff_left, self.ff_straight, self.ff_right]
         omega_maxs = [self.omega_max_left, self.omega_max_straight, self.omega_max_right]
         omega_mins = [self.omega_min_left, self.omega_min_straight, self.omega_min_right]
 
-        self.changeLFParams(LFparams[self.turn_type], sleeptimes[self.turn_type]+1.0)
-        rospy.set_param("~lane_controller/omega_ff", omega_ffs[self.turn_type])
-        rospy.set_param("~lane_controller/omega_max", omega_maxs[self.turn_type])
-        rospy.set_param("~lane_controller/omega_min", omega_mins[self.turn_type])
+        self.changeLFParams(LFparams[turn_type], sleeptimes[turn_type]+1.0)
+        rospy.set_param("~lane_controller/omega_ff", omega_ffs[turn_type])
+        rospy.set_param("~lane_controller/omega_max", omega_maxs[turn_type])
+        rospy.set_param("~lane_controller/omega_min", omega_mins[turn_type])
         # Waiting for LF to adapt to new params
         rospy.sleep(1)
 
-        rospy.loginfo("Starting intersection control - driving to " + str(self.turn_type))
+        rospy.loginfo("Starting intersection control - driving to " + str(turn_type))
         self.forward_pose = True
 
-        rospy.sleep(sleeptimes[self.turn_type])
+        rospy.sleep(sleeptimes[turn_type])
 
         self.forward_pose = False
         rospy.set_param("~lane_controller/omega_ff", 0)
         rospy.set_param("~lane_controller/omega_max", 999)
         rospy.set_param("~lane_controller/omega_min", -999)
 
+        # Publish intersection done
         msg_done = BoolStamped()
         msg_done.data = True
         self.pub_int_done.publish(msg_done)
+
+        # Publish intersection done detailed
+        msg_done_detailed = TurnIDandType()
+        msg_done_detailed.tag_id = tag_id
+        msg_done_detailed.turn_type = turn_type
+        self.pub_int_done_detailed.publish(msg_done_detailed)
 
 
 
@@ -90,7 +102,8 @@ class UnicornIntersectionNode(object):
         self.state = msg.state
 
     def cbTurnType(self, msg):
-        if self.turn_type == -1: self.turn_type = msg.data
+        self.tag_id = msg.tag_id
+        if self.turn_type == -1: self.turn_type = msg.turn_type
         if self.debug_dir != -1: self.turn_type = self.debug_dir
 
     def setupParams(self):
