@@ -17,7 +17,7 @@
 		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
 
-		<arg name="obstacle_avoidance_and_detection" value="false"/> <!-- WAY TOO SLOW NOW SIMON :( -->
+		<arg name="obstacle_avoidance_and_detection" value="true"/> <!-- WAY TOO SLOW NOW SIMON :( -->
 
 
 
