@@ -640,15 +640,9 @@
 	<remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
 	<remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
 	<remap from="unicorn_intersection_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"/>
-	<!-- TODO fix it -->
-	
-	<remap from="unicorn_intersection_node/turn_id_and_type" to="maintenance_control_node/turn_id_and_type_out"/>
-	<group if="$(arg maintenance_control)">
-		<remap from="unicorn_intersection_node/turn_id_and_type" to="maintenance_control_node/turn_id_and_type_out"/>
-	</group>
-	<group unless="$(arg maintenance_control)">
-		<remap from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
-	</group>
+
+	<remap if="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="maintenance_control_node/turn_id_and_type_out"/>
+	<remap unless="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 
 
 
@@ -665,12 +659,9 @@
 	<!-- random april tags -->
 	<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 	<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
+	
+	<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
-
-	<group unless="$(arg maintenance_control)">
-		<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
-		<remap from="maintenance_control_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"/>
-	</group>
 
 
 	<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
