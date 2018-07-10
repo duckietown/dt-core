@@ -18,6 +18,7 @@
 		<arg name="anti_instagram" value="true" />
 
 		<arg name="obstacle_avoidance_and_detection" value="true"/> <!-- WAY TOO SLOW NOW SIMON :( -->
+		<arg name="show_bird_perspective" value="true"/>
 
 
 

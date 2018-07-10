@@ -381,6 +381,7 @@
   <remap from="obstacle_avoidance_node/posearray" to="obstacle_detection_node/posearray"/>
 	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
 		<arg name="veh" value="$(arg veh)"/>
+		<arg name="show_bird_perspective" value="$(arg show_bird_perspective)"/>
 	</include>
 </group>
 
