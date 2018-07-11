@@ -238,10 +238,10 @@ class lane_controller(object):
 
     def cbMode(self,fsm_state_msg):
 
-        if self.fsm_state != fsm_state_msg.state and fsm_state_msg.state == "IN_CHARGING_AREA":
-            self.sleepMaintenance = True
-            self.sendStop()
-            rospy.Timer(rospy.Duration.from_sec(2.0), self.unsleepMaintenance)
+        # if self.fsm_state != fsm_state_msg.state and fsm_state_msg.state == "IN_CHARGING_AREA":
+        #     self.sleepMaintenance = True
+        #     self.sendStop()
+        #     rospy.Timer(rospy.Duration.from_sec(2.0), self.unsleepMaintenance)
 
         self.fsm_state = fsm_state_msg.state    # String of current FSM state
         print "fsm_state changed in lane_controller_node to: " , self.fsm_state
