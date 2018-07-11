@@ -30,7 +30,7 @@ class LaneFilterNode(object):
         # Set parameters to server
         rospy.set_param('~curvature_res', self.curvature_res) #Write to parameter server for transparancy
 
-
+        self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list", SegmentList, self.processSegments, queue_size=1)
         self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
@@ -44,7 +44,7 @@ class LaneFilterNode(object):
 
 
         self.pub_entropy    = rospy.Publisher("~entropy",Float32, queue_size=1)
-        self.pub_in_lane    = rospy.Publisher("~in_lane",BoolStamped, queue_size=1)
+
 
         # FSM
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
