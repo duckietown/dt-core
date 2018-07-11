@@ -21,6 +21,18 @@ It also subscribed to the trafo message coming from the Anti-Instagram node. Whe
 class ImageTransformerNode():
     def __init__(self):
         self.node_name = rospy.get_name()
+        # Initialize transform messages
+
+        self.transform = AntiInstagramTransform()
+        self.transform_CB = AntiInstagramTransform_CB()
+
+        # initialize AI class
+        self.ai = AntiInstagram()
+        # initialize image bridge
+        self.bridge = CvBridge()
+        # Verbose option
+        self.verbose = rospy.get_param('line_detector_node/verbose', False)
+
 
         self.active = True
         self.locked = False
@@ -55,17 +67,7 @@ class ImageTransformerNode():
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose', False)
 
-        # Initialize transform messages
-        self.transform = AntiInstagramTransform()
-        self.transform_CB = AntiInstagramTransform_CB()
 
-        # container for image
-        self.corrected_image = Image()
-
-        # initialize AI class
-        self.ai = AntiInstagram()
-        # initialize image bridge
-        self.bridge = CvBridge()
 
         rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
