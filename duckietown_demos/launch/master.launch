@@ -113,6 +113,7 @@
 <arg name="/localization/gui" default="false"/>
 
 <arg name="maintenance_control" default="false"/>
+<arg name="maintenance_param_file_name" default="default" />
 
 <arg name="charging_control" default="false"/>
 <arg name="auto_calibration" default="false"/>
@@ -659,7 +660,7 @@
 	<!-- random april tags -->
 	<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
 	<remap from="random_april_tag_turns_node/tag"  to="apriltags_postprocessing_node/apriltags_out"/>
-	
+
 	<remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
 
@@ -806,7 +807,7 @@
 	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
+		<arg name="param_file_name" value="$(arg maintenance_param_file_name)"/>
 	</include>
 </group>
 
