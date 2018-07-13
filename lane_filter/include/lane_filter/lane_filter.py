@@ -83,6 +83,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # Additional variables
         self.red_to_white = False
         self.use_yellow = True
+        self.range_est_min = 0
         self.filtered_segments = []
 
     # predict the state
@@ -139,7 +140,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             self.filtered_segments.append(segment)
             # only consider points in a certain range from the Duckiebot for the position estimation
             point_range = self.getSegmentDistance(segment)
-            if point_range < self.range_est:
+            if point_range < self.range_est and point_range > self.range_est_min:
                 segmentsRangeArray[0].append(segment)
                 # print functions to help understand the functionality of the code
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
