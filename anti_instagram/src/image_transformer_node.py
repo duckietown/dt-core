@@ -42,6 +42,14 @@ class ImageTransformerNode():
         rospy.set_param("~scale_percent", self.scale_percent)
 
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
+        # Read parameters
+        
+        self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
+        if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
+            rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
+            self.trafo_mode == "both"
+            rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
+            rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
 
         # Initialize publishers and subscribers
         self.pub_image = rospy.Publisher(
@@ -56,13 +64,7 @@ class ImageTransformerNode():
         self.sub_colorBalance = rospy.Subscriber(
             '/{}/cont_anti_instagram_node/colorBalanceTrafo'.format(robot_name), AntiInstagramTransform_CB, self.cbNewTrafo_CB, queue_size=1)
 
-        # Read parameters
-        self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
-        if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
-            rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
-            self.trafo_mode == "both"
-            rospy.set_param("~trafo_mode", "both")  # Write to parameter server for transparancy
-            rospy.loginfo("[%s] %s = %s " % (self.node_name, "~trafo_mode", "both"))
+
 
         # Verbose option
         self.verbose = rospy.get_param('line_detector_node/verbose', False)
