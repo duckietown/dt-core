@@ -53,6 +53,7 @@
 <arg name="fsm" default="true"/>
 
 <arg name="obstacle_avoidance_and_detection" default="false"/>
+<arg name="show_bird_perspective" value="false"/>
 
 <!-- TODO: Deprecated?
 <arg name="/obstacle_avoidance/simple_stop" default="true"/>
