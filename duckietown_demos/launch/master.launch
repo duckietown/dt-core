@@ -807,7 +807,7 @@
 	<remap from="maintenance_control_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
 	<remap from="maintenance_control_node/turn_type" to="intersection_navigation_node/turn_type"/>
 	<remap from="maintenance_control_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
-	<remap from="maintenance_control_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"
+	<remap from="maintenance_control_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"/>
 
 	<include file="$(find maintenance_control)/launch/maintenance_control_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
