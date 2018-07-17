@@ -98,7 +98,7 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
     def cbMaintenanceState(self, msg):
-        if msg.state == "WAY_TO_CHARGING" or msg.state == "WAY_TO_CALIBRATING":
+        if msg.state == "WAY_TO_MAINTENANCE":
             self.priority = True
             print('Granted priority rights on intersections')
         else:
