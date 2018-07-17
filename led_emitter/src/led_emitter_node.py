@@ -82,6 +82,13 @@ class LEDEmitter(object):
                 self.pattern = [self.protocol['colors']['blue']]*5
             elif self.current_pattern_name == 'ON_GREEN':
                 self.pattern = [self.protocol['colors']['green']]*5
+            elif self.current_pattern_name == 'CAR_SIGNAL_A':
+                self.current_pattern_name = CoordinationSignal.SIGNAL_A
+
+            elif self.current_pattern_name == 'SIGNAL_GREEN':
+                self.current_pattern_name = CoordinationSignal.SIGNAL_GREEN
+            elif self.current_pattern_name == 'OFF':
+                self.current_pattern_name = CoordinationSignal.OFF
             else:
                 self.pattern = [self.protocol['colors']['black']]*5
 

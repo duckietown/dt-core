@@ -14,7 +14,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class LEDDetectorNode(object):
     def __init__(self):
-        self.active = False # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
+        self.active = True # [INTERACTIVE MODE] Won't be overwritten if FSM isn't running, node always active
         self.first_timestamp = 0
         self.capture_finished = True
         self.tinit = None
@@ -439,28 +439,28 @@ class LEDDetectorNode(object):
         debug_msg.state              = 0
         self.pub_debug.publish(debug_msg)
 
-        # # Loginfo (right)
-        # if self.right != SignalsDetection.NO_CAR:
-        #     #rospy.loginfo('Right: LED detected')
-        # else:
-        #     #rospy.loginfo('Right: No LED detected')
-        #
-        # # Loginfo (front)
-        # if self.front != SignalsDetection.NO_CAR:
-        #     #rospy.loginfo('Front: LED detected')
-        # else:
-        #     #rospy.loginfo('Front: No LED detected')
+        # Loginfo (right)
+        if self.right != SignalsDetection.NO_CAR:
+            rospy.loginfo('Right: LED detected')
+        else:
+            rospy.loginfo('Right: No LED detected')
 
-        # # Loginfo (TL)
-        # if self.traffic_light == SignalsDetection.STOP:
-        #     rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
-        # elif self.traffic_light == SignalsDetection.GO:
-        #     rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
-        # # else:
-        #     rospy.loginfo('[%s] No traffic light' %(self.node_name))
+        # Loginfo (front)
+        if self.front != SignalsDetection.NO_CAR:
+            rospy.loginfo('Front: LED detected')
+        else:
+            rospy.loginfo('Front: No LED detected')
 
-        # Publish
-        #rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
+        # Loginfo (TL)
+        if self.traffic_light == SignalsDetection.STOP:
+            rospy.loginfo('[%s] Traffic Light: red' %(self.node_name))
+        elif self.traffic_light == SignalsDetection.GO:
+            rospy.loginfo('[%s] Traffic Light: green' %(self.node_name))
+        else:
+            rospy.loginfo('[%s] No traffic light' %(self.node_name))
+
+        #Publish
+        rospy.loginfo("[%s] The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" % (self.node_name, self.front, self.right, self.traffic_light))
         self.pub_detections.publish(SignalsDetection(front=self.front, right=self.right, left=self.left, traffic_light_state=self.traffic_light))
 
     def send_state(self, msg):
