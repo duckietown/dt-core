@@ -103,7 +103,9 @@ class LEDDetectorNode(object):
         self.crop_rect_norm = rospy.get_param("~crop_rect_normalized")
 
         # Get frequency to indentify
-        self.freqIdentify = self.protocol['signals']['CAR_SIGNAL_A']['frequency']
+        self.freqIdentify = [self.protocol['signals']['CAR_SIGNAL_A']['frequency'],
+                             self.protocol['signals']['CAR_SIGNAL_PRIORITY']['frequency'],
+                             self.protocol['signals']['CAR_SIGNAL_SACRIFICE_FOR_PRIORITY']['frequency']]
 
         #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
@@ -347,27 +349,37 @@ class LEDDetectorNode(object):
         for i in range(len(BlobsRight)):
             #rospy.loginfo('[%s] Detection on the right' % (self.node_name))
             # Detection
-            detected,result = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
+            detected,result,freq_identified = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
             # Take decision
             if detected:
-                self.right = SignalsDetection.SIGNAL_A
+                if freq_identified == self.freqIdentify[1]:
+                    self.right = SignalsDetection.SIGNAL_PRIORITY
+                elif freq_identified == self.freqIdentify[2]:
+                    self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
+                else:
+                    self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (front)
         for i in range(len(BlobsFront)):
             #rospy.loginfo('[%s] Detection on the front' % (self.node_name))
             # Detection
-            detected, result = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
+            detected, result,freq_identified  = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
             # Take decision
             if detected:
-                self.front = SignalsDetection.SIGNAL_A
+                if freq_identified == self.freqIdentify[1]:
+                    self.right = SignalsDetection.SIGNAL_PRIORITY
+                elif freq_identified == self.freqIdentify[2]:
+                    self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
+                else:
+                    self.right = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (traffic light)
         for i in range(len(BlobsTL)):
             #rospy.loginfo('[%s] Detection of the traffic light' % (self.node_name))
             # Detection
-            detected, result = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
+            detected, result,freq_identified  = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
             # Take decision
             if detected:
                 self.traffic_light = SignalsDetection.GO
@@ -404,18 +416,20 @@ class LEDDetectorNode(object):
         fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
-
+        freq_identified = 0
         # Take decision
-        if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify) < 0.3):
-            # Decision
-            detected = True
-            # Raw detection
-            coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
-            result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
-        else:
-            detected = False
+        for i in range(len(self.freqIdentify)):
+            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.3):
+                # Decision
+                detected = True
+                freq_identified = self.freqIdentify[i]
+                # Raw detection
+                coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
+                result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
+            else:
+                detected = False
 
-        return detected, result
+        return detected, result, freq_identified
 
     def publish(self,imRight,imFront,imTL,results):
         #  Publish image with circles
