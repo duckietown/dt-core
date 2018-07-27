@@ -193,7 +193,8 @@ class VehicleAvoidanceControlNode(object):
 		if self.detection_prev and not self.detection:
 			car_cmd_msg_current.v=0
 
-
+		if car_cmd_msg_current.v>=0.25:
+			car_cmd_msg_current.v=0.25
 
 		self.car_cmd_pub.publish(car_cmd_msg_current)
 		#print(self.v_gain)
