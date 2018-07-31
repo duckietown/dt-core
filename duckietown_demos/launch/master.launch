@@ -54,6 +54,7 @@
 
 <arg name="obstacle_avoidance_and_detection" default="false"/>
 <arg name="show_bird_perspective" default="false"/>
+<arg name="show_obst_image" default="false"/>
 
 <!-- TODO: Deprecated?
 <arg name="/obstacle_avoidance/simple_stop" default="true"/>
@@ -384,6 +385,7 @@
 	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="show_bird_perspective" value="$(arg show_bird_perspective)"/>
+		<arg name="show_image" value="$(arg show_obst_image)"/>
 	</include>
 </group>
 

@@ -17,9 +17,10 @@
 		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
 
-		<arg name="obstacle_avoidance_and_detection" value="false"/> <!-- WAY TOO SLOW NOW SIMON :( -->
-		<arg name="show_bird_perspective" value="false"/>
-
+		<arg name="obstacle_avoidance_and_detection" value="true"/> <!-- WAY TOO SLOW NOW SIMON :( -->
+		<arg name="show_bird_perspective" value="true"/>
+		<arg name="show_obst_image" value="true"/>
+		
 
 
 		<arg name="coordination" value="true"/>
