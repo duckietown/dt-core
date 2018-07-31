@@ -107,6 +107,7 @@ class LEDEmitter(object):
 
             # Change frequency (frequency does not change)
             self.cycle = self.protocol['signals'][pattern_name]['frequency']
+            self.changeFrequency()
 
             # Change LEDs
             if not self.onOff:

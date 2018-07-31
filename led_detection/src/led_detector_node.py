@@ -368,11 +368,11 @@ class LEDDetectorNode(object):
             # Take decision
             if detected:
                 if freq_identified == self.freqIdentify[1]:
-                    self.right = SignalsDetection.SIGNAL_PRIORITY
+                    self.front = SignalsDetection.SIGNAL_PRIORITY
                 elif freq_identified == self.freqIdentify[2]:
-                    self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
+                    self.front = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
                 else:
-                    self.right = SignalsDetection.SIGNAL_A
+                    self.front = SignalsDetection.SIGNAL_A
                 break
 
         # Decide whether LED or not (traffic light)
@@ -419,7 +419,7 @@ class LEDDetectorNode(object):
         freq_identified = 0
         # Take decision
         for i in range(len(self.freqIdentify)):
-            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.3):
+            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.35):
                 # Decision
                 detected = True
                 freq_identified = self.freqIdentify[i]
