@@ -418,6 +418,7 @@ class LEDDetectorNode(object):
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
         freq_identified = 0
         # Take decision
+        detected = False
         for i in range(len(self.freqIdentify)):
             if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.35):
                 # Decision
@@ -426,8 +427,6 @@ class LEDDetectorNode(object):
                 # Raw detection
                 coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
                 result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
-            else:
-                detected = False
 
         return detected, result, freq_identified
 
