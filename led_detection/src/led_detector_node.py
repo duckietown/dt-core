@@ -423,11 +423,12 @@ class LEDDetectorNode(object):
         apperance_percentage = (1.0*Blob['N'])/(1.0*NIm)
 
         # Frequency estimation based on FFT
-        f             = np.linspace(0.0, 1.0/(2.0*T), NIm/2)
-        signal_f      = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
-        y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
-        n             = NIm/2 - 1
-        fft_peak_freq = 1.0*np.argmax(y_f)/(2*T*n)
+        f              = np.linspace(0.0, 1.0/(2.0*T), NIm/2)
+        signal_f       = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
+        y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2])
+        n              = NIm/2 - 1
+        fft_peak_freq  = 1.0*np.argmax(y_f)/(2*T*n)
+        half_freq_dist = 1.0*f[1]/2
 
         print '-------------------'
         print("NIm = %d " % NIm)
@@ -439,7 +440,7 @@ class LEDDetectorNode(object):
         # Take decision
         detected = False
         for i in range(len(self.freqIdentify)):
-            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.35):
+            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < half_freq_dist):
                 # Decision
                 detected = True
                 freq_identified = self.freqIdentify[i]
