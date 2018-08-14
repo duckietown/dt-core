@@ -448,10 +448,10 @@ class LEDDetectorNode(object):
                 coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
                 result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
 
-                print("freq_identified = %f " % freq_identified)
-                print '-------------------'
+        print("freq_identified = %f " % freq_identified)
+        print '-------------------'
 
-                return detected, result, freq_identified
+        return detected, result, freq_identified
 
     def publish(self,imRight,imFront,imTL,results):
         #  Publish image with circles
