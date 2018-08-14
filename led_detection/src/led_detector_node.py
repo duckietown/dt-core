@@ -104,6 +104,8 @@ class LEDDetectorNode(object):
 
         # Get frequency to indentify
         self.freqIdentify = [self.protocol['signals']['CAR_SIGNAL_A']['frequency'],
+                             self.protocol['signals']['CAR_SIGNAL_B']['frequency'],
+                             self.protocol['signals']['CAR_SIGNAL_C']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_PRIORITY']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_SACRIFICE_FOR_PRIORITY']['frequency']]
         print '---------------------------------------------------------------'
