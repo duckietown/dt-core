@@ -428,7 +428,7 @@ class LEDDetectorNode(object):
         y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2])
         n              = NIm/2 - 1
         fft_peak_freq  = 1.0*np.argmax(y_f)/(2*T*n)
-        half_freq_dist = 1.0*f[1]/2
+        half_freq_dist = 0.8 #1.0*f[1]/2
 
         print '-------------------'
         print("NIm = %d " % NIm)
