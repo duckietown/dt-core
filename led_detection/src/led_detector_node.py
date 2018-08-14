@@ -426,7 +426,8 @@ class LEDDetectorNode(object):
         f             = np.linspace(0.0, 1.0/(2.0*T), NIm/2)
         signal_f      = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
         y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
-        fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
+        n             = NIm/2 - 1
+        fft_peak_freq = 1.0*np.argmax(y_f)/(2*T*n)
 
         print '-------------------'
         print("NIm = %d " % NIm)
