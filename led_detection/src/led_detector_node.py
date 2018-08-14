@@ -421,7 +421,7 @@ class LEDDetectorNode(object):
         fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
         print '-------------------'
-        print("NIm = %d " % Nim)
+        print("NIm = %d " % NIm)
         print("T = %f " % T)
         print '-------------------'
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
