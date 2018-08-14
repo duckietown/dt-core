@@ -354,7 +354,15 @@ class LEDDetectorNode(object):
         for i in range(len(BlobsRight)):
             #rospy.loginfo('[%s] Detection on the right' % (self.node_name))
             # Detection
-            detected,result,freq_identified = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
+            detected,result,freq_identified, fft_peak_freq = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
+
+            print '-------------------'
+            print("NIm = %d " % NIm)
+            print("T = %f " % T)
+            print("fft_peak_freq = %f " % fft_peak_freq)
+            print("freq_identified = %f " % freq_identified)
+            print '-------------------'
+
             # Take decision
             if detected:
                 if freq_identified == self.freqIdentify[3]:
@@ -373,7 +381,16 @@ class LEDDetectorNode(object):
         for i in range(len(BlobsFront)):
             #rospy.loginfo('[%s] Detection on the front' % (self.node_name))
             # Detection
-            detected, result,freq_identified  = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
+            detected, result,freq_identified, fft_peak_freq  = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
+
+            print '-------------------'
+            print("NIm = %d " % NIm)
+            print("T = %f " % T)
+            print("fft_peak_freq = %f " % fft_peak_freq)
+            print("freq_identified = %f " % freq_identified)
+            print '-------------------'
+
+
             # Take decision
             if detected:
                 if freq_identified == self.freqIdentify[3]:
@@ -392,7 +409,7 @@ class LEDDetectorNode(object):
         for i in range(len(BlobsTL)):
             #rospy.loginfo('[%s] Detection of the traffic light' % (self.node_name))
             # Detection
-            detected, result,freq_identified  = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
+            detected, result,freq_identified, fft_peak_freq  = self.detect_blob(BlobsTL[i],T,NIm,H,W,self.cropNormalizedTL,timestamps,result)
             # Take decision
             if detected:
                 self.traffic_light = SignalsDetection.GO
@@ -430,11 +447,6 @@ class LEDDetectorNode(object):
         fft_peak_freq  = 1.0*np.argmax(y_f)/(2*T*n)
         half_freq_dist = 0.8 #1.0*f[1]/2
 
-        print '-------------------'
-        print("NIm = %d " % NIm)
-        print("T = %f " % T)
-        print("fft_peak_freq = %f " % fft_peak_freq)
-
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
         freq_identified = 0
         # Take decision
@@ -448,10 +460,7 @@ class LEDDetectorNode(object):
                 coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
                 result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
 
-        print("freq_identified = %f " % freq_identified)
-        print '-------------------'
-
-        return detected, result, freq_identified
+        return detected, result, freq_identified, fft_peak_freq
 
     def publish(self,imRight,imFront,imTL,results):
         #  Publish image with circles
