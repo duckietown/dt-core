@@ -357,10 +357,14 @@ class LEDDetectorNode(object):
             detected,result,freq_identified = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
             # Take decision
             if detected:
-                if freq_identified == self.freqIdentify[1]:
+                if freq_identified == self.freqIdentify[3]:
                     self.right = SignalsDetection.SIGNAL_PRIORITY
-                elif freq_identified == self.freqIdentify[2]:
+                elif freq_identified == self.freqIdentify[4]:
                     self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
+                elif freq_identified == self.freqIdentify[1]:
+                    self.right = SignalsDetection.SIGNAL_B
+                elif freq_identified == self.freqIdentify[2]:
+                    self.right = SignalsDetection.SIGNAL_C
                 else:
                     self.right = SignalsDetection.SIGNAL_A
                 break
@@ -372,10 +376,14 @@ class LEDDetectorNode(object):
             detected, result,freq_identified  = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
             # Take decision
             if detected:
-                if freq_identified == self.freqIdentify[1]:
+                if freq_identified == self.freqIdentify[3]:
                     self.front = SignalsDetection.SIGNAL_PRIORITY
-                elif freq_identified == self.freqIdentify[2]:
+                elif freq_identified == self.freqIdentify[4]:
                     self.front = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
+                elif freq_identified == self.freqIdentify[1]:
+                    self.front = SignalsDetection.SIGNAL_B
+                elif freq_identified == self.freqIdentify[2]:
+                    self.front = SignalsDetection.SIGNAL_C
                 else:
                     self.front = SignalsDetection.SIGNAL_A
                 break
@@ -423,7 +431,8 @@ class LEDDetectorNode(object):
         print '-------------------'
         print("NIm = %d " % NIm)
         print("T = %f " % T)
-        print '-------------------'
+        print("fft_peak_freq = %f " % fft_peak_freq)
+
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
         freq_identified = 0
         # Take decision
@@ -436,6 +445,9 @@ class LEDDetectorNode(object):
                 # Raw detection
                 coord_norm = Vector2D(1.0*(crop[1][0]+Blob['p'][0])/W, 1.0*(crop[0][0]+Blob['p'][1])/H)
                 result.detections.append(LEDDetection(rospy.Time.from_sec(timestamps[0]),rospy.Time.from_sec(timestamps[-1]),coord_norm,fft_peak_freq,'',-1,timestamps,signal_f,f,y_f))
+
+        print("freq_identified = %f " % freq_identified)
+        print '-------------------'
 
         return detected, result, freq_identified
 
