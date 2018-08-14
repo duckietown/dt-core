@@ -106,6 +106,9 @@ class LEDDetectorNode(object):
         self.freqIdentify = [self.protocol['signals']['CAR_SIGNAL_A']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_PRIORITY']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_SACRIFICE_FOR_PRIORITY']['frequency']]
+        print '---------------------------------------------------------------'
+        print self.freqIdentify
+        print '---------------------------------------------------------------'
 
         #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
@@ -415,6 +418,10 @@ class LEDDetectorNode(object):
         y_f           = 2.0/NIm*np.abs(signal_f[:NIm/2])
         fft_peak_freq = 1.0*np.argmax(y_f)/T/NIm
 
+        print '-------------------'
+        print("NIm = %d " % Nim)
+        print("T = %f " % T)
+        print '-------------------'
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
         freq_identified = 0
         # Take decision
