@@ -356,15 +356,17 @@ class LEDDetectorNode(object):
             # Detection
             detected,result,freq_identified, fft_peak_freq = self.detect_blob(BlobsRight[i],T,NIm,H,W,self.cropNormalizedRight,timestamps,result)
 
-            print '-------------------'
-            print("NIm = %d " % NIm)
-            print("T = %f " % T)
-            print("fft_peak_freq = %f " % fft_peak_freq)
-            print("freq_identified = %f " % freq_identified)
-            print '-------------------'
-
             # Take decision
             if detected:
+
+                print '-------------------'
+                print("NIm = %d " % NIm)
+                print("T = %f " % T)
+                print("fft_peak_freq = %f " % fft_peak_freq)
+                print("freq_identified = %f " % freq_identified)
+                print '-------------------'
+
+
                 if freq_identified == self.freqIdentify[3]:
                     self.right = SignalsDetection.SIGNAL_PRIORITY
                 elif freq_identified == self.freqIdentify[4]:
@@ -383,16 +385,16 @@ class LEDDetectorNode(object):
             # Detection
             detected, result,freq_identified, fft_peak_freq  = self.detect_blob(BlobsFront[i],T,NIm,H,W,self.cropNormalizedFront,timestamps,result)
 
-            print '-------------------'
-            print("NIm = %d " % NIm)
-            print("T = %f " % T)
-            print("fft_peak_freq = %f " % fft_peak_freq)
-            print("freq_identified = %f " % freq_identified)
-            print '-------------------'
-
-
             # Take decision
             if detected:
+
+                print '-------------------'
+                print("NIm = %d " % NIm)
+                print("T = %f " % T)
+                print("fft_peak_freq = %f " % fft_peak_freq)
+                print("freq_identified = %f " % freq_identified)
+                print '-------------------'
+
                 if freq_identified == self.freqIdentify[3]:
                     self.front = SignalsDetection.SIGNAL_PRIORITY
                 elif freq_identified == self.freqIdentify[4]:
@@ -440,7 +442,7 @@ class LEDDetectorNode(object):
         apperance_percentage = (1.0*Blob['N'])/(1.0*NIm)
 
         # Frequency estimation based on FFT
-        f              = np.linspace(0.0, 1.0/(2.0*T), NIm/2)
+        f              = np.linspace(0.0, NIm-1, NIm/2)
         signal_f       = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
         y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2+1])
         fft_peak_freq  = 1.0*np.argmax(y_f)/(NIm*T)
