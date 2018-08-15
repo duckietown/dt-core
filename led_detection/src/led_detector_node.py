@@ -442,17 +442,16 @@ class LEDDetectorNode(object):
         # Frequency estimation based on FFT
         f              = np.linspace(0.0, 1.0/(2.0*T), NIm/2)
         signal_f       = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
-        y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2])
-        n              = NIm/2 - 1
-        fft_peak_freq  = 1.0*np.argmax(y_f)/(2*T*n)
-        half_freq_dist = 0.8 #1.0*f[1]/2
+        y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2+1])
+        fft_peak_freq  = 1.0*np.argmax(y_f)/(NIm*T)
+        #half_freq_dist = 0.8 #1.0*f[1]/2
 
         #rospy.loginfo('[%s] Appearance perc. = %s, frequency = %s' % (self.node_name, apperance_percentage, fft_peak_freq))
         freq_identified = 0
         # Take decision
         detected = False
         for i in range(len(self.freqIdentify)):
-            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < half_freq_dist):
+            if  (apperance_percentage < 0.8 and apperance_percentage > 0.2 and not self.useFFT) or (self.useFFT and abs(fft_peak_freq-self.freqIdentify[i]) < 0.35):
                 # Decision
                 detected = True
                 freq_identified = self.freqIdentify[i]
