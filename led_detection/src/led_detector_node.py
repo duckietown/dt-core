@@ -442,7 +442,7 @@ class LEDDetectorNode(object):
         apperance_percentage = (1.0*Blob['N'])/(1.0*NIm)
 
         # Frequency estimation based on FFT
-        f              = np.linspace(0.0, NIm-1, NIm/2)
+        f              = np.arange(0.0,1.0*NIm+1.0,2.0)
         signal_f       = scipy.fftpack.fft(Blob['Signal']-np.mean(Blob['Signal']))
         y_f            = 2.0/NIm*np.abs(signal_f[:NIm/2+1])
         fft_peak_freq  = 1.0*np.argmax(y_f)/(NIm*T)
