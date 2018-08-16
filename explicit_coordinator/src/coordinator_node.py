@@ -142,11 +142,11 @@ class VehicleCoordinator():
         elif self.state == State.AT_STOP_CLEARING_AND_PRIORITY:
             self.roof_light = CoordinationSignal.SIGNAL_PRIORITY
             # Publish LEDs - priority interrupt
-            self.roof_light_pub.publish(self.roof_light)
+            # self.roof_light_pub.publish(self.roof_light)
         elif self.state == State.SACRIFICE_FOR_PRIORITY:
             self.roof_light = CoordinationSignal.SIGNAL_SACRIFICE_FOR_PRIORITY
             # Publish LEDs - priority interrupt
-            self.roof_light_pub.publish(self.roof_light)
+            # self.roof_light_pub.publish(self.roof_light)
         elif self.state == State.SACRIFICE:
             self.roof_light = CoordinationSignal.OFF
         elif self.state == State.KEEP_CALM:
