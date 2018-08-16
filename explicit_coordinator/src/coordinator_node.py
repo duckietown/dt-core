@@ -323,7 +323,10 @@ class VehicleCoordinator():
 
         elif self.state == State.SOLVING_UNKNOWN:
             if self.time_at_current_state() > self.random_delay:
-                self.set_state(State.AT_STOP_CLEARING)
+                if self.priority:
+                    self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.TL_SENSING:
             rospy.loginfo("I have been waiting for: "+str(time()-self.begin_tl))
@@ -332,7 +335,10 @@ class VehicleCoordinator():
 
             #If a tl intersection april tag is present but tl is switched off, wait until tl_timeout then use led coordination
             elif time()-self.begin_tl > self.tl_timeout:
-                self.set_state(State.AT_STOP_CLEARING)
+                if self.priority:
+                    self.set_state(State.AT_STOP_CLEARING_AND_PRIORITY)
+                else:
+                    self.set_state(State.AT_STOP_CLEARING)
 
 
         # If not GO, pusblish wait
