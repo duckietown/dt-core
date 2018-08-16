@@ -150,7 +150,10 @@ class VehicleCoordinator():
         elif self.state == State.SACRIFICE:
             self.roof_light = CoordinationSignal.OFF
         elif self.state == State.KEEP_CALM:
-            self.roof_light = CoordinationSignal.SIGNAL_A
+            if self.priority:
+                self.roof_light = CoordinationSignal.SIGNAL_PRIORITY
+            else:
+                self.roof_light = CoordinationSignal.SIGNAL_A
         elif self.state == State.GO and not self.traffic_light_intersection:
             self.roof_light = CoordinationSignal.SIGNAL_GREEN
         elif self.state == State.INTERSECTION_PLANNING or self.state == State.TL_SENSING:
