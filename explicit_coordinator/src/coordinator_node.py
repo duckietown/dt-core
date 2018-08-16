@@ -100,7 +100,7 @@ class VehicleCoordinator():
     def cbMaintenanceState(self, msg):
         if msg.state == "WAY_TO_MAINTENANCE":
             self.priority = True
-            print('Granted priority rights on intersections')
+            rospy.loginfo('[%s] Granted priority rights on intersections!' %(self.node_name))
         else:
             self.priority = False
 
