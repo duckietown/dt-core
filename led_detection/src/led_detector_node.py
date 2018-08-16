@@ -108,9 +108,9 @@ class LEDDetectorNode(object):
                              self.protocol['signals']['CAR_SIGNAL_C']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_PRIORITY']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_SACRIFICE_FOR_PRIORITY']['frequency']]
-        print '---------------------------------------------------------------'
-        print self.freqIdentify
-        print '---------------------------------------------------------------'
+        #print '---------------------------------------------------------------'
+        #print self.freqIdentify
+        #print '---------------------------------------------------------------'
 
         #rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
