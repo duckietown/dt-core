@@ -359,22 +359,22 @@ class LEDDetectorNode(object):
             # Take decision
             if detected:
 
-                print '-------------------'
-                print("NIm = %d " % NIm)
-                print("T = %f " % T)
-                print("fft_peak_freq = %f " % fft_peak_freq)
-                print("freq_identified = %f " % freq_identified)
-                print '-------------------'
+                #print '-------------------'
+                #print("NIm = %d " % NIm)
+                #print("T = %f " % T)
+                #print("fft_peak_freq = %f " % fft_peak_freq)
+                #print("freq_identified = %f " % freq_identified)
+                #print '-------------------'
 
 
                 if freq_identified == self.freqIdentify[3]:
                     self.right = SignalsDetection.SIGNAL_PRIORITY
                 elif freq_identified == self.freqIdentify[4]:
                     self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
-                elif freq_identified == self.freqIdentify[1]:
-                    self.right = SignalsDetection.SIGNAL_B
-                elif freq_identified == self.freqIdentify[2]:
-                    self.right = SignalsDetection.SIGNAL_C
+                    #elif freq_identified == self.freqIdentify[1]:
+                    #    self.right = SignalsDetection.SIGNAL_B
+                    #elif freq_identified == self.freqIdentify[2]:
+                    #    self.right = SignalsDetection.SIGNAL_C
                 else:
                     self.right = SignalsDetection.SIGNAL_A
                 break
@@ -388,21 +388,21 @@ class LEDDetectorNode(object):
             # Take decision
             if detected:
 
-                print '-------------------'
-                print("NIm = %d " % NIm)
-                print("T = %f " % T)
-                print("fft_peak_freq = %f " % fft_peak_freq)
-                print("freq_identified = %f " % freq_identified)
-                print '-------------------'
+                #print '-------------------'
+                #print("NIm = %d " % NIm)
+                #print("T = %f " % T)
+                #print("fft_peak_freq = %f " % fft_peak_freq)
+                #print("freq_identified = %f " % freq_identified)
+                #print '-------------------'
 
                 if freq_identified == self.freqIdentify[3]:
                     self.front = SignalsDetection.SIGNAL_PRIORITY
                 elif freq_identified == self.freqIdentify[4]:
                     self.front = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
-                elif freq_identified == self.freqIdentify[1]:
-                    self.front = SignalsDetection.SIGNAL_B
-                elif freq_identified == self.freqIdentify[2]:
-                    self.front = SignalsDetection.SIGNAL_C
+                    #elif freq_identified == self.freqIdentify[1]:
+                    #    self.front = SignalsDetection.SIGNAL_B
+                    #elif freq_identified == self.freqIdentify[2]:
+                    #    self.front = SignalsDetection.SIGNAL_C
                 else:
                     self.front = SignalsDetection.SIGNAL_A
                 break
