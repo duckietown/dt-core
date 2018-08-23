@@ -126,7 +126,7 @@ class VehicleAvoidanceControlNode(object):
 # 		print(Ts2)
 		self.vehicle_pose_msg_temp.header.stamp = vehicle_pose_msg.header.stamp
 		#print(Ts)
-		if Ts > 2:
+		if Ts > 4:
 			self.v_rel = 0
 			if vehicle_pose_msg.rho.data < self.minimal_distance:
 				self.v = 0
