@@ -57,7 +57,7 @@ class VehicleCoordinator():
         self.traffic_light_intersection = UNKNOWN
 
         self.use_priority_protocol = True
-        if rospy.get_param("~use_priority_protocol") == "false":
+        if rospy.get_param("~use_priority_protocol") == False:
             self.use_priority_protocol = False
 
 
