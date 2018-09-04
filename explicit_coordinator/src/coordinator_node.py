@@ -56,6 +56,10 @@ class VehicleCoordinator():
         # Parameters
         self.traffic_light_intersection = UNKNOWN
 
+        self.use_priority_protocol = True
+        if rospy.get_param("~use_priority_protocol") == "false":
+            self.use_priority_protocol = False
+
 
         self.tl_timeout = 60
         rospy.set_param("~tl_timeout", self.tl_timeout)
@@ -98,7 +102,7 @@ class VehicleCoordinator():
             rospy.sleep(0.1)
 
     def cbMaintenanceState(self, msg):
-        if msg.state == "WAY_TO_MAINTENANCE":
+        if msg.state == "WAY_TO_MAINTENANCE" and self.use_priority_protocol:
             self.priority = True
             rospy.loginfo('[%s] Granted priority rights on intersections!' %(self.node_name))
         else:
