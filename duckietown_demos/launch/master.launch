@@ -16,6 +16,7 @@
 	<arg name="loc" default="-1"/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
+	<arg name="use_priority_protocol" default= "true"/>
 	<arg name="target_node" default="240"/>
 	<!-- end basic args -->
 
@@ -598,6 +599,7 @@
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 			<arg name="intersectionType" value="$(arg intersectionType)" />
+ 			<arg name="use_priority_protocol" value="$(arg use_priority_protocol)" />
 
 		</include>
 	</group>

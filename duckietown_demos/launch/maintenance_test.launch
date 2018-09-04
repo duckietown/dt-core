@@ -30,6 +30,7 @@
 		<arg name="/LED/detector" value="true"/>
 		<arg name="/LED/emitter" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
+		<arg name="use_priority_protocol" value= "true"/>
 		<!-- Charging control enabled for Megacity -->
 		<arg name="charging_control" value="true"/>
 		<arg name="maintenance_control" value="true"/>
