@@ -1,8 +1,5 @@
 <launch>
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
-	<arg name="ai_trafo_mode" default="cb" doc="'cb' for color balance only; 'both' for color balance and linear trafo"/>
-	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
-	<arg name="verbose" default="false"/>
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
 		<arg name="veh" value="$(arg veh)"/>
@@ -14,10 +11,9 @@
 		<arg name="param_file_name" default="default" />
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />
-		<arg name="coordination" value="true"/>
- 		<arg name="intersectionType" default="trafficLight" />
-		<arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
-		<arg name="ai_interval" value="$(arg ai_interval)"/>
+		<arg name="implicit_coordination" value="true" />
+		<arg name="/navigation/random_sr_turns" value="true"/>
+
 
 	</include>
 </launch>
