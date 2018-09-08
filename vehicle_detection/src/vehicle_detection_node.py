@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from copy import deepcopy
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import BoolStamped
+from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
 from mutex import mutex
 from sensor_msgs.msg import CompressedImage, Image
@@ -32,12 +32,15 @@ class VehicleDetectionNode(object):
 			rospy.logwarn("[%s] Can't find calibration file: %s.\n" 
 					% (self.node_name, self.cali_file))
 		self.loadConfig(self.cali_file)
+			
 		self.sub_image = rospy.Subscriber("~image", Image, 
 				self.cbImage, queue_size=1)
 		self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
 				self.cbSwitch, queue_size=1)
 		self.pub_detection = rospy.Publisher("~detection", 
 				BoolStamped, queue_size=1)
+		self.pub_corners = rospy.Publisher("~corners", 
+				VehicleCorners, queue_size=1)
 		self.pub_circlepattern_image = rospy.Publisher("~circlepattern_image", 
 				Image, queue_size=1)
 		self.pub_time_elapsed = rospy.Publisher("~detection_time",
@@ -83,22 +86,44 @@ class VehicleDetectionNode(object):
 	def processImage(self, image_msg):
 		if self.lock.testandset():
 			vehicle_detected_msg_out = BoolStamped()
+			vehicle_corners_msg_out = VehicleCorners()
 			try:
 				image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
 			except CvBridgeError as e:
 				print e
+				
 			start = rospy.Time.now()
 			params = cv2.SimpleBlobDetector_Params()
 			params.minArea = self.blobdetector_min_area
 			params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
-			simple_blob_detector = cv2.SimpleBlobDetector(params)
+			simple_blob_detector = cv2.SimpleBlobDetector_create(params)
 			(detection, corners) = cv2.findCirclesGrid(image_cv,
 					self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
 					blobDetector=simple_blob_detector)
-			elapsed_time = (rospy.Time.now() - start).to_sec()
-			self.pub_time_elapsed.publish(elapsed_time)
+			
+			#print(corners)
+			
 			vehicle_detected_msg_out.data = detection
 			self.pub_detection.publish(vehicle_detected_msg_out)
+			if detection:
+				#print(corners)
+				points_list = []	
+				for point in corners:
+					corner = Point32()
+					#print(point[0])
+					corner.x = point[0,0]
+					#print(point[0,1])
+					corner.y = point[0,1]
+					corner.z = 0
+					points_list.append(corner)
+				vehicle_corners_msg_out.header.stamp = rospy.Time.now()
+				vehicle_corners_msg_out.corners = points_list
+				vehicle_corners_msg_out.detection.data = detection
+				vehicle_corners_msg_out.H = self.circlepattern_dims[1]
+				vehicle_corners_msg_out.W = self.circlepattern_dims[0]
+				self.pub_corners.publish(vehicle_corners_msg_out)
+			elapsed_time = (rospy.Time.now() - start).to_sec()
+			self.pub_time_elapsed.publish(elapsed_time)	
 			if self.publish_circles:
 				cv2.drawChessboardCorners(image_cv, 
 						self.circlepattern_dims, corners, detection)

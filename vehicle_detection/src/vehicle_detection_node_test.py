@@ -13,7 +13,7 @@ class VehicleDetectionTestNode(object):
 	def __init__(self):
 		self.node_name = "Vehcile Detection Test"
 		self.bridge = CvBridge()
-		self.pub_image = rospy.Publisher("~image", CompressedImage, queue_size=1)
+		self.pub_image = rospy.Publisher("~image", Image, queue_size=1)
 		self.sub_image = rospy.Subscriber("~corners", VehicleCorners, 
 				self.cbCorners, queue_size=1)
 
@@ -31,14 +31,14 @@ class VehicleDetectionTestNode(object):
 		thread.start()
 		# Returns rightaway
 
-	def pubOrig(self, args=None):
-		image_msg_out = CompressedImage()
-		image_msg_out.header.stamp = rospy.Time.now()
-		image_msg_out.format = "png"
-		image_msg_out.data = np.array(cv2.imencode('.png',
-				self.original_image)[1]).tostring()
+	def pubOrig(self, args=None):			
+		np_arr = np.fromstring(np.array(cv2.imencode('.png',
+ 				self.original_image)[1]).tostring(), np.uint8)
+		cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+		img_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
+		img_msg.header.stamp = rospy.Time.now()
+		self.pub_image.publish(img_msg)
 
-		self.pub_image.publish(image_msg_out)
 		rospy.loginfo("Publishing original image")
 		
 
