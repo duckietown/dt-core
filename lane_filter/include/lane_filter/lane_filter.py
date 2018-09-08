@@ -230,14 +230,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 else:
                     self.beliefArray[i] = self.beliefArray[i] / np.sum(self.beliefArray[i])
 
-<<<<<<< HEAD
-    @dtu.contract(segment_list=SegmentList)
-    def generate_measurement_likelihood(self, segment_list, range_min, range_max):
-        segments = segment_list
-=======
+
 
     def generate_measurement_likelihood(self, segments):
->>>>>>> megacity
+
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
 
