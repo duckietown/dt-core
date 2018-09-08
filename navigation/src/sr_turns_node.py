@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import numpy
-from duckietown_msgs.msg import FSMState, AprilTags, BoolStamped
+from duckietown_msgs.msg import FSMState, BoolStamped
 from std_msgs.msg import String, Int16 #Imports msg
 
 class SRTurnsNode(object):
@@ -17,7 +17,7 @@ class SRTurnsNode(object):
 
         # Setup subscribers
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
-       
+
         rospy.loginfo("[%s] Initialzed." %(self.node_name))
 
         self.rate = rospy.Rate(30) # 10hz
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # Create the NodeName object
     node = SRTurnsNode()
 
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()

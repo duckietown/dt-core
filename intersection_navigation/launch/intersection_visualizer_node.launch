@@ -1,0 +1,10 @@
+<launch>
+	<arg name="veh" default="megabot04" />
+
+    <remap from="~img" to="intersection_localizer_node/localizer_debug_out" />
+
+	<node ns="$(arg veh)" name="intersection_visualizer_node" pkg="intersection_navigation" type="intersection_visualizer_node.py" output="screen">
+		<!-- Setup parameters -->
+		<param name="~veh" value="$(arg veh)"/>
+	</node>
+</launch>

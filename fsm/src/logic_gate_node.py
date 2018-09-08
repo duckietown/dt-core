@@ -8,6 +8,11 @@ classes = {"BoolStamped": BoolStamped, "Twist2DStamped": Twist2DStamped, "AprilT
 
 class LogicGateNode(object):
     def __init__(self):
+
+        # Enable this for printing all logic gate operations
+        self.debugging = False
+
+
         self.node_name = rospy.get_name()
         self.gates_dict = rospy.get_param("~gates")
         # validate gate
@@ -54,7 +59,9 @@ class LogicGateNode(object):
         return True
 
     def publish(self, msg, gate_name):
-        print gate_name, " = ", msg.data, "\n"
+
+        # print gate_name, msg.data
+
         if msg is None:
             return
         self.pub_dict[gate_name].publish(msg)
@@ -66,7 +73,13 @@ class LogicGateNode(object):
 
         for event_name, event_msg in self.event_msg_dict.items():
             if event_name in inputs:    # one of the inputs to gate
-                print "sub-event: " + event_name
+
+
+                if self.debugging:
+                    print "sub-event: " + event_name
+
+
+
                 if event_msg is None:
                     if "default" in self.events_dict[event_name]:
                         bool_list.append(self.events_dict[event_name]["default"])
@@ -97,16 +110,26 @@ class LogicGateNode(object):
             msg.data = all(bool_list)
         elif gate_type == "OR":
             msg.data = any(bool_list)
-        print bool_list, "->", msg.data
+
+
+        if self.debugging:
+            print bool_list, "->", msg.data
+
+
+        # print bool_list, msg.data
+
+
         return msg
 
     def cbBoolStamped(self, msg, event_name):
         self.event_msg_dict[event_name] = msg
-        # print "got something"
+
+        #print "got something"
         for gate_name, gate_dict in self.gates_dict.items():
             inputs = gate_dict.get("inputs")
             if event_name in inputs:
-                # print "in the inputs"
+                #print "in the inputs"
+
                 self.publish(self.getOutputMsg(gate_name,inputs),gate_name)
 
     def on_shutdown(self):
@@ -118,7 +141,7 @@ if __name__ == '__main__':
     rospy.init_node('logic_gate_node', anonymous=False)
     # Create the NodeName object
     node = LogicGateNode()
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()
