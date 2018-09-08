@@ -14,7 +14,7 @@ import numpy as np
 # plotting
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 
 ## Aux
 gray_color_table = [qRgb(i, i, i) for i in range(256)]
@@ -218,7 +218,7 @@ class LEDWindow(QWidget):
                             led.pixels_normalized.y*H-0.5*self.cell_size[1]-10,
                             QString.number(led.frequency, 'g', 2))
                 qp.drawRect(led_rect)
-        
+
         pen.setStyle(Qt.SolidLine);
         pen.setBrush(QColor(0, 255, 0));
         qp.setPen(pen)
@@ -300,10 +300,10 @@ class LEDVisualizerNode(object):
         if not self.veh_name:
             raise ValueError('Vehicle name is not set.')
 
-        self.sub_info = rospy.Subscriber("/"+self.veh_name+"/LED_detector_node/debug_info", LEDDetectionDebugInfo, self.info_callback)
+        self.sub_info = rospy.Subscriber("/"+self.veh_name+"/led_detector_node/debug_info", LEDDetectionDebugInfo, self.info_callback)
         self.sub_info = rospy.Subscriber("/"+self.veh_name+"/camera_node/image/compressed", CompressedImage, self.cam_callback)
-        self.sub_info = rospy.Subscriber("/"+self.veh_name+"/LED_detector_node/raw_led_detection", LEDDetectionArray, self.result_callback)
-        self.pub_trigger = rospy.Publisher("/"+self.veh_name+"/LED_detector_node/trigger",Byte,queue_size=1)
+        self.sub_info = rospy.Subscriber("/"+self.veh_name+"/led_detector_node/raw_led_detection", LEDDetectionArray, self.result_callback)
+        self.pub_trigger = rospy.Publisher("/"+self.veh_name+"/led_detector_node/trigger",Byte,queue_size=1)
         self.hbtimer = rospy.Timer(rospy.Duration.from_sec(.2), self.heartbeat_timer)
 
         win.set_trigger_pub(self.pub_trigger)
