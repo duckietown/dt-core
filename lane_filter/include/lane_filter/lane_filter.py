@@ -1,3 +1,4 @@
+
 from collections import OrderedDict
 from math import floor
 
@@ -7,20 +8,30 @@ from scipy.stats import multivariate_normal, entropy
 
 from duckietown_msgs.msg import SegmentList
 import duckietown_utils as dtu
+
+from duckietown_utils.parameters import Configurable
+
 import numpy as np
 
 from .lane_filter_interface import LaneFilterInterface
+
 from .visualization import plot_phi_d_diagram_bgr
 
-__all__ = [
-    'LaneFilterHistogram',
-]
+from scipy.stats import multivariate_normal
+from scipy.ndimage.filters import gaussian_filter
+from math import floor, sqrt
+import copy
+
+import rospy
+
+#__all__ = [
+#    'LaneFilterHistogram',
+#]
 
 
-class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
-    '''
-        The one developed in Fall 2017 by the Controllers
-    '''
+class LaneFilterHistogram(Configurable, LaneFilterInterface):
+    #"""LaneFilterHistogram"""
+
 
     def __init__(self, configuration):
         param_names = [
@@ -41,83 +52,82 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             'min_max',
             'sigma_d_mask',
             'sigma_phi_mask',
+            'curvature_res',
+            'range_min',
+            'range_est',
+            'range_max',
+            'curvature_right',
+            'curvature_left'
         ]
-        dtu.Configurable.__init__(self, param_names, configuration)
+
+        configuration = copy.deepcopy(configuration)
+        Configurable.__init__(self, param_names, configuration)
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
-                                   self.phi_min:self.phi_max:self.delta_phi]
-        # these are the bounds you would give to pcolor
-        # there is one row and one column more
-        # self.d, self.phi are the lower corners
-
-        # Each cell captures this area:
-        #         (X[i,   j],   Y[i,   j]),
-        #         (X[i,   j+1], Y[i,   j+1]),
-        #         (X[i+1, j],   Y[i+1, j]),
-        #         (X[i+1, j+1], Y[i+1, j+1])
-        self.d_pcolor, self.phi_pcolor = \
-            np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
-                     self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
-
-        num_belief = 4
-        self.num_belief = num_belief
-
+                                    self.phi_min:self.phi_max:self.delta_phi]
+        self.beliefArray = []
+        self.range_arr = np.zeros(self.curvature_res + 1)
+        for i in range(self.curvature_res + 1):
+            self.beliefArray.append(np.empty(self.d.shape))
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
-        self.cov_0 = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
+        self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
-        self.last_segments_used = None
-
-        range_arr = np.zeros(num_belief + 1)
-        range_max = 0.6  # range to consider edges in general
-        range_min = 0.2
-        range_diff = (range_max - range_min) / (num_belief - 1)
-
-        for i in range(1, num_belief + 1):
-            range_arr[i] = range_min + (i - 1) * range_diff
-
-        self.range_arr = range_arr
+        self.d_med_arr = []
+        self.phi_med_arr = []
+        self.median_filter_size = 5
 
         self.initialize()
+        self.updateRangeArray(self.curvature_res)
 
-#
-    def initialize(self):
-        self.beliefArray = []
-        for _ in range(self.num_belief):
-            n = self.d.shape[0] * self.d.shape[1]
-            b = np.ones(self.d.shape) * (1.0 / n)
-            self.beliefArray.append(b)
 
-        pos = np.empty(self.d.shape + (2,))
-        pos[:, :, 0] = self.d
-        pos[:, :, 1] = self.phi
-        # XXX: statement with no effect
-        # self.cov_0
-        RV = multivariate_normal(self.mean_0, self.cov_0)
+# master18 different stuff
+    # def initialize(self):
+    #     self.beliefArray = []
+    #     for _ in range(self.num_belief):
+    #         n = self.d.shape[0] * self.d.shape[1]
+    #         b = np.ones(self.d.shape) * (1.0 / n)
+    #         self.beliefArray.append(b)
+    #
+    #     pos = np.empty(self.d.shape + (2,))
+    #     pos[:, :, 0] = self.d
+    #     pos[:, :, 1] = self.phi
+    #     # XXX: statement with no effect
+    #     # self.cov_0
+    #     RV = multivariate_normal(self.mean_0, self.cov_0)
+    #
+    #     n = pos.shape[0] * pos.shape[1]
+    #
+    #     gaussian = RV.pdf(pos) * 0.5  #+ 0.5/n
+    #
+    #     gaussian = gaussian / np.sum(gaussian.flatten())
+    #
+    #     uniform = np.ones(dtype='float32', shape=self.d.shape) * (1.0 / n)
+    #
+    #     a = 0.01
+    #     self.belief = a * gaussian + (1 - a) * uniform
+    #
+    #     assert_almost_equal(self.belief.flatten().sum(), 1.0)
+    #
+    # def get_status(self):
+    #     # TODO: Detect abnormal states (@liam)
+    #     return LaneFilterInterface.GOOD
 
-        n = pos.shape[0] * pos.shape[1]
+        # Additional variables
+        self.red_to_white = False
+        self.use_yellow = True
+        self.range_est_min = 0
+        self.filtered_segments = []
 
-        gaussian = RV.pdf(pos) * 0.5  #+ 0.5/n
+    # predict the state
 
-        gaussian = gaussian / np.sum(gaussian.flatten())
-
-        uniform = np.ones(dtype='float32', shape=self.d.shape) * (1.0 / n)
-
-        a = 0.01
-        self.belief = a * gaussian + (1 - a) * uniform
-
-        assert_almost_equal(self.belief.flatten().sum(), 1.0)
-
-    def get_status(self):
-        # TODO: Detect abnormal states (@liam)
-        return LaneFilterInterface.GOOD
 
     def predict(self, dt, v, w):
         delta_t = dt
         d_t = self.d + v * delta_t * np.sin(self.phi)
         phi_t = self.phi + w * delta_t
 
-        for k in range(self.num_belief):
+        for k in range(self.curvature_res):
             p_belief = np.zeros(self.beliefArray[k].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
@@ -126,24 +136,92 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                     if self.beliefArray[k][i, j] > 0:
                         if d_t[i, j] > self.d_max or d_t[i, j] < self.d_min or phi_t[i, j] < self.phi_min or phi_t[i, j] > self.phi_max:
                             continue
-                        i_new = int(floor((d_t[i, j] - self.d_min) / self.delta_d))
-                        j_new = int(floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
+
+                        i_new = int(
+                            floor((d_t[i, j] - self.d_min) / self.delta_d))
+                        j_new = int(
+                            floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
+
                         p_belief[i_new, j_new] += self.beliefArray[k][i, j]
 
             s_belief = np.zeros(self.beliefArray[k].shape)
-            gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
+            gaussian_filter(p_belief, self.cov_mask,
+                            output=s_belief, mode='constant')
 
             if np.sum(s_belief) == 0:
                 return
             self.beliefArray[k] = s_belief / np.sum(s_belief)
 
+    # prepare the segments for the creation of the belief arrays
+    def prepareSegments(self, segments):
+        segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
+        self.filtered_segments = []
+        for segment in segments:
+            # Optional transform from RED to WHITE
+            if self.red_to_white and segment.color == segment.RED:
+                segment.color = segment.WHITE
+
+            # Optional filtering out YELLOW
+            if not self.use_yellow and segment.color == segment.YELLOW: continue
+
+            # we don't care about RED ones for now
+            if segment.color != segment.WHITE and segment.color != segment.YELLOW:
+                continue
+            # filter out any segments that are behind us
+            if segment.points[0].x < 0 or segment.points[1].x < 0:
+                continue
+
+            self.filtered_segments.append(segment)
+            # only consider points in a certain range from the Duckiebot for the position estimation
+            point_range = self.getSegmentDistance(segment)
+            if point_range < self.range_est and point_range > self.range_est_min:
+                segmentsRangeArray[0].append(segment)
+                # print functions to help understand the functionality of the code
+                # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
+                # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
+                # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
+
+            # split segments ot different domains for the curvature estimation
+            if self.curvature_res is not 0:
+                for i in range(self.curvature_res):
+                    if point_range < self.range_arr[i + 1] and point_range > self.range_arr[i]:
+                        segmentsRangeArray[i + 1].append(segment)
+                        # print functions to help understand the functionality of the code
+                        # print 'Adding segment to segmentsRangeArray[%i] (Range: %s < %s < %s)' % (i + 1, self.range_arr[i], point_range, self.range_arr[i + 1])
+                        # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[i + 1][-1])
+                        # print 'Length of segmentsRangeArray[%i] up to now: %s' % (i + 1, len(segmentsRangeArray[i + 1]))
+                        continue
+
+        # print functions to help understand the functionality of the code
+        # for i in range(len(segmentsRangeArray)):
+        #     print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
+        #     for j in range(len(segmentsRangeArray[i])):
+        #         print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
+
+        return segmentsRangeArray
+
+    def updateRangeArray(self, curvature_res):
+        self.curvature_res = curvature_res
+        self.beliefArray = []
+        for i in range(self.curvature_res + 1):
+            self.beliefArray.append(np.empty(self.d.shape))
+        self.initialize()
+        if curvature_res > 1:
+            self.range_arr = np.zeros(self.curvature_res + 1)
+            range_diff = (self.range_max - self.range_min) / \
+                (self.curvature_res)
+
+            # populate range_array
+            for i in range(len(self.range_arr)):
+                self.range_arr[i] = self.range_min + (i * range_diff)
+
+    # generate the belief arrays
     def update(self, segments):
-        range_arr = self.range_arr
-        for i in range(self.num_belief):
-            if i == 0:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 2])
-            else:
-                measurement_likelihood = self.generate_measurement_likelihood(segments, range_arr[i], range_arr[i + 1])
+        # prepare the segments for each belief array
+        segmentsRangeArray = self.prepareSegments(segments)
+        # generate all belief arrays
+        for i in range(self.curvature_res + 1):
+            measurement_likelihood = self.generate_measurement_likelihood(segmentsRangeArray[i])
 
             if measurement_likelihood is not None:
                 self.beliefArray[i] = np.multiply(self.beliefArray[i], measurement_likelihood)
@@ -151,89 +229,104 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
                     self.beliefArray[i] = measurement_likelihood
                 else:
                     self.beliefArray[i] = self.beliefArray[i] / np.sum(self.beliefArray[i])
-        return measurement_likelihood
 
+<<<<<<< HEAD
     @dtu.contract(segment_list=SegmentList)
     def generate_measurement_likelihood(self, segment_list, range_min, range_max):
         segments = segment_list
+=======
+
+    def generate_measurement_likelihood(self, segments):
+>>>>>>> megacity
         # initialize measurement likelihood to all zeros
-        measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
+        measurement_likelihood = np.zeros(self.d.shape)
+
         for segment in segments:
-            # only consider points in a certain range from the Duckiebot
-            point_range = self.getSegmentDistance(segment)
-            if point_range < range_min or point_range > range_max:
-                continue
-            # we don't care about RED ones for now
-            if segment.color != segment.WHITE and segment.color != segment.YELLOW:
-                continue
-            # filter out any segments that are behind us
-            if segment.points[0].x < 0 or segment.points[1].x < 0:
-                continue
-            d_i, phi_i, _l_i, weight = self.generateVote(segment)
+            d_i, phi_i, l_i, weight =  self.generateVote(segment)
+
             # if the vote lands outside of the histogram discard it
-            if d_i > self.d_max or \
-                d_i < self.d_min or \
-                phi_i < self.phi_min or \
-                phi_i > self.phi_max:
+            if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i > self.phi_max:
                 continue
+
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i, j] += weight
+            measurement_likelihood[i, j] = measurement_likelihood[i, j] + 1
+
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
-        measurement_likelihood = measurement_likelihood / np.sum(measurement_likelihood)
+        measurement_likelihood = measurement_likelihood / \
+            np.sum(measurement_likelihood)
         return measurement_likelihood
 
-    def getEstimateList(self):
-        d_max = np.zeros(self.num_belief)
-        phi_max = np.zeros(self.num_belief)
-        for i in range(self.num_belief):
-            maxids = np.unravel_index(self.beliefArray[i].argmax(), self.beliefArray[i].shape)
-            # add 0.5 because we want the center of the cell
+    # get the maximal values d_max and phi_max from the belief array. The first belief array (beliefArray[0]) includes the actual belief of the Duckiebots position. The further belief arrays are used for the curvature estimation.
+    def getEstimate(self):
+        d_max = np.zeros(self.curvature_res + 1)
+        phi_max = np.zeros(self.curvature_res + 1)
+        for i in range(self.curvature_res + 1):
+            maxids = np.unravel_index(
+                self.beliefArray[i].argmax(), self.beliefArray[i].shape)
             d_max[i] = self.d_min + (maxids[0] + 0.5) * self.delta_d
             phi_max[i] = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
-        return d_max, phi_max
+        return [d_max, phi_max]
 
-    def get_estimate(self):
-        d_max, phi_max = self.getEstimateList()
-        d_median = np.median(d_max[1:])
-        phi_median = np.median(phi_max[1:])
-        res = OrderedDict()
-        res['d'] = d_median
-        res['phi'] = phi_median
-        return res
+    # TODO: Method is needed (this caused the abstract class error, where is it gone?) (Julien)
+    def getStatus(self):
+        return
 
-    def getEstimate(self):
-        """ Returns a list with two elements: (d, phi) """
-        res = self.get_estimate()
-        return [res['d'], res['phi']]
+    # get the curvature estimation
+    def getCurvature(self, d_max, phi_max):
+        d_med_act = np.median(d_max) # actual median d value
+        phi_med_act = np.median(phi_max) # actual median phi value
 
+        # store median values over a few time step to smoothen out the estimation
+        if len(self.d_med_arr) >= self.median_filter_size:
+            self.d_med_arr.pop(0)
+            self.phi_med_arr.pop(0)
+        self.d_med_arr.append(d_med_act)
+        self.phi_med_arr.append(phi_med_act)
+
+        # set curvature
+        # TODO: check magic constants
+        if np.median(self.phi_med_arr) - phi_max[0] < -0.3 and np.median(self.d_med_arr) > 0.05:
+            print "Curvature estimation: left curve"
+            return self.curvature_left
+        elif np.median(self.phi_med_arr) - phi_max[0] > 0.2 and np.median(self.d_med_arr) < -0.02:
+            print "Curvature estimation: right curve"
+            return self.curvature_right
+        else:
+            print "Curvature estimation: straight lane"
+            return 0
+
+    # return the maximal value of the beliefArray
     def getMax(self):
         return self.beliefArray[0].max()
 
-    def get_entropy(self):
-        s = entropy(self.beliefArray[0].flatten())
-        return s
 
+    def initialize(self):
+        pos = np.empty(self.d.shape + (2,))
+        pos[:, :, 0] = self.d
+        pos[:, :, 1] = self.phi
+        self.cov_0
+        RV = multivariate_normal(self.mean_0, self.cov_0)
+        for i in range(self.curvature_res + 1):
+            self.beliefArray[i] = RV.pdf(pos)
+
+    # generate a vote for one segment
     def generateVote(self, segment):
-        """
-            return d_i, phi_i, l_i, weight
-
-            XXX: What is l_i?
-        """
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])
-        distance = np.linalg.norm(p2 - p1)
-        t_hat = (p2 - p1) / distance
+        t_hat = (p2 - p1) / np.linalg.norm(p2 - p1)
+
         n_hat = np.array([-t_hat[1], t_hat[0]])
         d1 = np.inner(n_hat, p1)
         d2 = np.inner(n_hat, p2)
         l1 = np.inner(t_hat, p1)
         l2 = np.inner(t_hat, p2)
         if (l1 < 0):
-            l1 = -l1;
+            l1 = -l1
         if (l2 < 0):
-            l2 = -l2;
+            l2 = -l2
+
         l_i = (l1 + l2) / 2
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
@@ -241,7 +334,9 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
             if(p1[0] > p2[0]):  # right edge of white lane
                 d_i = d_i - self.linewidth_white
             else:  # left edge of white lane
-                d_i = -d_i
+
+                d_i = - d_i
+
                 phi_i = -phi_i
             d_i = d_i - self.lanewidth / 2
 
@@ -257,14 +352,9 @@ class LaneFilterHistogram(dtu.Configurable, LaneFilterInterface):
         weight = 1
         return d_i, phi_i, l_i, weight
 
-    def get_plot_phi_d(self, ground_truth=None):  # @UnusedVariable
-        est = self.get_estimate()
-        belief = self.beliefArray[0]
-        other_d, other_phi = self.getEstimateList()
-        return plot_phi_d_diagram_bgr(self, belief, phi=est['phi'], d=est['d'],
-                                      other_phi=other_phi, other_d=other_d)
 
+    # get the distance from the center of the Duckiebot to the center point of a segment
     def getSegmentDistance(self, segment):
         x_c = (segment.points[0].x + segment.points[1].x) / 2
         y_c = (segment.points[0].y + segment.points[1].y) / 2
-        return np.hypot(x_c, y_c)
+        return sqrt(x_c**2 + y_c**2)
