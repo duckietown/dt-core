@@ -41,7 +41,6 @@ class UnicornIntersectionNode(object):
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-        self.active = False
 
     def cbLanePose(self, msg):
         if self.forward_pose: self.pub_lane_pose.publish(msg)
