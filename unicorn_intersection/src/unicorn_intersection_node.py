@@ -30,6 +30,7 @@ class UnicornIntersectionNode(object):
         self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_int_go = rospy.Subscriber("~intersection_go", BoolStamped, self.cbIntersectionGo)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose_in", LanePose, self.cbLanePose)
+        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
 
         ## Publisher
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
@@ -39,6 +40,8 @@ class UnicornIntersectionNode(object):
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
+
+        self.active = False
 
     def cbLanePose(self, msg):
         if self.forward_pose: self.pub_lane_pose.publish(msg)
@@ -50,6 +53,10 @@ class UnicornIntersectionNode(object):
         self.pub_LF_params.publish(msg)
 
     def cbIntersectionGo(self, msg):
+
+        if not self.active:
+            return
+
         if not msg.data: return
 
         while self.turn_type == -1:
@@ -100,6 +107,10 @@ class UnicornIntersectionNode(object):
             self.turn_type = -1
 
         self.state = msg.state
+
+    def cbSwitch(self, switch_msg):
+        self.active = switch_msg.data
+
 
     def cbTurnType(self, msg):
         self.tag_id = msg.tag_id
