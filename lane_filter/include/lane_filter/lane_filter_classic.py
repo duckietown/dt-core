@@ -70,6 +70,11 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
 
         self.initialize()
 
+
+    def getStatus(self):
+        """ Returns one of the statuses above """
+        return LaneFilterInterface.GOOD
+
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))
         pos[:, :, 0] = self.d
