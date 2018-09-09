@@ -59,6 +59,8 @@ class UnicornIntersectionNode(object):
         if not msg.data: return
 
         while self.turn_type == -1:
+            if not self.active:
+                return
             rospy.loginfo("Requested to start intersection, but we do not see an april tag yet.")
             rospy.sleep(2)
 
