@@ -3,9 +3,8 @@
   <name>camera_rectifier</name>
   <version>1.0.0</version>
   <description>
-The package `pkg_name` is a template for ROS packages.
+Package for the camera rectifier.
 
-For the tutorial, see [](#ros-python-howto).
 </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
