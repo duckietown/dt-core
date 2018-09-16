@@ -70,7 +70,7 @@ def plot_phi_d_diagram_bgr(lane_filter, belief, phi, d, dpi=120,
         pylab.plot([+W, +W], [f_phi(phi_min), f_phi(phi_max)], 'y-')
         pylab.plot([+W + width_yellow, +W + width_yellow], [f_phi(phi_min), f_phi(phi_max)], 'y-')
         s = ''
-        s += "status = %s" % lane_filter.get_status()
+        s += "status = %s" % lane_filter.getStatus()
         s += "\nphi = %.1f deg" % f_phi(phi)
         s += "\nd = %.1f cm" % f_d(d)
         s += "\nentropy = %.4f" % lane_filter.get_entropy()

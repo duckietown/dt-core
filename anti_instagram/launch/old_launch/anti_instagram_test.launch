@@ -4,7 +4,7 @@
 	<arg name="decoder" default="true"/>
 	<arg name="average" default="false"/>
 
-
+	<param name="~veh" value="$(arg veh)"/>
 	<group ns="$(arg veh)">
 		<remap if="$(arg decoder)" from="~uncorrected_image" to="raw_image"/>
 		<remap unless="$(arg decoder)" from="~uncorrected_image" to="camera_node/image/raw"/>

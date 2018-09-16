@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import time
 
-# milansc:
+# milansc: 
 # colors in bgr
 #[60,60,60] is dark grey
 #[60, 60, 240] is red
@@ -230,19 +230,18 @@ def getparameters(mapping, trained, true):
 
 
 if __name__ == '__main__':
-	img_filename="test2.jpg"
-	if (len(sys.argv)>1):
-		img_filename=sys.argv[1]
-		print(img_filename)
-	cv_img = cv2.imread(img_filename)
-	t1 = time.clock()
-	testdata = getimgdatapts(cv_img)
-	t2 = time.clock()
-	print("Time taken:")
-	print(t2-t1)
+    img_filename="test2.jpg"
+    if (len(sys.argv)>1):
+        img_filename=sys.argv[1]
+        print(img_filename)
+    cv_img = cv2.imread(img_filename)
+    t1 = time.clock()
+    testdata = getimgdatapts(cv_img)
+    t2 = time.clock()
+    print("Time taken:")
+    print(t2-t1)
 
-	trained = runKMeans(testdata)
-	mapping = identifyColors(trained[0], CENTERS)
-	getparameters(mapping, trained[0], CENTERS)
-
-    #from anti_instagram import AntiInstagram Why is this here?
+    trained = runKMeans(testdata)
+    from anti_instagram import AntiInstagram
+    mapping = identifyColors(trained[0], CENTERS)
+    getparameters(mapping, trained[0], CENTERS)

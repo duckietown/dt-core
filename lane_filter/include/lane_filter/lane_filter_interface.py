@@ -36,10 +36,9 @@ class LaneFilterInterface(object):
         """
 
     @abstractmethod
-    def get_status(self):
+    def getStatus(self):
         """ Returns one of the statuses above """
 
     @abstractmethod
-    def get_estimate(self):
+    def getEstimate(self):
         """ Returns a numpy array of datatype ESTIMATE_DATATYPE """
-

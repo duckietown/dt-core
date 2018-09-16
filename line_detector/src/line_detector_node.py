@@ -1,23 +1,24 @@
 #!/usr/bin/env python
+from anti_instagram.AntiInstagram_rebuild import AntiInstagram
+from cv_bridge import CvBridge, CvBridgeError
+from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, FSMState, Segment,
+    SegmentList, Vector2D)
+from duckietown_utils.instantiate_utils import instantiate
+from duckietown_utils.jpg import bgr_from_jpg
+from geometry_msgs.msg import Point
+from sensor_msgs.msg import CompressedImage, Image
+from visualization_msgs.msg import Marker
+
+from line_detector.timekeeper import TimeKeeper
+import cv2
+import rospy
 import threading
 import time
-
-import cv2
-
-from anti_instagram import AntiInstagram
-from cv_bridge import CvBridge
-from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, Segment,
-                                 SegmentList)
-import duckietown_utils as dtu
 from line_detector.line_detector_plot import color_segment, drawLines
-from line_detector.timekeeper import TimeKeeper
 import numpy as np
-import rospy
-from sensor_msgs.msg import CompressedImage, Image
 
 
 class LineDetectorNode(object):
-
     def __init__(self):
         self.node_name = "LineDetectorNode"
 
@@ -42,22 +43,41 @@ class LineDetectorNode(object):
         self.pub_edge = None
         self.pub_colorSegment = None
 
+        # We use two different detectors (parameters) for lane following and
+        # intersection navigation (both located in yaml file)
         self.detector = None
+        self.detector_intersection = None
+        self.detector_used = self.detector
+
+
         self.verbose = None
         self.updateParams(None)
+
+        self.fsm_state = "NORMAL_JOYSTICK_CONTROL"
 
         # Publishers
         self.pub_lines = rospy.Publisher("~segment_list", SegmentList, queue_size=1)
         self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
 
         # Subscribers
-        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
         self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
 
-        rospy.loginfo("[%s] Initialized (verbose = %s)." % (self.node_name, self.verbose))
+        rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
 
-        rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)  # @UndefinedVariable
+        rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
+
+
+    def cbFSM(self, msg):
+        self.fsm_state = msg.state
+
+        if self.fsm_state in ["INTERSECTION_PLANNING", "INTERSECTION_COORDINATION", "INTERSECTION_CONTROL"]:
+            self.detector_used = self.detector_intersection
+        else:
+            self.detector_used = self.detector
+
 
     def updateParams(self, _event):
         old_verbose = self.verbose
@@ -76,23 +96,36 @@ class LineDetectorNode(object):
 #         if str(self.detector_config) != str(c):
             self.loginfo('new detector config: %s' % str(c))
 
-            self.detector = dtu.instantiate(c[0], c[1])
+            self.detector = instantiate(c[0], c[1])
+#             self.detector_config = c
+            self.detector_used = self.detector
+
+        if self.detector_intersection is None:
+            c = rospy.get_param('~detector_intersection')
+            assert isinstance(c, list) and len(c) == 2, c
+
+#         if str(self.detector_config) != str(c):
+            self.loginfo('new detector_intersection config: %s' % str(c))
+
+            self.detector_intersection = instantiate(c[0], c[1])
 #             self.detector_config = c
 
         if self.verbose and self.pub_edge is None:
             self.pub_edge = rospy.Publisher("~edge", Image, queue_size=1)
             self.pub_colorSegment = rospy.Publisher("~colorSegment", Image, queue_size=1)
 
+
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
     def cbImage(self, image_msg):
+        # print('line_detector_node: image received!!')
         self.stats.received()
 
         if not self.active:
             return
         # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage, args=(image_msg,))
+        thread = threading.Thread(target=self.processImage,args=(image_msg,))
         thread.setDaemon(True)
         thread.start()
         # Returns rightaway
@@ -140,12 +173,7 @@ class LineDetectorNode(object):
 
         # Decode from compressed image with OpenCV
         try:
-            if False:
-                image_cv = dtu.bgr_from_jpg(image_msg.data)
-            else:
-                image_cv_rgb = dtu.rgb_from_jpg_by_JPEG_library(image_msg.data)
-                image_cv = dtu.bgr_from_rgb(image_cv_rgb)
-
+            image_cv = bgr_from_jpg(image_msg.data)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
@@ -159,24 +187,25 @@ class LineDetectorNode(object):
             # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
             image_cv = cv2.resize(image_cv, (self.image_size[1], self.image_size[0]),
                                    interpolation=cv2.INTER_NEAREST)
-        image_cv = image_cv[self.top_cutoff:, :, :]
+        image_cv = image_cv[self.top_cutoff:,:,:]
 
         tk.completed('resized')
 
-        # apply color correction
+        # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
+        """
+        # apply color correction: AntiInstagram
         image_cv_corr = self.ai.applyTransform(image_cv)
-        # image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
-
+        image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
         tk.completed('corrected')
-
+        """
         # Set the image to be detected
-        self.detector.setImage(image_cv_corr)
+        self.detector_used.setImage(image_cv)
 
         # Detect lines and normals
 
-        white = self.detector.detectLines('white')
-        yellow = self.detector.detectLines('yellow')
-        red = self.detector.detectLines('red')
+        white = self.detector_used.detectLines('white')
+        yellow = self.detector_used.detectLines('yellow')
+        red = self.detector_used.detectLines('red')
 
         tk.completed('detected')
 
@@ -186,7 +215,7 @@ class LineDetectorNode(object):
 
         # Convert to normalized pixel coordinates, and add segments to segmentList
         arr_cutoff = np.array((0, self.top_cutoff, 0, self.top_cutoff))
-        arr_ratio = np.array((1. / self.image_size[1], 1. / self.image_size[0], 1. / self.image_size[1], 1. / self.image_size[0]))
+        arr_ratio = np.array((1./self.image_size[1], 1./self.image_size[0], 1./self.image_size[1], 1./self.image_size[0]))
         if len(white.lines) > 0:
             lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
             segmentList.segments.extend(self.toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
@@ -210,8 +239,10 @@ class LineDetectorNode(object):
 
         if self.verbose:
 
+            # print('line_detect_node: verbose is on!')
+
             # Draw lines and normals
-            image_with_lines = np.copy(image_cv_corr)
+            image_with_lines = np.copy(image_cv)
             drawLines(image_with_lines, white.lines, (0, 0, 0))
             drawLines(image_with_lines, yellow.lines, (255, 0, 0))
             drawLines(image_with_lines, red.lines, (0, 255, 0))
@@ -227,22 +258,24 @@ class LineDetectorNode(object):
 
 #         if self.verbose:
             colorSegment = color_segment(white.area, red.area, yellow.area)
-            edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector.edges, "mono8")
+            edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector_used.edges, "mono8")
             colorSegment_msg_out = self.bridge.cv2_to_imgmsg(colorSegment, "bgr8")
             self.pub_edge.publish(edge_msg_out)
             self.pub_colorSegment.publish(colorSegment_msg_out)
 
             tk.completed('pub_edge/pub_segment')
 
+
         self.intermittent_log(tk.getall())
+
 
     def onShutdown(self):
         self.loginfo("Shutdown.")
 
-    def toSegmentMsg(self, lines, normals, color):
+    def toSegmentMsg(self,  lines, normals, color):
 
         segmentMsgList = []
-        for x1, y1, x2, y2, norm_x, norm_y in np.hstack((lines, normals)):
+        for x1,y1,x2,y2,norm_x,norm_y in np.hstack((lines,normals)):
             segment = Segment()
             segment.color = color
             segment.pixels_normalized[0].x = x1
@@ -255,9 +288,7 @@ class LineDetectorNode(object):
             segmentMsgList.append(segment)
         return segmentMsgList
 
-
 class Stats():
-
     def __init__(self):
         self.nresets = 0
         self.reset()
@@ -301,8 +332,11 @@ class Stats():
         return m
 
 
+
+
+
 if __name__ == '__main__':
-    rospy.init_node('line_detector', anonymous=False)
+    rospy.init_node('line_detector',anonymous=False)
     line_detector_node = LineDetectorNode()
     rospy.on_shutdown(line_detector_node.onShutdown)
-    rospy.spin()
+rospy.spin()

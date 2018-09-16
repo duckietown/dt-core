@@ -1,12 +1,8 @@
-import cv2
 from .kmeans import getparameters2, identifyColors, runKMeans
 from .scale_and_shift import scaleandshift
 from anti_instagram.kmeans import CENTERS, CENTERS2
 import numpy as np
-import duckietown_utils as dtu
-from .interface import AntiInstagramInterface
-
-logger = dtu.logger
+from duckietown_utils import logger
 
 def calculate_transform(image):
     """
@@ -79,8 +75,7 @@ def calculate_transform(image):
 #         self.scale = (self.scale+deltascale*IIR_weight)/(1+IIR_weight)
 #         self.shift = (self.shift+deltashift*IIR_weight)/(1+IIR_weight)
 
-class ScaleAndShift(object):
-    
+class ScaleAndShift():
     """ Represents the transformation """
     
     def __init__(self, scale, shift):
@@ -97,32 +92,23 @@ class ScaleAndShift(object):
 
 
 
-class AntiInstagram(AntiInstagramInterface):
+class AntiInstagram():
 
-    def __init__(self, median_blur=0):
+    def __init__(self):
         self.scale = [1.0, 1.0, 1.0]
         self.shift = [0.0, 0.0, 0.0]
         self.health = 0
     
-#         median_blur = 5
-        self.median_blur = median_blur
-        
     def applyTransform(self, image):
         corrected_image = scaleandshift(image, self.scale, self.shift)
-        res = np.clip(corrected_image, 0, 255).astype('uint8')
-#         res = cv2.convertScaleAbs(corrected_image).astype('uint8')
-#         print res.dtype
-        return res
+        return corrected_image
     
-    def calculateTransform(self, image): #, testframe=False):
-        if self.median_blur > 0:
-            image = cv2.medianBlur(image, self.median_blur)
+    def calculateTransform(self, image, testframe=False):
         success, self.health, parameters = calculate_transform(image)
         if not success:
             raise Exception('calculate_transform failed')
         self.scale = parameters['scale']
         self.shift = parameters['shift']
-        logger.debug('Scale: %s shift: %s' % (self.scale, self.shift))
     
     def calculateHealth(self):
         return self.health

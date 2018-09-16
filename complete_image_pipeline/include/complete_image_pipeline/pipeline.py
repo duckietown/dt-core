@@ -115,14 +115,19 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['prior'] = lane_filter.get_plot_phi_d()
 
     with pts.phase('lane filter update'):
-        _likelihood = lane_filter.update(sg)
+        print type(lane_filter).__name__
+        if type(lane_filter).__name__ == 'LaneFilterHistogram':
+            # XXX merging pain
+            _likelihood = lane_filter.update(sg.segments)
+        else:
+            _likelihood = lane_filter.update(sg)
 
     if not quick:
         with pts.phase('lane filter plot'):
             res['likelihood'] = lane_filter.get_plot_phi_d(ground_truth=ground_truth)
     easy_algo_db = get_easy_algo_db()
 
-    if isinstance(lane_filter, (LaneFilterMoreGeneric)):
+    if isinstance(lane_filter, LaneFilterMoreGeneric):
         template_name = lane_filter.localization_template
     else:
         template_name = 'DT17_template_straight_straight'
