@@ -76,7 +76,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return LaneFilterInterface.GOOD
 
     def getStatus(self):
-        return get_status()
+        return self.get_status()
 
 
     def update(self, segment_list):

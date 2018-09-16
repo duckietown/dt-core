@@ -57,7 +57,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             'range_est',
             'range_max',
             'curvature_right',
-            'curvature_left'
+            'curvature_left',
         ]
 
         configuration = copy.deepcopy(configuration)
@@ -65,6 +65,11 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                     self.phi_min:self.phi_max:self.delta_phi]
+        self.d_pcolor, self.phi_pcolor = \
+            np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
+                     self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
+
+
         self.beliefArray = []
         self.range_arr = np.zeros(self.curvature_res + 1)
         for i in range(self.curvature_res + 1):
@@ -81,7 +86,21 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.updateRangeArray(self.curvature_res)
 
 
-# master18 different stuff
+        # Additional variables
+        self.red_to_white = False
+        self.use_yellow = True
+        self.range_est_min = 0
+        self.filtered_segments = []
+
+    def getStatus(self):
+        return LaneFilterInterface.GOOD
+
+    def get_entropy(self):
+        belief = self.beliefArray[0]
+        s = entropy(belief.flatten())
+        return s
+
+    # master18 different stuff
     # def initialize(self):
     #     self.beliefArray = []
     #     for _ in range(self.num_belief):
@@ -109,18 +128,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     #
     #     assert_almost_equal(self.belief.flatten().sum(), 1.0)
     #
-    # def get_status(self):
-    #     # TODO: Detect abnormal states (@liam)
-    #     return LaneFilterInterface.GOOD
-
-        # Additional variables
-        self.red_to_white = False
-        self.use_yellow = True
-        self.range_est_min = 0
-        self.filtered_segments = []
-
-    # predict the state
-
 
     def predict(self, dt, v, w):
         delta_t = dt
@@ -265,9 +272,12 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             phi_max[i] = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
         return [d_max, phi_max]
 
-    # TODO: Method is needed (this caused the abstract class error, where is it gone?) (Julien)
-    def getStatus(self):
-        return
+    def get_estimate(self):
+        d, phi = self.getEstimate()
+        res = OrderedDict()
+        res['d'] = d[0]
+        res['phi'] = phi[0]
+        return res
 
     # get the curvature estimation
     def getCurvature(self, d_max, phi_max):
@@ -354,3 +364,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         x_c = (segment.points[0].x + segment.points[1].x) / 2
         y_c = (segment.points[0].y + segment.points[1].y) / 2
         return sqrt(x_c**2 + y_c**2)
+
+    def get_plot_phi_d(self, ground_truth=None):  # @UnusedVariable
+        d, phi = self.getEstimate()
+        belief = self.beliefArray[0]
+        return plot_phi_d_diagram_bgr(self, belief, phi=phi, d=d)

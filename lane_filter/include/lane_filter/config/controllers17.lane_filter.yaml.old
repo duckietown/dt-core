@@ -1,17 +1,18 @@
+# Stopped working during the merge
 description: >
-    The baseline lane filter configuration. 
+    The Fall 2017 controllers lane filter.
 constructor: lane_filter.LaneFilterHistogram
-parameters: 
+parameters:
   configuration:
       mean_d_0: 0
       mean_phi_0: 0
       sigma_d_0: 0.1
       sigma_phi_0: 0.1
-      # delta_d: 0.02
-      # delta_phi: 0.1
-      
-      delta_d: 0.005
-      delta_phi: 0.025
+      delta_d: 0.02
+      delta_phi: 0.1
+
+      # delta_d: 0.005
+      # delta_phi: 0.025
       d_max: 0.3
       d_min: -0.15
       phi_min: -1.5

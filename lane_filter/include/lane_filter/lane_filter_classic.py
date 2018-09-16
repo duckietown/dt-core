@@ -72,7 +72,6 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
 
 
     def getStatus(self):
-        """ Returns one of the statuses above """
         return LaneFilterInterface.GOOD
 
     def initialize(self):
