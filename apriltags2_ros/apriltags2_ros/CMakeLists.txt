@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf
   cmake_modules
+  duckietown_msgs
 )
 
 find_package(Eigen REQUIRED)
