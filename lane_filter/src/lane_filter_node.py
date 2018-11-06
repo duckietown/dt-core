@@ -134,7 +134,10 @@ class LaneFilterNode(object):
             lanePose.curvature = self.filter.getCurvature(d_max[1:], phi_max[1:])
 
         # publish the belief image
-        belief_img = self.getDistributionImage(self.filter.belief, segment_list_msg.header.stamp)
+        bridge = CvBridge()
+        belief_img = bridge.cv2_to_imgmsg((255 * self.filter.beliefArray).astype('uint8'), "mono8")
+        belief_img.header.stamp = segment_list_msg.header.stamp
+
         self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
         
@@ -160,11 +163,6 @@ class LaneFilterNode(object):
         in_lane_msg.data = True #TODO change with in_lane
         self.pub_in_lane.publish(in_lane_msg)
 
-    def getDistributionImage(self, mat, stamp):
-        bridge = CvBridge()
-        img = bridge.cv2_to_imgmsg((255 * mat).astype('uint8'), "mono8")
-        img.header.stamp = stamp
-        return img
 
         
     def cbMode(self, msg):
