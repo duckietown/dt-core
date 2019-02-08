@@ -334,9 +334,9 @@ class lane_controller(object):
 
     def updateActuatorLimits(self, msg_actuator_limits):
         self.actuator_limits = msg_actuator_limits
-        rospy.loginfo("actuator limits updated to: ")
-        rospy.loginfo("actuator_limits.v: " + str(self.actuator_limits.v))
-        rospy.loginfo("actuator_limits.omega: " + str(self.actuator_limits.omega))
+        rospy.logdebug("actuator limits updated to: ")
+        rospy.logdebug("actuator_limits.v: " + str(self.actuator_limits.v))
+        rospy.logdebug("actuator_limits.omega: " + str(self.actuator_limits.omega))
         msg_actuator_limits_received = BoolStamped()
         msg_actuator_limits_received.data = True
         self.pub_actuator_limits_received.publish(msg_actuator_limits_received)
