@@ -48,7 +48,7 @@ ContinuousDetector::ContinuousDetector (ros::NodeHandle& nh,
   tag_detections_publisher_ =
       nh.advertise<AprilTagDetectionArray>("tag_detections", 1);
 
-  on_switch = false;
+  on_switch = true;
 
   if (draw_tag_detections_image_)
   {
