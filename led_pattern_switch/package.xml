@@ -6,6 +6,8 @@
 
   <maintainer email='acensi@idsc.mavt.ethz.ch'>Andrea Censi</maintainer>
 
+  <license>GPLv3</license>
+
 
   <buildtool_depend>catkin</buildtool_depend>
 
