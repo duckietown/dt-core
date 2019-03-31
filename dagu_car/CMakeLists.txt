@@ -5,7 +5,6 @@ project(dagu_car)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  adafruit_drivers
   pkg_name
   duckietown_msgs # Every duckietown packages should use this.
 )
