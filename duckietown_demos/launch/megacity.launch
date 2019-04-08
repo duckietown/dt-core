@@ -9,6 +9,7 @@
 		<arg name="navigation" value="false"/>
 		<arg name="unicorn_intersection" value="true"/>
 		<arg name="apriltags" value="true" />
+		<arg name="apriltags_random" value="true" />
 
 		<arg name="/camera/raw" value="true"/>
 		<arg name="/camera/raw/rect" value="true"/>
