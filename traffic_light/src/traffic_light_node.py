@@ -15,10 +15,10 @@ class TrafficLight(object):
         #Hardcoded color values to configure traffic light
         #ATTENTION: This skript uses GRB instead of RGB logic to work with the
         #newest version of the traffic lights with surface mounted LEDs.
-        green_color = [1,0,0]
-        red_color = [0,1,0]
-        yellow_color = [1,1,0]
-        black_color = [0,0,0]
+        self.green_color = [1,0,0]
+        self.red_color = [0,1,0]
+        self.yellow_color = [1,1,0]
+        self.black_color = [0,0,0]
         
         self.led = RGB_LED()
         self.node_name = rospy.get_name()
