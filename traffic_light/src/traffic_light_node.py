@@ -9,13 +9,17 @@ from rgb_led import RGB_LED
 
 class TrafficLight(object):
     
-    #Hardcoded color values to configure traffic light
-    green_color = [1,0,0]
-    red_color = [0,1,0]
-    yellow_color = [1,1,0]
-    black_color = [0,0,0]
 
     def __init__(self):
+        
+        #Hardcoded color values to configure traffic light
+        #ATTENTION: This skript uses GRB instead of RGB logic to work with the
+        #newest version of the traffic lights with surface mounted LEDs.
+        green_color = [1,0,0]
+        red_color = [0,1,0]
+        yellow_color = [1,1,0]
+        black_color = [0,0,0]
+        
         self.led = RGB_LED()
         self.node_name = rospy.get_name()
         self.cycle = None
