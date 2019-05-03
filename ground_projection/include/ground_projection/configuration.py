@@ -67,13 +67,9 @@ def get_homography_info_config_file(robot_name):
     for df in roots:
     # Load camera information
         fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
-        fn_default = os.path.join(df, 'camera_extrinsic', 'default.yaml')
         if os.path.exists(fn):
             found.append(fn)
             dtu.logger.info("Using filename %s" % fn)
-        elif os.path.exists(fn_default):
-            found.append(fn_default)
-            dtu.logger.info("Using filename %s" % fn_default)
 
     if len(found) == 0:
         msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
