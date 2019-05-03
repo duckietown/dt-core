@@ -13,16 +13,16 @@
 # from math import fabs, floor
 
 class RGB_LED():
-    #
-    #     LED_REAR_LEFT   = 0
-    #     LED_REAR_RIGH   = 3
-    #     LED_TOP         = 6
-    #     LED_FRONT_LEFT  = 9
-    #     LED_FRONT_RIGHT = 12
+#
+#     LED_REAR_LEFT   = 0
+#     LED_REAR_RIGH   = 3
+#     LED_TOP         = 6
+#     LED_FRONT_LEFT  = 9
+#     LED_FRONT_RIGHT = 12
 
-    OFFSET_RED = 0
+    OFFSET_RED   = 0
     OFFSET_GREEN = 1
-    OFFSET_BLUE = 2
+    OFFSET_BLUE  = 2
 
     def __init__(self, debug=False):
         from Adafruit_PWM_Servo_Driver import PWM  # @UnresolvedImport
@@ -40,9 +40,9 @@ class RGB_LED():
         self.setRGBvint8(led, [r, g, b])
 
     def setRGBvint8(self, led, color):
-        self.setLEDBrightness(led, self.OFFSET_RED, color[0])
+        self.setLEDBrightness(led, self.OFFSET_RED  , color[0])
         self.setLEDBrightness(led, self.OFFSET_GREEN, color[1])
-        self.setLEDBrightness(led, self.OFFSET_BLUE, color[2])
+        self.setLEDBrightness(led, self.OFFSET_BLUE , color[2])
 
     def setRGB(self, led, color):
         self.setRGBvint8(led, map(lambda f: int(f * 255), color))
