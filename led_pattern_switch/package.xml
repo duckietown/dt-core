@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>led_emitter</name>
+  <name>led_pattern_switch</name>
   <version>1.0.0</version>
-  <description>TODO: description for `led_emitter` package.</description>
+  <description>Does something related to changing the LED patters based on FSM state</description>
 
   <maintainer email='acensi@idsc.mavt.ethz.ch'>Andrea Censi</maintainer>
 
