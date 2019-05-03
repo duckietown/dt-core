@@ -43,7 +43,7 @@ class ImageTransformerNode():
 
         robot_name = rospy.get_param("~veh", "") #to read the name always reliably
         # Read parameters
-
+        
         self.trafo_mode = self.setupParameter("~trafo_mode", 'both')
         if not (self.trafo_mode == "cb" or self.trafo_mode == "lin" or self.trafo_mode == "both"):
             rospy.loginfo("cannot understand argument 'trafo_mode'. set to 'both' ")
@@ -202,4 +202,4 @@ if __name__ == '__main__':
     # Setup proper shutdown behavior
     #rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
-    rospy.spin()
+rospy.spin()
