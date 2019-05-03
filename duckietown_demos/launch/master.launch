@@ -35,6 +35,7 @@
 <arg name="/camera/raw" default="false"/>
 <arg name="/camera/cam_info" default="true"/>
 <arg name="/camera/raw/rect" default="false"/>
+<arg name="/camera/local" default="false" />
 
 <arg name="wheels" default="true"/>
 
@@ -68,9 +69,11 @@
 <arg name="/vehicle_avoidance/control" default="true"/>
 
 <arg name="apriltags" default="false"/>
+<arg name="/apriltags/local" default="false" />
 
 
 <arg name="LED" default="true" />
+<arg name="/LED/local" default="false" />
 <arg name="/LED/pattern_switch" default="false" />
 <arg name="/LED/detector" default="false" />
 <arg name="/LED/joystick" default="false" />
@@ -83,6 +86,7 @@
 <arg name="/odometry_learning/visual_odometry" default="false"/>
 
 <arg name="coordination" default="false"/>
+<arg name="/coordination/local" default="false"/>
 <arg name="/coordination/implicit_coordination" default="false"/>
 <arg name="/coordination/explicit_coordination" default="false"/>
 
@@ -108,6 +112,7 @@
 <arg name="SLAM" default="false"/>
 
 <arg name="localization" default="false"/>
+<arg name="/localization/local" default="false" />
 <arg name="/localization/map_name" default="autolab" />
 <arg name="/localization/gui" default="false"/>
 
@@ -136,6 +141,11 @@
 
 <!-- Start Camera -->
 <group if="$(arg camera)">
+	<include  file="$(find pi_camera)/launch/camera_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
 
 	<!-- cam_info_reader_node -->
 	<group if="$(arg /camera/cam_info)">
@@ -158,6 +168,7 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="local" value="$(arg /camera/local)" />
 		</include>
 
 		<!-- Raw camera_info_reader node -->
@@ -165,6 +176,7 @@
 		<remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
 		<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg /camera/local)" />
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 			<arg name="node_name" value="raw_cam_info_reader_node" />
@@ -178,6 +190,7 @@
 			<remap from="image_rect_color" to="camera_node/image/rect" />
 			<include file="$(find pi_camera)/launch/image_proc_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
+				<arg name="local" value="$(arg /camera/local)" />
 			</include>
 		</group>
 	</group>
@@ -195,6 +208,10 @@
 		<arg name="veh" value="$(arg veh)"/>
 	</include>
 
+	<!-- Wheel Driver -->
+	<include file="$(find dagu_car)/launch/wheels_driver_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+	</include>
 
 
 </group>
@@ -220,6 +237,12 @@
 
 <!-- Start Joystick -->
 <group if="$(arg joystick)">
+	<!-- joy -->
+	<include file="$(find joy_mapper)/launch/joy_node.launch">
+		<arg name="veh" value="$(arg veh)"/>
+		<arg name="config" value="$(arg config)"/>
+		<arg name="param_file_name" value="$(arg param_file_name)"/>
+	</include>
 
 	<!-- joy_mapper -->
 	<include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
@@ -416,10 +439,12 @@
 	<group if="$(arg /vehicle_avoidance/multivehicle_detection)">
 		<include file="$(find object_detection)/launch/object_detection.launch">
 			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg /camera/local)"/>
 		</include>
 		<!-- Multivehicle Detection Node -->
 		<include file="$(find multivehicle_tracker)/launch/multivehicle_tracker.launch">
 			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg local)"/>
 		</include>
 	</group>
 	<!-- Vehicle Filter Node -->
@@ -453,6 +478,7 @@
 	<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
 	<include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
+		<arg name="local" value="$(arg /apriltags/local)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
@@ -460,6 +486,7 @@
 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
 	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
+		<arg name="local" value="$(arg /apriltags/local)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
@@ -476,6 +503,7 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="local" value="$(arg /LED/local)"/>
 		</include>
 	</group>
 
@@ -494,6 +522,16 @@
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
+		</include>
+	</group>
+
+	<group if="$(arg /LED/emitter)">
+		<include file="$(find led_emitter)/launch/led_emitter_node_ETHZ17.launch">
+			<arg name="veh" value="$(arg veh)"/>
+			<arg name="config" value="$(arg config)"/>
+			<arg name="param_file_name" value="$(arg param_file_name)"/>
+			<arg name="local" value="$(arg /LED/local)"/>
+
 		</include>
 	</group>
 
@@ -557,6 +595,7 @@
 		<remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
+			<arg name="local" value="$(arg /coordination/local)"/>
 			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 			<arg name="intersectionType" value="$(arg intersectionType)" />
@@ -901,6 +940,7 @@
 	<remap from="localization_node/apriltags" to="apriltags_postprocessing_node/apriltags_out"/>
 	<include file="$(find localization)/launch/localization_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
+		<arg name="local" value="$(arg /localization/local)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
