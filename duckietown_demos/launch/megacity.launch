@@ -27,7 +27,6 @@
 		<arg name="/coordination/explicit_coordination" value="true"/>
 		<arg name="LED" value="true"/>
 		<arg name="/LED/detector" value="true"/>
-		<arg name="/LED/emitter" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
 		<arg name="use_priority_protocol" value= "true"/> 
 		<!-- Charging control enabled for Megacity -->

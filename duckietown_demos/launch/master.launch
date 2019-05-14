@@ -74,7 +74,6 @@
 <arg name="/LED/pattern_switch" default="false" />
 <arg name="/LED/detector" default="false" />
 <arg name="/LED/joystick" default="false" />
-<arg name="/LED/emitter"  default="true" />
 <arg name="/LED/interpreter" default="false" />
 
 <arg name="odometry_learning" default="false"/>

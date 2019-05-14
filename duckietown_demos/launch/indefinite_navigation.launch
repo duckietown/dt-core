@@ -15,7 +15,6 @@
 		<arg name="/camera/raw/rect" value="true"/>
 		<arg name="LED" value="true"/>
 		<arg name="/LED/detector" value="true"/>
-		<arg name="/LED/emitter" value="true"/>
 
 		<!-- Intersection arguments -->
 		<arg name="unicorn_intersection" value="true"/>
