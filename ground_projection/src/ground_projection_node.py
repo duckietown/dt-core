@@ -28,18 +28,7 @@ class GroundProjectionNode(object):
 
         self.gpg = get_ground_projection_geometry_for_robot(self.robot_name)
 
-        camera_info_topic = "/" + self.robot_name + "/camera_node/camera_info"
-        rospy.loginfo("camera info topic is " + camera_info_topic)
-        rospy.loginfo("waiting for camera info")
-        camera_info = rospy.wait_for_message(camera_info_topic, CameraInfo)
-        rospy.loginfo("camera info received")
 
-        if False:
-            self.gp.initialize_pinhole_camera_model(camera_info)
-        # Params
-
-            self.gp.robot_name = self.robot_name
-            self.gp.rectified_input_ = rospy.get_param("rectified_input", False)
 
         self.image_channel_name = "image_raw"
 
