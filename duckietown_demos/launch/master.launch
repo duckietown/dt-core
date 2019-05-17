@@ -271,6 +271,9 @@
 
 	<!-- Ground projection -->
 	<group if="$(arg /lane_following/ground_projection)">
+		<remap from="~lineseglist_in" to="line_detector_node/segment_list"/>
+		<remap from="~cali_image" to="$(arg camera_topic)/image/raw"/>
+		<remap from="~camera_info" to="$(arg camera_topic)/camera_info"/>
 		<include file="$(find ground_projection)/launch/ground_projection.launch">
 			<arg name="veh" value="$(arg veh)"/>
 			<arg name="config" value="$(arg config)"/>
@@ -596,19 +599,19 @@
   <remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
   <remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
   <remap from="unicorn_intersection_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"/>
-  
+
   <remap if="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="maintenance_control_node/turn_id_and_type_out"/>
   <remap unless="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
-  
-  
-  
-  
+
+
+
+
   <include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
     <arg name="veh" value="$(arg veh)"/>
     <arg name="config" value="$(arg config)"/>
     <arg name="param_file_name" value="$(arg param_file_name)"/>
   </include>
-  
+
 </group>
 <!-- End Unicorn intersection -->
 
