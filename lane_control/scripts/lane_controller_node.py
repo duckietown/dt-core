@@ -327,7 +327,7 @@ class lane_controller(object):
         #print 'v_ref global=', self.pose_msg.v_ref #For debugging
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:
-            self.cbPose(self.pose_msg)
+            self.updatePose(self.pose_msg)
 
     def updateWheelsCmdExecuted(self, msg_wheels_cmd):
         self.wheels_cmd_executed = msg_wheels_cmd
@@ -378,7 +378,7 @@ class lane_controller(object):
     def publishCmd(self, car_cmd_msg):
         self.pub_car_cmd.publish(car_cmd_msg)
 
-    def cbPose(self, pose_msg):
+    def updatePose(self, pose_msg):
         self.lane_reading = pose_msg
 
         # Calculating the delay image processing took
