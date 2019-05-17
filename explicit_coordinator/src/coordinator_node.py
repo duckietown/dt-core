@@ -34,6 +34,9 @@ class VehicleCoordinator():
 
 
     def __init__(self):
+
+        self.node = rospy.init_node('veh_coordinator', anonymous=True)
+
         # We communicate that the coordination mode has started
         rospy.loginfo('The Coordination Mode has Started')
 
@@ -50,8 +53,6 @@ class VehicleCoordinator():
 
         # Initialize flag
         self.intersection_go_published = False
-
-        self.node = rospy.init_node('veh_coordinator', anonymous=True)
 
         # Parameters
         self.traffic_light_intersection = UNKNOWN
