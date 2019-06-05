@@ -3,6 +3,7 @@
 	<!-- start basic args -->
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
 	<arg name="config" default="baseline" />
+	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
 	<arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
 	<arg name="fsm_file_name" default="default" />
