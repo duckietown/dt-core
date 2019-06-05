@@ -13,7 +13,7 @@ class KinematicsTestNode(unittest.TestCase):
 
         rospy.init_node('kinematics_test_node', anonymous=False)
 
-        
+
         veh_name= rospy.get_param("~veh","")
         wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"
@@ -22,26 +22,26 @@ class KinematicsTestNode(unittest.TestCase):
         rospy.loginfo("wheel topic = %s", wheel_topic)
         rospy.loginfo("lane topic = %s", lane_topic)
         rospy.loginfo("stop_topic = %s", stop_topic)
-        
+
         self.lane = None
         self.stop = None
         self.lane_message_received=False
         self.stop_message_received=False
-        
+
         self.forward_time = 4.8
 
         self.pub_wheels_cmd = rospy.Publisher(wheel_topic,Twist2DStamped, queue_size=1)
-        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane) 
+        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane)
         self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop)
 
-        
-        timeout= time.time() + 10.0
+
+        timeout= time.time() + 10.0 #was 10
         while not (self.lane_message_received or self.stop_message_received) and not rospy.is_shutdown() and time.time()<timeout:
             rospy.sleep(0.1)
-            
+
         self.assert_(self.lane_message_received)
         self.assert_(self.stop_message_received)
-            
+
     def cbLane(self, data):
         self.lane_message_received = True
         self.lane = data
@@ -60,7 +60,7 @@ class KinematicsTestNode(unittest.TestCase):
         if self.lane==None or self.stop == None:
             rospy.loginfo("could not subscribe to lane and stop line")
             assertTrue(False)
-        
+
         #Measured dist for stop as 146+8cm cm physically
         self.init = self.lane, -1.54
         forward_for_time = self.forward_time
@@ -70,14 +70,17 @@ class KinematicsTestNode(unittest.TestCase):
             wheels_cmd_msg.header.stamp = rospy.Time.now()
             wheels_cmd_msg.v = 0.5
             wheels_cmd_msg.omega = 0.0
-            self.pub_wheels_cmd.publish(wheels_cmd_msg)    
+            self.pub_wheels_cmd.publish(wheels_cmd_msg)
             #rospy.loginfo("Moving?.")
             rospy.sleep(0.1)
+        wheels_cmd_msg.v = 0.0
+        wheels_cmd_msg.omega = 0.0
+        self.pub_wheels_cmd.publish(wheels_cmd_msg)
         self.final = self.lane, self.stop
         self.calculate()
 
     def calculate(self):
-        
+
         init_d = self.init[0].d
         init_phi = self.init[0].phi
 
@@ -102,7 +105,7 @@ class KinematicsTestNode(unittest.TestCase):
         info = """
         LANE OFFSET SUMMARY
         ===================
-        initial location is (%.4f, %.4f), 
+        initial location is (%.4f, %.4f),
         final location is (%.4f, %.4f).
 
         distance offset = %.4f
@@ -130,4 +133,3 @@ class KinematicsTestNode(unittest.TestCase):
 
 if __name__ == '__main__':
     rostest.rosrun('rostest_kinematics_calibration', 'kinematics_test_node', KinematicsTestNode)
-
