@@ -1,0 +1,17 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="config" default="baseline" doc="Specify a config."/>
+    <arg name="param_file_name" default="default"/>
+
+    <!-- intersection control -->
+    <node ns="$(arg veh)"  pkg="fsm" type="logic_gate_node.py" name="logic_gate_node" clear_params="true" output="screen">
+        <rosparam command="load" file="$(find duckietown)/config/$(arg config)/fsm/logic_gate_node/$(arg param_file_name).yaml"/>
+    </node>
+    
+
+    <!-- Publications -->
+
+    <!-- Subscriptions -->
+
+    
+</launch>
