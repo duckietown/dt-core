@@ -52,3 +52,4 @@ CATKIN_IGNORE
 benchmark/
 apriltags_ros/
 apriltags_ros/
+auto_calibration/
