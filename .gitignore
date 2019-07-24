@@ -58,3 +58,4 @@ charging_control/
 fleet_planning/
 intersection_control/
 maintenance_control/
+implicit_coordination/
