@@ -134,7 +134,7 @@
 <!-- Enable statistics -->
 <param name="enable_statistics" value="$(arg statistics)"/>
 
-<!-- Start Camera -->
+<!-- Start Camera / LF --> 
 <group if="$(arg camera)">
 
 	<group if="$(arg /camera/raw)">
@@ -172,7 +172,7 @@
 </group>
 <!-- End Camera -->
 
-<!-- Start Wheels -->
+<!-- Start Wheels / LF-->
 <group if="$(arg wheels)">
 
 	<remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
@@ -187,7 +187,7 @@
 
 </group>
 
-<!-- End Wheels -->
+<!-- End Wheels / Not LF-->
 
 <group if="$(arg odometry)">
 	<group if="$(arg /odometry/forward_kinematics)">
@@ -206,7 +206,7 @@
 </group>
 
 
-<!-- Start Joystick -->
+<!-- Start Joystick / LF-->
 <group if="$(arg joystick)">
 
 	<!-- joy_mapper -->
@@ -218,7 +218,7 @@
 </group>
 <!-- End Joystick -->
 
-<!-- Start FSM -->
+<!-- Start FSM / LF-->
 <group if="$(arg fsm)">
 	<!-- FSM -->
 	<!-- no remapping for FSM - full topic names specified in params yaml -->
@@ -253,7 +253,7 @@
 
 <!--End FSM -->
 
-<!-- Start Lane Following -->
+<!-- Start Lane Following / LF-->
 <group if="$(arg lane_following)">
 
 	<!-- Line Detector -->
@@ -300,7 +300,7 @@
 		</include>
 	</group>
 
-	<!-- Stop Line Filter -->
+	<!-- Stop Line Filter / Not LF -->
 
 
 	<group if="$(arg /lane_following/stop_line_filter)">
@@ -348,7 +348,7 @@
 </group>
 <!-- End Lane Control -->
 
-<!-- Start Obstacle Avoidance -->
+<!-- Start Obstacle Avoidance / Not LF-->
 <group if="$(arg obstacle_avoidance_and_detection)">
   <remap from="obstacle_avoidance_node/posearray" to="obstacle_detection_node/posearray"/>
 	<include file="$(find obst_avoid)/launch/obst_avoid_lane_follow_light.launch">
@@ -392,7 +392,7 @@
 </group> -->
 
 
-<!-- Start Vehicle Avoidance -->
+<!-- Start Vehicle Avoidance / LF-->
 <group if="$(arg vehicle_avoidance)">
 
 	<!-- Vehicle Detection Node -->
@@ -402,7 +402,7 @@
 			<arg name="veh" value="$(arg veh)"/>
 		</include>
 	</group>
-	<!-- Object Detection Node -->
+	<!-- Object Detection Node / Not LF-->
 	<remap from="camera_node/image/compressed" to="decoder_node/image/compressed" />
 	<group if="$(arg /vehicle_avoidance/multivehicle_detection)">
 		<include file="$(find object_detection)/launch/object_detection.launch">
@@ -435,7 +435,7 @@
 </group>
 <!-- End Vehicle Avoidance -->
 
-<!-- Start April Tags -->
+<!-- Start April Tags / Not LF-->
 <group if="$(arg apriltags)">
 	<!-- AprilTags Detections -->
 	<remap from="image_rect" to="camera_node/image/rect" />
@@ -457,7 +457,7 @@
 </group>
 <!--End Apriltags -->
 
-<!-- Start LEDs Detection -->
+<!-- Start LEDs Detection / Not LF-->
 <group if="$(arg LED)">
 
 
@@ -504,7 +504,7 @@
 
 <!-- End LEDs Detection -->
 
-<!-- Start Odometry Learning -->
+<!-- Start Odometry Learning / Not LF-->
 <group if="$(arg odometry_learning)">
 	<group if="$(arg /odometry_learning/kinematics)">
 		<!-- run forward_kinematics_node -->
@@ -536,7 +536,7 @@
 
 
 
-<!-- Start Coordination -->
+<!-- Start Coordination / Not LF-->
 <group if="$(arg coordination)">
 	<group if="$(arg /coordination/explicit_coordination)">
 		<!-- Vehicle Coordinator-->
@@ -587,7 +587,7 @@
 </group>
 <!-- End Coordination -->
 
-<!-- Start Unicorn intersection -->
+<!-- Start Unicorn intersection / Not LF -->
 <group if="$(arg unicorn_intersection)">
   <remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
   <remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
@@ -617,7 +617,7 @@
 <!-- End Unicorn intersection -->
 
 
-<!-- Start Random Apriltag -->
+<!-- Start Random Apriltag / Not LF -->
 <group if="$(arg apriltags_random)">
 	<!-- random april tags -->
 	<remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
@@ -635,7 +635,7 @@
 </group>
 
 <!-- End Random Apriltag -->
-<!-- Start Navigation -->
+<!-- Start Navigation / Not LF-->
 <group if="$(arg navigation)">
 
 
@@ -721,7 +721,7 @@
 </group>
 <!-- End Navigation -->
 
-<!-- Start anti-instagram -->
+<!-- Start anti-instagram / LF-->
 <group if="$(arg anti_instagram)">
 	<!-- NOT LOADING PARAMS FROM A YAML FILE -->
 		<remap from="cont_anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
@@ -733,7 +733,7 @@
 	</group>
 <!-- End anti-instagram -->
 
-<!-- Start Parallel Autonomy -->
+<!-- Start Parallel Autonomy / Not LF -->
 <group if="$(arg parallel_autonomy)">
 	<remap from="lane_supervisor_node/lane_pose" to="lane_filter_node/lane_pose"/>
 	<remap from="lane_supervisor_node/car_cmd_joy" to="joy_mapper_node/car_cmd"/>
@@ -757,6 +757,7 @@
 </group>
 <!-- End Parallel Autonomy -->
 
+<!-- Start Maintenance control / Not LF -->
 
 <group if="$(arg maintenance_control)">
 	<remap from="maintenance_control_node/ready_at_exit" to="charging_control_node/ready_at_exit"/>
@@ -773,7 +774,9 @@
 	</include>
 </group>
 
-<!-- Start Maintenance Trajectory Planning -->
+<!-- End Maintenance control -->
+
+<!-- Start Maintenance Trajectory Planning / Not LF -->
 <group if="$(arg fleet_planning)">
 		<!-- remapping outputs since there are two different possible turn types -->
 		<remap from="actions_dispatcher_node/random_turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
@@ -792,7 +795,7 @@
 </group>
 <!-- End Fleet Planning -->
 
-<!-- Start Charging Control -->
+<!-- Start Charging Control / Not LF-->
 <group if="$(arg charging_control)">
 	<remap from="charging_control_node/go_mt_charging" to="maintenance_control_node/go_mt_charging"/>
 	<remap from="charging_control_node/go_mt_full" to="maintenance_control_node/go_mt_full"/>
@@ -817,7 +820,7 @@
 </group>
 <!-- End Charging Control -->
 
-<!-- Start TCP Communication -->
+<!-- Start TCP Communication / Not LF-->
 <group if="$(arg tcp_communication)">
 	<include file="$(find tcp_communication)/launch/tcp_communication_client.launch">
 		<arg name="veh" value="$(arg veh)"/>
@@ -827,7 +830,7 @@
 </group>
 <!-- End TCP Communication -->
 
-<!-- Start Auto Calibration -->
+<!-- Start Auto Calibration / Not LF -->
 <group if="$(arg auto_calibration)">
 
   <remap from="auto_calibration_node/mode" to="fsm_node/mode"/>
@@ -879,7 +882,7 @@
 </group> -->
 <!-- End anti-instagram -->
 
-<!-- Start localization -->
+<!-- Start localization / Not LF-->
 <group if="$(arg localization)">
 	<!-- duckietown_description -->
 	<include file="$(find duckietown_description)/launch/duckietown_description_node.launch">

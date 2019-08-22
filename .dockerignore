@@ -3,3 +3,17 @@
 
 # Allow files and directories
 !assets
+!requirements.txt
+!packages/anti_instagram
+!packages/dagu_car
+!packages/duckietown_demos
+!packages/fsm
+!packages/ground_projection
+!packages/lane_control
+!packages/lane_filter
+!packages/line_detector
+!packages/vehicle_detection
+!packages/duckiebot_visualizer
+!packages/pi_camera
+!packages/duckietown
+!packages/joy_mapper
