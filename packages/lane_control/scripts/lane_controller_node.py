@@ -15,7 +15,7 @@ class lane_controller(object):
         self.last_ms = None
         self.pub_counter = 0
 
-
+        # TODO-TAL weird double initialisation
         self.velocity_to_m_per_s = 0.67
         self.omega_to_rad_per_s = 0.45 * 2 * math.pi
 
@@ -26,7 +26,10 @@ class lane_controller(object):
 
         # Publication
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        
+        # TODO-TAL this is just to acknowledge receiving a msg... We should remove it... (or replace this and the corresponding subscriber with a service)
         self.pub_actuator_limits_received = rospy.Publisher("~actuator_limits_received", BoolStamped, queue_size=1)
+        
         self.pub_radius_limit = rospy.Publisher("~radius_limit", BoolStamped, queue_size=1)
 
 
@@ -71,6 +74,9 @@ class lane_controller(object):
         rospy.on_shutdown(self.custom_shutdown)
 
         # timer
+
+        #TODO-TAL this time updates the params at 10Hz. Really useful ?
+
         self.gains_timer = rospy.Timer(rospy.Duration.from_sec(0.1), self.getGains_event)
         rospy.loginfo("[%s] Initialized " % (rospy.get_name()))
 
@@ -181,6 +187,8 @@ class lane_controller(object):
         self.omega_min = rospy.get_param("~omega_min")
         #FeedForward
         #TODO: Feedforward was not working, go away with this error source! (Julien)
+
+        # TODO-TAL here a third initialisation happens, different this time....
 
         self.velocity_to_m_per_s = 1#0.67     # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
         #self.omega_to_rad_per_s = 0.45 * 2 * math.pi    # TODO: change after new kinematic calibration! (should be obsolete, if new kinematic calibration works properly)
@@ -341,6 +349,7 @@ class lane_controller(object):
         msg_actuator_limits_received.data = True
         self.pub_actuator_limits_received.publish(msg_actuator_limits_received)
 
+    #TODO-TAL unused function, should be removed or used
     def sendStop(self):
         # Send stop command
         car_control_msg = Twist2DStamped()
@@ -470,9 +479,8 @@ class lane_controller(object):
 
         # apply magic conversion factors
         car_control_msg.v = car_control_msg.v * self.velocity_to_m_per_s
-        car_control_msg.omega = omega * self.omega_to_rad_per_s
+        omega = omega * self.omega_to_rad_per_s
 
-        omega = car_control_msg.omega
         if omega > self.omega_max: omega = self.omega_max
         if omega < self.omega_min: omega = self.omega_min
         omega += self.omega_ff
@@ -487,4 +495,4 @@ if __name__ == "__main__":
     rospy.init_node("lane_controller_node", anonymous=False)  # adapted to sonjas default file
 
     lane_control_node = lane_controller()
-rospy.spin()
+    rospy.spin()
