@@ -94,6 +94,7 @@ class LaneFilterNode(object):
         if not self.active:
             return
 
+        # TODO-TAL double call to param server ... --> see TODO in the readme, not only is it never updated, but it is alwas 0
         # Step 0: get values from server
         if (rospy.get_param('~curvature_res') is not self.curvature_res):
             self.curvature_res = rospy.get_param('~curvature_res')
@@ -133,14 +134,14 @@ class LaneFilterNode(object):
         if self.curvature_res > 0:
             lanePose.curvature = self.filter.getCurvature(d_max[1:], phi_max[1:])
 
+        self.pub_lane_pose.publish(lanePose)
 
-            
+        # TODO-TAL add a debug param to not publish the image !!
+        # TODO-TAL also, the CvBridge is re instantiated every time... 
         # publish the belief image
         bridge = CvBridge()
         belief_img = bridge.cv2_to_imgmsg(np.array(255 * self.filter.beliefArray[0]).astype("uint8"), "mono8")
         belief_img.header.stamp = segment_list_msg.header.stamp
-
-        self.pub_lane_pose.publish(lanePose)
         self.pub_belief_img.publish(belief_img)
         
         
@@ -156,13 +157,10 @@ class LaneFilterNode(object):
         # print "Latency of segment list: ", segment_latency
         # print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
 
-        # TODO (1): see above, method does not exist
-        #self.pub_belief_img.publish(belief_img)
-
         # also publishing a separate Bool for the FSM
         in_lane_msg = BoolStamped()
         in_lane_msg.header.stamp = segment_list_msg.header.stamp
-        in_lane_msg.data = True #TODO change with in_lane
+        in_lane_msg.data = True #TODO-TAL change with in_lane. Is this messqge useful since it is alwas true ?
         self.pub_in_lane.publish(in_lane_msg)
 
 
