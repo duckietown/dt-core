@@ -13,7 +13,7 @@ WORKDIR "${REPO_PATH}"
 # create repo directory
 RUN mkdir -p "${REPO_PATH}"
 COPY requirements.txt ${REPO_PATH}/requirements.txt
-ENV READTHEDOCS True
+
 RUN pip install -r ${REPO_PATH}/requirements.txt
 
 # copy entire repo
