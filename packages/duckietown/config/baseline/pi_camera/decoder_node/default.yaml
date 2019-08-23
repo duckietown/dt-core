@@ -1,3 +1,0 @@
-#parameters for pi_camera/decoder_node
-publish_freq: 2.0
-#publish_freq: 4.0
