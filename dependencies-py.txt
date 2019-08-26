@@ -1,7 +1,6 @@
 # LIST YOUR PYTHON PACKAGES HERE
 ruamel.yaml==0.15.34
 reprep
-sklearn
 
 
 
