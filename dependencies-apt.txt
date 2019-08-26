@@ -1,0 +1,4 @@
+# LIST YOUR APT PACKAGES HERE
+ros-kinetic-image-transport
+ros-kinetic-image-geometry
+libyaml-cpp-dev
