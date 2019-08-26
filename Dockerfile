@@ -17,7 +17,10 @@ WORKDIR "${REPO_PATH}"
 
 # create repo directory and copy the source code
 RUN mkdir -p "${REPO_PATH}"
-COPY . "${REPO_PATH}/"
+
+# copy dependencies files only
+COPY ./dependencies-apt.txt "${REPO_PATH}/"
+COPY ./dependencies-py.txt "${REPO_PATH}/"
 
 # install apt dependencies
 RUN apt-get update \
@@ -27,6 +30,9 @@ RUN apt-get update \
 
 # install python dependencies
 RUN pip install -r ${REPO_PATH}/dependencies-py.txt
+
+# copy the source code
+COPY . "${REPO_PATH}/"
 
 # build packages
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
