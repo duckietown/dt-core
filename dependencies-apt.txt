@@ -2,3 +2,4 @@
 ros-kinetic-image-transport
 ros-kinetic-image-geometry
 libyaml-cpp-dev
+python-sklearn
