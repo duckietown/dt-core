@@ -15,7 +15,7 @@ ARG REPO_NAME
 ARG REPO_PATH="${CATKIN_WS_DIR}/src/${REPO_NAME}"
 WORKDIR "${REPO_PATH}"
 
-# create repo directory and copy the source code
+# create repo directory
 RUN mkdir -p "${REPO_PATH}"
 
 # copy dependencies files only
