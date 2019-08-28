@@ -36,9 +36,6 @@
 <arg name="/camera/cam_info" default="true"/>
 <arg name="/camera/raw/rect" default="false"/>
 
-
-<arg name="wheels" default="false"/>
-
 <arg name="joystick" default="false"/>
 
 <arg name="odometry" default="false"/>
@@ -174,38 +171,22 @@
 </group>
 <!-- End Camera -->
 
-<!-- Start Wheels / LF-->
-<group if="$(arg wheels)">
-
-	<remap from="inverse_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
-	<remap from="inverse_kinematics_node/car_cmd" to="car_cmd_switch_node/cmd"/>
-	<remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
-	<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
-	<include file="$(find dagu_car)/launch/inverse_kinematics_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-	</include>
-
-
-
-</group>
-
-<!-- End Wheels / Not LF-->
-
-<group if="$(arg odometry)">
-	<group if="$(arg /odometry/forward_kinematics)">
-		<remap from="forward_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd_executed" />
-		<include file="$(find dagu_car)/launch/forward_kinematics_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-		</include>
+<!-- TODO: This seems to be related to the dagu package which moved to db-interface -->
+<!-- <group if="$(arg odometry)"> -->
+<!-- 	<group if="$(arg /odometry/forward_kinematics)"> -->
+<!-- 		<remap from="forward_kinematics_node/wheels_cmd" --> to="wheels_driver_node/wheels_cmd_executed" />
+<!-- 		<include file="$(find dagu_car)/launch/forward_kinematics_node.launch"> -->
+<!-- 			<arg name="veh" value="$(arg veh)"/> -->
+<!-- 			<arg name="config" value="$(arg config)"/> -->
+<!-- 		</include> -->
 		<!-- run the velocity_to_pose_node -->
-		<remap from="velocity_to_pose_node/velocity" to="forward_kinematics_node/velocity" />
-		<include file="$(find dagu_car)/launch/velocity_to_pose_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-		</include>
-	</group>
-</group>
+<!-- 		<remap from="velocity_to_pose_node/velocity" --> to="forward_kinematics_node/velocity" />
+<!-- 		<include file="$(find dagu_car)/launch/velocity_to_pose_node.launch"> -->
+<!-- 			<arg name="veh" value="$(arg veh)"/> -->
+<!-- 			<arg name="config" value="$(arg config)"/> -->
+<!-- 		</include> -->
+<!-- 	</group> -->
+<!-- </group> -->
 
 
 <!-- Start Joystick / LF-->
@@ -237,12 +218,6 @@
 			<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
 	</group>
 
-	<!-- need either lots more of these or none of these -->
-	<include file="$(find dagu_car)/launch/car_cmd_switch_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-	</include>
 
  <!-- <remap from="implicit_coordination_node/intersection_go" to="logic_gate_node/implicit_intersection_go" />
  <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
@@ -318,6 +293,7 @@
 
 	<!-- Lane controller -->
 	<group if="$(arg /lane_following/lane_controller)">
+
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<!--NO!!! <remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> --><!--TODO what is this -->
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
@@ -326,9 +302,11 @@
 		<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 		<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
+		<remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
 		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" />
 		<remap from="lane_controller_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading" />
+		<remap from="wheels_driver_node/radius_limit" to="lane_controller_node/radius_limit" />
 
 
 
@@ -507,6 +485,7 @@
 <!-- End LEDs Detection -->
 
 <!-- Start Odometry Learning / Not LF-->
+<!-- TODO: Is this even used and supported? If yes, probably need to be revisited as the wheels_driver_node is now in db-interface -->
 <group if="$(arg odometry_learning)">
 	<group if="$(arg /odometry_learning/kinematics)">
 		<!-- run forward_kinematics_node -->
