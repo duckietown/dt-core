@@ -23,7 +23,6 @@
 
 	<!-- the things that are "on" by default:
 	- camera stack (raw imagery defaults to false)
-	- joystick stack
 	- lane_following stack (old version of line detector only)
 	- fsm
 -->
@@ -35,8 +34,6 @@
 <arg name="/camera/raw" default="false"/>
 <arg name="/camera/cam_info" default="true"/>
 <arg name="/camera/raw/rect" default="false"/>
-
-<arg name="joystick" default="false"/>
 
 <arg name="odometry" default="false"/>
 <arg name="/odometry/forward_kinematics" default="false"/>
@@ -188,18 +185,6 @@
 <!-- 	</group> -->
 <!-- </group> -->
 
-
-<!-- Start Joystick / LF-->
-<group if="$(arg joystick)">
-
-	<!-- joy_mapper -->
-	<include file="$(find joy_mapper)/launch/joy_mapper_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
-		<arg name="param_file_name" value="$(arg param_file_name)"/>
-	</include>
-</group>
-<!-- End Joystick -->
 
 <!-- Start FSM / LF-->
 <group if="$(arg fsm)">
