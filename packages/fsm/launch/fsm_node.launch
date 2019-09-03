@@ -7,7 +7,7 @@
 
     <!-- intersection control -->
     <node ns="$(arg veh)"  pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" clear_params="true" output="screen" required="true">
-        <rosparam command="load" file="$(find fsm)/config//fsm_node/$(arg param_file_name).yaml"/>
+        <rosparam command="load" file="$(find fsm)/config/fsm_node/$(arg param_file_name).yaml"/>
     </node>
 
 

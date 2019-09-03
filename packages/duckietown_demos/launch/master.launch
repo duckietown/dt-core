@@ -192,7 +192,6 @@
 	<!-- no remapping for FSM - full topic names specified in params yaml -->
 	<include file="$(find fsm)/launch/fsm_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg fsm_file_name)"/>
 	</include>
 
@@ -208,7 +207,6 @@
  <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
 	<include file="$(find fsm)/launch/logic_gate_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 </group>
@@ -225,7 +223,6 @@
 		<remap from="line_detector_node/corrected_image/compressed" to="image_transformer_node/corrected_image/compressed"/>
 		<include file="$(find line_detector)/launch/line_detector_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<!-- NOTE: "line_detector_param_file_name" as special case -->
 			<arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
 			<arg name="verbose" value="$(arg verbose)" />
