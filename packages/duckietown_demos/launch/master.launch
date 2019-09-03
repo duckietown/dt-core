@@ -132,30 +132,29 @@
 <group if="$(arg camera)">
 
 	<group if="$(arg /camera/raw)">
-
-		<!-- MADE USELESS : bypass by directly using compressed image in vehicle detection -->
-		<!-- decoder_node -->
-		<!-- <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
-		<remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
-		<include file="$(find pi_camera)/launch/decoder_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include> -->
-
-		<!-- NOT USED -->
-		<!-- Raw camera_info_reader node -->
-		<!-- <remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
-		<remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
-		<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-			<arg name="node_name" value="raw_cam_info_reader_node" />
-			<arg name="image_type" value="raw" />
-		</include> -->
 		<!-- not LF, IN -->
 		<group if="$(arg /camera/raw/rect)">
+			<!-- decoder_node -->
+			<remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
+			<remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
+			<include file="$(find pi_camera)/launch/decoder_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+			</include>
+
+			<!-- NOT USED -->
+			<!-- Raw camera_info_reader node -->
+			<remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
+			<remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
+			<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
+				<arg name="veh" value="$(arg veh)"/>
+				<arg name="config" value="$(arg config)"/>
+				<arg name="param_file_name" value="$(arg param_file_name)"/>
+				<arg name="node_name" value="raw_cam_info_reader_node" />
+				<arg name="image_type" value="raw" />
+			</include>
+
 			<!-- Rectification -->
 			<remap from="image_raw" to="camera_node/image/raw"/>
 			<remap from="camera_info" to="camera_node/raw_camera_info"/>
@@ -236,7 +235,6 @@
 		<remap from="~camera_info" to="$(arg camera_topic)/camera_info"/>
 		<include file="$(find ground_projection)/launch/ground_projection.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 		<group if="$(arg visualization)">
@@ -254,7 +252,6 @@
 		<remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
 		<include file="$(find lane_filter)/launch/lane_filter_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
@@ -268,7 +265,6 @@
 		<remap from="stop_line_filter_node/segment_list" to="ground_projection/lineseglist_out"/>
 		<include file="$(find stop_line_filter)/launch/stop_line_filter_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
@@ -295,7 +291,6 @@
 
 		<include file="$(find lane_control)/launch/lane_controller_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
@@ -577,7 +572,6 @@
 
   <include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
     <arg name="veh" value="$(arg veh)"/>
-    <arg name="config" value="$(arg config)"/>
     <arg name="param_file_name" value="$(arg param_file_name)"/>
   </include>
 
@@ -597,7 +591,6 @@
 
 	<include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 </group>
