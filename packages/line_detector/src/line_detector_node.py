@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from anti_instagram.AntiInstagram_rebuild import AntiInstagram
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import (AntiInstagramTransform, BoolStamped, FSMState, Segment,
+from duckietown_msgs.msg import (BoolStamped, FSMState, Segment,
     SegmentList, Vector2D)
 from duckietown_utils.instantiate_utils import instantiate
 from duckietown_utils.jpg import bgr_from_jpg
@@ -36,9 +35,6 @@ class LineDetectorNode(object):
         self.intermittent_interval = 100
         self.intermittent_counter = 0
 
-        # color correction
-        self.ai = AntiInstagram()
-
         # these will be added if it becomes verbose
         self.pub_edge = None
         self.pub_colorSegment = None
@@ -61,7 +57,6 @@ class LineDetectorNode(object):
 
         # Subscribers
         self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
-        self.sub_transform = rospy.Subscriber("~transform", AntiInstagramTransform, self.cbTransform, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
 
@@ -130,12 +125,6 @@ class LineDetectorNode(object):
         thread.start()
         # Returns rightaway
 
-    def cbTransform(self, transform_msg):
-        self.ai.shift = transform_msg.s[0:3]
-        self.ai.scale = transform_msg.s[3:6]
-
-        self.loginfo("AntiInstagram transform received")
-
     def loginfo(self, s):
         rospy.loginfo('[%s] %s' % (self.node_name, s))
 
@@ -191,13 +180,6 @@ class LineDetectorNode(object):
 
         tk.completed('resized')
 
-        # milansc: color correction is now done within the image_tranformer_node (antiInstagram pkg)
-        """
-        # apply color correction: AntiInstagram
-        image_cv_corr = self.ai.applyTransform(image_cv)
-        image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
-        tk.completed('corrected')
-        """
         # Set the image to be detected
         self.detector_used.setImage(image_cv)
 
