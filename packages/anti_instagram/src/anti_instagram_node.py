@@ -13,18 +13,6 @@ class AntiInstagramNode():
         self.node_name = rospy.get_name()
         self.image_lock = threading.Lock()
 
-        self.uncorrected_image_subscriber = rospy.Subscriber(
-                                                '~uncorrected_image/compressed', 
-                                                CompressedImage, 
-                                                self.process_image,
-                                                buff_size=921600, 
-                                                queue_size=1)
-
-        self.corrected_image_publisher = rospy.Publisher(
-                                             "~corrected_image/compressed", 
-                                             CompressedImage, 
-                                             queue_size=1)
-        
         self.ai = AntiInstagram()
 
         # XXX: read parameters
@@ -39,6 +27,19 @@ class AntiInstagramNode():
         self.image = None
 
         rospy.Timer(rospy.Duration(self.interval), self.calculate_new_parameters)
+        
+        self.uncorrected_image_subscriber = rospy.Subscriber(
+                                                '~uncorrected_image/compressed', 
+                                                CompressedImage, 
+                                                self.process_image,
+                                                buff_size=921600, 
+                                                queue_size=1)
+
+        self.corrected_image_publisher = rospy.Publisher(
+                                             "~corrected_image/compressed", 
+                                             CompressedImage, 
+                                             queue_size=1)
+        
 
     def process_image(self, image_msg):        
         try:
