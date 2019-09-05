@@ -4,7 +4,7 @@ project(anti_instagram)
 find_package(catkin REQUIRED COMPONENTS
   duckietown
   duckietown_msgs
-  roscpp
+  rospy
 )
 
 
