@@ -21,9 +21,6 @@ class LineDetectorNode(object):
     def __init__(self):
         self.node_name = "LineDetectorNode"
 
-        # Thread lock
-        self.thread_lock = threading.Lock()
-
         # Constructor of line detector
         self.bridge = CvBridge()
 
@@ -56,7 +53,7 @@ class LineDetectorNode(object):
         self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
 
         # Subscribers
-        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.processImage, queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
 
@@ -113,18 +110,6 @@ class LineDetectorNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def cbImage(self, image_msg):
-        # print('line_detector_node: image received!!')
-        self.stats.received()
-
-        if not self.active:
-            return
-        # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
-        thread.setDaemon(True)
-        thread.start()
-        # Returns rightaway
-
     def loginfo(self, s):
         rospy.loginfo('[%s] %s' % (self.node_name, s))
 
@@ -137,16 +122,15 @@ class LineDetectorNode(object):
         self.loginfo('%3d:%s' % (self.intermittent_counter, s))
 
     def processImage(self, image_msg):
-        if not self.thread_lock.acquire(False):
-            self.stats.skipped()
-            # Return immediately if the thread is locked
-            return
+        self.stats.received()
 
+        if not self.active:
+            return
+        
         try:
             self.processImage_(image_msg)
         finally:
-            # Release the thread lock
-            self.thread_lock.release()
+            return
 
     def processImage_(self, image_msg):
 

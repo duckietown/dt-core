@@ -35,11 +35,11 @@ class VehicleFilterNode(object):
         self.loadConfig(self.cali_file)
 
         self.sub_corners = rospy.Subscriber("~corners", VehicleCorners,
-                                            self.cbCorners, queue_size=1)
+                                            self.processCorners, queue_size=1)
 
         self.pub_pose = rospy.Publisher("~pose", VehiclePose, queue_size=1)
         self.sub_info = rospy.Subscriber("~camera_info", CameraInfo,
-                                         self.cbCameraInfo, queue_size=1)
+                                         self.processCameraInfo, queue_size=1)
         self.pub_time_elapsed = rospy.Publisher("~pose_calculation_time",
                                                 Float32, queue_size=1)
         self.pcm = PinholeCameraModel()
@@ -63,24 +63,10 @@ class VehicleFilterNode(object):
         rospy.loginfo('[%s] max_reproj_pixelerror_pose_estimation : %s' % (self.node_name,
                                                                            self.max_reproj_pixelerror_pose_estimation))
 
-    def cbCameraInfo(self, camera_info_msg):
-        thread = threading.Thread(target=self.processCameraInfo,
-                                  args=(camera_info_msg,))
-        thread.setDaemon(True)
-        thread.start()
-
     def processCameraInfo(self, camera_info_msg):
         if self.lock.testandset():
             self.pcm.fromCameraInfo(camera_info_msg)
             self.lock.unlock()
-
-    def cbCorners(self, vehicle_corners_msg):
-        # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processCorners,
-                                  args=(vehicle_corners_msg,))
-        thread.setDaemon(True)
-        thread.start()
-        # Returns rightaway
 
     def processCorners(self, vehicle_corners_msg):
         # do nothing - just relay the detection

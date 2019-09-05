@@ -38,7 +38,8 @@ class VehicleDetectionNode(object):
         self.loadConfig(self.cali_file)
 
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
-                                          self.cbImage, queue_size=1)
+                                          self.processImage, buff_size=921600, 
+                                          queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
                                            self.cbSwitch, queue_size=1)
         self.pub_detection = rospy.Publisher("~detection",
@@ -49,7 +50,6 @@ class VehicleDetectionNode(object):
                                                        Image, queue_size=1)
         self.pub_time_elapsed = rospy.Publisher("~detection_time",
                                                 Float32, queue_size=1)
-        self.lock = mutex()
         rospy.loginfo("[%s] Initialization completed" % (self.node_name))
 
     def setupParam(self, param_name, default_value):
@@ -78,68 +78,63 @@ class VehicleDetectionNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def cbImage(self, image_msg):
+    def processImage(self, image_msg):
+        
         if not self.active:
             return
-        # Start a daemon thread to process the image
+        
         now = rospy.Time.now()
         if now - self.last_stamp < self.publish_duration:
             return
         else:
             self.last_stamp = now
-        thread = threading.Thread(target=self.processImage, args=(image_msg,))
-        thread.setDaemon(True)
-        thread.start()
-        # Returns rightaway
+        
+        
+        vehicle_detected_msg_out = BoolStamped()
+        vehicle_corners_msg_out = VehicleCorners()
+        try:
+            image_cv = self.bridge.compressed_imgmsg_to_cv2(
+                image_msg, "bgr8")
+        except CvBridgeError as e:
+            print e
 
-    def processImage(self, image_msg):
-        if self.lock.testandset():
-            vehicle_detected_msg_out = BoolStamped()
-            vehicle_corners_msg_out = VehicleCorners()
-            try:
-                image_cv = self.bridge.compressed_imgmsg_to_cv2(
-                    image_msg, "bgr8")
-            except CvBridgeError as e:
-                print e
+        start = rospy.Time.now()
+        params = cv2.SimpleBlobDetector_Params()
+        params.minArea = self.blobdetector_min_area
+        params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
+        simple_blob_detector = cv2.SimpleBlobDetector_create(params)
+        (detection, corners) = cv2.findCirclesGrid(image_cv,
+                                                    self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
+                                                    blobDetector=simple_blob_detector)
 
-            start = rospy.Time.now()
-            params = cv2.SimpleBlobDetector_Params()
-            params.minArea = self.blobdetector_min_area
-            params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
-            simple_blob_detector = cv2.SimpleBlobDetector_create(params)
-            (detection, corners) = cv2.findCirclesGrid(image_cv,
-                                                       self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
-                                                       blobDetector=simple_blob_detector)
+        # print(corners)
 
+        vehicle_detected_msg_out.data = detection
+        self.pub_detection.publish(vehicle_detected_msg_out)
+        if detection:
             # print(corners)
-
-            vehicle_detected_msg_out.data = detection
-            self.pub_detection.publish(vehicle_detected_msg_out)
-            if detection:
-                # print(corners)
-                points_list = []
-                for point in corners:
-                    corner = Point32()
-                    # print(point[0])
-                    corner.x = point[0, 0]
-                    # print(point[0,1])
-                    corner.y = point[0, 1]
-                    corner.z = 0
-                    points_list.append(corner)
-                vehicle_corners_msg_out.header.stamp = rospy.Time.now()
-                vehicle_corners_msg_out.corners = points_list
-                vehicle_corners_msg_out.detection.data = detection
-                vehicle_corners_msg_out.H = self.circlepattern_dims[1]
-                vehicle_corners_msg_out.W = self.circlepattern_dims[0]
-                self.pub_corners.publish(vehicle_corners_msg_out)
-            elapsed_time = (rospy.Time.now() - start).to_sec()
-            self.pub_time_elapsed.publish(elapsed_time)
-            if self.publish_circles:
-                cv2.drawChessboardCorners(image_cv,
-                                          self.circlepattern_dims, corners, detection)
-                image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
-                self.pub_circlepattern_image.publish(image_msg_out)
-            self.lock.unlock()
+            points_list = []
+            for point in corners:
+                corner = Point32()
+                # print(point[0])
+                corner.x = point[0, 0]
+                # print(point[0,1])
+                corner.y = point[0, 1]
+                corner.z = 0
+                points_list.append(corner)
+            vehicle_corners_msg_out.header.stamp = rospy.Time.now()
+            vehicle_corners_msg_out.corners = points_list
+            vehicle_corners_msg_out.detection.data = detection
+            vehicle_corners_msg_out.H = self.circlepattern_dims[1]
+            vehicle_corners_msg_out.W = self.circlepattern_dims[0]
+            self.pub_corners.publish(vehicle_corners_msg_out)
+        elapsed_time = (rospy.Time.now() - start).to_sec()
+        self.pub_time_elapsed.publish(elapsed_time)
+        if self.publish_circles:
+            cv2.drawChessboardCorners(image_cv,
+                                        self.circlepattern_dims, corners, detection)
+            image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
+            self.pub_circlepattern_image.publish(image_msg_out)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,21 @@ class AntiInstagramNode():
         self.node_name = rospy.get_name()
         self.image_lock = threading.Lock()
 
+<<<<<<< Updated upstream
+=======
+        self.uncorrected_image_subscriber = rospy.Subscriber(
+                                                '~uncorrected_image/compressed', 
+                                                CompressedImage, 
+                                                self.process_image,
+                                                buff_size=921600,
+                                                queue_size=1)
+
+        self.corrected_image_publisher = rospy.Publisher(
+                                             "~corrected_image/compressed", 
+                                             CompressedImage, 
+                                             queue_size=1)
+        
+>>>>>>> Stashed changes
         self.ai = AntiInstagram()
 
         # XXX: read parameters

@@ -33,7 +33,7 @@ class VehicleFilterNodeTest(object):
 		
 				
 		self.sub_pose = rospy.Subscriber("~pose", VehiclePose, 
-				self.cbPose, queue_size=1)
+				self.processPose, queue_size=1)
 		self.pub_corners = rospy.Publisher("~corners", VehicleCorners, queue_size=1)
 		self.pub_camera_info = rospy.Publisher("~camera_info", CameraInfo, queue_size=1)
 		
@@ -46,13 +46,6 @@ class VehicleFilterNodeTest(object):
 		rospy.set_param(param_name,value) #Write to parameter server for transparancy
 		rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
 		return value
-	
-	def cbPose(self, pose_msg):
-		# Start a daemon thread to process the image
-		thread = threading.Thread(target=self.processPose,args=(pose_msg,))
-		thread.setDaemon(True)
-		thread.start()
-		# Returns rightaway
 
 	def pubCorners(self, args=None):
 		self.pub_camera_info.publish(self.camera_info_msg)
