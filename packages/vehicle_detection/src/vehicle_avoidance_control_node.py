@@ -14,15 +14,6 @@ class VehicleAvoidanceControlNode(object):
 	def __init__(self):
 		self.node_name = rospy.get_name()
 		rospack = rospkg.RosPack()
-		self.car_cmd_pub = rospy.Publisher("~car_cmd",
-				Twist2DStamped, queue_size = 1)
-		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
-				BoolStamped, queue_size=1)
-		self.subscriber = rospy.Subscriber("~detection",
-				BoolStamped, self.callback,  queue_size=1)
-		self.sub_vehicle_pose = rospy.Subscriber("~vehicle_pose", VehiclePose, self.cbPose, queue_size=1)
-		self.sub_car_cmd = rospy.Subscriber("~car_cmd_in", Twist2DStamped, self.cbCarCmd, queue_size=1)
-
 		self.config	= self.setupParam("~config", "baseline")
 		self.cali_file_name = self.setupParam("~cali_file_name", "default")
 		rospack = rospkg.RosPack()
@@ -36,7 +27,17 @@ class VehicleAvoidanceControlNode(object):
 		self.loadConfig(self.cali_file)
 		self.controllerInitialization()
 		self.detection_prev=None
+		
+		self.car_cmd_pub = rospy.Publisher("~car_cmd",
+				Twist2DStamped, queue_size = 1)
+		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
+				BoolStamped, queue_size=1)
+		self.subscriber = rospy.Subscriber("~detection",
+				BoolStamped, self.callback,  queue_size=1)
+		self.sub_vehicle_pose = rospy.Subscriber("~vehicle_pose", VehiclePose, self.cbPose, queue_size=1)
+		self.sub_car_cmd = rospy.Subscriber("~car_cmd_in", Twist2DStamped, self.cbCarCmd, queue_size=1)
 
+		
 # 		self.v_gain = 1
 # 		self.vehicle_pose_msg_temp = VehiclePose()
 # 		#self.vehicle_pose_msg_temp = Pose2DStamped()
