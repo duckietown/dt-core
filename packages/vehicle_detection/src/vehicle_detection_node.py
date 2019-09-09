@@ -37,6 +37,7 @@ class VehicleDetectionNode(object):
                           % (self.node_name, self.cali_file))
         self.loadConfig(self.cali_file)
 
+        self.lock = mutex()
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
                                           self.processImage, buff_size=921600, 
                                           queue_size=1)
@@ -50,6 +51,7 @@ class VehicleDetectionNode(object):
                                                        Image, queue_size=1)
         self.pub_time_elapsed = rospy.Publisher("~detection_time",
                                                 Float32, queue_size=1)
+
         rospy.loginfo("[%s] Initialization completed" % (self.node_name))
 
     def setupParam(self, param_name, default_value):

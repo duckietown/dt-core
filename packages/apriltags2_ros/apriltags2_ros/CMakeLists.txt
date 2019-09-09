@@ -54,11 +54,12 @@ generate_messages(
   std_msgs
   geometry_msgs
   sensor_msgs
+  duckietown_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS apriltags2 geometry_msgs image_transport roscpp sensor_msgs std_msgs message_runtime cv_bridge tf
+  CATKIN_DEPENDS apriltags2 geometry_msgs duckietown_msgs image_transport roscpp sensor_msgs std_msgs message_runtime cv_bridge tf
   DEPENDS Eigen OpenCV
 )
 
