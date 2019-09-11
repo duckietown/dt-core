@@ -26,7 +26,7 @@ COPY ./dependencies-py.txt "${REPO_PATH}/"
 # install apt dependencies
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    $(awk -F: '/^[^#]/ { print $1 }' dependencies-apt.txt | uniq) \
+  $(awk -F: '/^[^#]/ { print $1 }' dependencies-apt.txt | uniq) \
   && rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
@@ -38,7 +38,7 @@ COPY . "${REPO_PATH}/"
 # build packages
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
   catkin build \
-    --workspace ${CATKIN_WS_DIR}/
+  --workspace ${CATKIN_WS_DIR}/
 
 # define launch script
 ENV LAUNCHFILE "${REPO_PATH}/launch.sh"
@@ -47,6 +47,8 @@ ENV LAUNCHFILE "${REPO_PATH}/launch.sh"
 CMD ["bash", "-c", "${LAUNCHFILE}"]
 # <== Do not change this code
 # <==================================================
+
+ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
 
 # maintainer
 LABEL maintainer="Andrea F. Daniele (afdaniele@ttic.edu)"
