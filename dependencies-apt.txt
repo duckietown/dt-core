@@ -2,5 +2,6 @@
 ros-kinetic-image-transport
 ros-kinetic-image-geometry
 ros-kinetic-image-proc
+ros-kinetic-camera-calibration
 libyaml-cpp-dev
 python-sklearn
