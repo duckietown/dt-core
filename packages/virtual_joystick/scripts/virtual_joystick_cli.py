@@ -13,7 +13,7 @@ def keyCatcher(host):
     rospy.init_node('joy-cli', anonymous=True)
 
     while not rospy.is_shutdown():
-        direction = raw_input('Enter direction(a,w,s,d)--> ')
+        direction = raw_input('Enter direction(a,w,s,d) and then press enter--> ')
         if direction == 'w':
             axes = [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] 
         elif direction == 's':

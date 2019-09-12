@@ -134,9 +134,9 @@ def prepare_dpad():
     file_dir = os.path.dirname(__file__)
     file_dir = (file_dir + "/") if  (file_dir) else ""
 
-    dpad = pygame.image.load(file_dir + "images/d-pad.png")
+    dpad = pygame.image.load(file_dir + "../images/d-pad.png")
     dpad = pygame.transform.scale(dpad, (screen_size, screen_size))
-    dpad_pressed = pygame.image.load(file_dir + "images/d-pad-pressed.png")
+    dpad_pressed = pygame.image.load(file_dir + "../images/d-pad-pressed.png")
     dpad_pressed = pygame.transform.scale(dpad_pressed, (screen_size, screen_size))
     dpad_f = dpad_pressed
     dpad_r = pygame.transform.rotate(dpad_pressed, 270)
@@ -160,8 +160,10 @@ def print_hint():
 
 if __name__ == '__main__':
 
-    # obtain vehicle name
-    veh_name = os.environ['VEHICLE_NAME']
+    if len(sys.argv) < 2:
+        raise Exception("No hostname specified!")
+    else:
+        veh_name = sys.argv[1]
 
     veh_no = re.sub("\D", "", veh_name)
     main_letter = veh_name[0]
@@ -171,7 +173,7 @@ if __name__ == '__main__':
 
     file_dir = os.path.dirname(__file__)
     file_dir = (file_dir + "/") if  (file_dir) else ""
-    logo = pygame.image.load(file_dir + "images/logo.png")
+    logo = pygame.image.load(file_dir + "../images/logo.png")
 
     pygame.display.set_icon(logo)
     screen = pygame.display.set_mode((screen_size,screen_size))
@@ -193,4 +195,4 @@ if __name__ == '__main__':
         # start the main loop
         loop()
     except socket.error:
-        if auto_restart: os.execv('misc/virtualJoy/virtualJoy.py', [''])
+        print("Error starting main loop in virtual joystick gui")

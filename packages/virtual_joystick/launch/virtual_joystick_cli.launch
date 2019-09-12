@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="veh" doc="name of vehicle"/>
+
+    <arg name="pkg_name" value="virtual_joystick"/>
+    <arg name="node_name" default="virtual_joystick"/>
+
+    <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name)_cli.py" output="screen"  args="$(arg veh)" />
+
+</launch>

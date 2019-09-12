@@ -3,9 +3,11 @@
   <name>virtual_joystick</name>
   <version>1.0.0</version>
   <description>
+    A package for launching the virtual joystick in gui or cli
 </description>
 
 <author email="mack@duckietown.org">Mack</author>
+<maintainer email="mack@duckietown.org">Mack</maintainer>
 
   <license>GPLv3</license>
 
