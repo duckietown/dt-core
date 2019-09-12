@@ -5,3 +5,4 @@ ros-kinetic-image-proc
 ros-kinetic-camera-calibration
 libyaml-cpp-dev
 python-sklearn
+python-pygame
