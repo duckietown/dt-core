@@ -8,3 +8,4 @@ ros-kinetic-rqt-common-plugins
 libyaml-cpp-dev
 python-sklearn
 python-pygame
+iputils-ping
