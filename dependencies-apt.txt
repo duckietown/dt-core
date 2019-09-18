@@ -9,3 +9,4 @@ libyaml-cpp-dev
 python-sklearn
 python-pygame
 iputils-ping
+python-tk
