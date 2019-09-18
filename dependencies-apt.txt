@@ -1,5 +1,6 @@
 # LIST YOUR APT PACKAGES HERE
 ros-kinetic-image-transport
+ros-kinetic-image-transport-plugins
 ros-kinetic-image-geometry
 ros-kinetic-image-proc
 ros-kinetic-camera-calibration
