@@ -16,7 +16,7 @@
 		<remap from="/line_detector_node/switch" to="/$(arg veh)/line_detector_node/switch"/>
 
 
-    <node name="line_detector_node" pkg="line_detector" type="line_detector_node.py" output="screen" clear_params="true" required="true">
+    <node name="line_detector_node" pkg="line_detector" type="line_detector_node.py" output="screen" required="true">
               <rosparam command="load" file="$(find duckietown)/config/baseline/line_detector/line_detector_node/default.yaml"/>
               <param name="verbose" value="true"/>
     </node>

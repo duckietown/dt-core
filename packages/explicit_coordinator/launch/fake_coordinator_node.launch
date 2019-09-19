@@ -9,7 +9,7 @@
 
     <group ns="$(arg veh)">        
         <!-- run local -->
-        <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+        <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
         </node>
     </group>
 

@@ -7,7 +7,7 @@
     <arg name="node_name" default="stop_line_filter_node"/>
 
     <group ns="$(arg veh)">
-        <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true" required="true">
+        <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
             <rosparam command="load" file="$(find stop_line_filter)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
         </node>
     </group>

@@ -5,7 +5,7 @@
     <arg name="param_file_name" default="default"/>
 
     <!-- intersection control -->
-    <node ns="$(arg veh)"  pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" clear_params="true" output="screen">
+    <node ns="$(arg veh)"  pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen">
         <rosparam command="load" file="$(find fsm)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
     </node>
 
