@@ -279,8 +279,6 @@
 		<remap from="lane_controller_node/implicit_coordination_velocity" to="lane_filter_node/implicit_coordination_velocity"/> -->
 		<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 		<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
-		<remap from="lane_controller_node/actuator_limits" to="inverse_kinematics_node/actuator_limits" />
-		<remap from="inverse_kinematics_node/actuator_limits_received" to="lane_controller_node/actuator_limits_received" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
 		<remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" />
 		<remap from="lane_controller_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading" />

@@ -23,9 +23,9 @@ def keyCatcher(host):
         elif direction == 's':
             axes[1] = -1.0
         elif direction == 'd':
-            axes[3] = 1.0
-        elif direction == 'a':
             axes[3] = -1.0
+        elif direction == 'a':
+            axes[3] = 1.0
         elif direction == 'l':
             buttons[7] = 1
         elif direction == 'q':
@@ -37,8 +37,6 @@ def keyCatcher(host):
         pub.publish(msg)
         rospy.sleep(0.5)
 
-        msg = Joy(header=None, axes=axes, buttons=buttons)
-        pub.publish(msg)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

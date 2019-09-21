@@ -6,7 +6,7 @@
     <param name="veh" value="$(arg veh)"/>
 
 	<group ns="$(arg veh)">
-	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" clear_params="true" required="true">
+	    <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" required="true">
 	        <rosparam command="load" file="$(find navigation)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
 	    </node>
 	</group>
