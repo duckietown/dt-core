@@ -113,11 +113,10 @@ class StaticObjectDetectorNode:
         
         self.tm = Matcher()
         self.active = False
-        self.thread_lock = threading.Lock()
         self.turn_counter = TurnCounter()
 
         self.pub_ibvs = rospy.Publisher("~ibvs", Float32, queue_size=1)
-        self.sub_image = rospy.Subscriber("~image_compressed", CompressedImage, self.cbImage, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image_compressed", CompressedImage, self.processImage, buff_size=921600, queue_size=1)
         self.pub_image = rospy.Publisher("~servo_image", Image, queue_size=1)
         self.pub_turns = rospy.Publisher("~turned", Bool, queue_size=1)
         self.bridge = CvBridge()
@@ -127,15 +126,7 @@ class StaticObjectDetectorNode:
     def cbSwitch(self,switch_msg):
         self.active = switch_msg.data
 
-    def cbImage(self,image_msg):
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
-        thread.setDaemon(True)
-        thread.start()
-
     def processImage(self, image_msg):
-        if not self.thread_lock.acquire(False):
-            return
-        
         np_arr = np.fromstring(image_msg.data, np.uint8) 
         #image_cv=self.bridge.imgmsg_to_cv2(image_msg,"bgr8")
         image_cv = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) 
@@ -155,8 +146,7 @@ class StaticObjectDetectorNode:
         except CvBridgeError as e:
             print(e)
         """
-        self.thread_lock.release()
-
+        
 if __name__=="__main__":
     rospy.init_node('arii')
     node = StaticObjectDetectorNode()

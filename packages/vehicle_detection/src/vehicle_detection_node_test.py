@@ -15,7 +15,7 @@ class VehicleDetectionTestNode(object):
 		self.bridge = CvBridge()
 		self.pub_image = rospy.Publisher("~image", Image, queue_size=1)
 		self.sub_image = rospy.Subscriber("~corners", VehicleCorners, 
-				self.cbCorners, queue_size=1)
+				self.processCorners, queue_size=1)
 
 		self.original_filename = rospy.get_param('~original_image_file')
 		self.original_image = cv2.imread(self.original_filename)
@@ -23,13 +23,6 @@ class VehicleDetectionTestNode(object):
 		rospy.loginfo("Initialization of [%s] completed" % (self.node_name))
 		pub_period = rospy.get_param("~pub_period", 1.0)
 		rospy.Timer(rospy.Duration.from_sec(pub_period), self.pubOrig)
-
-	def cbCorners(self,corners_msg):
-		# Start a daemon thread to process the image
-		thread = threading.Thread(target=self.processCorners,args=(corners_msg,))
-		thread.setDaemon(True)
-		thread.start()
-		# Returns rightaway
 
 	def pubOrig(self, args=None):			
 		np_arr = np.fromstring(np.array(cv2.imencode('.png',

@@ -10,6 +10,3 @@
 
 # YOUR FILES LISTED BELOW THIS LINE (IMPORTANT: PREPEND !)
 # ----------------------------------------------------------------------------
-
-# exclude annotation tool
-packages/anti_instagram/annotation-tool
