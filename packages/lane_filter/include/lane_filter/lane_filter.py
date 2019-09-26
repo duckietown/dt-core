@@ -361,8 +361,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def get_inlier_segments(self, segments, d_max, phi_max):
         inlier_segments = []
         for segment in segments:
-            d_s, phi_s = self.generateVote(segment)
-            if d_s == d_max and phi_s == phi_max:
+            d_s, phi_s, l, w = self.generateVote(segment)
+            if abs(d_s - d_max) < self.delta_d and abs(phi_s - phi_max)<self.delta_phi:
                 inlier_segments.append(segment)
         return inlier_segments
 
