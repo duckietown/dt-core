@@ -358,6 +358,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         weight = 1
         return d_i, phi_i, l_i, weight
 
+    def get_inlier_segments(self, segments, d_max, phi_max):
+        inlier_segments = []
+        for segment in segments:
+            d_s, phi_s = self.generateVote(segment)
+            if d_s == d_max and phi_s == phi_max:
+                inlier_segments.append(segment)
+        return inlier_segments
 
     # get the distance from the center of the Duckiebot to the center point of a segment
     def getSegmentDistance(self, segment):

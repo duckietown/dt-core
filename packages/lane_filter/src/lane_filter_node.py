@@ -38,7 +38,7 @@ class LaneFilterNode(object):
         # Publishers
         self.pub_lane_pose = rospy.Publisher("~lane_pose", LanePose, queue_size=1)
         self.pub_belief_img = rospy.Publisher("~belief_img", Image, queue_size=1)
-
+        self.pub_seglist_filtered = rospy.Publisher("~seglist_filtered",SegmentList, queue_size=1)
 
         self.pub_ml_img = rospy.Publisher("~ml_img", Image, queue_size=1)
 
@@ -117,6 +117,12 @@ class LaneFilterNode(object):
         [d_max, phi_max] = self.filter.getEstimate()
         # print "d_max = ", d_max
         # print "phi_max = ", phi_max
+
+        inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
+        inlier_segments_msg = SegmentList()
+        inlier_segments_msg.header = segment_list_msg.header
+        inlier_segments_msg.segments = inlier_segments
+        self.pub_seglist_filtered.publish(inlier_segments_msg)
 
 
         max_val = self.filter.getMax()
