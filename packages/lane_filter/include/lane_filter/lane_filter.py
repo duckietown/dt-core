@@ -24,13 +24,14 @@ import copy
 
 import rospy
 
-# __all__ = [
+#__all__ = [
 #    'LaneFilterHistogram',
-# ]
+#]
 
 
 class LaneFilterHistogram(Configurable, LaneFilterInterface):
-    # """LaneFilterHistogram"""
+    #"""LaneFilterHistogram"""
+
 
     def __init__(self, configuration):
         param_names = [
@@ -68,6 +69,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
                      self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
 
+
         self.beliefArray = []
         self.range_arr = np.zeros(self.curvature_res + 1)
         for i in range(self.curvature_res + 1):
@@ -82,6 +84,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.initialize()
         self.updateRangeArray(self.curvature_res)
+
 
         # Additional variables
         self.red_to_white = False
@@ -131,7 +134,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         d_t = self.d + v * delta_t * np.sin(self.phi)
         phi_t = self.phi + w * delta_t
 
-        for k in range(self.curvature_res + 1):
+        for k in range(self.curvature_res):
             p_belief = np.zeros(self.beliefArray[k].shape)
 
             # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
@@ -166,8 +169,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 segment.color = segment.WHITE
 
             # Optional filtering out YELLOW
-            if not self.use_yellow and segment.color == segment.YELLOW:
-                continue
+            if not self.use_yellow and segment.color == segment.YELLOW: continue
 
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -226,17 +228,16 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         segmentsRangeArray = self.prepareSegments(segments)
         # generate all belief arrays
         for i in range(self.curvature_res + 1):
-            measurement_likelihood = self.generate_measurement_likelihood(
-                segmentsRangeArray[i])
+            measurement_likelihood = self.generate_measurement_likelihood(segmentsRangeArray[i])
 
             if measurement_likelihood is not None:
-                self.beliefArray[i] = np.multiply(
-                    self.beliefArray[i], measurement_likelihood)
+                self.beliefArray[i] = np.multiply(self.beliefArray[i], measurement_likelihood)
                 if np.sum(self.beliefArray[i]) == 0:
                     self.beliefArray[i] = measurement_likelihood
                 else:
-                    self.beliefArray[i] = self.beliefArray[i] / \
-                        np.sum(self.beliefArray[i])
+                    self.beliefArray[i] = self.beliefArray[i] / np.sum(self.beliefArray[i])
+
+
 
     def generate_measurement_likelihood(self, segments):
 
@@ -244,7 +245,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         measurement_likelihood = np.zeros(self.d.shape)
 
         for segment in segments:
-            d_i, phi_i, l_i, weight = self.generateVote(segment)
+            d_i, phi_i, l_i, weight =  self.generateVote(segment)
 
             # if the vote lands outside of the histogram discard it
             if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i > self.phi_max:
@@ -280,8 +281,8 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     # get the curvature estimation
     def getCurvature(self, d_max, phi_max):
-        d_med_act = np.median(d_max)  # actual median d value
-        phi_med_act = np.median(phi_max)  # actual median phi value
+        d_med_act = np.median(d_max) # actual median d value
+        phi_med_act = np.median(phi_max) # actual median phi value
 
         # store median values over a few time step to smoothen out the estimation
         if len(self.d_med_arr) >= self.median_filter_size:
@@ -305,6 +306,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     # return the maximal value of the beliefArray
     def getMax(self):
         return self.beliefArray[0].max()
+
 
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))
@@ -360,7 +362,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         inlier_segments = []
         for segment in segments:
             d_s, phi_s, l, w = self.generateVote(segment)
-            if abs(d_s - d_max) < self.delta_d and abs(phi_s - phi_max) < self.delta_phi:
+            if abs(d_s - d_max) < self.delta_d and abs(phi_s - phi_max)<self.delta_phi:
                 inlier_segments.append(segment)
         return inlier_segments
 
