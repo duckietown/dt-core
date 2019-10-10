@@ -104,8 +104,6 @@ class LEDDetectorNode(object):
 
         # Get frequency to indentify
         self.freqIdentify = [self.protocol['signals']['CAR_SIGNAL_A']['frequency'],
-                             self.protocol['signals']['CAR_SIGNAL_B']['frequency'],
-                             self.protocol['signals']['CAR_SIGNAL_C']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_PRIORITY']['frequency'],
                              self.protocol['signals']['CAR_SIGNAL_SACRIFICE_FOR_PRIORITY']['frequency']]
         #print '---------------------------------------------------------------'
@@ -367,14 +365,10 @@ class LEDDetectorNode(object):
                 #print '-------------------'
 
 
-                if freq_identified == self.freqIdentify[3]:
+                if freq_identified == self.freqIdentify[1]:
                     self.right = SignalsDetection.SIGNAL_PRIORITY
-                elif freq_identified == self.freqIdentify[4]:
+                elif freq_identified == self.freqIdentify[2]:
                     self.right = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
-                    #elif freq_identified == self.freqIdentify[1]:
-                    #    self.right = SignalsDetection.SIGNAL_B
-                    #elif freq_identified == self.freqIdentify[2]:
-                    #    self.right = SignalsDetection.SIGNAL_C
                 else:
                     self.right = SignalsDetection.SIGNAL_A
                 break
@@ -395,14 +389,10 @@ class LEDDetectorNode(object):
                 #print("freq_identified = %f " % freq_identified)
                 #print '-------------------'
 
-                if freq_identified == self.freqIdentify[3]:
+                if freq_identified == self.freqIdentify[1]:
                     self.front = SignalsDetection.SIGNAL_PRIORITY
-                elif freq_identified == self.freqIdentify[4]:
+                elif freq_identified == self.freqIdentify[2]:
                     self.front = SignalsDetection.SIGNAL_SACRIFICE_FOR_PRIORITY
-                    #elif freq_identified == self.freqIdentify[1]:
-                    #    self.front = SignalsDetection.SIGNAL_B
-                    #elif freq_identified == self.freqIdentify[2]:
-                    #    self.front = SignalsDetection.SIGNAL_C
                 else:
                     self.front = SignalsDetection.SIGNAL_A
                 break
