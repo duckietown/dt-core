@@ -1,5 +1,5 @@
 <launch>
-    <arg name="pkg_name" value="apriltags_ros"/>
+    <arg name="pkg_name" value="apriltags2_ros"/>
     <arg name="node_name" default="apriltags_postprocessing_node"/>
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
     <arg name="config" default="baseline" doc="Specify a config."/>
@@ -9,7 +9,7 @@
 
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
             <rosparam command="load"
-                      file="$(find apriltags_ros)/config/$(arg param_file_name).yaml"/>
+                      file="$(find apriltags2_ros)/config/$(arg param_file_name).yaml"/>
         </node>
     </group>
 </launch>

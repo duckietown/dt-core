@@ -403,7 +403,7 @@
 	</include>
 	<!-- Postprocessing node -->
 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
+	<include file="$(find apriltags2_ros)/launch/apriltags_postprocessing_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
