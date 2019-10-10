@@ -139,17 +139,15 @@
 			<remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
 			<include file="$(find pi_camera)/launch/decoder_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
 			</include>
 
-			<!-- NOT USED -->
+			<!-- NOT USED --> 
 			<!-- Raw camera_info_reader node -->
 			<remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
 			<remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
 			<include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
 				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
 				<arg name="param_file_name" value="$(arg param_file_name)"/>
 				<arg name="node_name" value="raw_cam_info_reader_node" />
 				<arg name="image_type" value="raw" />
