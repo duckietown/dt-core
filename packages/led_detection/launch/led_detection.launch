@@ -11,7 +11,7 @@
     <group ns="$(arg veh)">
 
         <node  pkg="$(arg pkg_name)" type="$(arg src_name)" name="$(arg node_name)" output="screen" required="true">
-		    <rosparam command="load" file="$(find led_emitter)/config/led_emitter_node/LED_protocol.yaml"/>
+		    <rosparam command="load" file="$(find led_interpreter)/config/led_emitter_node/LED_protocol.yaml"/>
 		    <rosparam command="load" file="$(find led_detection)/config/LED_detector_node/$(arg param_file_name).yaml"/>
 		    <param name="continuous" type="bool" value="$(arg continuous)" />
 	</node>
