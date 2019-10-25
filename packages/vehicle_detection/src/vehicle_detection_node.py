@@ -22,20 +22,16 @@ class VehicleDetectionNode(object):
         self.node_name = rospy.get_name()
         self.bridge = CvBridge()
         self.active = True
-        self.config = self.setupParam("~config", "baseline")
-        self.cali_file_name = self.setupParam("~cali_file_name", "default")
+
         self.publish_freq = self.setupParam("~publish_freq", 2.0)
+        self.circlepattern_dims = tuple(self.setupParam('~circlepattern_dims/data', [7, 3]))
+        self.blobdetector_min_area = self.setupParam('~blobdetector_min_area', 10)
+        self.blobdetector_min_dist_between_blobs = self.setupParam('~blobdetector_min_dist_between_blobs', 2)
+        self.publish_circles = self.setupParam('~publish_circles', True)
+
         self.publish_duration = rospy.Duration.from_sec(1.0/self.publish_freq)
         self.last_stamp = rospy.Time.now()
-        rospack = rospkg.RosPack()
-        self.cali_file = rospack.get_path('duckietown') + \
-            "/config/" + self.config + \
-            "/vehicle_detection/vehicle_detection_node/" +  \
-            self.cali_file_name + ".yaml"
-        if not os.path.isfile(self.cali_file):
-            rospy.logwarn("[%s] Can't find calibration file: %s.\n"
-                          % (self.node_name, self.cali_file))
-        self.loadConfig(self.cali_file)
+
 
         self.lock = mutex()
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
@@ -59,23 +55,6 @@ class VehicleDetectionNode(object):
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
-
-    def loadConfig(self, filename):
-        stream = file(filename, 'r')
-        data = yaml.load(stream)
-        stream.close()
-        self.circlepattern_dims = tuple(data['circlepattern_dims']['data'])
-        self.blobdetector_min_area = data['blobdetector_min_area']
-        self.blobdetector_min_dist_between_blobs = data['blobdetector_min_dist_between_blobs']
-        self.publish_circles = data['publish_circles']
-        rospy.loginfo('[%s] circlepattern_dim : %s' % (self.node_name,
-                                                       self.circlepattern_dims,))
-        rospy.loginfo('[%s] blobdetector_min_area: %.2f' % (self.node_name,
-                                                            self.blobdetector_min_area))
-        rospy.loginfo('[%s] blobdetector_min_dist_between_blobs: %.2f' % (self.node_name,
-                                                                          self.blobdetector_min_dist_between_blobs))
-        rospy.loginfo('[%s] publish_circles: %r' % (self.node_name,
-                                                    self.publish_circles))
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data

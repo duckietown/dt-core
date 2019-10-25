@@ -13,18 +13,14 @@ class VehicleAvoidanceControlNode(object):
 
 	def __init__(self):
 		self.node_name = rospy.get_name()
-		rospack = rospkg.RosPack()
-		self.config	= self.setupParam("~config", "baseline")
-		self.cali_file_name = self.setupParam("~cali_file_name", "default")
-		rospack = rospkg.RosPack()
-		self.cali_file = rospack.get_path('duckietown') + \
-				"/config/" + self.config + \
-				"/vehicle_detection/vehicle_avoidance_control_node/" +  \
-				self.cali_file_name + ".yaml"
-		if not os.path.isfile(self.cali_file):
-			rospy.logwarn("[%s] Can't find calibration file: %s.\n"
-					% (self.node_name, self.cali_file))
-		self.loadConfig(self.cali_file)
+
+		self.desired_distance = self.setupParam('~desired_distance', 0.20)
+		self.minimal_distance = self.setupParam('~minimal_distance', 0.25)
+		self.Kp = self.setupParam('~Kp', 0.7)
+		self.Ki = self.setupParam('~Ki', 0.0)
+		self.Kd = self.setupParam('~Kd', 0.0)
+		self.Kp_delta_v = self.setupParam('~Kp_delta_v', 0.8)
+
 		self.controllerInitialization()
 		self.detection_prev=None
 		
@@ -37,49 +33,12 @@ class VehicleAvoidanceControlNode(object):
 		self.sub_vehicle_pose = rospy.Subscriber("~vehicle_pose", VehiclePose, self.cbPose, queue_size=1)
 		self.sub_car_cmd = rospy.Subscriber("~car_cmd_in", Twist2DStamped, self.cbCarCmd, queue_size=1)
 
-		
-# 		self.v_gain = 1
-# 		self.vehicle_pose_msg_temp = VehiclePose()
-# 		#self.vehicle_pose_msg_temp = Pose2DStamped()
-# 		self.vehicle_pose_msg_temp.header.stamp = rospy.Time.now()
-# 		#self.time_temp = rospy.Time.now()
-# 		self.v_rel = 0
-# 		self.v = 0
-# 		self.detection = False
-# 		self.v_error_temp = 0
-# 		self.I = 0
-# 		self.v_follower = 0
-# 		self.rho_temp = 0
-# 		self.omega = 0
 
 	def setupParam(self, param_name, default_value):
 		value = rospy.get_param(param_name, default_value)
 		rospy.set_param(param_name, value)
 		rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
 		return value
-
-	def loadConfig(self, filename):
-		stream = file(filename, 'r')
-		data = yaml.load(stream)
-		stream.close()
-		self.desired_distance = data['desired_distance']
-		rospy.loginfo('[%s] desired_distance : %s' % (self.node_name,
-				self.desired_distance))
-		self.minimal_distance = data['minimal_distance']
-		rospy.loginfo('[%s] minimal_distance : %s' % (self.node_name,
-				self.minimal_distance))
-		self.Kp = data['Kp']
-		rospy.loginfo('[%s] Kp : %s' % (self.node_name,
-				self.Kp))
-		self.Ki = data['Ki']
-		rospy.loginfo('[%s] Ki : %s' % (self.node_name,
-				self.Ki))
-		self.Kd = data['Kd']
-		rospy.loginfo('[%s] Kd : %s' % (self.node_name,
-				self.Kd))
-		self.Kp_delta_v = data['Kp_delta_v']
-		rospy.loginfo('[%s] Kp_delta_v : %s' % (self.node_name,
-				self.Kp_delta_v))
 
 	def controllerInitialization(self):
 		self.vehicle_pose_msg_temp = VehiclePose()
