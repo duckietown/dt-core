@@ -22,17 +22,8 @@ class VehicleFilterNode(object):
         self.node_name = rospy.get_name()
         self.bridge = CvBridge()
 
-        self.config = self.setupParam("~config", "baseline")
-        self.cali_file_name = self.setupParam("~cali_file_name", "default")
-        rospack = rospkg.RosPack()
-        self.cali_file = rospack.get_path('duckietown') + \
-            "/config/" + self.config + \
-            "/vehicle_detection/vehicle_filter_node/" + \
-            self.cali_file_name + ".yaml"
-        if not os.path.isfile(self.cali_file):
-            rospy.logwarn("[%s] Can't find calibration file: %s.\n"
-                          % (self.node_name, self.cali_file))
-        self.loadConfig(self.cali_file)
+        self.distance_between_centers = self.setupParam('distance_between_centers', 0.0125)
+        self.max_reproj_pixelerror_pose_estimation = self.setupParam('max_reproj_pixelerror_pose_estimation', 1.5)
 
         self.sub_corners = rospy.Subscriber("~corners", VehicleCorners,
                                             self.processCorners, queue_size=1)
@@ -51,17 +42,6 @@ class VehicleFilterNode(object):
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
-
-    def loadConfig(self, filename):
-        stream = file(filename, 'r')
-        data = yaml.load(stream)
-        stream.close()
-        self.distance_between_centers = data['distance_between_centers']
-        rospy.loginfo('[%s] distance_between_centers dim : %s' % (self.node_name,
-                                                                  self.distance_between_centers))
-        self.max_reproj_pixelerror_pose_estimation = data['max_reproj_pixelerror_pose_estimation']
-        rospy.loginfo('[%s] max_reproj_pixelerror_pose_estimation : %s' % (self.node_name,
-                                                                           self.max_reproj_pixelerror_pose_estimation))
 
     def processCameraInfo(self, camera_info_msg):
         if self.lock.testandset():
