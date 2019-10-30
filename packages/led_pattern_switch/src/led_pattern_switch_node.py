@@ -3,6 +3,8 @@ import rospy
 from duckietown_msgs.msg import Twist2DStamped, FSMState
 from std_msgs.msg import String
 
+from duckietown_msgs.srv import ChangePattern
+
 class LEDPatternSwitchNode(object):
     def __init__(self):
         self.node_name = rospy.get_name()
@@ -13,7 +15,10 @@ class LEDPatternSwitchNode(object):
         self.current_src_name = "joystick" # by default if fsm is missing
 
         # Construct publisher
-        self.pub_cmd = rospy.Publisher("~change_color_pattern",String,queue_size=1)
+        # self.pub_cmd = rospy.Publisher("~change_color_pattern",String,queue_size=1)
+        self.changePattern = rospy.ServiceProxy("~change_color_pattern",
+                                                ChangePattern)
+
         
         # Construct subscribers
         self.sub_fsm_state = rospy.Subscriber(rospy.get_param("~mode_topic"),FSMState,self.cbFSMState)
@@ -34,8 +39,9 @@ class LEDPatternSwitchNode(object):
     def msgincb(self,msg,src_name):
 
         if src_name == self.current_src_name:
-            #rospy.loginfo("[%s] %s callback matches, publishing"%(self.node_name,src_name))
-            self.pub_cmd.publish(msg)
+            rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
+            # self.pub_cmd.publish(msg)
+            self.changePattern(msg)
         #else:
             #rospy.loginfo("[%s] %s callback does not match, not publishing"%(self.node_name,src_name))
 

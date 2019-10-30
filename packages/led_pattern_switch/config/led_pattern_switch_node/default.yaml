@@ -5,8 +5,10 @@ source_topics: #Mapping from cmd source name to topics
 mappings: #Mapping from FSMStates.state to cmd source names. Allows different FSM mode to use the same source.
   LANE_FOLLOWING: "coordination"
   INTERSECTION_CONTROL: "coordination"
+  INTERSECTION_COORDINATION: "coordination"
   COORDINATION: "coordination"
   JOYSTICK_CONTROL: "joystick"
+  NORMAL_JOYSTICK_CONTROL: "joystick"
   AVOID_OBSTACLE: "joystick"
   AVOID_VEHICLE:    "joystick"
   LANE_RECOVERY:     "joystick"

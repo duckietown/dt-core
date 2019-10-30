@@ -436,11 +436,10 @@
 
 
 	<!-- not LF, not IN -->
-	<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/change_color_pattern" />
+	<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />
 	<group if="$(arg /LED/pattern_switch)">
 		<include file="$(find led_pattern_switch)/launch/led_pattern_switch_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
