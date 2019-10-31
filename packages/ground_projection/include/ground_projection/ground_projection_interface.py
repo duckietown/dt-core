@@ -184,8 +184,8 @@ def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
 def load_board_info(filename=None):
     '''Load calibration checkerboard info'''
     if filename is None:
-        root = dtu.get_ros_package_path('duckietown')
-        filename = root + '/config/baseline/ground_projection/ground_projection/default.yaml'
+        root = dtu.get_ros_package_path('ground_projection')
+        filename = root + '/config/ground_projection_node/default.yaml'
 
     if not os.path.isfile(filename):
         msg = 'No such file: %s' % filename

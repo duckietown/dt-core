@@ -172,7 +172,7 @@ class GroundProjection():
     def load_board_info(self, filename=''):
         '''Load calibration checkerboard info'''
         if not os.path.isfile(filename):
-            filename = get_ros_package_path('duckietown') + '/config/baseline/ground_projection/ground_projection/default.yaml'
+            filename = get_ros_package_path('ground_projection') + '/config/ground_projection_node/default.yaml'
         target_data = yaml_load_file(filename)
         target_info = {
             'width': target_data['board_w'],
