@@ -4,8 +4,9 @@ import cv2
 import numpy as np
 import math
 import threading
+from .anti_instagram_interface import AntiInstagramInterface
 
-class AntiInstagram():
+class AntiInstagram(AntiInstagramInterface):
 
     def __init__(self):
 
@@ -14,7 +15,7 @@ class AntiInstagram():
         self.lower_threshold = None
         self.higher_threshold = [255,255,255]
 
-    def calculate_color_balance_thresholds(self, image, scale, percentage):
+    def calculate_color_balance_thresholds(self, image, scale=1, percentage=0.8):
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         H = resized_image.shape[0]
@@ -46,7 +47,7 @@ class AntiInstagram():
         # Note: higher_threshold is not being changed
         self.threshold_lock.release()
 
-    def apply_color_balance(self, image, scale):
+    def apply_color_balance(self, image, scale=1):
 
         self.threshold_lock.acquire()
         lower_threshold = self.lower_threshold

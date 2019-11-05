@@ -68,11 +68,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
 
     with pts.phase('calculate AI transform'):
-        ai.calculateTransform(image)
+        ai.calculate_color_balance_thresholds(image)
 
     with pts.phase('apply AI transform'):
 
-        transformed = ai.applyTransform(image)
+        transformed = ai.apply_color_balance(image)
 
         if all_details:
             res['image_input_transformed'] = transformed
@@ -80,7 +80,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     with pts.phase('edge detection'):
         # note: do not apply transform twice!
         segment_list2 = image_prep.process(pts, image,
-                                           line_detector, transform=ai.applyTransform)
+                                           line_detector, transform=ai.apply_color_balance)
 
         if all_details:
 
@@ -153,7 +153,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     with pts.phase('rectify'):
         rectified0 = gpg.rectify(image)
 
-    rectified = ai.applyTransform(rectified0)
+    rectified = ai.apply_color_balance(rectified0)
 
     if all_details:
         res['image_input_rect'] = rectified
