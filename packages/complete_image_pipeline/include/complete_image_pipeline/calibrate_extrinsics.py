@@ -49,7 +49,7 @@ class CalibrateExtrinsics(D8App):
             print('Let\'s wait for an image. Say cheese!')
             img_msg = None
 
-            rospy.init_node('test')
+            rospy.init_node('calibrate_extrinsics')
 
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)

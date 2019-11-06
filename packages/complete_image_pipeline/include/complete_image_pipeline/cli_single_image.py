@@ -32,6 +32,8 @@ class SingleImagePipeline(D8App):
                           help="Which lane_filter to use", group=g)
 
     def go(self):
+        vehicle_name = dtu.get_current_robot_name()
+
         output = self.options.output
         if output is None:
             output = 'out-pipeline'  #  + dtu.get_md5(self.options.image)[:6]
@@ -44,15 +46,27 @@ class SingleImagePipeline(D8App):
 
             bgr = dtu.bgr_from_jpg_fn(image_filename)
         else:
-            self.info('Taking a picture. Say cheese!')
-            out = os.path.join(output, 'frame.jpg')
-            bgr = dtu.bgr_from_raspistill(out)
+            print("Validating using the ROS image stream...")
+            import rospy
+            from sensor_msgs.msg import CompressedImage
+
+            topic_name = os.path.join('/', vehicle_name, 'camera_node/image/compressed')
+
+            print('Let\'s wait for an image. Say cheese!')
+            img_msg = None
+
+            rospy.init_node('single_image')
+
+            try:
+                img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
+                print('Image captured!')
+
+            except rospy.ROSException as e:
+                print('Didn\'t get any message!: %s' % (e,))
+
+            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info('Picture taken: %s ' % str(bgr.shape))
 
-            bgr = dtu.d8_image_resize_fit(bgr, 640)
-            self.info('Resized to: %s ' % str(bgr.shape))
-
-        vehicle_name = dtu.get_current_robot_name()
         gp = GroundProjection(vehicle_name)
 
         if False:
