@@ -16,7 +16,7 @@ class LEDPatternSwitchNode(object):
 
         # Construct publisher
         # self.pub_cmd = rospy.Publisher("~change_color_pattern",String,queue_size=1)
-        self.changePattern = rospy.ServiceProxy("~change_color_pattern",
+        self.changePattern = rospy.ServiceProxy("~set_pattern",
                                                 ChangePattern)
 
         
