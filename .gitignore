@@ -67,3 +67,5 @@ veh_coordinator/
 obst_avoid/
 steering_wheel/
 parallel_autonomy/
+
+docs/build
