@@ -27,8 +27,7 @@ class SingleImagePipeline(D8App):
         params.add_string('image_prep', default='baseline', help="Which image prep to use", group=g)
         params.add_string('anti_instagram', default='baseline', help="Which anti_instagram to use", group=g)
         params.add_string('lane_filter',
-                          # default='baseline',
-                           default='moregeneric_straight',
+                          default='moregeneric_straight',
                           help="Which lane_filter to use", group=g)
 
     def go(self):
@@ -53,14 +52,13 @@ class SingleImagePipeline(D8App):
             topic_name = os.path.join('/', vehicle_name, 'camera_node/image/compressed')
 
             print('Let\'s wait for an image. Say cheese!')
-            img_msg = None
 
+            # Dummy to get ROS message
             rospy.init_node('single_image')
-
+            img_msg = None
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
                 print('Image captured!')
-
             except rospy.ROSException as e:
                 print('Didn\'t get any message!: %s' % (e,))
 
@@ -69,23 +67,15 @@ class SingleImagePipeline(D8App):
 
         gp = GroundProjection(vehicle_name)
 
-        if False:
-            _res = run_pipeline(bgr, gp,
-                                line_detector_name=self.options.line_detector,
-                                image_prep_name=self.options.image_prep,
-                                anti_instagram_name=self.options.anti_instagram,
-                                lane_filter_name=self.options.lane_filter)
-
         dtu.DuckietownConstants.show_timeit_benchmarks = True
         res, _stats = run_pipeline(bgr, gp,
-                            line_detector_name=self.options.line_detector,
-                            image_prep_name=self.options.image_prep,
-                            anti_instagram_name=self.options.anti_instagram,
-                            lane_filter_name=self.options.lane_filter)
+                                   line_detector_name=self.options.line_detector,
+                                   image_prep_name=self.options.image_prep,
+                                   anti_instagram_name=self.options.anti_instagram,
+                                   lane_filter_name=self.options.lane_filter)
 
-        self.info('resizing')
+        self.info('Resizing images..')
         res = dtu.resize_small_images(res)
-        self.info('writing')
+        self.info('Writing images..')
         dtu.write_bgr_images_as_jpgs(res, output)
 
-#        dtu.write_jpgs_to_dir(res, output)
