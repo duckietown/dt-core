@@ -18,8 +18,8 @@ __all__ = [
 
 
 class CalibrateExtrinsics(D8App):
-    """
-        Calibrate the extrinsics. Run on Duckiebot directly.
+    """Calibrate the extrinsics.
+         Run on Duckiebot directly. By default, waits for a message published by the ROS `camera_node`.
     """
 
     cmd = 'rosrun complete_image_pipeline calibrate_extrinsics'
@@ -30,30 +30,46 @@ class CalibrateExtrinsics(D8App):
         params.add_string('output', default=None, short='-o', help='Output directory', group=g)
 
     def go(self):
+        robot_name = dtu.get_current_robot_name()
+
         output = self.options.output
         if output is None:
             output = 'out-calibrate-extrinsics'  #  + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
 
         if self.options.input is None:
-            for i in range(1000):
-                out = os.path.join(output, 'frame-%03d.jpg' % i)
-                if not os.path.exists(out): break
 
-            self.info('Taking a picture. Say cheese!')
+            print("{}\nCalibrating using the ROS image stream...\n".format("*"*20))
+            import rospy
+            from sensor_msgs.msg import CompressedImage
 
-            bgr = dtu.bgr_from_raspistill(out)
+            topic_name = os.path.join('/', robot_name, 'camera_node/image/compressed')
+            print('Topic to listen to is: %s' % topic_name)
+
+            print('Let\'s wait for an image. Say cheese!')
+
+            # Dummy for getting a ROS message
+            rospy.init_node('calibrate_extrinsics')
+            img_msg = None
+            try:
+                img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
+                print('Image captured!')
+            except rospy.ROSException as e:
+                print('\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER!\n\n\n' % (e,))
+
+            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info('Picture taken: %s ' % str(bgr.shape))
+
         else:
             self.info('Loading input image %s' % self.options.input)
             bgr = dtu.bgr_from_jpg_fn(self.options.input)
 
-        if True:
+        if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
             self.info('Resized to: %s ' % str(bgr.shape))
 
-        robot_name = dtu.get_current_robot_name()
+        # Disable the old calibration file
         disable_old_homography(robot_name)
 
         camera_info = get_camera_info_for_robot(robot_name)
@@ -65,19 +81,11 @@ class CalibrateExtrinsics(D8App):
             bgr_rectified = gpg.rectify(bgr, interpolation=cv2.INTER_CUBIC)
 
             res['bgr'] = bgr
-#            if False:
-#                bgr = equalize(bgr)
-#                res['equalized'] = bgr
             res['bgr_rectified'] = bgr_rectified
 
-            if True:
-#                _, res['rectified_full'] = gpg.rectify_full(bgr)
-                _new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
+            _new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
             result = estimate_homography(bgr_rectified)
             dtu.check_isinstance(result, HomographyEstimationResult)
-#
-#            if result.bgr_detected is not None:
-#                res['bgr_detected'] = result.bgr_detected
 
             if result.bgr_detected_refined is not None:
                 res['bgr_detected_refined'] = result.bgr_detected_refined
@@ -99,14 +107,3 @@ Look at the produced jpgs.
             self.info(msg)
         finally:
             dtu.write_bgr_images_as_jpgs(res, output)
-
-#
-#def equalize(bgr):
-#    img_yuv = cv2.cvtColor(bgr, cv2.COLOR_BGR2YUV)
-#
-#    # equalize the histogram of the Y channel
-#    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
-#
-#    # convert the YUV image back to RGB format
-#    img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
-#    return img_output
