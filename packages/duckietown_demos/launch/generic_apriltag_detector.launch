@@ -1,7 +1,7 @@
 <launch>
   <arg name="ns" default="apriltag_detector"/>
-  <arg name="pkg_name" value="apriltags2_ros"/>
-  <arg name="node_name" default="apriltag2_detector_node"/>
+  <arg name="pkg_name" value="apriltag_ros"/>
+  <arg name="node_name" default="apriltag_detector_node"/>
   <arg name="image_topic" doc="Topic to raw image"/>
   <arg name="info_topic" doc="Topic to camera info"/>
   <arg name="camera_frame" doc="Frame of the camera"/>
@@ -10,11 +10,11 @@
 
   <group ns="$(arg ns)">
     <!-- Set parameters -->
-    <rosparam command="load" file="$(find apriltags2_ros)/config/settings.yaml" ns="$(arg node_name)" />
-    <rosparam command="load" file="$(find apriltags2_ros)/config/tags.yaml" ns="$(arg node_name)" />
+    <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml" ns="$(arg node_name)" />
+    <rosparam command="load" file="$(find apriltag_ros)/config/tags.yaml" ns="$(arg node_name)" />
 
     <!-- run local -->
-    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="apriltags2_ros_continuous_node" output="screen">
+    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="apriltag_ros_continuous_node" output="screen">
       <!-- Remap topics from those used in code to those on the ROS network -->
       <remap from="image_rect" to="$(arg image_topic)" />
       <remap from="camera_info" to="$(arg info_topic)" />
