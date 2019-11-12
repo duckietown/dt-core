@@ -17,7 +17,7 @@ class LEDJoyMapper(object):
         self.last_pub_msg = None
         self.last_pub_time = rospy.Time.now()
 
-        self.pub_pattern= rospy.Publisher("~change_color_pattern", String, queue_size=1)
+        self.pub_pattern = rospy.Publisher("~change_color_pattern", String, queue_size=1)
 
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
 
