@@ -43,6 +43,7 @@ class RandomAprilTagTurnsNode(object):
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
             #rospy.loginfo("Turn type now: %i" %(self.turn_type))
+
     def cbTag(self, tag_msgs):
         if self.fsm_mode == "INTERSECTION_CONTROL" or self.fsm_mode == "INTERSECTION_COORDINATION" or self.fsm_mode == "INTERSECTION_PLANNING":
             #loop through list of april tags
@@ -53,7 +54,7 @@ class RandomAprilTagTurnsNode(object):
             for idx, taginfo in enumerate(tag_msgs.infos):
                 if(taginfo.tag_type == taginfo.SIGN):
                     tag_det = (tag_msgs.detections)[idx]
-                    pos = tag_det.pose.pose.position
+                    pos = tag_det.pose.pose.pose.position
                     distance = math.sqrt(pos.x**2 + pos.y**2 + pos.z**2)
                     if distance < dis_min:
                         dis_min = distance
