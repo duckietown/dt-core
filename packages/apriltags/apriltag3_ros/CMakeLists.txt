@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+	duckietown_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -46,11 +47,9 @@ add_compile_options("-O3" "-funsafe-loop-optimizations" "-fsee" "-funroll-loops"
 #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a -mcpu=cortex-a9 -mfpu=neon -mtune=cortex-a9 -mvectorize-with-neon-quad -ffast-math ")
 # endif()
 
-add_message_files(
-  FILES
-  AprilTagDetection.msg
-  AprilTagDetectionArray.msg
-)
+# add_message_files(
+#   FILES
+# )
 
 add_service_files(
   FILES
@@ -60,8 +59,9 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   geometry_msgs
-  sensor_msgs
+	sensor_msgs
   std_msgs
+	duckietown_msgs
 )
 
 catkin_package(
@@ -74,9 +74,10 @@ catkin_package(
     nodelet
     pluginlib
     roscpp
-    sensor_msgs
+		sensor_msgs
     std_msgs
     tf
+		duckietown_msgs
   DEPENDS
     OpenCV
     apriltag

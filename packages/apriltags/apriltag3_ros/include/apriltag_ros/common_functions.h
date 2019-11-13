@@ -64,8 +64,8 @@
 
 #include <apriltag.h>
 
-#include "apriltag_ros/AprilTagDetection.h"
-#include "apriltag_ros/AprilTagDetectionArray.h"
+#include <duckietown_msgs/AprilTagDetectionArray.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 namespace apriltag_ros
 {
@@ -209,7 +209,7 @@ class TagDetector
       const std_msgs::Header& header);
 
   // Detect tags in an image
-  AprilTagDetectionArray detectTags(
+  duckietown_msgs::AprilTagDetectionArray detectTags(
       const cv_bridge::CvImagePtr& image,
       const sensor_msgs::CameraInfoConstPtr& camera_info);
 
@@ -224,7 +224,7 @@ class TagDetector
       std::vector<cv::Point3d > objectPoints,
       std::vector<cv::Point2d > imagePoints,
       double fx, double fy, double cx, double cy) const;
-  
+
   void addImagePoints(apriltag_detection_t *detection,
                       std::vector<cv::Point2d >& imagePoints) const;
   void addObjectPoints(double s, cv::Matx44d T_oi,

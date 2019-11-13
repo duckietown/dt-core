@@ -46,7 +46,7 @@ SingleImageDetector::SingleImageDetector (ros::NodeHandle& nh,
       nh.advertiseService("single_image_tag_detection",
                           &SingleImageDetector::analyzeImage, this);
   tag_detections_publisher_ =
-      nh.advertise<AprilTagDetectionArray>("tag_detections", 1);
+      nh.advertise<duckietown_msgs::AprilTagDetectionArray>("tag_detections", 1);
   ROS_INFO_STREAM("Ready to do tag detection on single images");
 }
 
