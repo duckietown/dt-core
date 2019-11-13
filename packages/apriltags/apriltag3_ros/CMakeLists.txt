@@ -35,7 +35,7 @@ link_directories(${apriltag_LIBDIR})
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options("-O3" "-funsafe-loop-optimizations" "-fsee" "-funroll-loops" "-fno-math-errno" "-funsafe-math-optimizations" "-ffinite-math-only" "-fno-signed-zeros")
 
-# Note: These options have been turned off to allow for binary releases - 
+# Note: These options have been turned off to allow for binary releases -
 # in local builds, they can be reactivated to achieve higher performance.
 # if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64" OR "x86_32")
 #   message("enabling msse2 for x86_64 or x86_32 architecture")
