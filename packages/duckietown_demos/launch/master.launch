@@ -195,6 +195,8 @@
 	<!-- car_cmd_switch_node -->
 	<!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
 	<remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/>
+	
+	<!-- If running vehicle avoidance, overwrite lane controller car commands with avoidance commands -->
 	<group if="$(arg vehicle_avoidance)">
 			<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
 	</group>
