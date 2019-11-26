@@ -52,6 +52,156 @@ class CouldNotCalibrate(Exception):
 HomographyEstimationResult = namedtuple('HomographyEstimationResult',
                                         'success error board_info bgr_detected bgr_detected_refined H')
 
+def unsharp_mask(image, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
+    "" "Return a sharpened version of the image, using an unsharp mask." ""
+    blurred = cv2.GaussianBlur(image, kernel_size, sigma)
+    sharpened = float(amount + 1) * image - float(amount) * blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold > 0:
+        low_contrast_mask = np.absolute(image - blurred) < threshold
+        np.copyto(sharpened, image, where=low_contrast_mask)
+    return sharpened
+
+def get_corners(grey_rectified):
+    def select(img,x,y, radius):
+        prev_state = None
+        counts = 0
+        for angle in range(0, 360,1):
+            x_perimeter = int(x + np.sin(angle/180.*np.pi) * 3*radius)
+            y_perimeter = int(y + np.cos(angle/180.*np.pi) * radius)
+
+            state = img[y_perimeter,x_perimeter]<20
+            if prev_state != state:
+                counts+=1
+                prev_state = state
+        return counts>3
+    corners = cv2.goodFeaturesToTrack(grey_rectified,50,.1,7)
+    corners = np.int0(corners)
+    
+    kept_corners = []
+    for i in corners:
+        x,y = i.ravel()
+        if select(grey_rectified,x,y, radius=5):
+            kept_corners.append([x,y])
+    return kept_corners
+
+def clean_points(points, threshold = 8.0):
+    # TODO: Add credits
+    def squared_distance(p1, p2):
+        # TODO optimization: use numpy.ndarrays, simply return (p1-p2)**2
+        sd = 0
+        for x, y in zip(p1, p2):
+            sd += (x-y)**2
+        return sd
+
+
+    def get_proximity_matrix(points, threshold):
+        n = len(points)
+        t2 = threshold**2
+        # TODO optimization: use sparse boolean matrix
+        prox = [[False]*n for k in range(n)]
+        for i in range(0, n):
+            for j in range(i+1, n):
+                prox[i][j] = (squared_distance(points[i], points[j]) < t2)
+                prox[j][i] = prox[i][j]  # symmetric matrix
+        return prox
+
+
+    def find_clusters(points, threshold):
+        n = len(points)
+        prox = get_proximity_matrix(points, threshold)
+        point_in_list = [None]*n
+        clusters = []
+        for i in range(0, n):
+            for j in range(i+1, n):
+                if prox[i][j]:
+                    list1 = point_in_list[i]
+                    list2 = point_in_list[j]
+                    if list1 is not None:
+                        if list2 is None:
+                            list1.append(j)
+                            point_in_list[j] = list1
+                        elif list2 is not list1:
+                            # merge the two lists if not identical
+                            list1 += list2
+                            point_in_list[j] = list1
+                            del clusters[clusters.index(list2)]
+                        else:
+                            pass  # both points are already in the same cluster
+                    elif list2 is not None:
+                        list2.append(i)
+                        point_in_list[i] = list2
+                    else:
+                        list_new = [i, j]
+                        for index in [i, j]:
+                            point_in_list[index] = list_new
+                        clusters.append(list_new)
+            if point_in_list[i] is None:
+                list_new = [i]  # point is isolated so far
+                point_in_list[i] = list_new
+                clusters.append(list_new)
+        return clusters
+
+
+    def average_clusters(points, threshold=1.0, clusters=None):
+        if clusters is None:
+            clusters = find_clusters(points, threshold)
+        newpoints = []
+        for cluster in clusters:
+            n = len(cluster)
+            point = [0]*len(points[0])  # TODO numpy
+            for index in cluster:
+                part = points[index]  # in numpy: just point += part / n
+                for j in range(0, len(part)):
+                    point[j] += part[j] / n  # TODO optimization: point/n later
+            newpoints.append(point)
+        return newpoints
+
+    clusters = find_clusters(points, threshold)
+    clustered = average_clusters(points, clusters=clusters)
+    return np.array(clustered).astype(np.float32).reshape(-1,1,2)
+
+def order_corners(corners, n_points, step=1.):
+    ordered_corners = []
+    remaining_points = corners.astype(np.float32).reshape(-1,2).tolist()
+
+    while len(remaining_points)>0:
+
+        left_idx = np.argmin(list(map(lambda x:x[0]-x[1],remaining_points)))      
+        left_point = remaining_points[left_idx]
+
+        right_idx = np.argmax(list(map(lambda x:x[0]+x[1],remaining_points)))      
+        right_point = remaining_points[right_idx]
+    
+        slope = (left_point[1] - right_point[1])/(left_point[0] - right_point[0])
+        offset = left_point[1] - left_point[0]*slope
+        direction_pos = True
+        while True:
+            top_points = []
+            n_points_above = 0
+            for idx, point in enumerate(remaining_points):
+                if point[1] - point[0]*slope - offset>0:
+                    n_points_above+=1
+                    top_points.append(point)
+            if len(top_points) < n_points:
+                if not direction_pos:
+                    step*=.5
+                    direction_pos = True
+                offset-=step
+            elif len(top_points) == n_points:
+                ordered_corners+=sorted(top_points, key=lambda x:-x[0])
+                for p in top_points:
+                    remaining_points.remove(p)
+                break
+            else:
+                if direction_pos:
+                    step*=.5
+                    direction_pos = False
+                offset+=step
+
+    return np.array(ordered_corners[::-1]).astype(np.float32).reshape(-1,1,2)
 
 def estimate_homography(bgr_rectified):
     '''
@@ -78,11 +228,18 @@ def estimate_homography(bgr_rectified):
 
     pattern = (board_width, board_height)
     the_input = grey_rectified.copy()
-    ret, corners = cv2.findChessboardCorners(the_input, pattern, flags=flags)
+    # ----- cv2.findChessboardCorner couldn't detect corners on the simulator's images
+    #ret, corners = cv2.findChessboardCorners(the_input, pattern, flags=flags)
+    # ----- work around: develop our own corners detector
+    the_input = unsharp_mask(the_input)
+    the_input = cv2.GaussianBlur(the_input,(5,5),1)
+    corners = get_corners(the_input)
+    corners = clean_points(corners,threshold = 8.)
+    ret = pattern[0]*pattern[1] == len(corners)
 
 #    bgr_detected = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected = bgr_rectified.copy()
-    cv2.drawChessboardCorners(bgr_detected, (7, 6), corners, ret)
+    cv2.drawChessboardCorners(bgr_detected, (7, 5), corners, ret)
 
     if ret == False:
         msg = "findChessboardCorners failed (len(corners) == %s)" % (len(corners) if corners is not None else 'none')
@@ -98,13 +255,14 @@ def estimate_homography(bgr_rectified):
         msg = "Not all corners found in image. Expected: %s; found: %s" % (expected, len(corners))
         dtu.raise_desc(CouldNotCalibrate, msg)
 
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
+    #criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
+    #corners2 = cv2.cornerSubPix(grey_rectified, corners, (11, 11), (-1, -1), criteria)
 
-    corners2 = cv2.cornerSubPix(grey_rectified, corners, (11, 11), (-1, -1), criteria)
+    corners = order_corners(corners, n_points=pattern[0])
 
 #    bgr_detected_refined = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected_refined = grey_rectified.copy()
-    cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret)
+    cv2.drawChessboardCorners(bgr_detected_refined, (7, 5), corners, ret)
 
     src_pts = []
     for r in range(board_height):
@@ -122,7 +280,7 @@ def estimate_homography(bgr_rectified):
         src_pts.reverse()
 
     # Compute homography from image to ground
-    H, _mask = cv2.findHomography(corners2.reshape(len(corners2), 2), np.array(src_pts), cv2.RANSAC)
+    H, _mask = cv2.findHomography(corners.reshape(len(corners), 2), np.array(src_pts), cv2.RANSAC)
 
     return HomographyEstimationResult(success=True,
                                       error=None,
@@ -144,8 +302,9 @@ def save_homography(H, robot_name):
     ob = {'homography': sum(H.reshape(9, 1).tolist(), [])}
 
     import yaml as alt
+    import time
     s = alt.dump(ob)
-    s += "\n# Calibrated on dtu.format_time_as_YYYY_MM_DD(time.time())"
+    s += "\n# Calibrated on %s"%dtu.format_time_as_YYYY_MM_DD(time.time())
 
     fn = get_extrinsics_filename(robot_name)
 

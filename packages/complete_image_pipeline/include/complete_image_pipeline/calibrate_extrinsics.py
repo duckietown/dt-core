@@ -11,7 +11,6 @@ from ground_projection.ground_projection_geometry import GroundProjectionGeometr
 from ground_projection.ground_projection_interface import estimate_homography, \
      HomographyEstimationResult, save_homography
 from pi_camera.camera_info import get_camera_info_for_robot
-
 __all__ = [
     'CalibrateExtrinsics',
 ]
@@ -30,7 +29,7 @@ class CalibrateExtrinsics(D8App):
         params.add_string('output', default=None, short='-o', help='Output directory', group=g)
 
     def go(self):
-        robot_name = dtu.get_current_robot_name()
+        robot_name = dtu.get_current_robot_name() if dtu.on_duckiebot() else "default"
 
         output = self.options.output
         if output is None:
@@ -93,6 +92,7 @@ class CalibrateExtrinsics(D8App):
             if not result.success:
                 raise Exception(result.error)
 
+            print "H:",result.H.tolist()
             save_homography(result.H, robot_name)
 
             msg = '''

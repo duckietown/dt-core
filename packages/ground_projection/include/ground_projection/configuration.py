@@ -17,7 +17,7 @@ class InvalidHomographyInfo(dtu.DTException):
 
 def get_homography_default():
     """ Returns a nominal homography """
-    return get_homography_for_robot('default')
+    return get_homography_for_robot('default_homography')
 
 
 # shamrock
@@ -67,7 +67,7 @@ def get_homography_info_config_file(robot_name):
     for df in roots:
     # Load camera information
         fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
-        fn_default = os.path.join(df, 'camera_extrinsic', 'default.yaml')
+        fn_default = os.path.join(df, 'camera_extrinsic', 'default_homography.yaml')
         if os.path.exists(fn):
             found.append(fn)
             dtu.logger.info("Using filename %s" % fn)
