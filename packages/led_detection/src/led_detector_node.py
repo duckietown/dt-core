@@ -455,9 +455,9 @@ class LEDDetectorNode(object):
 
     def publish(self,imRight,imFront,imTL,results):
         #  Publish image with circles
-        imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRight,encoding="passthrough")
-        imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFront,encoding="passthrough")
-        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTL,encoding="passthrough")
+        imRightCircle_msg = self.bridge.cv2_to_imgmsg(imRight,encoding="bgr8")
+        imFrontCircle_msg = self.bridge.cv2_to_imgmsg(imFront,encoding="bgr8")
+        imTLCircle_msg    = self.bridge.cv2_to_imgmsg(imTL,encoding="bgr8")
 
         # Publish image
         self.pub_image_right.publish(imRightCircle_msg)
