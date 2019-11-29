@@ -35,7 +35,7 @@ class VehicleDetectionNode(object):
 
         self.lock = mutex()
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
-                                          self.processImage, buff_size=921600, 
+                                          self.cbImage, buff_size=921600, 
                                           queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
                                            self.cbSwitch, queue_size=1)
@@ -59,11 +59,18 @@ class VehicleDetectionNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-    def processImage(self, image_msg):
-        
+    def cbImage(self, image_msg):
+        if not self.active:
+             return
+        # Start a daemon thread to process the image
+        thread = threading.Thread(target=self.processImage,args=(image_msg,))
+        thread.setDaemon(True)
+        thread.start()
+        # Returns rightaway
+
+    def processImage(self, image_msg): 
         if not self.active:
             return
-        
         now = rospy.Time.now()
         if now - self.last_stamp < self.publish_duration:
             return
@@ -109,14 +116,15 @@ class VehicleDetectionNode(object):
             vehicle_corners_msg_out.H = self.circlepattern_dims[1]
             vehicle_corners_msg_out.W = self.circlepattern_dims[0]
             self.pub_corners.publish(vehicle_corners_msg_out)
+        
         elapsed_time = (rospy.Time.now() - start).to_sec()
         self.pub_time_elapsed.publish(elapsed_time)
-        if self.publish_circles:
+        
+        if detection and self.publish_circles:
             cv2.drawChessboardCorners(image_cv,
                                         self.circlepattern_dims, corners, detection)
             image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
             self.pub_circlepattern_image.publish(image_msg_out)
-
 
 if __name__ == '__main__':
     rospy.init_node('vehicle_detection', anonymous=False)
