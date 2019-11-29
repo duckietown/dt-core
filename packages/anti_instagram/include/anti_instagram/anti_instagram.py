@@ -6,6 +6,7 @@ import math
 import threading
 from .anti_instagram_interface import AntiInstagramInterface
 
+
 class AntiInstagram(AntiInstagramInterface):
 
     def __init__(self):
@@ -13,7 +14,7 @@ class AntiInstagram(AntiInstagramInterface):
         self.threshold_lock = threading.Lock()
 
         self.lower_threshold = None
-        self.higher_threshold = [255,255,255]
+        self.higher_threshold = [255, 255, 255]
 
     def calculate_color_balance_thresholds(self, image, scale=1, percentage=0.8):
 
@@ -54,7 +55,7 @@ class AntiInstagram(AntiInstagramInterface):
         higher_threshold = self.higher_threshold
         self.threshold_lock.release()
 
-        if lower_threshold == None:
+        if lower_threshold is None:
             return None
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
@@ -68,19 +69,12 @@ class AntiInstagram(AntiInstagramInterface):
             out_channels.append(normalized)
 
         return cv2.merge(out_channels)
-    
-    def apply_threshold(self, matrix, low_value, high_value):
-    
-        low_mask = matrix < low_value
-        matrix = self.apply_mask(matrix, low_mask, low_value)
 
-        high_mask = matrix > high_value
-        matrix = self.apply_mask(matrix, high_mask, high_value)
-
+    @staticmethod
+    def apply_threshold(matrix, low_value, high_value):
+        matrix[matrix < low_value] = low_value
+        matrix[matrix > high_value] = high_value
         return matrix
 
-    def apply_mask(self, matrix, mask, fill_value):
-        
-        masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
-        return masked.filled()
+
 

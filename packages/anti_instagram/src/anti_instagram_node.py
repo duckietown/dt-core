@@ -39,7 +39,6 @@ class AntiInstagramNode():
                                              "~corrected_image/compressed", 
                                              CompressedImage, 
                                              queue_size=1)
-        
 
     def process_image(self, image_msg):        
         try:
@@ -53,7 +52,7 @@ class AntiInstagramNode():
             return
 
         color_balanced_image = self.ai.apply_color_balance(image, 
-                                   self.output_scale)
+                                                           self.output_scale)
 
         if color_balanced_image is None:
             self.calculate_new_parameters(None)
@@ -75,19 +74,17 @@ class AntiInstagramNode():
             return
 
         self.ai.calculate_color_balance_thresholds(image, 
-            self.calculation_scale,
-            self.color_balance_percentage)
+                                                   self.calculation_scale,
+                                                   self.color_balance_percentage)
         
         rospy.loginfo("[%s] New parameters computed" % self.node_name)
-        
-        
-
 
     def setup_parameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
+
 
 if __name__ == '__main__':
     rospy.init_node('anti_instagram_node', anonymous=False)
