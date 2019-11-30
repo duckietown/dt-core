@@ -1,13 +1,7 @@
 #!/usr/bin/env python
-from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose, Pose2DStamped
+from duckietown_msgs.msg import Twist2DStamped, BoolStamped, VehiclePose
 
-import os
-import rospkg
 import rospy
-import yaml
-import time
-from twisted.words.protocols.oscar import CAP_SERV_REL
-from math import sqrt, sin, cos
 
 class VehicleAvoidanceControlNode(object):
 
