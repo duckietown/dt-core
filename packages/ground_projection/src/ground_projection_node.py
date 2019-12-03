@@ -38,7 +38,7 @@ class GroundProjectionNode(object):
 
         # TODO prepare services
         self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography, self.estimate_homography_cb)
-        self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb)
+        self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb) #***#
         self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
 
     def rectifyImage(self, img_msg):
@@ -61,7 +61,7 @@ class GroundProjectionNode(object):
         self.pub_lineseglist_.publish(seglist_out)
 
     def get_ground_coordinate_cb(self, req):
-        return GetGroundCoordResponse(self.gpg.pixel2ground(req.normalized_uv))
+        return GetGroundCoordResponse(self.gpg.pixel2ground(req.uv))
 
     def get_image_coordinate_cb(self, req):
         return GetImageCoordResponse(self.gpg.ground2pixel(req.gp))
