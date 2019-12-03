@@ -5,7 +5,7 @@ import rospy
 from sensor_msgs.msg import CameraInfo
 from geometry_msgs.msg import Point
 
-from duckietown_msgs.msg import (Pixel, Vector2D)
+from duckietown_msgs.msg import (w, Vector2D)
 from image_geometry import PinholeCameraModel
 from duckietown_utils.path_utils import get_ros_package_path
 from duckietown_utils.yaml_wrap import (yaml_load_file, yaml_write_to_file)
