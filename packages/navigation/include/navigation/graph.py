@@ -98,7 +98,7 @@ class Graph(object):
                 g.node(name=node_name, pos=node_pos, fixedsize='true', width='0', height='0', style='invis', label="")
             else:
                 g.node(name=node_name, pos=node_pos)
-        for src_node, edges in self._edges.items():
+        for src_node, edges in list(self._edges.items()):
             for e in edges:
                 if show_weights:
                     t = str(e.weight)

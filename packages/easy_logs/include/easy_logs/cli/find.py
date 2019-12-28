@@ -9,7 +9,7 @@ class Find(GenericLogDisplay):
     cmd = 'dt-logs-find'
 
     def show_info(self, logs):
-        for id_log, log in logs.items():
+        for id_log, log in list(logs.items()):
             try:
                 filename = get_local_bag_file(log)
                 print(filename)

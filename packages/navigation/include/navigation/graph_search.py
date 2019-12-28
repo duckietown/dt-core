@@ -1,9 +1,9 @@
-from __future__ import division
+
 import numpy as np
 
-from search_classes import SearchNode, Path
-from graph import Graph, Edge
-from utils import *
+from .search_classes import SearchNode, Path
+from .graph import Graph, Edge
+from .utils import *
 
 # Complete the definition of expand_node below
 class GraphSearchProblem(object):

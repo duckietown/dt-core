@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import print_function
 
-import Tkinter as tk
+
+import tkinter as tk
 
 import rospy
 from std_msgs.msg import String

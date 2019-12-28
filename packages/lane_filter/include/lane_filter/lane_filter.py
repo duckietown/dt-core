@@ -161,7 +161,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     # prepare the segments for the creation of the belief arrays
     def prepareSegments(self, segments):
-        segmentsRangeArray = map(list, [[]] * (self.curvature_res + 1))
+        segmentsRangeArray = list(map(list, [[]] * (self.curvature_res + 1)))
         self.filtered_segments = []
         for segment in segments:
             # Optional transform from RED to WHITE
@@ -294,13 +294,13 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         # set curvature
         # TODO: check magic constants
         if np.median(self.phi_med_arr) - phi_max[0] < -0.3 and np.median(self.d_med_arr) > 0.05:
-            print "Curvature estimation: left curve"
+            print("Curvature estimation: left curve")
             return self.curvature_left
         elif np.median(self.phi_med_arr) - phi_max[0] > 0.2 and np.median(self.d_med_arr) < -0.02:
-            print "Curvature estimation: right curve"
+            print("Curvature estimation: right curve")
             return self.curvature_right
         else:
-            print "Curvature estimation: straight lane"
+            print("Curvature estimation: straight lane")
             return 0
 
     # return the maximal value of the beliefArray

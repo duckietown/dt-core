@@ -252,13 +252,13 @@ class lane_controller(object):
         #     rospy.Timer(rospy.Duration.from_sec(2.0), self.unsleepMaintenance)
 
         self.fsm_state = fsm_state_msg.state    # String of current FSM state
-        print "fsm_state changed in lane_controller_node to: " , self.fsm_state
+        print("fsm_state changed in lane_controller_node to: " , self.fsm_state)
 
     def setFlag(self, msg_flag, flag_name):
         self.flag_dict[flag_name] = msg_flag.data
         if flag_name == "obstacle_detected":
-             print "flag obstacle_detected changed"
-             print "flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"]
+             print("flag obstacle_detected changed")
+             print("flag_dict[\"obstacle_detected\"]: ", self.flag_dict["obstacle_detected"])
 
 
     def PoseHandling(self, input_pose_msg, pose_source):
@@ -331,7 +331,7 @@ class lane_controller(object):
             if "implicit_coord" in self.pose_msg_dict:
                 self.v_ref_possible["implicit_coord"] = self.pose_msg_dict["implicit_coord"].v_ref
 
-        self.pose_msg.v_ref = min(self.v_ref_possible.itervalues())
+        self.pose_msg.v_ref = min(self.v_ref_possible.values())
         #print 'v_ref global=', self.pose_msg.v_ref #For debugging
 
         if self.pose_msg != self.prev_pose_msg and self.pose_initialized:

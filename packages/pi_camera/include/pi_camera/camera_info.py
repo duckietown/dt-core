@@ -132,7 +132,7 @@ def get_camera_info_config_file(robot_name):
         elif os.path.exists(fn_default):
             return fn_default
         else:
-            print('%s does not exist and neither does %s' % (fn, fn_default))
+            print(('%s does not exist and neither does %s' % (fn, fn_default)))
 
     msg = 'Cannot find intrinsic file for robot %r;\n%s' % (robot_name, roots)
     raise NoCameraInfoAvailable(msg)

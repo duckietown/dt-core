@@ -185,8 +185,8 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 if deviation > 1e-6:
 
                     s = array_as_string_sign(diff)
-                    print('max deviation: %s' % deviation)
-                    print s
+                    print(('max deviation: %s' % deviation))
+                    print(s)
 
 
         return measurement_likelihood

@@ -5,11 +5,9 @@ __all__ = [
     'AntiInstagramInterface',
 ]
 
-class AntiInstagramInterface(object):
+class AntiInstagramInterface(object, metaclass=ABCMeta):
     
     FAMILY = 'anti_instagram'
-    
-    __metaclass__ = ABCMeta
    
     
     @abstractmethod

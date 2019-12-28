@@ -134,10 +134,10 @@ def check_coords(localization_template, pose):
     pose_norm = localization_template.pose_from_coords(location)
     location2 = localization_template.coords_from_pose(pose_norm)
 
-    print('pose: %s' % dtu.geo.SE2.friendly(pose))
-    print('location: %s' % phi_d_friendly(location))
-    print('pose_norm: %s' % dtu.geo.SE2.friendly(pose_norm))
-    print('location2: %s' % phi_d_friendly(location2))
+    print(('pose: %s' % dtu.geo.SE2.friendly(pose)))
+    print(('location: %s' % phi_d_friendly(location)))
+    print(('pose_norm: %s' % dtu.geo.SE2.friendly(pose_norm)))
+    print(('location2: %s' % phi_d_friendly(location2)))
     for k in location.dtype.fields:
         assert_almost_equal(location[k], location2[k])
 

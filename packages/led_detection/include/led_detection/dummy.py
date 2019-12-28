@@ -1,4 +1,4 @@
-from api import LEDDetector
+from .api import LEDDetector
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray
 from led_detection import logger
 import numpy

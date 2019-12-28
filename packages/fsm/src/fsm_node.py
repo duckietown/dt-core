@@ -17,7 +17,7 @@ class FSMNode(object):
 
         # Load global transitions
         self.global_transitions_dict = rospy.get_param("~global_transitions", {})
-        if not self._validateGlobalTransitions(self.global_transitions_dict,self.states_dict.keys()):
+        if not self._validateGlobalTransitions(self.global_transitions_dict,list(self.states_dict.keys())):
             rospy.signal_shutdown("[%s] Incoherent definition." %self.node_name)
             return
 
@@ -36,7 +36,7 @@ class FSMNode(object):
         nodes = rospy.get_param("~nodes")
 
         self.active_nodes = None
-        for node_name, topic_name in nodes.items():
+        for node_name, topic_name in list(nodes.items()):
             self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
 
         # print self.pub_dict
@@ -50,7 +50,7 @@ class FSMNode(object):
 
         self.sub_list = list()
         self.event_trigger_dict = dict()
-        for event_name, event_dict in param_events_dict.items():
+        for event_name, event_dict in list(param_events_dict.items()):
             topic_name = event_dict["topic"]
             msg_type = event_dict["msg_type"]
             self.event_trigger_dict[event_name] = event_dict["trigger"]
@@ -65,7 +65,7 @@ class FSMNode(object):
 
     def _validateGlobalTransitions(self,global_transitions, valid_states):
         pass_flag = True
-        for event_name, state_name in global_transitions.items():
+        for event_name, state_name in list(global_transitions.items()):
             if state_name not in valid_states:
                 rospy.logerr("[%s] State %s is not valid. (From global_transitions of %s)" %(self.node_name,state_name, event_name))
                 pass_flag = False
@@ -73,7 +73,7 @@ class FSMNode(object):
 
     def _validateEvents(self,events_dict):
         pass_flag = True
-        for event_name, event_dict in events_dict.items():
+        for event_name, event_dict in list(events_dict.items()):
             if "topic" not in event_dict:
                 rospy.logerr("[%s] Event %s missing topic definition." %(self.node_name,event_name))
                 pass_flag = False
@@ -87,14 +87,14 @@ class FSMNode(object):
 
     def _validateStates(self,states_dict):
         pass_flag = True
-        valid_states = states_dict.keys()
-        for state, state_dict in states_dict.items():
+        valid_states = list(states_dict.keys())
+        for state, state_dict in list(states_dict.items()):
             # Validate the existence of all reachable states
             transitions_dict = state_dict.get("transitions")
             if transitions_dict is None:
                 continue
             else:
-                for transition, next_state in transitions_dict.items():
+                for transition, next_state in list(transitions_dict.items()):
                     if next_state not in valid_states:
                         rospy.logerr("[%s] %s not a valide state. (From %s with event %s)" %(self.node_name,next_state,state,transition))
                         pass_flag = False
@@ -131,7 +131,7 @@ class FSMNode(object):
         self.publishState()
 
     def isValidState(self,state):
-        return state in self.states_dict.keys()
+        return state in list(self.states_dict.keys())
 
     def cbSrvSetState(self,req):
         if self.isValidState(req.state):
@@ -148,7 +148,7 @@ class FSMNode(object):
 
     def publishBools(self):
         active_nodes = self._getActiveNodesOfState(self.state_msg.state)
-        for node_name, node_pub in self.pub_dict.items():
+        for node_name, node_pub in list(self.pub_dict.items()):
             msg = BoolStamped()
             msg.header.stamp = self.state_msg.header.stamp
             msg.data = bool(node_name in active_nodes)

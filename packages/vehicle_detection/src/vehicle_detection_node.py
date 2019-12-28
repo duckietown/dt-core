@@ -84,7 +84,7 @@ class VehicleDetectionNode(object):
             image_cv = self.bridge.compressed_imgmsg_to_cv2(
                 image_msg, "bgr8")
         except CvBridgeError as e:
-            print e
+            print(e)
 
         start = rospy.Time.now()
         params = cv2.SimpleBlobDetector_Params()

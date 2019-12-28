@@ -1,6 +1,6 @@
 import numpy as np
 
-from api import LEDDetector
+from .api import LEDDetector
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray, LEDDetectionDebugInfo
 from sensor_msgs.msg import CompressedImage
 from led_detection import logger
@@ -53,7 +53,7 @@ class LEDDetector():
         W = channel.shape[2]
         H = channel.shape[1]
 
-        print('Pre-downsampling shape: {0}'.format(channel[0].shape))
+        print(('Pre-downsampling shape: {0}'.format(channel[0].shape)))
 
         # determine top-left offset to center the grid
         ncells_x = int(floor(1.0*W/cell_width))
@@ -143,8 +143,8 @@ class LEDDetector():
         for i in range(n):
             channel[i,:,:] = cv2.cvtColor(images['rgb'][i,tly:bry,tlx:brx,:], cv2.COLOR_BGR2GRAY)
 
-        print('expected shape {0}'.format(croppedshape))
-        print('channel.shape {0}'.format(channel.shape))
+        print(('expected shape {0}'.format(croppedshape)))
+        print(('channel.shape {0}'.format(channel.shape)))
 
         cell_width = cell_size[0]
         cell_height = cell_size[1]

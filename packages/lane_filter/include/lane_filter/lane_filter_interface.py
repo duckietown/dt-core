@@ -6,11 +6,7 @@ __all__ = [
 ]
 
 
-class LaneFilterInterface(object):
-
-    __metaclass__ = ABCMeta
-
-    # These are not used yet
+class LaneFilterInterface(object, metaclass=ABCMeta):
 
     LOST = 'lost'
     GOOD = 'good'

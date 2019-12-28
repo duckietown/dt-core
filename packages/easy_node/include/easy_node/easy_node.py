@@ -85,7 +85,7 @@ class EasyNode(object):
                 self.node._sub_callback(
                     self.subscription, subscriber_proxy, data)
 
-        for s in subscriptions.values():
+        for s in list(subscriptions.values()):
             callback = Callback(node=self, subscription=s)
             S = rospy.Subscriber(s.topic, s.type, callback, # @UndefinedVariable
                                  queue_size=s.queue_size)  # @UndefinedVariable
@@ -161,7 +161,7 @@ class EasyNode(object):
         class Publishers():
             pass
         self.publishers = Publishers()
-        for s in publishers.values():
+        for s in list(publishers.values()):
             # @UndefinedVariable
             P = rospy.Publisher(
                 s.topic, s.type, queue_size=s.queue_size, latch=s.latch)
@@ -195,7 +195,7 @@ class EasyNode(object):
             raise  dtu.DTConfigException(msg)
         self.info('Loaded configuration:\n%s' % qr)
 
-        for p in parameters.values():
+        for p in list(parameters.values()):
             try:
                 val = qr.values.get(p.name)  # @UndefinedVariable
             except KeyError:
@@ -234,7 +234,7 @@ class EasyNode(object):
         changed = self._get_changed_parameters()
 #         self.info('Parameters changed: %s' % sorted(changed))
         if changed:
-            for k, v in changed.items():
+            for k, v in list(changed.items()):
                 setattr(self.config, k, v)
             self._on_parameters_changed(False, changed)
         else:
@@ -244,7 +244,7 @@ class EasyNode(object):
     def _get_changed_parameters(self):
         parameters = self._configuration.parameters
         changed = {}
-        for p in parameters.values():
+        for p in list(parameters.values()):
             val = rospy.get_param('~' + p.name)  # @UndefinedVariable
             current = getattr(self.config, p.name)
             s1 = current.__repr__()

@@ -99,26 +99,26 @@ class ApriltagsIntegrationTester(unittest.TestCase):
                             y=expected['y'], z=expected['z'], theta=expected['theta'])
                     try:
                         self.assertAlmostEqual(trans.x, expected['x'], delta=0.1)
-                    except AssertionError, e:
+                    except AssertionError as e:
                         tag_errs.append(msg + "x: " + str(e))
                     try:
                         self.assertAlmostEqual(trans.y, expected['y'], delta=0.1)
-                    except AssertionError, e:
+                    except AssertionError as e:
                         tag_errs.append(msg + "y: " + str(e))
                     try:
                         self.assertAlmostEqual(trans.z, expected['z'], delta=0.1)
-                    except AssertionError, e:
+                    except AssertionError as e:
                         tag_errs.append(msg + "z: " + str(e))
                     try:
                         self.assertAlmostEqual(ang, expected['theta'],
                                                delta=15 * np.pi / 180)  # Allow up to 15 degrees err
-                    except AssertionError, e:
+                    except AssertionError as e:
                         tag_errs.append(msg + "theta:" + str(e))
             try:
                 self.assertTrue(found,
                                 "Expected apriltag with id={id} not found in file: {file}.".format(id=expected['id'],
                                                                                                    file=file))
-            except AssertionError, e:
+            except AssertionError as e:
                 id_errs.append(str(e))
         self.assertEqual([], id_errs)
         self.assertEqual([], tag_errs)

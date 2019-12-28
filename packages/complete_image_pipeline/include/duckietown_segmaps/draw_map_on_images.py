@@ -20,7 +20,7 @@ def get_points_rect_coords(coords0, N, d):
         coords0 : list
     """
     n = len(coords0)
-    points = range(n)
+    points = list(range(n))
 
     """ Returns a list of world coordinates """
 
@@ -113,7 +113,7 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
         p = gpg.ground2pixel(Point(c[0], c[1], c[2]))
         return (int(p.u * S), int(p.v * S))
 
-    cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
+    cv_points = np.array(list(map(pixel_from_world, coords_inside)), dtype='int32')
 #     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
 
     if do_faces_fill:

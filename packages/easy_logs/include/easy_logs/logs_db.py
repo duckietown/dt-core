@@ -53,14 +53,14 @@ def write_candidate_cloud(logs):
     # try reading
     print('reading back logs')
     logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
-    print('read back %s' % len(logs2))
+    print(('read back %s' % len(logs2)))
 
 
 def logs_from_yaml(data):
     dtu.check_isinstance(data, dict)
 
     res = OrderedDict()
-    for k, d in data.items():
+    for k, d in list(data.items()):
         res[k] = physical_log_from_yaml(d)
     return res
 
@@ -68,7 +68,7 @@ def logs_from_yaml(data):
 def yaml_representation_of_phy_logs(logs):
     dtu.check_isinstance(logs, dict)
     res = OrderedDict()
-    for k, l in logs.items():
+    for k, l in list(logs.items()):
         res[k] = yaml_from_physical_log(l)
     s = yaml_dump_pretty(res)
     return s
@@ -141,7 +141,7 @@ def query_logs(logs, query, raise_if_no_matches=True):
         # adding aliases unless we are asking for everything
         if query != '*':
             # print('adding more (query = %s)' % query)
-            for _, log in logs.items():
+            for _, log in list(logs.items()):
                 dtr = DTR.from_yaml(log.resources['bag'])
 
                 original_name = dtr.name
@@ -156,7 +156,7 @@ def query_logs(logs, query, raise_if_no_matches=True):
         # remove doubles after
         # XXX: this still has bugs
         present = defaultdict(set)
-        for k, v in result.items():
+        for k, v in list(result.items()):
             present[id(v)].add(k)
 
         def choose(options):
@@ -167,7 +167,7 @@ def query_logs(logs, query, raise_if_no_matches=True):
                 return options[0]
 
         c = OrderedDict()
-        for k, v in result.items():
+        for k, v in list(result.items()):
             chosen = choose(present[id(v)])
             if k == chosen:
                 c[k] = v
@@ -254,7 +254,7 @@ def get_all_resources():
     ]
     basename2filename = dtu.look_everywhere_for_files(patterns=patterns, silent=True)
     base2basename2filename = defaultdict(lambda: {})
-    for basename, fn in basename2filename.items():
+    for basename, fn in list(basename2filename.items()):
         base = _get_base_base(basename)
         #        print('basename: %s base: %s filename: %s' % (basename, base, fn))
         base2basename2filename[base][basename] = fn
@@ -268,7 +268,7 @@ def get_logs_local():
 
     logs = OrderedDict()
     ignored = []
-    for basename, filename in all_resources.basename2filename.items():
+    for basename, filename in list(all_resources.basename2filename.items()):
         if not basename.endswith('.bag'):
             continue
 
@@ -397,7 +397,7 @@ def physical_log_from_filename(filename, base2basename2filename):
     possible_bases.add(l.log_name)
 
     for _base in possible_bases:
-        for s, filename_resource in base2basename2filename[_base].items():
+        for s, filename_resource in list(base2basename2filename[_base].items()):
             basedot = _base + '.'
             if s.startswith(basedot):
                 rest = s[len(basedot):]

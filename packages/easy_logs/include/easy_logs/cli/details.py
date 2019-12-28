@@ -9,6 +9,6 @@ class Details(GenericLogDisplay):
     cmd = 'dt-logs-details'
 
     def show_info(self, logs):
-        for log in logs.values():
+        for log in list(logs.values()):
             s = yaml.dump(log._asdict())
             print(s)

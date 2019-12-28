@@ -1,4 +1,4 @@
-from api import LEDDetector
+from .api import LEDDetector
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray
 from led_detection import logger
 from math import floor, ceil
@@ -61,14 +61,14 @@ class LEDDetector_forloops():
                     average_intensities.append(np.amax(intensities))
                 cell_intensity_data.append(average_intensities)
         out = np.array(cell_intensity_data)
-        print(1.0*W/cell_width)
-        print(1.0*H/cell_height)
-        print(1.0*W/cell_width*1.0*H/cell_height)
+        print((1.0*W/cell_width))
+        print((1.0*H/cell_height))
+        print((1.0*W/cell_width*1.0*H/cell_height))
         # HACK1 
         out = np.reshape(out, [ceil(1.0*W/cell_width), ceil(1.0*H/cell_height), out.shape[1]]) # TODO change the code above later
         #HACK2
         out = np.swapaxes(out, 0,2)
-        print(out.shape)
+        print((out.shape))
         #plt.imshow(out[:,:,0])
         return (out, [0,0])
 
@@ -197,8 +197,8 @@ class LEDDetector_forloops():
             else:
                 logger.info('Could not associate frequency, discarding')
 
-            print(signal.shape)
-            print(timestamps[:15].shape)
+            print((signal.shape))
+            print((timestamps[:15].shape))
             # Plot all signals and FFTs
             if(self.ploteverything):
                 fig, ax1 = plt.subplots()

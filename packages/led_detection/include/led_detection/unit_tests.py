@@ -22,7 +22,7 @@ class LEDDetectionUnitTest():
         filename = self.data['bag']
         interval = self.data['interval']
         t0, t1 = interval[0], interval[1]
-        print('t0:%s, t1:%s'%(t0, t1))
+        print(('t0:%s, t1:%s'%(t0, t1)))
         data = dtu.d8n_read_images_interval(filename, t0, t1)
         return data
 
