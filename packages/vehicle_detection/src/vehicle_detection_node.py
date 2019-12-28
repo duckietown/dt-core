@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+
 from copy import deepcopy
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
-from mutex import mutex
 from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import Float32
 import cv2
@@ -32,8 +32,6 @@ class VehicleDetectionNode(object):
         self.publish_duration = rospy.Duration.from_sec(1.0/self.publish_freq)
         self.last_stamp = rospy.Time.now()
 
-
-        self.lock = mutex()
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
                                           self.cbImage, buff_size=921600, 
                                           queue_size=1)
