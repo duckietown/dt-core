@@ -33,7 +33,7 @@ class VehicleDetectionNode(object):
         self.last_stamp = rospy.Time.now()
 
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
-                                          self.cbImage, buff_size=921600, 
+                                          self.cbImage, buff_size=921600,
                                           queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
                                            self.cbSwitch, queue_size=1)
@@ -66,7 +66,7 @@ class VehicleDetectionNode(object):
         thread.start()
         # Returns rightaway
 
-    def processImage(self, image_msg): 
+    def processImage(self, image_msg):
         if not self.active:
             return
         now = rospy.Time.now()
@@ -74,8 +74,8 @@ class VehicleDetectionNode(object):
             return
         else:
             self.last_stamp = now
-        
-        
+
+
         vehicle_detected_msg_out = BoolStamped()
         vehicle_corners_msg_out = VehicleCorners()
         try:
@@ -114,10 +114,10 @@ class VehicleDetectionNode(object):
             vehicle_corners_msg_out.H = self.circlepattern_dims[1]
             vehicle_corners_msg_out.W = self.circlepattern_dims[0]
             self.pub_corners.publish(vehicle_corners_msg_out)
-        
+
         elapsed_time = (rospy.Time.now() - start).to_sec()
         self.pub_time_elapsed.publish(elapsed_time)
-        
+
         if detection and self.publish_circles:
             cv2.drawChessboardCorners(image_cv,
                                         self.circlepattern_dims, corners, detection)
