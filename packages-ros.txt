@@ -1,0 +1,8 @@
+# LIST YOUR ROS PACKAGES HERE
+image_transport
+image_transport_plugins
+image_geometry
+image_proc
+camera_calibration
+#rqt
+#rqt_common_plugins
