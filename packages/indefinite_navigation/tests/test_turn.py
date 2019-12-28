@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy, unittest, rostest
 import math
 from intersection_control.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 

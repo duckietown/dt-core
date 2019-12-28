@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy, sys, os, cv2, pickle
 from navigation.graph import Graph

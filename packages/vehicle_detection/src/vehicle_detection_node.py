@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from copy import deepcopy
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
