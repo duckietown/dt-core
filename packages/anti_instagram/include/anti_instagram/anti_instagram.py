@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import cv2
 import numpy as np
 import math
@@ -34,11 +32,11 @@ class AntiInstagram(AntiInstagramInterface):
 
             # sort entries
             flattened = np.sort(flattened)
-            
+
             # calculate thresholds
             lower_threshold.append(
-                flattened[int(math.floor(num_pixels * half_percent))]) 
-            
+                flattened[int(math.floor(num_pixels * half_percent))])
+
             higher_threshold.append(
                 flattened[int(math.ceil(num_pixels * (1.0 - half_percent)))])
 
@@ -68,9 +66,9 @@ class AntiInstagram(AntiInstagramInterface):
             out_channels.append(normalized)
 
         return cv2.merge(out_channels)
-    
+
     def apply_threshold(self, matrix, low_value, high_value):
-    
+
         low_mask = matrix < low_value
         matrix = self.apply_mask(matrix, low_mask, low_value)
 
@@ -80,7 +78,6 @@ class AntiInstagram(AntiInstagramInterface):
         return matrix
 
     def apply_mask(self, matrix, mask, fill_value):
-        
+
         masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
         return masked.filled()
-
