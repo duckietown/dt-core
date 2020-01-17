@@ -53,7 +53,6 @@ CATKIN_IGNORE
 benchmark/
 auto_calibration/
 charging_control/
-charging_control/
 fleet_planning/
 intersection_control/
 maintenance_control/
