@@ -1,4 +1,4 @@
-# Parameters for apriltags posproc
+# Parameters for apriltag postprocessing
 scale_x:         1.0
 scale_y:         1.0
 scale_z:         0.52
