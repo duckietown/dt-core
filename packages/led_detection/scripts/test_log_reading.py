@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from duckietown_utils.bag_logs import d8n_read_all_images
 print('This simple test reads all images in a log and computes some stats.')
 import sys
@@ -11,13 +11,13 @@ if len(args) != 1:
 
 filename = sys.argv[1]
 
-print('filename: %s' % filename)
+print(('filename: %s' % filename))
 
 data = d8n_read_all_images(filename)
 
 
-print data.shape # (928,)
-print data.dtype # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
+print(data.shape) # (928,)
+print(data.dtype) # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
 
 num_images = data.shape[0]
 for k in range(num_images):
@@ -31,4 +31,4 @@ timestamps = data[:]['timestamp']
 period = (timestamps[-1] - timestamps[0]) / num_images
 fps = 1.0 / period
 
-print('fps: %.2f' % fps)
+print(('fps: %.2f' % fps))

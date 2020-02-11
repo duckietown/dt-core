@@ -34,5 +34,5 @@ class Download(D8AppWithLogs, QuickAppBase):
             msg = 'Could not find the logs matching the query.'
             dtu.raise_wrapped(dtu.DTUserError, e, msg, compact=True)
 
-        for id_log, log in logs.items():
+        for id_log, log in list(logs.items()):
             download_if_necessary(log)

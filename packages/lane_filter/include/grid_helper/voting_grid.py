@@ -43,7 +43,7 @@ class GridHelper(object):
         H, W = self.shape = self._mgrids[0].shape 
         self._centers = [np.zeros(shape=(H, W)),np.zeros(shape=(H, W))]
         
-        for i, j in itertools.product(range(H), range(W)):
+        for i, j in itertools.product(list(range(H)), list(range(W))):
             self._centers[0][i,j] = s0.min + (i+0.5)*s0.resolution
             self._centers[1][i,j] = s1.min + (j+0.5)*s1.resolution
 
@@ -116,7 +116,7 @@ class GridHelper(object):
         
         targets = []
         weights = []
-        for di, dj in itertools.product(range(-F,F+1), range(-F,F+1)):
+        for di, dj in itertools.product(list(range(-F,F+1)), list(range(-F,F+1))):
             u = i + di
             v = j + dj
 
@@ -161,7 +161,7 @@ class GridHelper(object):
             
         nd = 0
         
-        for k, (di, dj) in enumerate(itertools.product(range(-F,F+1), range(-F,F+1))):
+        for k, (di, dj) in enumerate(itertools.product(list(range(-F,F+1)), list(range(-F,F+1)))):
             off = N*k
             # same value ref
             values_ref2[:, off:off+N] = values
@@ -173,7 +173,7 @@ class GridHelper(object):
 #             print('di %s %s  diffco \n%s\n%s' %(di, dj, 
 #                                                 values2[0, off:off+N] - values_ref2[0, off:off+N],
 #                                                 values2[1, off:off+N] - values_ref2[1, off:off+N]  ))
-            group[off:off+N] = np.array(range(N))
+            group[off:off+N] = np.array(list(range(N)))
             nd += 1
             
         assert nd == factor
@@ -332,7 +332,7 @@ class GridHelper(object):
         v1 = []
         weights = []
 
-        for di, dj in itertools.product(range(-F,F+1), range(-F,F+1)):
+        for di, dj in itertools.product(list(range(-F,F+1)), list(range(-F,F+1))):
             u = i + di
             v = j + dj
             

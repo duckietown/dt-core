@@ -51,7 +51,7 @@ def test_instance():
     sources = [d]
     db = EasyAlgoDB(sources)
      
-    print format_db(db)
+    print(format_db(db))
     
     family = db.get_family('adder')
     assert family.valid == True

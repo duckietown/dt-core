@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import time
 #from led_detection.LEDDetector import LEDDetector

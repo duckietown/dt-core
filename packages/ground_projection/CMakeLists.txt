@@ -25,7 +25,7 @@ elseif ("$ENV{ROS_DISTRO}" STREQUAL "lunar")
   message(WARNING "ROS distribution Lunar Loggerhead is not supported. Use at your own risk!")
   find_package(OpenCV 3 REQUIRED)
 elseif ("$ENV{ROS_DISTRO}" STREQUAL "melodic")
-  message(WARNING "ROS distribution Melodic Morendia is not supported. Use at your own risk!")
+  message(WARNING "ROS distribution Melodic Morenia is not supported. Use at your own risk!")
   find_package(OpenCV 3 REQUIRED)
 else()
   message(FATAL_ERROR "ROS distribution not compatable $ENV{ROS_DISTRO}")
@@ -47,7 +47,7 @@ endif()
 include_directories(${YAML_CPP_INCLUDE_DIRS})
 
 
- 
+
 add_service_files(
   FILES
   GetGroundCoord.srv

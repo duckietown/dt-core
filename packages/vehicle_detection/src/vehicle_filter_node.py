@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import VehicleCorners, VehiclePose, Pose2DStamped
 from geometry_msgs.msg import Point32
 from image_geometry import PinholeCameraModel
-from mutex import mutex
+from threading import Lock
 from sensor_msgs.msg import CameraInfo
 from math import sqrt, sin, cos
 from std_msgs.msg import Float32
@@ -35,7 +35,7 @@ class VehicleFilterNode(object):
                                                 Float32, queue_size=1)
         self.pcm = PinholeCameraModel()
         rospy.loginfo("[%s] Initialization completed" % (self.node_name))
-        self.lock = mutex()
+        self.lock = Lock()
 
     def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
@@ -44,13 +44,13 @@ class VehicleFilterNode(object):
         return value
 
     def processCameraInfo(self, camera_info_msg):
-        if self.lock.testandset():
+        if self.lock.acquire(blocking=False):
             self.pcm.fromCameraInfo(camera_info_msg)
-            self.lock.unlock()
+            self.lock.release()
 
     def processCorners(self, vehicle_corners_msg):
         # do nothing - just relay the detection
-        if self.lock.testandset():
+        if self.lock.acquire(blocking=False):
             start = rospy.Time.now()
             # print(start)
             self.calcCirclePattern(vehicle_corners_msg.H,
@@ -109,7 +109,7 @@ class VehicleFilterNode(object):
 
             elapsed_time = (rospy.Time.now() - start).to_sec()
             self.pub_time_elapsed.publish(elapsed_time)
-        self.lock.unlock()
+        self.lock.release()
         return
 
     def calcCirclePattern(self, height, width):

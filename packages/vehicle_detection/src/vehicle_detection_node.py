@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 from copy import deepcopy
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
-from mutex import mutex
 from sensor_msgs.msg import CompressedImage, Image
 from std_msgs.msg import Float32
 import cv2
@@ -32,10 +32,8 @@ class VehicleDetectionNode(object):
         self.publish_duration = rospy.Duration.from_sec(1.0/self.publish_freq)
         self.last_stamp = rospy.Time.now()
 
-
-        self.lock = mutex()
         self.sub_image = rospy.Subscriber("~image", CompressedImage,
-                                          self.cbImage, buff_size=921600, 
+                                          self.cbImage, buff_size=921600,
                                           queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
                                            self.cbSwitch, queue_size=1)
@@ -68,7 +66,7 @@ class VehicleDetectionNode(object):
         thread.start()
         # Returns rightaway
 
-    def processImage(self, image_msg): 
+    def processImage(self, image_msg):
         if not self.active:
             return
         now = rospy.Time.now()
@@ -76,15 +74,15 @@ class VehicleDetectionNode(object):
             return
         else:
             self.last_stamp = now
-        
-        
+
+
         vehicle_detected_msg_out = BoolStamped()
         vehicle_corners_msg_out = VehicleCorners()
         try:
             image_cv = self.bridge.compressed_imgmsg_to_cv2(
                 image_msg, "bgr8")
         except CvBridgeError as e:
-            print e
+            print(e)
 
         start = rospy.Time.now()
         params = cv2.SimpleBlobDetector_Params()
@@ -116,10 +114,10 @@ class VehicleDetectionNode(object):
             vehicle_corners_msg_out.H = self.circlepattern_dims[1]
             vehicle_corners_msg_out.W = self.circlepattern_dims[0]
             self.pub_corners.publish(vehicle_corners_msg_out)
-        
+
         elapsed_time = (rospy.Time.now() - start).to_sec()
         self.pub_time_elapsed.publish(elapsed_time)
-        
+
         if detection and self.publish_circles:
             cv2.drawChessboardCorners(image_cv,
                                         self.circlepattern_dims, corners, detection)

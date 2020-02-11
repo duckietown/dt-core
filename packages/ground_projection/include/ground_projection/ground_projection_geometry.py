@@ -184,8 +184,8 @@ class GroundProjectionGeometry(object):
         H = int(self.pcm.height * ratio)
 #        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
 #        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        print('K: %s' % self.pcm.K)
-        print('P: %s' % self.pcm.P)
+        print(('K: %s' % self.pcm.K))
+        print(('P: %s' % self.pcm.P))
 
 #        alpha = 1
 #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H, W), alpha)
@@ -195,7 +195,7 @@ class GroundProjectionGeometry(object):
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
         new_camera_matrix[1, 2] = H / 2
-        print('new_camera_matrix: %s' % new_camera_matrix)
+        print(('new_camera_matrix: %s' % new_camera_matrix))
         mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
                                                  new_camera_matrix, (W, H),
                                                  cv2.CV_32FC1)
@@ -212,7 +212,7 @@ def invert_map(mapx, mapy):
     rmapy = np.empty_like(mapx)
     rmapy.fill(np.nan)
 
-    for y, x in itertools.product(range(H), range(W)):
+    for y, x in itertools.product(list(range(H)), list(range(W))):
         tx = mapx[y, x]
         ty = mapy[y, x]
 
@@ -252,7 +252,7 @@ def fill_holes(rmapx, rmapy):
     def norm(x):
         return np.hypot(x[0], x[1])
 
-    deltas0 = [ (i - R - 1, j - R - 1) for i, j in itertools.product(range(F), range(F))]
+    deltas0 = [ (i - R - 1, j - R - 1) for i, j in itertools.product(list(range(F)), list(range(F)))]
     deltas0 = [x for x in deltas0 if norm(x) <= R]
     deltas0.sort(key=norm)
 
@@ -263,7 +263,7 @@ def fill_holes(rmapx, rmapy):
 
     holes = set()
 
-    for i, j in itertools.product(range(H), range(W)):
+    for i, j in itertools.product(list(range(H)), list(range(W))):
         if np.isnan(rmapx[i, j]):
             holes.add((i, j))
 

@@ -12,9 +12,7 @@ LED_Detection = namedtuple(
     "confidence "  # float
 )
 
-class LEDDetector():
-    __metaclass__ = ABCMeta
-    
+class LEDDetector(metaclass=ABCMeta):
     @abstractmethod
     def detect_led(self,
                    images,

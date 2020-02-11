@@ -1,7 +1,7 @@
 import rosbag
 from rosbag.bag import ROSBagException
 
-
+# TODO(afdaniele): fix decode('unicode_escape') now that we are in Python3
 def _hotfix_get_message_type(info):
     import genpy, genmsg  # @UnresolvedImport
     _message_types = rosbag.bag._message_types

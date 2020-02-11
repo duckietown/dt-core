@@ -41,7 +41,7 @@ class Copy(D8AppWithLogs):
         if not os.path.exists(outdir):
             dtu.mkdirs_thread_safe(outdir)
 
-        for id_log, log in logs.items():
+        for id_log, log in list(logs.items()):
             log = download_if_necessary(log)
             out = os.path.join(outdir, id_log + '.bag')
             if os.path.exists(out):

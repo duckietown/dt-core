@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import time
 from led_detection.LEDDetector import LEDDetector
@@ -30,7 +30,7 @@ class LEDDetectorNode(object):
         self.cell_size = rospy.get_param("~cell_size")
         self.continuous = rospy.get_param('~continuous', True) # Detect continuously as long as active
                                                                # [INTERACTIVE MODE] set to False for manual trigger
-        self.frequencies = self.protocol['frequencies'].values()
+        self.frequencies = list(self.protocol['frequencies'].values())
 
         rospy.loginfo('[%s] Config: \n\t crop_rect_normalized: %s, \n\t capture_time: %s, \n\t cell_size: %s'%(self.node_name, self.crop_rect_normalized, self.capture_time, self.cell_size))
 
@@ -125,7 +125,7 @@ class LEDDetectorNode(object):
         toc = time.time()-tic
         tac = time.time()-self.tinit
         rospy.loginfo('[%s] Detection done. Processing Time: %.2f'%(self.node_name, toc))
-        print('[%s] Total Time taken: %.2f'%(self.node_name, tac))
+        print(('[%s] Total Time taken: %.2f'%(self.node_name, tac)))
 
         if(self.continuous):
             self.trigger = True

@@ -121,7 +121,7 @@ def load_configuration(realpath, contents):
 
 def load_configuration_parameters(data):
     res = OrderedDict()
-    for k, v in data.items():
+    for k, v in list(data.items()):
         try:
             check_good_name(k)
             res[k] = load_configuration_parameter(k, v)
@@ -132,7 +132,7 @@ def load_configuration_parameters(data):
 
 def load_configuration_subscriptions(data):
     res = OrderedDict()
-    for k, v in data.items():
+    for k, v in list(data.items()):
         try:
             check_good_name(k)
             res[k] = load_configuration_subscription(k, v)
@@ -143,7 +143,7 @@ def load_configuration_subscriptions(data):
 
 def load_configuration_publishers(data):
     res = OrderedDict()
-    for k, v in data.items():
+    for k, v in list(data.items()):
         try:
             check_good_name(k)
             res[k] = load_configuration_publisher(k, v)
@@ -329,7 +329,7 @@ def format_enc_parameters(enc, descriptions):
     table = []
     table.append(['name',  'type', 'default', 'description',])
 
-    for p in enc.parameters.values():
+    for p in list(enc.parameters.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:
@@ -352,7 +352,7 @@ def format_enc_subscriptions(enc, descriptions):
     table = []
     table.append(['name',  'type', 'topic', 'options', 'process', 'description',])
 
-    for p in enc.subscriptions.values():
+    for p in list(enc.subscriptions.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:
@@ -377,7 +377,7 @@ def format_enc_publishers(enc, descriptions):
     table = []
     table.append(['name',  'type', 'topic', 'options', 'description',])
     
-    for p in enc.publishers.values():
+    for p in list(enc.publishers.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:

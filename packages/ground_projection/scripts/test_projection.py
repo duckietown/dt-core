@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import rospy
 import cv2
@@ -13,8 +13,8 @@ def call_service_get_ground_coordinate(req, veh):
     get_ground_coord = rospy.ServiceProxy(veh + '/ground_projection/get_ground_coordinate', GetGroundCoord)
     resp = get_ground_coord(req)
     return resp.gp
-  except rospy.ServiceException, e:
-    print "Service call failed: %s" % e
+  except rospy.ServiceException as e:
+    print("Service call failed: %s" % e)
 
 def mouse_cb(event, x, y, flags, param):
   if event == cv2.EVENT_LBUTTONDOWN:
@@ -25,49 +25,49 @@ def mouse_cb(event, x, y, flags, param):
     
     gp = call_service_get_ground_coordinate(normalized_uv, veh)
 
-    print "image coordinate: (%d, %d)" % (x, y)
-    print "normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y)
-    print "ground coordinate: (%f, %f, %f)" % (gp.x, gp.y, gp.z)
+    print("image coordinate: (%d, %d)" % (x, y))
+    print("normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y))
+    print("ground coordinate: (%f, %f, %f)" % (gp.x, gp.y, gp.z))
 
 def get_image_topic_name(veh):
   image_topic_name = veh + "/camera_node/image_rect"
   try:
     rospy.wait_for_message(image_topic_name, Image, timeout=3)
     return image_topic_name
-  except rospy.ROSException, e:
-    print "%s" % e
+  except rospy.ROSException as e:
+    print("%s" % e)
 
   image_topic_name = veh + "/camera_node/image/raw"
   try:
     rospy.wait_for_message(image_topic_name, Image, timeout=5)
     return image_topic_name
-  except rospy.ROSException, e:
-    print "%s" % e
+  except rospy.ROSException as e:
+    print("%s" % e)
 
   return None
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    print "usage: " + sys.argv[0] + " vehicle name"
+    print("usage: " + sys.argv[0] + " vehicle name")
     sys.exit(1)
   
   param = sys.argv[1]
   param = param.replace('veh:=','')
-  print('Using vehicle name %r.' % param)
+  print(('Using vehicle name %r.' % param))
   veh = "/" + param
 
   bridge = CvBridge()
 
   rospy.init_node("test_projection")
-  print "please click the image to look up the ground plane coordinate"
-  print "press 'ESC' key to exit"
+  print("please click the image to look up the ground plane coordinate")
+  print("press 'ESC' key to exit")
 
   cv2.namedWindow("image")
   cv2.setMouseCallback("image", mouse_cb, param=(640, 480))
   key = 0
   
   image_topic_name = get_image_topic_name(veh)
-  print "image topic name: " + image_topic_name
+  print("image topic name: " + image_topic_name)
 
   if image_topic_name is not None:
     while(key is not 27):

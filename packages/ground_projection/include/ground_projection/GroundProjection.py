@@ -164,7 +164,7 @@ class GroundProjection():
 
     def write_homography(self, filename):
         ob = {'homography': sum(self.H.reshape(9,1).tolist(),[])}
-        print ob
+        print(ob)
         yaml_write_to_file(ob,filename)
 
 

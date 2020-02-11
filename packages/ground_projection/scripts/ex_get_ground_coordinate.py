@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import rospy
 from ground_projection.srv import GetGroundCoord
@@ -14,12 +14,12 @@ def call_service_get_ground_coordinate(req, veh):
     get_ground_coord = rospy.ServiceProxy(veh + '/ground_projection/get_ground_coordinate', GetGroundCoord)
     resp = get_ground_coord(req)
     return resp.gp
-  except rospy.ServiceException, e:
-    print "Service call failed: %s" % e
+  except rospy.ServiceException as e:
+    print("Service call failed: %s" % e)
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    print "usage: " + sys.argv[0] + " vehicle name"
+    print("usage: " + sys.argv[0] + " vehicle name")
     sys.exit()
 
   veh = "/" + sys.argv[1]
@@ -32,4 +32,4 @@ if __name__ == "__main__":
   
   gp = call_service_get_ground_coordinate(normalized_uv, veh)
 
-  print "ground coordinate: (%f, %f, %f)" % (gp.x, gp.y, gp.z)
+  print("ground coordinate: (%f, %f, %f)" % (gp.x, gp.y, gp.z))

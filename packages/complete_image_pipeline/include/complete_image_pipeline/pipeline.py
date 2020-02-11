@@ -37,8 +37,8 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     """
     from anti_instagram import AntiInstagramInterface
 
-    print('backend: %s' % matplotlib.get_backend())
-    print('fname: %s' % matplotlib.matplotlib_fname())
+    print(('backend: %s' % matplotlib.get_backend()))
+    print(('fname: %s' % matplotlib.matplotlib_fname()))
 
     quick = False
 
@@ -115,7 +115,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['prior'] = lane_filter.get_plot_phi_d()
 
     with pts.phase('lane filter update'):
-        print type(lane_filter).__name__
+        print(type(lane_filter).__name__)
         if type(lane_filter).__name__ == 'LaneFilterHistogram':
             # XXX merging pain
             _likelihood = lane_filter.update(sg.segments)

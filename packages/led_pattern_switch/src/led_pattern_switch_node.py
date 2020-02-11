@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, FSMState
 from std_msgs.msg import String
@@ -24,7 +24,7 @@ class LEDPatternSwitchNode(object):
         self.sub_fsm_state = rospy.Subscriber(rospy.get_param("~mode_topic"),FSMState,self.cbFSMState)
 
         self.sub_dict = dict()
-        for src_name, topic_name in source_topic_dict.items():
+        for src_name, topic_name in list(source_topic_dict.items()):
             self.sub_dict[src_name] = rospy.Subscriber(topic_name,String,self.msgincb,callback_args=src_name)
 
         rospy.loginfo("[%s] Initialized. " %(self.node_name))

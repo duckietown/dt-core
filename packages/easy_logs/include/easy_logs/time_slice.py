@@ -26,7 +26,7 @@ class MakeTimeSlice(dtu.Spec):
     def match_dict(self, seq):
         results = self.children[0].match_dict(seq)
         matches = OrderedDict()
-        for k, v in results.items():
+        for k, v in list(results.items()):
             k2, v2 = self.transform(k, v)
             matches[k2] = v2
         return matches

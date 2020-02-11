@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import rospy
 from ground_projection.srv import EstimateHomography
@@ -12,13 +12,13 @@ def call_service_estimate_homography(req, veh):
                                      EstimateHomography)
         resp = service(req)
         return resp.homography
-    except rospy.ServiceException, e:
-        print("Service call failed: %s" % e)
+    except rospy.ServiceException as e:
+        print(("Service call failed: %s" % e))
         raise
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    print "usage: " + sys.argv[0] + " vehicle name"
+    print("usage: " + sys.argv[0] + " vehicle name")
     sys.exit()
 
   veh = "/" + sys.argv[1]

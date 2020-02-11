@@ -1,6 +1,6 @@
 
 class TurnCounter:
-    TURN_START, TURN_MIDDLE, CENTER = range(3)
+    TURN_START, TURN_MIDDLE, CENTER = list(range(3))
     def __init__(self):
         self.num_turns = 0
         self.state = self.TURN_START

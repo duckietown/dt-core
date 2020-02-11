@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from line_detector2.ldn import LineDetectorNode2
 
 if __name__ == '__main__':

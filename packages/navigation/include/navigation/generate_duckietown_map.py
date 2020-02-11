@@ -1,6 +1,6 @@
 import pickle, csv, os
 import numpy as np
-from graph import Graph
+from .graph import Graph
 
 class Node():
 	n = 1

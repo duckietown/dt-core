@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import rospy
 import cv2
@@ -21,7 +21,7 @@ class GroundProjectionTest:
 
     self.veh = veh
     self.image_topic_name = self.get_image_topic_name(veh)
-    print "image topic name: " + self.image_topic_name
+    print("image topic name: " + self.image_topic_name)
 
     self.th_mean_sq_dist = 0.03**2 # 3cm error bound
 
@@ -30,15 +30,15 @@ class GroundProjectionTest:
     try:
       rospy.wait_for_message(image_topic_name, Image, timeout=3)
       return image_topic_name
-    except rospy.ROSException, e:
-      print "%s" % e
+    except rospy.ROSException as e:
+      print("%s" % e)
 
     image_topic_name = veh + "/camera_node/image/raw"
     try:
       rospy.wait_for_message(image_topic_name, Image, timeout=5)
       return image_topic_name
-    except rospy.ROSException, e:
-      print "%s" % e
+    except rospy.ROSException as e:
+      print("%s" % e)
 
     return None
 
@@ -85,12 +85,12 @@ class GroundProjectionTest:
     sum_sq_dist = 0.
     for gt, est in zip(pts_gnd, pts_gnd_est):
       sq_dist = (gt[0]-est[0])**2 + (gt[1]-est[1])**2
-      print "sq_dist: ", sq_dist
+      print("sq_dist: ", sq_dist)
       sum_sq_dist += sq_dist
     mean_sq_dist = sum_sq_dist/len(pts_gnd)
 
-    print "mean_sq_dist: ", mean_sq_dist
-    print "self.th_mean_sq_dist: ", self.th_mean_sq_dist
+    print("mean_sq_dist: ", mean_sq_dist)
+    print("self.th_mean_sq_dist: ", self.th_mean_sq_dist)
 
     # decide if it passes or fails
     if mean_sq_dist < self.th_mean_sq_dist:
@@ -127,8 +127,8 @@ class GroundProjectionTest:
       get_ground_coord = rospy.ServiceProxy(veh + '/ground_projection/get_ground_coordinate', GetGroundCoord)
       resp = get_ground_coord(req)
       return resp.gp
-    except rospy.ServiceException, e:
-      print "Service call failed: %s" % e
+    except rospy.ServiceException as e:
+      print("Service call failed: %s" % e)
 
 if __name__ == "__main__":
   bridge = CvBridge()
@@ -136,15 +136,15 @@ if __name__ == "__main__":
   rospy.init_node("test_projection")
 
   veh = rospy.get_param("~veh", "porsche911")
-  print('Using vehicle name %r.' % veh)
+  print(('Using vehicle name %r.' % veh))
   veh = "/" + veh
   gpt = GroundProjectionTest(veh)
 
   try:
     pass_fail = gpt.run()
     if pass_fail:
-      print "result: " + '\033[92m' + "passed" + '\033[0m'
+      print("result: " + '\033[92m' + "passed" + '\033[0m')
     else:
-      print "result: " + '\033[91m' + "failed" + '\033[0m'
+      print("result: " + '\033[91m' + "failed" + '\033[0m')
   except KeyboardInterrupt:
-    print "test shutting down"
+    print("test shutting down")

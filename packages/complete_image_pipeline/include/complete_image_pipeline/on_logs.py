@@ -52,12 +52,12 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         anti_instagram = self.options.anti_instagram
         all_details = self.options.details
 
-        print('anti_instagram: %s' % anti_instagram)
-        print('image_prep: %s' % image_prep)
-        print('line_detector: %s' % line_detector)
-        print('lane_filter: %s' % lane_filter)
+        print(('anti_instagram: %s' % anti_instagram))
+        print(('image_prep: %s' % image_prep))
+        print(('line_detector: %s' % line_detector))
+        print(('lane_filter: %s' % lane_filter))
 
-        for k, log in logs.items():
+        for k, log in list(logs.items()):
             d = os.path.join(self.options.output, k)
             context.comp(look_at, log, d,
                          anti_instagram, line_detector, image_prep, lane_filter, all_details)

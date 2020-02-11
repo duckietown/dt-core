@@ -9,7 +9,7 @@ def get_test_db():
 def parse_expressions():
     db = get_test_db()
     logs = db.logs
-    one = logs.keys()[0]
+    one = list(logs.keys())[0]
 #     l0 = logs[one]
 #     print yaml_dump_pretty(l0._asdict())
     query = one + '/{10:15}'
@@ -37,7 +37,7 @@ def parse_expressions():
 def parse_expressions2():
     db = get_test_db()
     logs = db.logs
-    one = logs.keys()[0]
+    one = list(logs.keys())[0]
     query = one + '/{10.5:15.5}'
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
 
@@ -52,7 +52,7 @@ def parse_expressions2():
 def parse_expressions3():
     db = get_test_db()
     logs = db.logs
-    one = logs.keys()[0]
+    one = list(logs.keys())[0]
     query = one + '/{:2.5}'
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
 
@@ -66,10 +66,10 @@ def parse_expressions3():
 def parse_expressions4():
     db = get_test_db()
     logs = db.logs
-    one = logs.keys()[0]
+    one = list(logs.keys())[0]
     query = one + '/{1:}'
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
-    print res
+    print(res)
     assert len(res) == 1
     l1 = res[list(res)[0]]
     assert l1.t0 == 1

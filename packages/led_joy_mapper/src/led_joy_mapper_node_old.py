@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from sensor_msgs.msg import Joy
@@ -44,7 +44,7 @@ class LEDJoyMapper(object):
 
     def publishControl(self):
 
-        for b, pattern in self.button2patterns.items():
+        for b, pattern in list(self.button2patterns.items()):
             if self.joy.buttons[b] == 1:
                 self.pub_pattern.publish(pattern)
                 rospy.loginfo("Publishing pattern %s" % (pattern))

@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # license removed for brevity
 import rospy
 import sys
 
 from sensor_msgs.msg import Joy
 
-from __builtin__ import True
+from builtins import True
 
 
 def keyCatcher(host):
@@ -17,7 +17,7 @@ def keyCatcher(host):
     while not rospy.is_shutdown():
         axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         buttons = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        direction = raw_input('Enter direction(a,w,s,d), or l to start lane following or q to stop lane following, and then press enter--> ')
+        direction = input('Enter direction(a,w,s,d), or l to start lane following or q to stop lane following, and then press enter--> ')
         if direction == 'w':
             axes[1] = 1.0
         elif direction == 's':

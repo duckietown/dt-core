@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped, FSMState
 from duckietown_utils.instantiate_utils import instantiate
@@ -60,7 +60,7 @@ class LaneFilterNode(object):
         params = data["params"]
         reset_time = data["time"]
         # Set all paramters which need to be updated
-        for param_name in params.keys():
+        for param_name in list(params.keys()):
             param_val = params[param_name]
             params[param_name] = eval("self.filter." + str(param_name))
             exec("self.filter." + str(param_name) + "=" + str(param_val))
@@ -69,7 +69,7 @@ class LaneFilterNode(object):
         rospy.sleep(reset_time)
 
         # Reset parameters to old values
-        for param_name in params.keys():
+        for param_name in list(params.keys()):
             param_val = params[param_name]
             exec("self.filter." + str(param_name) + "=" + str(param_val))
 
