@@ -17,7 +17,7 @@ class VehicleAvoidanceControlNode(object):
 
 		self.controllerInitialization()
 		self.detection_prev=None
-		
+
 		self.car_cmd_pub = rospy.Publisher("~car_cmd",
 				Twist2DStamped, queue_size = 1)
 		self.vehicle_detected_pub = rospy.Publisher("~vehicle_detected",
