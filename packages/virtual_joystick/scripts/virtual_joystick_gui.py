@@ -38,7 +38,7 @@ dpad_l = None
 dpad_estop = None
 dpad_estop_big = None
 estop_last_time = time.time()
-estop_deadzone_secs = 1.0
+estop_deadzone_secs = 0.5
 
 
 # TODO: This should be a class
