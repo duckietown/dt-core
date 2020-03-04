@@ -158,7 +158,6 @@ nodes:
   unicorn_intersection_node: "unicorn_intersection_node/switch" #NOTE a.k.a. semi closed loop intersection navigation
   obstacle_avoidance_node: "obstacle_avoidance_node/switch"
   obstacle_detection_node: "obstacle_detection_node/switch"
-  implicit_coordination_node: "implicit_coordination_node/switch"
   lane_controller_node: "lane_controller_node/switch"
   vehicle_filter_node: "vehicle_filter_node/switch"
   vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"

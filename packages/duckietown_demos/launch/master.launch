@@ -2,7 +2,6 @@
 <launch>
 	<!-- start basic args -->
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
-	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
 	<arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
@@ -64,22 +63,14 @@
 
 <arg name="apriltags" default="false"/>
 
-
 <arg name="LED" default="true" />
 <arg name="/LED/pattern_switch" default="false" />
 <arg name="/LED/detector" default="false" />
 <arg name="/LED/joystick" default="false" />
 <arg name="/LED/interpreter" default="false" />
 
-<arg name="odometry_learning" default="false"/>
-<arg name="/odometry_learning/kinematics" default="true"/>
-<arg name="/odometry_learning/learning"  default="false"/>
-<arg name="/odometry_learning/visual_odometry" default="false"/>
-
 <arg name="coordination" default="false"/>
-<arg name="/coordination/implicit_coordination" default="false"/>
 <arg name="/coordination/explicit_coordination" default="false"/>
-
 
 <arg name="parallel_autonomy" default="false"/>
 
@@ -96,11 +87,6 @@
 <arg name="unicorn_intersection" default="false"/>
 <!-- NOTE: either apriltags_random or graph_planner but not both -->
 
-
-<arg name="global_localizer" default="false"/>
-
-<arg name="SLAM" default="false"/>
-
 <arg name="localization" default="false"/>
 <arg name="/localization/map_name" default="autolab" />
 <arg name="/localization/gui" default="false"/>
@@ -113,16 +99,7 @@
 <arg name="charging_control" default="false"/>
 <arg name="auto_calibration" default="false"/>
 
-<arg name="auto_ion" default="true"/>
-
 <arg name="tcp_communication" default="false"/>
-
-<!-- TODO if vehicle avoidance is turned off, bot will not move... -->
-<!-- Vehicle avoidance control for lane following -->
-
-		<!-- Vehicle avoidance control for lane following end -->
-
-
 <!-- end switch args -->
 
 <!-- Enable statistics -->
@@ -199,9 +176,6 @@
 			<remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
 	</group>
 
-
- <!-- <remap from="implicit_coordination_node/intersection_go" to="logic_gate_node/implicit_intersection_go" />
- <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
 	<include file="$(find fsm)/launch/logic_gate_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -274,8 +248,7 @@
 		<remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
 		<!--NO!!! <remap from="fsm_node/mode" to="fsm_node/lane_pose_intersection_navigation"/> --><!--TODO what is this -->
 		<!-- <remap from="lane_controller_node/lane_pose_obstacle_avoidance" to="lane_filter_node/lane_pose_obstacle_avoidance"/> TODO: add correct node_name
-		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>
-		<remap from="lane_controller_node/implicit_coordination_velocity" to="lane_filter_node/implicit_coordination_velocity"/> -->
+		<remap from="lane_controller_node/lane_pose_parking" to="lane_filter_node/lane_pose_parking"/>-->
 		<remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
 		<remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
 		<remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" />
@@ -311,40 +284,6 @@
 		<arg name="show_image" value="$(arg show_obst_image)"/>
 	</include>
 </group>
-
-
-
-<!-- TODO: Deprecated? -->
-<!-- <group if="$(arg obstacle_avoidance)">
-
-	<group if="$(arg /obstacle_avoidance/detection)">
-		<remap from="static_object_detector_node/image_raw" to="camera_node/image/raw"/>
-		<include file="$(find mdoap)/launch/static_object_detector_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-
-	<group if="$(arg /obstacle_avoidance/safety)">
-		<remap from="obstacle_safety_node/detection_list" to="static_object_detector_node/detection_list"/>
-		<include file="$(find mdoap)/launch/obstacle_safety_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-
-	<group if="$(arg /obstacle_avoidance/simple_stop)">
-		<remap from="simple_stop_controller_node/too_close" to="obstacle_safety_node/object_too_close"/>
-		<include file="$(find mdoap)/launch/simple_stop_controller_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-</group> -->
-
 
 <!-- Start Vehicle Avoidance / LF, IN -->
 <group if="$(arg vehicle_avoidance)">
@@ -398,14 +337,12 @@
 	<remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
 	<include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
-	<!-- Postprocessing node -->
+	<!-- Postprocessing node TODO: this is still using apriltags_ros!-->
 	<remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
 	<include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="config" value="$(arg config)"/>
 		<arg name="param_file_name" value="$(arg param_file_name)"/>
 	</include>
 </group>
@@ -413,19 +350,16 @@
 
 <!-- Start LEDs Detection / Not LF, IN-->
 <group if="$(arg LED)">
-
-
 	<!-- Detection -->
 	<group if="$(arg /LED/detector)">
 		<include file="$(find led_detection)/launch/led_detection.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 		</include>
 	</group>
 
 	<!-- not LF, not IN -->
-	<!--remap from="led_joy_mapper_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
+	<!--TODO: this is broken, either restore or remove /-->
 	<group if="$(arg /LED/joystick)">
 		<include file="$(find led_joy_mapper)/launch/led_joy_mapper_node.launch">
 			<arg name="veh" value="$(arg veh)"/>
@@ -446,12 +380,10 @@
 	</group>
 
 	<!-- not LF, not IN -->
-	<!-- TODO do we need some remappings here? -->
 	<remap from="LED_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
 	<group if="$(arg /LED/interpreter)">
 		<include file="$(find led_interpreter)/launch/LED_interpreter.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 			<arg name="intersectionType" value="$(arg intersectionType)" />
 		</include>
@@ -461,39 +393,6 @@
 </group>
 
 <!-- End LEDs Detection -->
-
-<!-- Start Odometry Learning / Not LF, not IN -->
-<!-- TODO: Is this even used and supported? If yes, probably need to be revisited as the wheels_driver_node is now in db-interface -->
-<group if="$(arg odometry_learning)">
-	<group if="$(arg /odometry_learning/kinematics)">
-		<!-- run forward_kinematics_node -->
-		<remap from="forward_kinematics_node/wheels_cmd" to="wheels_driver_node/wheels_cmd_executed" />
-		<remap from="forward_kinematics_node/theta_dot_weights" to="kinematics_learning_node/theta_dot_kinematics_weights" />
-		<remap from="forward_kinematics_node/v_weights" to="kinematics_learning_node/v_kinematics_weights" />
-		<include file="$(find kinematics)/launch/forward_kinematics_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-
-
-
-	<group if="$(arg /odometry_learning/learning)">
-		<!-- run the kinematics_learner_node -->
-		<remap from="kinematics_learning_node/v_sample" to="$(arg learning_sensor_node)/v_sample" />
-		<remap from="kinematics_learning_node/theta_dot_sample" to="$(arg learning_sensor_node)/theta_dot_sample" />
-		<include file="$(find kinematics)/launch/kinematics_learning_node.launch">
-			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
-			<arg name="param_file_name" value="$(arg param_file_name)"/>
-		</include>
-	</group>
-</group>
-<!-- END Odometry Learning -->
-
-
-
 
 <!-- Start Coordination / Not LF, IN-->
 <group if="$(arg coordination)">
@@ -507,7 +406,6 @@
 		<remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
 		<include file="$(find explicit_coordinator)/launch/coordination_ETHZ17.launch">
 			<arg name="veh" value="$(arg veh)"/>
-			<arg name="config" value="$(arg config)"/>
 			<arg name="param_file_name" value="$(arg param_file_name)"/>
 			<arg name="intersectionType" value="$(arg intersectionType)" />
  			<arg name="use_priority_protocol" value="$(arg use_priority_protocol)" />
@@ -516,32 +414,17 @@
 	</group>
 
 	<!-- not LF, not IN -->
-	<!-- Start Implicit Coordination -->
-	<group if="$(arg /coordination/implicit_coordination)">
-			<!-- Vehicle Coordinator-->
-			<include file="$(find implicit_coordination)/launch/implicit.launch">
-				<arg name="veh" value="$(arg veh)"/>
-			</include>
-
-			<remap from="implicit_coordination_node/fsm" to="fsm_node/mode" />
-			<remap from="implicit_coordination_node/vehicle_detection_node" to="multivehicle_tracker_node/tracking" />
-			<remap from="implicit_coord/flag_go_wait" to="implicit_coordination_node/flag_intersection_wait_go_implicit" /> -->
-			<!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
-	</group>
-
-	<!-- not LF, not IN -->
 	<group unless="$(arg /coordination/explicit_coordination)">
-		<group unless="$(arg /coordination/implicit_coordination)">
-			<!-- Vehicle Coordinator-->
-			<remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
-			<include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
-				<arg name="veh" value="$(arg veh)"/>
-				<arg name="config" value="$(arg config)"/>
-				<arg name="param_file_name" value="$(arg param_file_name)"/>
-			</include>
-			<!-- Extra Remapping to make the fake coordination car cmds look real -->
-			<remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
-		</group>
+
+        <!-- Vehicle Coordinator-->
+        <remap from="fake_coordinator_node/mode" to="fsm_node/mode" />
+        <include file="$(find veh_coordinator)/launch/fake_coordinator_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>
+        </include>
+        <!-- Extra Remapping to make the fake coordination car cmds look real -->
+        <remap from="fake_coordinator_node/car_cmd" to="simple_coordinator_node/car_cmd"/>
+
 	</group>
 
 </group>
@@ -650,13 +533,6 @@
 	</group>
 
 
-
-
-
-
-
-
-
 	<group if="$(arg /navigation/graph_planner)">
 		<remap from="actions_dispatcher_node/fsm_mode" to="fsm_node/mode" />
 		<!-- remapping outputs since there are two different possible turn types -->
@@ -681,7 +557,7 @@
 
 <!-- Start anti-instagram / LF, IN -->
 <group if="$(arg anti_instagram)">
-	<!-- NOT LOADING PARAMS FROM A YAML FILE -->
+	<!-- TODO: NOT LOADING PARAMS FROM A YAML FILE -->
 	<include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="ai_interval" value="$(arg ai_interval)"/>
@@ -689,7 +565,7 @@
 </group>
 <!-- End anti-instagram -->
 
-<!-- Start Parallel Autonomy / Not LF, not IN -->
+<!-- Start Parallel Autonomy / Not LF, not IN TODO: broken, source code not there anymore, restore or delete -->
 <group if="$(arg parallel_autonomy)">
 	<remap from="lane_supervisor_node/lane_pose" to="lane_filter_node/lane_pose"/>
 	<remap from="lane_supervisor_node/car_cmd_joy" to="joy_mapper_node/car_cmd"/>
@@ -812,31 +688,6 @@
 	</include>
 </group>
 <!-- End Auto Calibration -->
-
-
-<!-- Start Global Localization -->
-<group if="$(arg global_localizer)">
-	<!-- TODO -->
-
-</group>
-<!-- End Global Localization -->
-
-<!-- Start SLAM -->
-<group if="$(arg SLAM)">
-	<!-- TODO -->
-</group>
-<!-- End SLAM -->
-
-
-<!-- Start anti-instagram -->
-<!--<group if="$(arg anti_instagram)">
-	NOT LOADING PARAMS FROM A YAML FILE
-	<remap from="anti_instagram_node/uncorrected_image" to="camera_node/image/compressed" />
-	<include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
-		<arg name="veh" value="$(arg veh)"/>
-	</include>
-</group> -->
-<!-- End anti-instagram -->
 
 <!-- Start localization / Not LF, not IN -->
 <group if="$(arg localization)">

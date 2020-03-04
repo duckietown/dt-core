@@ -23,7 +23,6 @@
 
 
 		<arg name="coordination" value="true"/>
-		<arg name="/coordination/implicit_coordination" value="false"/>
 		<arg name="/coordination/explicit_coordination" value="true"/>
 		<arg name="LED" value="true"/>
 		<arg name="/LED/detector" value="true"/>
