@@ -10,6 +10,37 @@ from lane_controller.controller import LaneController
 
 
 class LaneControllerNode(DTROS):
+    """Computes control action.
+    The node compute the commands in form of linear and angular velocities, by processing the estimate error in
+    lateral deviationa and heading.
+    The configuration parameters can be changed dynamically while the node is running via `rosparam set` commands.
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+    Configuration:
+        ~v_bar (:obj:`float`): Nominal velocity in m/s
+        ~k_d (:obj:`float`): Proportional term for lateral deviation
+        ~k_theta (:obj:`float`): Proportional term for heading deviation
+        ~k_Id (:obj:`float`): integral term for lateral deviation
+        ~k_Iphi (:obj:`float`): integral term for lateral deviation
+        ~d_thres (:obj:`float`): Maximum value for lateral error
+        ~theta_thres (:obj:`float`): Maximum value for heading error
+        ~d_offset (:obj:`float`): Goal offset from center of the lane
+        ~velocity_to_m_per_s (:obj:`float`): Conversion factor
+        ~omega_to_rad_per_s (:obj:`float`): Conversion factor
+        ~integral_bounds (:obj:`dict`): Bounds for integral term
+        ~d_resolution (:obj:`float`): Resolution of lateral position estimate
+        ~phi_resolution (:obj:`float`): Resolution of heading estimate
+        ~omega_ff (:obj:`float`): Feedforward part of controller
+        ~verbose (:obj:`bool`): Verbosity level (0,1,2)
+
+    Publisher:
+        ~car_cmd (:obj:`Twist2DStamped`): The computed control action
+    Subscribers:
+        ~lane_pose (:obj:`LanePose`): The lane pose estimate from the lane filter
+        ~intersection_navigation_pose (:obj:`LanePose`): The lane pose estimate from intersection navigation
+        ~wheels_cmd_executed (:obj:`WheelsCmdStamped`): Confirmation that the control action was executed
+        ~stop_line_reading (:obj:`StopLineReading`): Distance from stopline, to reduce speed
+    """
 
     def __init__(self, node_name):
 
@@ -112,13 +143,23 @@ class LaneControllerNode(DTROS):
             self.getControlAction(self.pose_msg)
 
     def cbWheelsCmdExecuted(self, msg_wheels_cmd):
+        """Callback that reports if the requested control action was executed.
+
+        Args:
+            msg_wheels_cmd (:obj:`WheelsCmdStamped`): Executed wheel commands
+        """
         self.wheels_cmd_executed = msg_wheels_cmd
 
     def publishCmd(self, car_cmd_msg):
+        """Publishes a car command message.
+
+        Args:
+            car_cmd_msg (:obj:`Twist2DStamped`): Message containing the requested control action.
+        """
         self.pub_car_cmd.publish(car_cmd_msg)
 
     def getControlAction(self, pose_msg):
-        """Callback that receives a pose message and publishes a car command.
+        """Callback that receives a pose message and updates the related control command.
 
         Using a controller object, computes the control action using the current pose estimate.
 
