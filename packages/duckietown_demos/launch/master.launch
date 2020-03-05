@@ -101,7 +101,7 @@
 
   <arg name="tcp_communication" default="false"/>
 
-  <param name="enable_statistics" default="false"/>
+  <arg name="enable_statistics" default="false"/>
   <!-- end switch args -->
 
 
@@ -128,21 +128,7 @@
           <arg name="param_file_name" value="$(arg param_file_name)"/>
           <arg name="node_name" value="raw_cam_info_reader_node" />
           <arg name="image_type" value="raw" />
-
-          
-        <!-- car_cmd_switch_node -->
-        <!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
-        <remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/>
-        <group unless="$(arg vehicle_avoidance)">
-                <remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
-        </group>
-
-        <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
-        <include file="$(find fsm)/launch/logic_gate_node.launch">
-            <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="$(arg fsm_file_name)"/>
         </include>
-
         <!-- Rectification -->
         <remap from="image_raw" to="camera_node/image/raw"/>
         <remap from="camera_info" to="camera_node/raw_camera_info"/>
@@ -175,7 +161,7 @@
     <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
     <include file="$(find fsm)/launch/logic_gate_node.launch">
       <arg name="veh" value="$(arg veh)"/>
-      <arg name="param_file_name" value="$(arg param_file_name)"/>
+      <arg name="param_file_name" value="$(arg fsm_file_name)"/>
     </include>
   </group>
   <!--End FSM -->
