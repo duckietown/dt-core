@@ -162,7 +162,7 @@
         <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
         <include file="$(find fsm)/launch/logic_gate_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
+            <arg name="param_file_name" value="$(arg fsm_file_name)"/>
         </include>
     </group>
     <!--End FSM -->
