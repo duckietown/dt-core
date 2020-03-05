@@ -99,8 +99,8 @@
     <arg name="auto_ion" default="false"/>
 
     <arg name="tcp_communication" default="false"/>
-
-    <param name="enable_statistics" default="false"/>
+    <arg name="statistics" default="false"/>
+    <param name="enable_statistics" value="$(arg statistics)"/>
     <!-- end switch args -->
 
 

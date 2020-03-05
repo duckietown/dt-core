@@ -6,7 +6,7 @@ import rospy
 from duckietown import DTROS, DTPublisher, DTSubscriber
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
-from lane_controller.new_controller import LaneController
+from lane_control.controller import LaneController
 
 
 class LaneControllerNode(DTROS):
