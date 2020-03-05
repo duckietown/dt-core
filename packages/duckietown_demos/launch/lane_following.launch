@@ -26,11 +26,10 @@
 
 		<arg name="visualization" value="true" />
         <arg name="/camera/raw" value="false" />
-		<arg name="param_file_name" value="value" />
-		<arg name="line_detector_param_file_name" value="value" />
+		<arg name="param_file_name" value="default" />
+		<arg name="line_detector_param_file_name" value="default" />
 		<arg name="anti_instagram" value="true" />
 		<arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
 		<arg name="ai_interval" value="$(arg ai_interval)"/>
-		<arg name="vehicle_avoidance" value="true"/>
 	</include>
 </launch>

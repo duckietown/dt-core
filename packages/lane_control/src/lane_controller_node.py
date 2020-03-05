@@ -6,7 +6,7 @@ import rospy
 from duckietown import DTROS, DTPublisher, DTSubscriber
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
-from lane_control.controller import LaneController
+from lane_controller.controller import LaneController
 
 
 class LaneControllerNode(DTROS):
@@ -32,6 +32,9 @@ class LaneControllerNode(DTROS):
         self.parameters['~phi_resolution'] = None
         self.parameters['~omega_ff'] = None
         self.parameters['~verbose'] = None
+
+        # Need to create controller object before updating parameters, otherwise it will fail
+        self.controller = LaneController(self.parameters)
         self.updateParameters()
 
         # Initialize variables
@@ -43,7 +46,7 @@ class LaneControllerNode(DTROS):
         self.last_s = None
         self.stop_line_distance = None
         self.stop_line_detected = False
-        self.controller = LaneController(self.parameters)
+
         self.current_pose_source = 'lane_filter'
 
         # Construct publishers
@@ -62,7 +65,7 @@ class LaneControllerNode(DTROS):
                                                              queue_size=1)
         self.sub_wheels_cmd_executed = DTSubscriber("~wheels_cmd_executed",
                                                     WheelsCmdStamped,
-                                                    self.updateWheelsCmdExecuted,
+                                                    self.cbWheelsCmdExecuted,
                                                     queue_size=1)
         self.sub_stop_line = rospy.Subscriber("~stop_line_reading",
                                               StopLineReading,

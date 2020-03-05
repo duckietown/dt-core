@@ -24,3 +24,5 @@ integral_bounds:
 # TODO: lane filter should publish this information
 d_resolution: 0.011
 phi_resolution: 0.051
+
+verbose: 0

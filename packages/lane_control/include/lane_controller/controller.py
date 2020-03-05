@@ -38,10 +38,10 @@ class LaneController:
         if dt is not None:
             self.integrate_errors(d_err, phi_err, dt)
 
-        self.d_I = self.adjust_integral(d_err, self.d_I, self.parameters['integral_bounds']['d'],
-                                        self.parameters['d_resolution'])
-        self.phi_I = self.adjust_integral(phi_err, self.phi_I, self.parameters['integral_bounds']['phi'],
-                                          self.parameters['phi_resolution'])
+        self.d_I = self.adjust_integral(d_err, self.d_I, self.parameters['~integral_bounds']['d'],
+                                        self.parameters['~d_resolution'])
+        self.phi_I = self.adjust_integral(phi_err, self.phi_I, self.parameters['~integral_bounds']['phi'],
+                                          self.parameters['~phi_resolution'])
 
         self.reset_if_needed(d_err, phi_err, wheels_cmd_exec)
 
