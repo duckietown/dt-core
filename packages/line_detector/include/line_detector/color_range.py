@@ -9,6 +9,10 @@ class ColorRange:
     method to work with multiple color ranges.
     
     All colours must be given in ``HSV`` space.
+
+    Args:
+        low (:obj:`numpy array`): An ``Nx3`` array with the low ends of ``N`` colour ranges.
+        high (:obj:`numpy array`): An ``Nx3`` array with the high ends of ``N`` colour ranges.
     """
 
     def __init__(self, low, high):

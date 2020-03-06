@@ -1,12 +1,11 @@
 import cv2
 import numpy as np
-from collections import namedtuple
+from . import Detections
 
-Detections = namedtuple('Detections',
-                        ['lines', 'normals', 'area', 'centers'])
-
-
-class LineDetectorHSV():
+class LineDetector():
+    """
+    TODO: Node description
+    """
 
     def __init__(self, canny_thresholds, canny_aperture_size, dilation_kernel_size,
                  hough_threshold, hough_min_line_length, hough_max_line_gap):
@@ -19,9 +18,9 @@ class LineDetectorHSV():
         self.hough_max_line_gap = hough_max_line_gap
 
         # initialize the variables that will hold the processed images
-        self.bgr = np.empty(0)
-        self.hsv = np.empty(0)
-        self.canny_edges = np.empty(0)
+        self.bgr = np.empty(0)  #: Holds the ``BGR`` representation of an image
+        self.hsv = np.empty(0)  #: Holds the ``HSV`` representation of an image
+        self.canny_edges = np.empty(0)  #: Holds the Canny edges of an image
 
     def setImage(self, image):
         """
@@ -38,7 +37,7 @@ class LineDetectorHSV():
 
         self.bgr = np.copy(image)
         self.hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        self.canny_edges = self.findEdges(self.bgr)
+        self.canny_edges = self.findEdges()
 
     def getImage(self):
         """
@@ -72,8 +71,9 @@ class LineDetectorHSV():
         Args:
             edges (:obj:`numpy array`): binary image with edges
 
-        Returns: :obj:`numpy array`: An ``Nx4`` array where each row represents a line. If no lines were detected,
-        returns an empty list.
+        Returns:
+             :obj:`numpy array`: An ``Nx4`` array where each row represents a line ``[x1, y1, x2, y2]``. If no lines
+             were detected, returns an empty list.
 
         """
         lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi / 180, threshold=self.hough_threshold,
@@ -92,7 +92,7 @@ class LineDetectorHSV():
         operation to smooth and grow the regions map.
 
         Args:
-            :py:class:`ColorRange`: A :py:class:`ColorRange` object specifying the desired colors.
+            color_range (:py:class:`ColorRange`): A :py:class:`ColorRange` object specifying the desired colors.
 
         Returns:
             :obj:`numpy array`: binary image with the regions of the image that fall in the color range
@@ -100,34 +100,35 @@ class LineDetectorHSV():
             :obj:`numpy array`: binary image with the edges in the image that fall in the color range
         """
         # threshold colors in HSV space
-        bw = color_range.inRange(self.hsv)
+        map = color_range.inRange(self.hsv)
 
         # binary dilation: fills in gaps and makes the detected regions grow
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
                                            (self.dilation_kernel_size, self.dilation_kernel_size))
-        bw = cv2.dilate(bw, kernel)
+        map = cv2.dilate(map, kernel)
 
         # extract only the edges which come from the region with the selected color
-        edge_color = cv2.bitwise_and(bw, self.canny_edges)
+        edge_color = cv2.bitwise_and(map, self.canny_edges)
 
-        return bw, edge_color
+        return map, edge_color
 
-    def checkBounds(self, val, bound):
+
+    def findNormal(self, map, lines):
         """
+        Calculates the centers of the line segments and their normals.
 
-        :param val:
-        :param bound:
-        :return:
-        """
-        val[val < 0] = 0
-        val[val >= bound] = bound - 1
-        return val
+        Args:
+            map (:obj:`numpy array`):  binary image with the regions of the image that fall in a given color range
 
-    def findNormal(self, lines):
-        """
+            lines (:obj:`numpy array`): An ``Nx4`` array where each row represents a line. If no lines were detected,
+            returns an empty list.
 
-        :param lines:
-        :return:
+        Returns:
+            :obj:`numpy array`: An ``Nx2`` array where each row represents the center point of a line. If no
+            lines were detected,returns an empty list.
+
+            :obj:`numpy array`: An ``Nx2`` array where each row represents the normal of a line. If no
+            lines were detected,returns an empty list.
         """
         normals = []
         centers = []
@@ -141,22 +142,30 @@ class LineDetectorHSV():
             y3 = (centers[:, 1:2] - 3. * dy).astype('int')
             x4 = (centers[:, 0:1] + 3. * dx).astype('int')
             y4 = (centers[:, 1:2] + 3. * dy).astype('int')
-            x3 = self.checkBounds(x3, self.bgr.shape[1])
-            y3 = self.checkBounds(y3, self.bgr.shape[0])
-            x4 = self.checkBounds(x4, self.bgr.shape[1])
-            y4 = self.checkBounds(y4, self.bgr.shape[0])
-            flag_signs = (np.logical_and(bw[y3, x3] > 0, bw[y4, x4] == 0)).astype('int') * 2 - 1
+
+            np.clip(x3, 0, map.shape[1]-1, out=x3)
+            np.clip(y3, 0, map.shape[0]-1, out=y3)
+            np.clip(x4, 0, map.shape[1]-1, out=x4)
+            np.clip(y4, 0, map.shape[0]-1, out=y4)
+
+            flag_signs = (np.logical_and(map[y3, x3] > 0, map[y4, x4] == 0)).astype('int') * 2 - 1
             normals = np.hstack([dx, dy]) * flag_signs
 
         return centers, normals
 
     def detectLines(self, color_range):
         """
+        Detects the line segments in the currently set image that occur in and the edges of the regions of the image
+        that are within the provided colour ranges.
 
-        :param color:
-        :return:
+        Args:
+            color_range (:py:class:`ColorRange`): A :py:class:`ColorRange` object specifying the desired colors.
+
+        Returns:
+            :py:class:`Detection`: A :py:class:`Detection` object with the map of regions containing the desired
+            colors, and the detected lines, together with their center points and normals,
         """
-        bw, edge_color = self.colorFilter(color_range)
+        map, edge_color = self.colorFilter(color_range)
         lines = self.houghLine(edge_color)
-        centers, normals = self.findNormal(bw, lines)
-        return Detections(lines=lines, normals=normals, area=bw, centers=centers)
+        centers, normals = self.findNormal(map, lines)
+        return Detections(lines=lines, normals=normals, map=map, centers=centers)
