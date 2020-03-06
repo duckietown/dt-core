@@ -86,14 +86,14 @@ class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
         centers = []
         if len(lines) > 0:
             length = np.sum((lines[:, 0:2] - lines[:, 2:4]) ** 2, axis=1, keepdims=True) ** 0.5
-            dx = 1.* (lines[:, 3:4] - lines[:, 1:2]) / length
-            dy = 1.* (lines[:, 0:1] - lines[:, 2:3]) / length
+            dx = 1. * (lines[:, 3:4] - lines[:, 1:2]) / length
+            dy = 1. * (lines[:, 0:1] - lines[:, 2:3]) / length
 
             centers = np.hstack([(lines[:, 0:1] + lines[:, 2:3]) / 2, (lines[:, 1:2] + lines[:, 3:4]) / 2])
-            x3 = (centers[:, 0:1] - 3.*dx).astype('int')
-            y3 = (centers[:, 1:2] - 3.*dy).astype('int')
-            x4 = (centers[:, 0:1] + 3.*dx).astype('int')
-            y4 = (centers[:, 1:2] + 3.*dy).astype('int')
+            x3 = (centers[:, 0:1] - 3. * dx).astype('int')
+            y3 = (centers[:, 1:2] - 3. * dy).astype('int')
+            x4 = (centers[:, 0:1] + 3. * dx).astype('int')
+            y4 = (centers[:, 1:2] + 3. * dy).astype('int')
             x3 = self._checkBounds(x3, bw.shape[1])
             y3 = self._checkBounds(y3, bw.shape[0])
             x4 = self._checkBounds(x4, bw.shape[1])
