@@ -94,3 +94,15 @@ class ColorRange:
             selection = cv2.bitwise_or(current, selection)
 
         return selection
+
+    @property
+    def representative(self):
+        """
+        Provides an representative color for this color range. This is the average color of the first range (if more
+        than one ranges are set).
+
+        Returns:
+            (:obj:`list`): a list with 3 entries representing an HSV color
+        """
+
+        return list(0.5*(self.high[0]+self.low[0]).astype(int))

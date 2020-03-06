@@ -1,9 +1,10 @@
-from . import LineDetector
-from . import ColorRange
+from line_detector import LineDetector
+from color_range import ColorRange
+from plot_detections import plotDetections
 import cv2
 import numpy as np
 
-image = cv2.imread('test_image.jpg')
+image = cv2.imread('test_image2.jpg')
 
 cv2.imshow('Image', image)
 
@@ -34,30 +35,39 @@ red_region, red_edges = ld.colorFilter(cr_red)
 
 white_region, white_edges = ld.colorFilter(cr_white)
 # cv2.imshow('White region', white_region)
-cv2.imshow('White Canny', white_edges)
+# cv2.imshow('White Canny', white_edges)
 #
 # yellow_region, yellow_edges = ld.colorFilter(cr_yellow)
 # cv2.imshow('Yellow region', yellow_region)
 # cv2.imshow('Yellow Canny', yellow_edges)
 
 ld.houghLine(white_edges)
-detections = ld.detectLines(cr_white)
-detection_centers = np.zeros_like(white_region)
-for d in detections.centers:
-    try:
-        detection_centers[d[1]-5:d[1]+5, d[0]-5:d[0]+5] = 255
-    except:
-        pass
-cv2.imshow('Centers', detection_centers)
+detections_w = ld.detectLines(cr_white)
+detections_y = ld.detectLines(cr_yellow)
+detections_r = ld.detectLines(cr_red)
 
-detection_normals = np.zeros_like(white_region)
-for i in range(len(detections.normals)):
-    d = detections.centers[i]
-    n = detections.normals[i]
-    cv2.line(detection_normals, tuple(d), tuple((d+10*n).astype(int)), color=255)
-    detection_normals[d[1] - 2:d[1] + 2, d[0] - 2:d[0] + 2] = 255
+detection_im = plotDetections(image, {cr_white: detections_w,
+                                      cr_yellow: detections_y,
+                                      cr_red: detections_r})
 
-cv2.imshow('Normals', detection_normals)
+cv2.imshow('detection_im', detection_im)
+
+# detection_centers = np.zeros_like(white_region)
+# for d in detections.centers:
+#     try:
+#         detection_centers[d[1]-5:d[1]+5, d[0]-5:d[0]+5] = 255
+#     except:
+#         pass
+# cv2.imshow('Centers', detection_centers)
+#
+# detection_normals = np.zeros_like(white_region)
+# for i in range(len(detections.normals)):
+#     d = detections.centers[i]
+#     n = detections.normals[i]
+#     cv2.line(detection_normals, tuple(d), tuple((d+10*n).astype(int)), color=255)
+#     detection_normals[d[1] - 2:d[1] + 2, d[0] - 2:d[0] + 2] = 255
+
+# cv2.imshow('Normals', detection_normals)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

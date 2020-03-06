@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from . import Detections
+from detections import Detections
 
 class LineDetector():
     """
