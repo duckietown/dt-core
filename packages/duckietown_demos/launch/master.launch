@@ -326,6 +326,7 @@
     <group if="$(arg LED)">
         <!-- Detection -->
         <group if="$(arg /LED/detector)">
+            <remap from="led_detection_node/image/compressed" to="camera_node/image/compressed"/>
             <include file="$(find led_detection)/launch/led_detection.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="config" value="$(arg config)"/>
@@ -344,21 +345,10 @@
 
         <!--<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />-->
         <group if="$(arg /LED/pattern_switch)">
-          <remap from="led_pattern_switch_node/set_pattern" to="led_emitter_node/set_pattern"/>
+            <remap from="led_pattern_switch_node/set_pattern" to="led_emitter_node/set_pattern"/>
             <include file="$(find led_pattern_switch)/launch/led_pattern_switch_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
-            </include>
-        </group>
-
-        <!-- TODO do we need some remappings here? -->
-        <remap from="LED_interpreter_node/raw_led_detection" to="led_detector_node/raw_led_detection" />
-        <group if="$(arg /LED/interpreter)">
-            <include file="$(find led_interpreter)/launch/LED_interpreter.launch">
-                <arg name="veh" value="$(arg veh)"/>
-                <arg name="config" value="$(arg config)"/>
-                <arg name="param_file_name" value="$(arg param_file_name)"/>
-                <arg name="intersectionType" value="$(arg intersectionType)" />
             </include>
         </group>
     </group>
@@ -398,7 +388,7 @@
         <group if="$(arg /coordination/explicit_coordination)">
             <!-- Vehicle Coordinator-->
             <remap from="coordinator_node/mode" to="fsm_node/mode" />
-            <remap from="coordinator_node/signals_detection" to="led_detector_node/led_detection" />
+            <remap from="coordinator_node/signals_detection" to="led_detector_node/signals_detection" />
             <remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
             <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
             <remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
