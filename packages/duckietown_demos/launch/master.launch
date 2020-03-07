@@ -70,32 +70,20 @@
     <group if="$(arg camera)">
 
         <group if="$(arg /camera/raw)">
-            <!-- not LF, IN -->
             <group if="$(arg /camera/raw/rect)">
-                <!-- decoder_node -->
+                <!-- Image Decoding -->
                 <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
                 <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
-                <include file="$(find pi_camera)/launch/decoder_node.launch">
+                <include file="$(find image_processing)/launch/image_decoding.launch">
                     <arg name="veh" value="$(arg veh)"/>
                     <arg name="param_file_name" value="$(arg param_file_name)"/>
                 </include>
 
-                <!-- NOT USED -->
-                <!-- Raw camera_info_reader node -->
-                <remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
-                <remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
-                <include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
-                    <arg name="veh" value="$(arg veh)"/>
-                    <arg name="param_file_name" value="$(arg param_file_name)"/>
-                    <arg name="node_name" value="raw_cam_info_reader_node" />
-                    <arg name="image_type" value="raw" />
-                </include>
-
-                <!-- Rectification -->
+                <!-- Image Rectification -->
                 <remap from="image_raw" to="camera_node/image/raw"/>
                 <remap from="camera_info" to="camera_node/raw_camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
-                <include file="$(find pi_camera)/launch/image_proc_node.launch">
+                <include file="$(find image_processing)/launch/image_rectification.launch">
                     <arg name="veh" value="$(arg veh)"/>
                 </include>
             </group>

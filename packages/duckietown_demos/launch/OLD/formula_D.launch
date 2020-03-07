@@ -5,7 +5,7 @@
 
 
 
-    <include  file="$(find pi_camera)/launch/camera_node.launch">
+    <include  file="$(find image_processing)/launch/camera_node.launch">
     			<arg name="veh" value="$(arg veh)"/>
     			<arg name="config" value="$(arg config)"/>
     			<arg name="param_file_name" value="$(arg param_file_name)"/>
