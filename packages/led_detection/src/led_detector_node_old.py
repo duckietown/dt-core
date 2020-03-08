@@ -8,9 +8,10 @@ import scipy.fftpack
 
 from duckietown import DTROS, DTPublisher, DTSubscriber
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
+
+from std_msgs.msg import Byte
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray,\
                                 BoolStamped, SignalsDetection
-from led_detection.LED_detector import LEDDetector
 from sensor_msgs.msg import CompressedImage
 
 
@@ -23,8 +24,9 @@ class LEDDetectorNode(DTROS):
         # Needed to publish images
         self.bridge = CvBridge()
 
-        # Initialize detector
-        self.detector = LEDDetector()
+        # Initialize detectors
+        self.detector_car = None
+        self.detector_tl = None
 
         # Add the node parameters to the parameters dictionary
         self.parameters['~capture_time'] = None
@@ -136,19 +138,19 @@ class LEDDetectorNode(DTROS):
             self.log('Analyzing %s images of size %s X %s' % (num_img, w, h))
 
         # Get blobs right
-        blobs_right, frame_right = self.detector.find_blobs(img_right, 'car')
+        blobs_right, frame_right = self.get_blobs(img_right, self.detector_car)
         # Get blobs front
-        blobs_front, frame_front = self.detector.find_blobs(img_front, 'car')
+        blobs_front, frame_front = self.get_blobs(img_front, self.detector_car)
         # Get blobs right
-        blobs_tl, frame_tl = self.detector.find_blobs(img_tl, 'tl')
+        blobs_tl, frame_tl = self.get_blobs(img_tl, self.detector_tl)
 
         radius = self.parameters['~DTOL']/2.0
 
         if self.parameters['~verbose'] > 0:
             # Extract blobs for visualization
-            keypoint_blob_right = self.detector.get_keypoints(blobs_right, radius)
-            keypoint_blob_front = self.detector.get_keypoints(blobs_front, radius)
-            keypoint_blob_tl = self.detector.get_keypoints(blobs_tl, radius)
+            keypoint_blob_right = self.extract_blobs(blobs_right, radius)
+            keypoint_blob_front = self.extract_blobs(blobs_front, radius)
+            keypoint_blob_tl = self.extract_blobs(blobs_tl, radius)
 
             # Images
             img_pub_right = cv2.drawKeypoints(img_right[:, :, -1], keypoint_blob_right, np.array([]), (0, 0, 255),
@@ -171,9 +173,9 @@ class LEDDetectorNode(DTROS):
         t_s = (1.0*self.parameters['~capture_time'])/(1.0*num_img)
 
         # Decide whether LED or not
-        self.right = self.detector.interpret_signal(blobs_right, t_s, num_img)
-        self.front = self.detector.interpret_signal(blobs_front, t_s, num_img)
-        self.traffic_light = self.detector.interpret_signal(blobs_tl, t_s, num_img)
+        self.right = self.is_signal(blobs_right, t_s, num_img)
+        self.front = self.is_signal(blobs_front, t_s, num_img)
+        self.traffic_light = self.is_signal(blobs_tl, t_s, num_img)
 
         # Left bot (also UNKNOWN)
         self.left = "UNKNOWN"
@@ -193,6 +195,95 @@ class LEDDetectorNode(DTROS):
         # Keep going
         self.trigger = True
         self.sub_cam = DTSubscriber("~image/compressed", CompressedImage, self.camera_callback)
+
+    def get_blobs(self, images, detector):
+
+        blobs = []
+        frame = []
+        # Iterate over time
+        num_images = images.shape[-1]
+        for t in range(num_images):
+            keypoints = detector.detect(images[:, :, t])
+            frame.append(np.zeros((2, len(keypoints))))
+
+            for n in range(len(keypoints)):
+                frame[t][:, n] = keypoints[n].pt
+                if len(blobs) == 0:
+                    # If no blobs saved, then save the first LED detected
+                    blobs.append({'p': frame[t][:, n], 'N': 1, 'Signal': np.zeros(images.shape[2])})
+                    blobs[-1]['Signal'][t] = 1
+                else:
+                    # Thereafter, check whether the detected LED belongs to a blob
+                    dist = np.empty(len(blobs))
+                    for k in range(len(blobs)):
+                        dist[k] = np.linalg.norm(blobs[k]['p'] - frame[t][:, n])
+                    if np.min(dist) < self.parameters['~DTOL']:
+                        if blobs[np.argmin(dist)]['Signal'][t] == 0:
+                            blobs[np.argmin(dist)]['N'] += 1
+                            blobs[np.argmin(dist)]['Signal'][t] = 1
+                    else:
+                        blobs.append({'p': frame[t][:, n], 'N': 1, 'Signal': np.zeros(images.shape[2])})
+                        blobs[-1]['Signal'][t] = 1
+
+        return blobs, frame
+
+    @staticmethod
+    def extract_blobs(blobs, radius):
+        # Extract blobs
+        keypoint_blob = []
+        for blob in blobs:
+            assert np.sum(blob['Signal']) == blobs['N']
+            keypoint_blob.append(cv2.KeyPoint(blobs['p'][0], blobs['p'][1], radius))
+        return keypoint_blob
+
+    def is_signal(self, blobs, t_s, num_img):
+        # Decide whether LED or not
+        for blob in blobs:
+            # Detection
+            detected, freq_identified, fft_peak_freq = self.detect_blob(blob, t_s, num_img)
+            # Take decision
+            detected_signal = None
+            if detected:
+                if self.parameters['~verbose'] == 2:
+                    msg = '\n-------------------\n' + \
+                          'num_img = %d \n' % num_img + \
+                          't_samp = %f \n' % t_s + \
+                          'fft_peak_freq = %f \n' % fft_peak_freq + \
+                          'freq_identified = %f \n' % freq_identified + \
+                          '-------------------'
+                    self.log(msg)
+
+                for signal_name, signal_value in self.parameters['~LED_protocol']['signals'].items():
+                    if signal_value['frequency'] == freq_identified:
+                        detected_signal = signal_name
+
+                return detected_signal
+
+    def detect_blob(self, blob, t_s, num_img):
+        """Detects if a blob is blinking at specific frequencies."""
+        # Percentage of appearance
+        appearance_percentage = (1.0*blob['N'])/(1.0*num_img)
+
+        # Frequency estimation based on FFT
+        signal_f = scipy.fftpack.fft(blob['Signal'] - np.mean(blob['Signal']))
+        y_f = 2.0/num_img*np.abs(signal_f[:num_img/2+1])
+        fft_peak_freq = 1.0*np.argmax(y_f)/(num_img*t_s)
+
+        if self.parameters['~verbose'] == 2:
+            self.log('[%s] Appearance perceived. = %s, frequency = %s' %
+                     (self.node_name, appearance_percentage, fft_peak_freq))
+        freq_identified = 0
+        # Take decision
+        detected = False
+        freq_to_identify = self.parameters['~LED_protocol']['frequencies'].values()
+        for freq in freq_to_identify:
+            if abs(fft_peak_freq - freq) < 0.35:
+                # Decision
+                detected = True
+                freq_identified = freq
+                break
+
+        return detected, freq_identified, fft_peak_freq
 
     def publish(self, img_right, img_front, img_tl):
         #  Publish image with circles if verbose is > 0
@@ -217,11 +308,24 @@ class LEDDetectorNode(DTROS):
                                           traffic_light_state=self.traffic_light)
         self.pub_detections.publish(detections_msg)
 
-    def cbParametersChanged(self):
+    def updateParameters(self):
         """Updates parameters."""
-        super(LEDDetectorNode, self).cbParametersChanged()
+        super(LEDDetectorNode, self).updateParameters()
         if self.parameterChanged:
-            self.detector.update_parameters(self.parameters)
+            self.controller.update_parameters(self.parameters)
+            # We first create the detector objects, otherwise we cannot update their parameters
+            bd_param_db = cv2.SimpleBlobDetector_Params()
+            bd_param_tl = cv2.SimpleBlobDetector_Params()
+
+            # Assign values to object variables
+            for key, val in self.parameters['~blob_detector_db'].items():
+                setattr(bd_param_db, key, val)
+            for key, val in self.parameters['~blob_detector_tl'].items():
+                setattr(bd_param_tl, key, val)
+
+            # Create a detector with the parameters
+            self.detector_car = cv2.SimpleBlobDetector_create(bd_param_db)
+            self.detector_tl = cv2.SimpleBlobDetector_create(bd_param_tl)
 
             self.parameterChanged = False
 
