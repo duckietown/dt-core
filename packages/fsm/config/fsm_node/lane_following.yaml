@@ -12,14 +12,6 @@ events: # Maps from subscribing topic to signal ids
      topic: "joy_mapper_node/joystick_override"
      msg_type: "BoolStamped"
      trigger: False
-   obstacle_detection:
-     topic: "obstacle_safety_node/object_too_close"
-     msg_type: "BoolStamped"
-     trigger: True
-   obstacle_cleared:
-     topic: "obstacle_safety_node/object_too_close"
-     msg_type: "BoolStamped"
-     trigger: False
    vehicle_detection:
      topic: "vehicle_avoidance_control_node/vehicle_detected"
      msg_type: "BoolStamped"
@@ -52,7 +44,6 @@ global_transitions:
 
 states:
   NORMAL_JOYSTICK_CONTROL:
-    transitions:
     active_nodes:
       - lane_filter_node
       - line_detector_node
@@ -62,7 +53,6 @@ states:
     lights: ["joystick"]
     current_status: "implemented"
   LANE_FOLLOWING:
-    transitions:
     active_nodes:
       - anti_instagram
       - decoder_node

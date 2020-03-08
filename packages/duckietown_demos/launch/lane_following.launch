@@ -8,16 +8,36 @@
 
   <!-- start basic args -->
   <include file="$(find duckietown_demos)/launch/master.launch">
+    <!-- Basic arguments -->
     <arg name="veh" value="$(arg veh)"/>
     <arg name="demo_name" value="$(arg demo_name)"/>
-    <arg name="visualization" default="true" />
-    <arg name="/camera/raw" default="true" />
-    <arg name="param_file_name" default="default" />
-    <arg name="line_detector_param_file_name" default="default" />
-    <arg name="anti_instagram" default="true" />
-    <arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/>
+    <arg name="param_file_name" value="default" />
+    <arg name="visualization" value="true" />
+
+    <!-- Finite state machine -->
+    <arg name="fsm" value="true"/>
+    <arg name="/fsm/logic_gate" value="false"/>
+
+    <!-- Camera and anti intagram -->
+    <arg name="/camera/raw" value="false" />
+    <arg name="anti_instagram" value="true" />
+    <arg name="ai_trafo_mode" value="$(arg ai_trafo_mode)"/> <!-- TODO: must be config file in anti insta package -->
     <arg name="ai_interval" value="$(arg ai_interval)"/>
-    <arg name="/lane_following/stop_line_filter" default="false" /> <!-- will not every allow a transition into COORDINATION mode -->
-    <arg name="vehicle_avoidance" default="true"/>
+
+    <!-- Lane Following stack -->
+    <arg name="lane_following" value="true"/>
+    <arg name="/lane_following/line_detection" value="true"/>
+    <arg name="line_detector_param_file_name" value="default" />
+    <arg name="/lane_following/ground_projection" value="true"/>
+    <arg name="/lane_following/lane_filter" value="true"/>
+    <arg name="/lane_following/lane_controller" value="true"/>
+
+    <!-- Vehicle avoidance stack -->
+    <arg name="vehicle_avoidance" value="true"/>
+    <arg name="/vehicle_avoidance/detection" value="true" />
+    <arg name="/vehicle_avoidance/filter" value="true" />
+    <arg name="/vehicle_avoidance/control" value="true"/>
+
   </include>
+
 </launch>
