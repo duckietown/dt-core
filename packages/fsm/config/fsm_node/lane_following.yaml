@@ -12,14 +12,7 @@ events: # Maps from subscribing topic to signal ids
      topic: "joy_mapper_node/joystick_override"
      msg_type: "BoolStamped"
      trigger: False
-   vehicle_detection:
-     topic: "vehicle_avoidance_control_node/vehicle_detected"
-     msg_type: "BoolStamped"
-     trigger: True
-   vehicle_cleared:
-     topic: "vehicle_avoidance_control_node/vehicle_detected"
-     msg_type: "BoolStamped"
-     trigger: False
+
 
 # Define nodes
 nodes:
