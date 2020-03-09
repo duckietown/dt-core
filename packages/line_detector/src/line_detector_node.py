@@ -34,7 +34,7 @@ class LineDetectorNode(DTROS):
 
         # Publishers
         self.pub_lines = self.publisher("~segment_list", SegmentList, queue_size=1)
-        self.pub_image = self.publisher("~debug_image", Image, queue_size=1)
+        self.pub_image = self.publisher("~debug_image", CompressedImage, queue_size=1)
 
     def cbParametersChanged(self):
         # Create a new LineDetector object with the parameters from the Parameter Server / config file
@@ -46,7 +46,7 @@ class LineDetectorNode(DTROS):
 
         # Decode from compressed image with OpenCV
         try:
-            image =self.bridge.imgmsg_to_cv2(image_msg)
+            image = self.bridge.imgmsg_to_cv2(image_msg)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
@@ -72,17 +72,17 @@ class LineDetectorNode(DTROS):
         arr_ratio = np.array([1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0],
                               1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0]])
 
-        # Create a
+        # Fill in the segment_list with all the detected segments
         for color, det in detections.iteritems():
             # Get the ID for the color from the Segment msg definition
             # Throw and exception otherwise
-            if len(det.lines) > 0 and
-            try:
-                color_id = getattr(Segment, color)
-                det.lines = (det.lines + arr_cutoff) * arr_ratio
-                segment_list.segments.extend(self.toSegmentMsg(det.lines, det.normals, color_id))
-            except AttributeError:
-                self.logerr("Color name %s is not defined in the Segment message" % color)
+            if len(det.lines) > 0 and len(det.normals) > 0:
+                try:
+                    color_id = getattr(Segment, color)
+                    det.lines = (det.lines + arr_cutoff) * arr_ratio
+                    segment_list.segments.extend(self.toSegmentMsg(det.lines, det.normals, color_id))
+                except AttributeError:
+                    self.logerr("Color name %s is not defined in the Segment message" % color)
 
         # Publish the message
         self.pub_lines.publish(segment_list)
