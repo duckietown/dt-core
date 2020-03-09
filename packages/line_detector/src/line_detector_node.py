@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
+import numpy as np
+import rospy
 from cv_bridge import CvBridge
 from duckietown import DTROS
+from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import Segment, SegmentList
-from line_detector import LineDetector, ColorRange
+from line_detector import LineDetector, ColorRange, plotDetections
 
 
 class LineDetectorNode(DTROS):
     """Handles the imagery.
 
+        color names should match the ones in the Segment message, otherwise an exception will be thrown
     """
 
     def __init__(self, node_name):
@@ -30,7 +34,7 @@ class LineDetectorNode(DTROS):
 
         # Publishers
         self.pub_lines = self.publisher("~segment_list", SegmentList, queue_size=1)
-        self.pub_image = self.publisher("~image_with_lines", Image, queue_size=1)
+        self.pub_image = self.publisher("~debug_image", Image, queue_size=1)
 
     def cbParametersChanged(self):
         # Create a new LineDetector object with the parameters from the Parameter Server / config file
@@ -42,7 +46,7 @@ class LineDetectorNode(DTROS):
 
         # Decode from compressed image with OpenCV
         try:
-            image = bgr_from_jpg(image_msg.data)
+            image =self.bridge.imgmsg_to_cv2(image_msg)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
@@ -57,16 +61,54 @@ class LineDetectorNode(DTROS):
 
         # Extract the line segments for every color
         self.detector.setImage(image)
-        detections = {color: detectLines(ranges) for color, ranges in self.color_ranges.iteritems()}
+        detections = {color: self.detector.detectLines(ranges) for color, ranges in self.color_ranges.iteritems()}
 
         # Construct a SegmentList
-        segmentList = SegmentList()
-        segmentList.header.stamp = image_msg.header.stamp
+        segment_list = SegmentList()
+        segment_list.header.stamp = image_msg.header.stamp
 
         # Remove the offset in coordinates coming from the removing of the top part and
         arr_cutoff = np.array([0, self.parameters['~top_cutoff'], 0, self.parameters['~top_cutoff']])
-        arr_ratio = np.array([1./self.parameters['~img_size'][1], 1./self.parameters['~img_size'][0],
-                              1./self.parameters['~img_size'][1], 1./self.parameters['~img_size'][0]])
+        arr_ratio = np.array([1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0],
+                              1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0]])
+
+        # Create a
+        for color, det in detections.iteritems():
+            # Get the ID for the color from the Segment msg definition
+            # Throw and exception otherwise
+            if len(det.lines) > 0 and
+            try:
+                color_id = getattr(Segment, color)
+                det.lines = (det.lines + arr_cutoff) * arr_ratio
+                segment_list.segments.extend(self.toSegmentMsg(det.lines, det.normals, color_id))
+            except AttributeError:
+                self.logerr("Color name %s is not defined in the Segment message" % color)
+
+        # Publish the message
+        self.pub_lines.publish(segment_list)
+
+        # If there are any subscribers to the pub_image topic, generate a debug image and publish it
+        if self.pub_image.get_num_connections() > 0:
+            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.iteritem()}
+            debug_img = plotDetections(image, colorrange_detections)
+            debug_image_msg = self.bridge.cv2_to_imgmsg(debug_img)
+            debug_image_msg.header = image_msg.header
+            self.pub_img.publish(debug_image_msg)
+
+    @staticmethod
+    def toSegmentMsg(lines, normals, color):
+        segment_msg_list = []
+        for x1, y1, x2, y2, norm_x, norm_y in np.hstack((lines, normals)):
+            segment = Segment()
+            segment.color = color
+            segment.pixels_normalized[0].x = x1
+            segment.pixels_normalized[0].y = y1
+            segment.pixels_normalized[1].x = x2
+            segment.pixels_normalized[1].y = y2
+            segment.normal.x = norm_x
+            segment.normal.y = norm_y
+            segment_msg_list.append(segment)
+        return segment_msg_list
 
 if __name__ == '__main__':
     # Initialize the node

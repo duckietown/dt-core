@@ -15,14 +15,13 @@ def plotDetections(image, detections):
     im = np.copy(image)
 
     for color_range, det in detections.iteritems():
+
+        # convert HSV color to BGR
         c = color_range.representative
-        print(c)
         c = np.uint8([[[c[0], c[1], c[2]]]])
         color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int)
-        print(color)
-        # color = tuple(cv2.cvtColor(np.flipud(np.array(color_range.representative)).reshape((1,1,3)).astype(np.uint8), cv2.COLOR_HSV2BGR).squeeze().astype(int))
-        print(color.squeeze().astype(int))
 
+        # plot all detected line segments and their normals
         for i in range(len(det.normals)):
             center = det.centers[i]
             normal = det.normals[i]
