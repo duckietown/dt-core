@@ -156,9 +156,9 @@
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
             </include>
             <group if="$(arg visualization)">
-                <remap from="duckiebot_visualizer/segment_list" to="ground_projection/lineseglist_out"/>
-                <remap from="duckiebot_visualizer/segment_list_filtered" to="lane_filter_node/seglist_filtered"/>
-                <include file="$(find duckiebot_visualizer)/launch/duckiebot_visualizer.launch">
+                <remap from="line_segment_visualizer_node/segment_list" to="ground_projection/lineseglist_out"/>
+                <remap from="line_segment_visualizer_node/segment_list_filtered" to="lane_filter_node/seglist_filtered"/>
+                <include file="$(find visualization_tools)/launch/line_segment_visualizer_node.launch">
                     <arg name="veh" value="$(arg veh)" />
                 </include>
             </group>

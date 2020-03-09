@@ -133,12 +133,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
                 # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
 
-        # print functions to help understand the functionality of the code
-        # for i in range(len(segmentsRangeArray)):
-        #     print 'Length of segmentsRangeArray[%i]: %i' % (i, len(segmentsRangeArray[i]))
-        #     for j in range(len(segmentsRangeArray[i])):
-        #         print 'Range of segment %i: %f' % (j, self.getSegmentDistance(segmentsRangeArray[i][j]))
-
         return segmentsArray
 
     def update(self, segments):
@@ -194,7 +188,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         return res
 
     def getMax(self):
-        return self.beliefArray[0].max()
+        return self.belief.max()
 
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))

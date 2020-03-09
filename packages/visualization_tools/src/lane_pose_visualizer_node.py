@@ -4,14 +4,14 @@ import tf
 import numpy as np
 from duckietown_msgs.msg import LanePose
 from visualization_msgs.msg import Marker, MarkerArray
-from duckietown.DTROS import DTROS
+from duckietown import DTROS
 
 
 class LanePoseVisualizer(DTROS):
     def __init__(self):
 
         # Save the name of the node
-        self.node_name = rospy.get_name()
+        self.node_name = "lane_pose_visualizer_node"
         super(LanePoseVisualizer, self).__init__(node_name=self.node_name)
         rospy.loginfo("[%s] Initialzing." % (self.node_name))
 
@@ -81,9 +81,6 @@ class LanePoseVisualizer(DTROS):
 
 
 if __name__ == '__main__':
-    # Initialize the node with rospy
-    rospy.init_node('lane_pose_visualizer_node', anonymous=False)
-
     # Create the NodeName object
     node = LanePoseVisualizer()
 

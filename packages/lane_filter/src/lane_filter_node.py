@@ -8,10 +8,16 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Float32, String
 from std_srvs.srv import SetBool
 import json
-from duckietown.DTROS import DTROS
+from duckietown import DTROS
 
 
 class LaneFilterNode(DTROS):
+    """ Generates an estimate of the lane pose.
+
+    Using the segments extracted by the line_detector, using the `(d,phi)` vector
+
+
+    """
 
     def __init__(self):
         node_name = "lane_filter_node"
@@ -41,7 +47,7 @@ class LaneFilterNode(DTROS):
         # Subscribers
         self.sub = self.subscriber("~segment_list",
                                    SegmentList,
-                                   self.processSegments,
+                                   self.cbProcessSegments,
                                    queue_size=1)
 
         self.sub_velocity = self.subscriber("~car_cmd",
@@ -72,7 +78,7 @@ class LaneFilterNode(DTROS):
             "~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
     def cbTemporaryChangeParams(self, msg):
-        # This weird callback changes parameters only temporarily - used in the unicorn intersection 03/2020
+        # This weird callback changes parameters only temporarily - used in the unicorn intersection. comment from 03/2020
         data = json.loads(msg.data)
         params = data["params"]
         reset_time = data["time"]
@@ -96,7 +102,7 @@ class LaneFilterNode(DTROS):
         request.data = switch_msg.data
         self.srvSwitch(request)
 
-    def processSegments(self, segment_list_msg):
+    def cbProcessSegments(self, segment_list_msg):
         # Get actual timestamp for latency measurement
         timestamp_now = rospy.Time.now()
 
@@ -118,45 +124,49 @@ class LaneFilterNode(DTROS):
         # print "d_max = ", d_max
         # print "phi_max = ", phi_max
 
-        inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments,
-                                                          d_max,
-                                                          phi_max)
-        inlier_segments_msg = SegmentList()
-        inlier_segments_msg.header = segment_list_msg.header
-        inlier_segments_msg.segments = inlier_segments
-        self.pub_seglist_filtered.publish(inlier_segments_msg)
-
         max_val = self.filter.getMax()
         in_lane = max_val > self.filter.min_max
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max[0]
-        lanePose.phi = phi_max[0]
+        lanePose.d = d_max
+        lanePose.phi = phi_max
         lanePose.in_lane = in_lane
         # XXX: is it always NORMAL?
         lanePose.status = lanePose.NORMAL
 
         self.pub_lane_pose.publish(lanePose)
+        self.debugOutput(segment_list_msg, d_max, phi_max, timestamp_now)
 
-        # publish the belief image
+    def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_now):
         if self.parameters['~debug']:
+            # Get the segments that agree with the best estimate and publish them
+            inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments,
+                                                              d_max,
+                                                              phi_max)
+            inlier_segments_msg = SegmentList()
+            inlier_segments_msg.header = segment_list_msg.header
+            inlier_segments_msg.segments = inlier_segments
+            self.pub_seglist_filtered.publish(inlier_segments_msg)
+
+            # Create belief image and publish it
             belief_img = self.bridge.cv2_to_imgmsg(
-                np.array(255 * self.filter.beliefArray[0]).astype("uint8"), "mono8")
+                np.array(255 * self.filter.belief).astype("uint8"), "mono8")
             belief_img.header.stamp = segment_list_msg.header.stamp
             self.pub_belief_img.publish(belief_img)
 
-        # Latency of Estimation including curvature estimation
-        estimation_latency_stamp = rospy.Time.now() - timestamp_now
-        estimation_latency = estimation_latency_stamp.secs + \
-            estimation_latency_stamp.nsecs/1e9
-        self.latencyArray.append(estimation_latency)
+            # Latency of Estimation including curvature estimation
+            estimation_latency_stamp = rospy.Time.now() - timestamp_now
+            estimation_latency = estimation_latency_stamp.secs + \
+                estimation_latency_stamp.nsecs/1e9
+            self.latencyArray.append(estimation_latency)
 
-        if (len(self.latencyArray) >= 20):
-            self.latencyArray.pop(0)
+            if (len(self.latencyArray) >= 20):
+                self.latencyArray.pop(0)
 
-        # print "Latency of segment list: ", segment_latency
-        # print("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray))
+            # print "Latency of segment list: ", segment_latency
+            print("Mean latency of Estimation:................. %s" %
+                  np.mean(self.latencyArray))
 
     def cbMode(self, msg):
         return  # TODO adjust self.active
@@ -172,7 +182,6 @@ class LaneFilterNode(DTROS):
 
 
 if __name__ == '__main__':
-    rospy.init_node('lane_filter', anonymous=False)
     lane_filter_node = LaneFilterNode()
     rospy.on_shutdown(lane_filter_node.onShutdown)
     rospy.spin()

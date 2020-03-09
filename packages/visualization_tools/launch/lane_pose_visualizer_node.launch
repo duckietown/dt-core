@@ -1,6 +1,6 @@
 <launch>
     <arg name="veh" default="pontiac" doc="Name of vehicle. ex: megaman"/>
-    <arg name="pkg_name" value="duckiebot_visualizer"/>
+    <arg name="pkg_name" value="visualization_tools"/>
     <arg name="node_name" default="lane_pose_visualizer_node"/>
 
     <group ns="$(arg veh)">
