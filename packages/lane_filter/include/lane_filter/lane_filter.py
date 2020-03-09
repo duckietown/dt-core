@@ -1,13 +1,7 @@
 
 from collections import OrderedDict
-from math import floor
 
-from numpy.testing.utils import assert_almost_equal
-from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import multivariate_normal, entropy
-
-from duckietown_msgs.msg import SegmentList
-import duckietown_utils as dtu
 
 from duckietown_utils.parameters import Configurable
 
@@ -17,16 +11,9 @@ from .lane_filter_interface import LaneFilterInterface
 
 from .visualization import plot_phi_d_diagram_bgr
 
-from scipy.stats import multivariate_normal
 from scipy.ndimage.filters import gaussian_filter
 from math import floor, sqrt
 import copy
-
-import rospy
-
-# __all__ = [
-#    'LaneFilterHistogram',
-# ]
 
 
 class LaneFilterHistogram(Configurable, LaneFilterInterface):
@@ -61,21 +48,15 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                     self.phi_min:self.phi_max:self.delta_phi]
-        self.d_pcolor, self.phi_pcolor = \
-            np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
-                     self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
 
-        # TODO change back those 1D array to one value
-        self.range_arr = np.zeros(1)
+        self.d_pcolor, self.phi_pcolor = np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
+                                                  self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
+
         self.belief = np.empty(self.d.shape)
 
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
         self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
-
-        self.d_med_arr = []
-        self.phi_med_arr = []
-        self.median_filter_size = 5
 
         self.initialize()
 
