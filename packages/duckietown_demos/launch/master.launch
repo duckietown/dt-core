@@ -251,12 +251,11 @@
         <remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
         <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
         <!-- Postprocessing node -->
         <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-        <include file="$(find apriltag_duckietown)/launch/apriltags_postprocessing_node.launch">
+        <include file="$(find apriltag_ros)/launch/apriltags_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>

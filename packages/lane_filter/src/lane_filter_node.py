@@ -5,7 +5,7 @@ from duckietown_utils.instantiate_utils import instantiate
 import numpy as np
 import rospy
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float32, String
+from std_msgs.msg import String
 from std_srvs.srv import SetBool
 import json
 from duckietown import DTROS
@@ -14,13 +14,32 @@ from duckietown import DTROS
 class LaneFilterNode(DTROS):
     """ Generates an estimate of the lane pose.
 
-    Using the segments extracted by the line_detector, using the `(d,phi)` vector
+    Creates a `lane_filter` to get estimates on `d` and `phi`, the lateral and heading deviation from the center of the lane.
+    It gets the segments extracted by the line_detector as input and output the lane pose estimate.
 
+
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+
+    Configuration:
+        ~filter (:obj:`list`): A list of parameters for the lane pose estimation filter
+        ~debug (:obj:`bool`): A parameter to enable/disable the publishing of debug topics and images
+
+    Subscribers:
+        ~segment_list (:obj:`SegmentList`): The detected line segments from the line detector
+        ~car_cmd (:obj:`Twist2DStamped`): The car commands executed. Used for the predict step of the filter
+        ~change_params (:obj:`String`): A topic to temporarily changes filter parameters for a finite time only
+        ~switch (:obj:``BoolStamped): A topic to turn on and off the node. WARNING : to be replaced with a service call to the provided mother node switch service
+        ~fsm_mode (:obj:`FSMState`): A topic to change the state of the node. WARNING : currently not implemented
+
+    Publishers:
+        ~lane_pose (:obj:`LanePose`): The computed lane pose estimate
+        ~belief_img (:obj:`Image`): A debug image that shows the filter's internal state
+        ~seglist_filtered (:obj:``SegmentList): a debug topic to send the filtered list of segments that are considered as valid
 
     """
 
-    def __init__(self):
-        node_name = "lane_filter_node"
+    def __init__(self, node_name):
         super(LaneFilterNode, self).__init__(node_name=node_name)
 
         self.parameters['~filter'] = None
@@ -78,6 +97,13 @@ class LaneFilterNode(DTROS):
             "~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
     def cbTemporaryChangeParams(self, msg):
+        """Callback that changes temporarily the filter's parameters.
+
+        Args:
+            msg (:obj:`String`): list of the new parameters
+
+        """
+
         # This weird callback changes parameters only temporarily - used in the unicorn intersection. comment from 03/2020
         data = json.loads(msg.data)
         params = data["params"]
@@ -97,14 +123,26 @@ class LaneFilterNode(DTROS):
             exec("self.filter." + str(param_name) + "=" + str(param_val))
 
     def cbSwitch(self, switch_msg):
+        """Callback to turn on/off the node
+
+        Args:
+            switch_msg (:obj:`BoolStamped`): message containing the on or off command
+
+        """
         # All calls to this message should be replaced directly by the srvSwitch
         request = SetBool()
         request.data = switch_msg.data
         self.srvSwitch(request)
 
     def cbProcessSegments(self, segment_list_msg):
+        """Callback to process the segments
+
+        Args:
+            segment_list_msg (:obj:`SegmentList`): message containing list of processed segments
+
+        """
         # Get actual timestamp for latency measurement
-        timestamp_now = rospy.Time.now()
+        timestamp_before_processing = rospy.Time.now()
 
         # Step 1: predict
         current_time = rospy.get_time()
@@ -136,10 +174,33 @@ class LaneFilterNode(DTROS):
         lanePose.status = lanePose.NORMAL
 
         self.pub_lane_pose.publish(lanePose)
-        self.debugOutput(segment_list_msg, d_max, phi_max, timestamp_now)
+        self.debugOutput(segment_list_msg, d_max, phi_max,
+                         timestamp_before_processing)
 
-    def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_now):
+    def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_before_processing):
+        """Creates and publishes debug messages
+
+        Args:
+            segment_list_msg (:obj:`SegmentList`): message containing list of filtered segments
+            d_max (:obj:`float`): best estimate for d
+            phi_max (:obj:``float): best estimate for phi
+            timestamp_before_processing (:obj:`float`): timestamp dating from before the processing
+
+        """
         if self.parameters['~debug']:
+            # Latency of Estimation including curvature estimation
+            estimation_latency_stamp = rospy.Time.now() - timestamp_before_processing
+            estimation_latency = estimation_latency_stamp.secs + \
+                estimation_latency_stamp.nsecs/1e9
+            self.latencyArray.append(estimation_latency)
+
+            if (len(self.latencyArray) >= 20):
+                self.latencyArray.pop(0)
+
+            # print "Latency of segment list: ", segment_latency
+            print("Mean latency of Estimation:................. %s" %
+                  np.mean(self.latencyArray))
+
             # Get the segments that agree with the best estimate and publish them
             inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments,
                                                               d_max,
@@ -155,19 +216,6 @@ class LaneFilterNode(DTROS):
             belief_img.header.stamp = segment_list_msg.header.stamp
             self.pub_belief_img.publish(belief_img)
 
-            # Latency of Estimation including curvature estimation
-            estimation_latency_stamp = rospy.Time.now() - timestamp_now
-            estimation_latency = estimation_latency_stamp.secs + \
-                estimation_latency_stamp.nsecs/1e9
-            self.latencyArray.append(estimation_latency)
-
-            if (len(self.latencyArray) >= 20):
-                self.latencyArray.pop(0)
-
-            # print "Latency of segment list: ", segment_latency
-            print("Mean latency of Estimation:................. %s" %
-                  np.mean(self.latencyArray))
-
     def cbMode(self, msg):
         return  # TODO adjust self.active
 
@@ -182,6 +230,6 @@ class LaneFilterNode(DTROS):
 
 
 if __name__ == '__main__':
-    lane_filter_node = LaneFilterNode()
+    lane_filter_node = LaneFilterNode(node_name="lane_filter_node")
     rospy.on_shutdown(lane_filter_node.onShutdown)
     rospy.spin()
