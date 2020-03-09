@@ -31,7 +31,7 @@ class SingleImagePipeline(D8App):
                           help="Which lane_filter to use", group=g)
 
     def go(self):
-        vehicle_name = dtu.get_current_robot_name()
+        vehicle_name = dtu.get_current_robot_name() if dtu.on_duckiebot() else "default"
 
         output = self.options.output
         if output is None:

@@ -5,7 +5,8 @@ import cv2
 import numpy as np
 from sensor_msgs.msg import CompressedImage,Image
 from duckietown_msgs.msg import BoolStamped
-
+from sensor_msgs.srv import SetCameraInfo, SetCameraInfoResponse
+import yaml
 
 class DecoderNode(object):
     def __init__(self):
@@ -20,12 +21,61 @@ class DecoderNode(object):
         self.last_stamp = rospy.Time.now()
         self.sub_compressed_img = rospy.Subscriber("~compressed_image",CompressedImage,self.cbImg,queue_size=1)
         self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
-
+        
+        self.cali_file_folder = '/data/config/calibrations/camera_intrinsic/'
+        self.srv_set_camera_info = rospy.Service("~set_camera_info",
+                                                 SetCameraInfo,
+                                                 self.cbSrvSetCameraInfo)
+    
     def setupParam(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value) #Write to parameter server for transparancy
         rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
+
+    def cbSrvSetCameraInfo(self, req):
+        rospy.loginfo("[cbSrvSetCameraInfo] Callback!")
+        filename = self.cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
+        response = SetCameraInfoResponse()
+        response.success = self.saveCameraInfo(req.camera_info, filename)
+        response.status_message = "Write to %s" % filename
+        return response
+
+    def saveCameraInfo(self, camera_info_msg, filename):
+        """Saves intrinsic calibration to file.
+            Args:
+                camera_info_msg (:obj:`CameraInfo`): Camera Info containg calibration
+                filename (:obj:`str`): filename where to save calibration
+        """
+        # Convert camera_info_msg and save to a yaml file
+        rospy.loginfo("[saveCameraInfo] filename: %s" % (filename))
+
+        # Converted from camera_info_manager.py
+        calib = {'image_width': camera_info_msg.width,
+                 'image_height': camera_info_msg.height,
+                 'camera_name': rospy.get_name().strip("/"),
+                 'distortion_model': camera_info_msg.distortion_model,
+                 'distortion_coefficients': {'data': camera_info_msg.D,
+                                             'rows': 1,
+                                             'cols': 5},
+                 'camera_matrix': {'data': camera_info_msg.K,
+                                   'rows': 3,
+                                   'cols': 3},
+                 'rectification_matrix': {'data': camera_info_msg.R,
+                                          'rows': 3,
+                                          'cols': 3},
+                 'projection_matrix': {'data': camera_info_msg.P,
+                                       'rows': 3,
+                                       'cols': 4}}
+
+        rospy.loginfo("[saveCameraInfo] calib %s" % (calib))
+
+        try:
+            f = open(filename, 'w')
+            yaml.safe_dump(calib, f)
+            return True
+        except IOError:
+            return False
 
     def cbSwitch(self,switch_msg):
         self.active = switch_msg.data
