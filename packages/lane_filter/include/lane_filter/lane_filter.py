@@ -17,8 +17,22 @@ import copy
 
 
 class LaneFilterHistogram(Configurable, LaneFilterInterface):
-    # """LaneFilterHistogram"""
+    """ Generates an estimate of the lane pose.
 
+
+    Creates and maintain a histogram grid filter to estimate the lane pose. 
+    Lane pose is defined as the tuple (`d`, `phi`) : lateral deviation and angulare deviation from the center of the lane.
+
+    Predict step : Uses the estimated linear and angular velocities to predict the change in the lane pose.
+    Update Step : The filter receives a segment list. For each segment, it extracts the corresponding lane pose "votes", 
+    and adds it to the corresponding part of the histogram.
+
+    Best estimate correspond to the slot of the histogram with the highest voted value.
+
+    Args:
+        configuration (:obj:`List`): A list of the parameters for the filter
+
+    """
     def __init__(self, configuration):
         param_names = [
             'mean_d_0',
@@ -58,13 +72,23 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
-        self.initialize()
-
         # Additional variables
         self.red_to_white = False
         self.use_yellow = True
         self.range_est_min = 0
         self.filtered_segments = []
+
+        self.initialize()
+
+
+
+    def initialize(self):
+        pos = np.empty(self.d.shape + (2,))
+        pos[:, :, 0] = self.d
+        pos[:, :, 1] = self.phi
+        RV = multivariate_normal(self.mean_0, self.cov_0)
+
+        self.belief = RV.pdf(pos)
 
     def getStatus(self):
         return LaneFilterInterface.GOOD
@@ -190,13 +214,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
     def getMax(self):
         return self.belief.max()
 
-    def initialize(self):
-        pos = np.empty(self.d.shape + (2,))
-        pos[:, :, 0] = self.d
-        pos[:, :, 1] = self.phi
-        RV = multivariate_normal(self.mean_0, self.cov_0)
-
-        self.belief = RV.pdf(pos)
 
     # generate a vote for one segment
     def generateVote(self, segment):
