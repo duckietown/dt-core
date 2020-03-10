@@ -79,7 +79,7 @@ class LineDetector():
         lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi / 180, threshold=self.hough_threshold,
                                 minLineLength=self.hough_min_line_length, maxLineGap=self.hough_max_line_gap)
         if lines is not None:
-            lines = lines.squeeze()  # it has an extra dimension
+            lines = lines.reshape((-1,4))  # it has an extra dimension
         else:
             lines = []
 
