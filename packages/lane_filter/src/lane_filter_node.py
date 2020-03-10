@@ -59,8 +59,6 @@ class LaneFilterNode(DTROS):
         self.t_last_update = rospy.get_time()
         self.currentVelocity = None
 
-        self.d_median = []
-        self.phi_median = []
         self.latencyArray = []
 
         # Subscribers
@@ -103,7 +101,6 @@ class LaneFilterNode(DTROS):
             msg (:obj:`String`): list of the new parameters
 
         """
-
         # This weird callback changes parameters only temporarily - used in the unicorn intersection. comment from 03/2020
         data = json.loads(msg.data)
         params = data["params"]
@@ -154,7 +151,6 @@ class LaneFilterNode(DTROS):
         self.t_last_update = current_time
 
         # Step 2: update
-
         self.filter.update(segment_list_msg.segments)
 
         # Step 3: build messages and publish things
@@ -162,8 +158,11 @@ class LaneFilterNode(DTROS):
         # print "d_max = ", d_max
         # print "phi_max = ", phi_max
 
+        # Getting the highest belief value from the belief matrix
         max_val = self.filter.getMax()
+        # Comparing it to a minimum belief threshold to make sure we are certain enough of our estimate
         in_lane = max_val > self.filter.min_max
+        
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp

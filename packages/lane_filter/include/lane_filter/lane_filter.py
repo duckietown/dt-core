@@ -194,7 +194,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         pos = np.empty(self.d.shape + (2,))
         pos[:, :, 0] = self.d
         pos[:, :, 1] = self.phi
-        self.cov_0
         RV = multivariate_normal(self.mean_0, self.cov_0)
 
         self.belief = RV.pdf(pos)
