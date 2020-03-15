@@ -134,14 +134,10 @@
 
         <!-- Line Detector -->
         <group if="$(arg /lane_following/line_detection)">
-            <remap from="line_detector_node/transform" to="anti_instagram_node/transform"/>
-            <remap from="line_detector_node/fsm_mode" to="fsm_node/mode" />
             <remap from="line_detector_node/corrected_image/compressed" to="anti_instagram_node/corrected_image/compressed"/>
             <include file="$(find line_detector)/launch/line_detector_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
-                <!-- NOTE: "line_detector_param_file_name" as special case -->
                 <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
-                <arg name="verbose" value="$(arg verbose)" />
             </include>
         </group>
 
