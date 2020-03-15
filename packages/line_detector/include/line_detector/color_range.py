@@ -77,7 +77,7 @@ class ColorRange:
     def inRange(self, image):
         """
         Applies the `OpenCV inRange <https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981>`_
-        method to every color range entry. Returns the bitwise ``OR`` of the results.
+        method to every color range entry. Returns the bitwise OR of the results.
         In other words, returns a binary map with 1 for the pixels of the input image that fall in at least one of
         the color ranges.
 
@@ -85,7 +85,7 @@ class ColorRange:
             image (:obj:`numpy array`): an ``HSV`` image
 
         Returns:
-            (:obj:`numpy array`): a two-dimensional binary map
+            :obj:`numpy array`: a two-dimensional binary map
         """
 
         selection = cv2.inRange(image, self.low[0], self.high[0])
@@ -102,7 +102,7 @@ class ColorRange:
         than one ranges are set).
 
         Returns:
-            (:obj:`list`): a list with 3 entries representing an HSV color
+            :obj:`list`: a list with 3 entries representing an HSV color
         """
 
         return list(0.5*(self.high[0]+self.low[0]).astype(int))

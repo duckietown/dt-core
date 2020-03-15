@@ -4,11 +4,14 @@ import numpy as np
 def plotSegments(image, detections):
     """
 
+    Draws a set of line segment detections on an image.
+
     Args:
-        image (:obj:`numpy array`):
-        detections (`dict`): A dictionary that has keys :py:class:`ColorRange` and values :py:class:`Detection`
+        image (:obj:`numpy array`): an image
+        detections (`dict`): a dictionary that has keys :py:class:`ColorRange` and values :py:class:`Detection`
 
     Returns:
+        :obj:`numpy array`: the image with the line segments drawn on top of it.
 
     """
 
@@ -36,11 +39,14 @@ def plotSegments(image, detections):
 def plotMaps(image, detections):
     """
 
+    Draws a set of color filter maps (the part of the images falling in a given color range) on an image.
+
     Args:
-        image (:obj:`numpy array`):
-        detections (`dict`): A dictionary that has keys :py:class:`ColorRange` and values :py:class:`Detection`
+        image (:obj:`numpy array`): an image
+        detections (`dict`): a dictionary that has keys :py:class:`ColorRange` and values :py:class:`Detection`
 
     Returns:
+        :obj:`numpy array`: the image with the line segments drawn on top of it.
 
     """
 

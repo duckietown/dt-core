@@ -1,7 +1,7 @@
-class Detections():
+class Detections:
     """
     This is a data class that can be used to store the results of the line detection procedure performed
-    by :py:class:`LineDetectorHSV`.
+    by :py:class:`LineDetector`.
     """
 
     def __init__(self, lines, normals, centers, map):

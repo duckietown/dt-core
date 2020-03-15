@@ -4,14 +4,16 @@ top_cutoff: 40
 colors:
   RED:
     low_1: [0,140,100]
-    high_1: [15,255,255]
+    high_1: [10,255,255]
     low_2: [165,140,100]
     high_2: [180,255,255]
   WHITE:
-    low:  [0,0,150]
-    high:  [180,60,255]
+    low_1: [0,0,150]
+    high_1: [180,60,255]
+    low_2: [80,0,150]
+    high_2: [150,180,255]
   YELLOW:
-    low: [25,140,100]
+    low: [15,140,100]
     high: [45,255,255]
 
 line_detector_parameters:
