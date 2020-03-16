@@ -1,8 +1,9 @@
 # parameters
 ARG REPO_NAME="dt-core"
+ARG MAINTAINER="Andrea F. Daniele (afdaniele@ttic.edu)"
 
 # ==================================================>
-# ==> Do not change this code
+# ==> Do not change the code below this line
 ARG ARCH=arm32v7
 ARG MAJOR=ente
 ARG BASE_TAG=${MAJOR}-${ARCH}
@@ -11,12 +12,18 @@ ARG BASE_IMAGE=dt-ros-commons
 # define base image
 FROM duckietown/${BASE_IMAGE}:${BASE_TAG}
 
-# define repository path
+# check build arguments
 ARG REPO_NAME
+ARG MAINTAINER
+RUN /utils/build_check "${REPO_NAME}" "${MAINTAINER}"
+
+# define repository path
 ARG REPO_PATH="${CATKIN_WS_DIR}/src/${REPO_NAME}"
+ARG LAUNCH_PATH="${LAUNCH_DIR}/${REPO_NAME}"
 
 # create repo directory
 RUN mkdir -p "${REPO_PATH}"
+RUN mkdir -p "${LAUNCH_PATH}"
 WORKDIR "${REPO_PATH}"
 
 # build ROS packages
@@ -59,11 +66,10 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
   catkin build \
     --workspace ${CATKIN_WS_DIR}/
 
-# define launch script
-ENV LAUNCHFILE "${REPO_PATH}/launch.sh"
-
-# define command
-CMD ["bash", "-c", "${LAUNCHFILE}"]
+# install launcher scripts
+COPY ./launch/* "${LAUNCH_PATH}/"
+COPY ./launch/default.sh "${LAUNCH_PATH}/"
+RUN /utils/install_launchers "${LAUNCH_PATH}"
 
 # store module name
 LABEL org.duckietown.label.module.type="${REPO_NAME}"
@@ -78,10 +84,9 @@ LABEL org.duckietown.label.architecture="${ARCH}"
 LABEL org.duckietown.label.code.location="${REPO_PATH}"
 LABEL org.duckietown.label.code.version.major="${MAJOR}"
 LABEL org.duckietown.label.base.image="${BASE_IMAGE}:${BASE_TAG}"
-# <== Do not change this code
+LABEL org.duckietown.label.maintainer="${MAINTAINER}"
+# <== Do not change the code above this line
 # <==================================================
 
+#TODO: remove this (find what is using it)
 ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
-
-# maintainer
-LABEL maintainer="Andrea F. Daniele (afdaniele@ttic.edu)"
