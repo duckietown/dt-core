@@ -140,7 +140,7 @@ def get_camera_info_config_file(robot_name):
 
 # from cam_info_reader_node
 def load_camera_info_2(filename):
-    stream = file(filename, 'r')
+    stream = open(filename, 'r')
     calib_data = yaml.load(stream)
     cam_info = CameraInfo()
     cam_info.width = calib_data['image_width']

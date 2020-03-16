@@ -20,7 +20,6 @@
     <!-- general convention on remappings is that we remap the "subscribers" -->
 
     <!-- start switch args -->
-    <arg name="camera" default="false"/>
     <arg name="/camera/raw" default="false"/>
     <arg name="/camera/cam_info" default="false"/>
     <arg name="/camera/raw/rect" default="false"/>
@@ -100,43 +99,40 @@
 
     <arg name="tcp_communication" default="false"/>
 
-    <param name="enable_statistics" default="false"/>
+    <arg name="enable_statistics" default="false"/>
     <!-- end switch args -->
 
 
     <!-- Start Camera -->
-    <group if="$(arg camera)">
+    <group if="$(arg /camera/raw)">
+        <!-- not LF, IN -->
+        <group if="$(arg /camera/raw/rect)">
+            <!-- decoder_node -->
+            <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
+            <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
+            <include file="$(find pi_camera)/launch/decoder_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+                <arg name="param_file_name" value="$(arg param_file_name)"/>
+            </include>
 
-        <group if="$(arg /camera/raw)">
-            <!-- not LF, IN -->
-            <group if="$(arg /camera/raw/rect)">
-                <!-- decoder_node -->
-                <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
-                <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
-                <include file="$(find pi_camera)/launch/decoder_node.launch">
-                    <arg name="veh" value="$(arg veh)"/>
-                    <arg name="param_file_name" value="$(arg param_file_name)"/>
-                </include>
+            <!-- NOT USED -->
+            <!-- Raw camera_info_reader node -->
+            <remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
+            <remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
+            <include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+                <arg name="param_file_name" value="$(arg param_file_name)"/>
+                <arg name="node_name" value="raw_cam_info_reader_node" />
+                <arg name="image_type" value="raw" />
+            </include>
 
-                <!-- NOT USED -->
-                <!-- Raw camera_info_reader node -->
-                <remap from="raw_cam_info_reader_node/camera_info" to="camera_node/raw_camera_info"/>
-                <remap from="raw_cam_info_reader_node/compressed_image" to="camera_node/image/raw"/>
-                <include file="$(find pi_camera)/launch/cam_info_reader_node.launch">
-                    <arg name="veh" value="$(arg veh)"/>
-                    <arg name="param_file_name" value="$(arg param_file_name)"/>
-                    <arg name="node_name" value="raw_cam_info_reader_node" />
-                    <arg name="image_type" value="raw" />
-                </include>
-
-                <!-- Rectification -->
-                <remap from="image_raw" to="camera_node/image/raw"/>
-                <remap from="camera_info" to="camera_node/raw_camera_info"/>
-                <remap from="image_rect_color" to="camera_node/image/rect" />
-                <include file="$(find pi_camera)/launch/image_proc_node.launch">
-                    <arg name="veh" value="$(arg veh)"/>
-                </include>
-            </group>
+            <!-- Rectification -->
+            <remap from="image_raw" to="camera_node/image/raw"/>
+            <remap from="camera_info" to="camera_node/raw_camera_info"/>
+            <remap from="image_rect_color" to="camera_node/image/rect" />
+            <include file="$(find pi_camera)/launch/image_proc_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+            </include>
         </group>
     </group>
     <!-- End Camera -->
@@ -304,17 +300,20 @@
     <group if="$(arg apriltags)">
         <!-- AprilTags Detections -->
         <remap from="image_rect" to="camera_node/image/rect" />
+        <remap from="camera_node/raw_camera_info" to="camera_node/camera_info"/>
+
         <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
-        <remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
-        <remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
+        <remap from="apriltag_detector_node/image_raw" to="camera_node/image/rect"/>
+        <remap from="apriltag_detector_node/camera_info" to="camera_node/raw_camera_info"/>
+
         <include file="$(find apriltag_ros)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
         <!-- Postprocessing node -->
-        <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-        <include file="$(find apriltag_duckietown)/launch/apriltags_postprocessing_node.launch">
+        <remap from="apriltag_postprocessing_node/apriltags_in" to="tag_detections" />
+        <include file="$(find apriltag_duckietown)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
