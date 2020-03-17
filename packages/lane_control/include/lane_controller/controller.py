@@ -47,7 +47,9 @@ class LaneController:
 
         # Scale the parameters linear such that their real value is at 0.22m/s
         omega = self.parameters['~k_d'] * (0.22 / self.parameters['~v_bar']) * d_err + \
-            self.parameters['~k_theta'] * (0.22 / self.parameters['~v_bar']) * phi_err
+            self.parameters['~k_theta'] * (0.22 / self.parameters['~v_bar']) * phi_err + \
+            self.parameters['~k_Id'] * (0.22 / self.parameters['~v_bar']) * self.d_I + \
+            self.parameters['~k_Iphi'] * (0.22 / self.parameters['~v_bar']) * self.phi_I
 
         # apply magic conversion factors
         omega = omega * self.parameters['~omega_to_rad_per_s']
