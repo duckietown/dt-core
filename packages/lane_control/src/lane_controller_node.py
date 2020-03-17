@@ -66,7 +66,7 @@ class LaneControllerNode(DTROS):
 
         # Need to create controller object before updating parameters, otherwise it will fail
         self.controller = LaneController(self.parameters)
-        self.updateParameters()
+        self.cbParametersChanged()
 
         # Initialize variables
         self.fsm_state = None
@@ -123,7 +123,7 @@ class LaneControllerNode(DTROS):
             self.current_pose_source = 'lane_filter'
 
         if self.parameters['~verbose'] == 2:
-            self.log("Pose source: %s" %  self.current_pose_source)
+            self.log("Pose source: %s" % self.current_pose_source)
 
     def cbAllPoses(self, input_pose_msg, pose_source):
         """Callback receiving pose messages from multiple topics.
@@ -199,9 +199,9 @@ class LaneControllerNode(DTROS):
         self.publishCmd(car_control_msg)
         self.last_s = current_s
 
-    def updateParameters(self):
+    def cbParametersChanged(self):
         """Updates parameters in the controller object."""
-        super(LaneControllerNode, self).updateParameters()
+        super(LaneControllerNode, self).cbParametersChanged()
         self.controller.update_parameters(self.parameters)
 
 
