@@ -23,20 +23,20 @@ class LEDDetectorNode(DTROS):
         # Needed to publish images
         self.bridge = CvBridge()
 
-        # Initialize detector
-        self.detector = LEDDetector()
-
         # Add the node parameters to the parameters dictionary
         self.parameters['~capture_time'] = None
         self.parameters['~DTOL'] = None
         self.parameters['~useFFT'] = None
         self.parameters['~freqIdentity'] = None
         self.parameters['~crop_params'] = None
-        self.parameters['~blob_detector_db'] = None
-        self.parameters['~blob_detector_tl'] = None
+        self.parameters['~blob_detector_db'] = {}
+        self.parameters['~blob_detector_tl'] = {}
         self.parameters['~verbose'] = None
         self.parameters['~cell_size'] = None
         self.parameters['~LED_protocol'] = None
+
+        # Initialize detector
+        self.detector = LEDDetector(self.parameters, self.log)
 
         # To trigger the first change, we set this manually
         self.parameterChanged = True
@@ -110,6 +110,20 @@ class LEDDetectorNode(DTROS):
 
                 # Process image and publish results
                 self.process_and_publish()
+
+    def crop_image(self, images, crop_norm):
+        # Get size
+        height, width, _ = images.shape
+        # Compute indices
+        h_start = int(np.floor(height * crop_norm[0][0]))
+        h_end = int(np.ceil(height * crop_norm[0][1]))
+        w_start = int(np.floor(width * crop_norm[1][0]))
+        w_end = int(np.ceil(width * crop_norm[1][1]))
+        # Crop image
+        image_cropped = images[h_start:h_end, w_start:w_end, :]
+        # Return cropped image
+        return image_cropped
+
 
     def process_and_publish(self):
         # Initial time
@@ -228,6 +242,6 @@ class LEDDetectorNode(DTROS):
 
 if __name__ == '__main__':
     # Initialize the node
-    camera_node = LEDDetectorNode(node_name='led_detector_node')
+    led_detector_node = LEDDetectorNode(node_name='led_detector_node')
     # Keep it spinning to keep the node alive
     rospy.spin()

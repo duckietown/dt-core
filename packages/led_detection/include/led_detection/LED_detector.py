@@ -123,3 +123,4 @@ class LEDDetector:
             assert np.sum(blob['Signal']) == blobs['N']
             keypoint_blob.append(cv2.KeyPoint(blob['p'][0], blob['p'][1], radius))
         return keypoint_blob
+
