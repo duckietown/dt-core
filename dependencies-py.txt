@@ -2,6 +2,8 @@
 ruamel.yaml==0.15.34
 reprep
 
+# ATags3 Python bindings
+dt_apriltags
 
 # pyparsing==2.2.0
 # PyContracts==1.8.12
