@@ -21,7 +21,7 @@ class AprilTagDetector(DTROS):
     def __init__(self):
         super(AprilTagDetector, self).__init__(
             node_name='apriltag_detector_node',
-            type=ModuleType.PERCEPTION
+            node_type=ModuleType.PERCEPTION
         )
         # get static parameters
         self.family = rospy.get_param('~family', 'tag36h11')
