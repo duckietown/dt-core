@@ -9,7 +9,7 @@ from threading import Thread
 from cv_bridge import CvBridge
 
 from dt_apriltags import Detector
-from duckietown.dtros import DTROS, ModuleType, TopicType, DTReminder, DTParam, ParamType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTReminder, DTParam, ParamType
 
 from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
@@ -21,7 +21,7 @@ class AprilTagDetector(DTROS):
     def __init__(self):
         super(AprilTagDetector, self).__init__(
             node_name='apriltag_detector_node',
-            node_type=ModuleType.PERCEPTION
+            node_type=NodeType.PERCEPTION
         )
         # get static parameters
         self.family = rospy.get_param('~family', 'tag36h11')
