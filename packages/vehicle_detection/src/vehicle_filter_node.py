@@ -47,7 +47,7 @@ class VehicleFilterNode(DTROS):
         self.circlepattern = None
 
         # subscribers
-        self.sub_corners = self.subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
+        self.sub_centers = self.subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
         self.sub_info = self.subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
 
         # publishers
@@ -61,15 +61,16 @@ class VehicleFilterNode(DTROS):
             self.pcm.fromCameraInfo(camera_info_msg)
 
     def cb_process_centers(self, vehicle_centers_msg):
-        self.calc_circle_pattern(vehicle_corners_msg.H, vehicle_corners_msg.W)
+        self.calc_circle_pattern(vehicle_centers_msg.H, vehicle_centers_msg.W)
 
         with self.phasetimer.time_phase('solve PnP'):
-            points = np.zeros((vehicle_centers_msg.H * vehicle_centers_msg.H))
+            points = np.zeros((vehicle_centers_msg.H * vehicle_centers_msg.H, 2))
             for i in range(len(points)):
-                points[i] = [vehicle_centers_msg.corners[i].x, vehicle_centers_msg.corners[i].x]
+		print(points[i])
+                points[i] = np.array([vehicle_centers_msg.corners[i].x, vehicle_centers_msg.corners[i].x])
 
             success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=self.circlepattern,
-                                                                        imagePoint=points,
+                                                                        imagePoints=points,
                                                                         cameraMatri=self.pcm.intrinsicMatrix(),
                                                                         distCoeff=self.pcm.distortionCoeffs())
 
@@ -89,7 +90,7 @@ class VehicleFilterNode(DTROS):
 
                 mean_reproj_error = error / len(points_reproj)
 
-            if mean_reproj_error < self.parameters['max_reproj_pixelerror_pose_estimation']:
+            if mean_reproj_error < self.parameters['~max_reproj_pixelerror_pose_estimation']:
                 with self.phasetimer.time_phase('calculate pose and publish'):
                     (R, jac) = cv2.Rodrigues(rotation_vector)
                     R_inv = np.transpose(R)
@@ -98,7 +99,7 @@ class VehicleFilterNode(DTROS):
                     pose_msg_out.header.stamp = rospy.Time.now()
                     pose_msg_out.rho.data = np.sqrt(translation_vector[2] ** 2 + translation_vector[0] ** 2)
                     pose_msg_out.psi.data = np.arctan2(-R_inv[2, 0], sqrt(R_inv[2, 1] ** 2 + R_inv[2, 2] ** 2))
-                    pose_msg_out.detection.data = vehicle_corners_msg.detection.data
+                    pose_msg_out.detection.data = vehicle_centers_msg.detection.data
                     R2 = np.array([[np.cos(pose_msg_out.psi.data), -np.sin(pose_msg_out.psi.data)],
                                    [np.sin(pose_msg_out.psi.data), np.cos(pose_msg_out.psi.data)]])
                     translation_vector = - \
@@ -119,7 +120,7 @@ class VehicleFilterNode(DTROS):
 
         with self.phasetimer.time_phase('calc_circle_pattern callback'):
             if self.last_calc_circle_pattern is None or self.last_calc_circle_pattern != (height, width):
-                self.circlepattern_dist = self.parameters['distance_between_centers']
+                self.circlepattern_dist = self.parameters['~distance_between_centers']
                 self.circlepattern = np.zeros([height * width, 3])
                 for i in range(0, width):
                     for j in range(0, height):
