@@ -60,9 +60,6 @@
     <arg name="apriltags_random" default="false"/>
 
     <arg name="unicorn_intersection" default="false"/>
-
-    <arg name="statistics" default="false"/>
-    <param name="enable_statistics" value="$(arg statistics)"/>
     <!-- end switch args -->
 
 

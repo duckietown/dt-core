@@ -133,6 +133,7 @@ class AprilTagDetector(DTROS):
         self._tag_pub.publish(msg)
         # update healthy frequency metadata
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
+        self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
 
     def _publish_detections_image(self, img, tags):
         # get a color buffer from the BW image
