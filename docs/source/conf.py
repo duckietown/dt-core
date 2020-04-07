@@ -44,6 +44,10 @@ print("LOOKING FOR NODE SOURCE FILES")
 # Find all the nodes and move them to the temp module folder
 node_source_files = []
 for pkg in os.listdir(os.path.abspath('../../packages/')):
+    ### !!!! TODO: REMOVE THIS AND NEXT 3 LINES AFTER THE REPOSITORY HAS BEEN CLEANED
+    if '%s.rst'%pkg not in os.listdir(os.path.abspath('packages/')):
+        print("PACKAGE %s NOT DOCUMENTED!" % pkg)
+        continue
     # Add the include paths such that all the include modules can also be used with autodocs
     sys.path.insert(0, os.path.abspath('../../packages/%s/include' % pkg))
     if os.path.isdir(os.path.abspath('../../packages/%s/src' % pkg)):

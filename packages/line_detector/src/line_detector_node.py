@@ -1,247 +1,190 @@
 #!/usr/bin/env python
-from cv_bridge import CvBridge, CvBridgeError
-from duckietown_msgs.msg import (BoolStamped, FSMState, Segment,
-    SegmentList, Vector2D)
-from duckietown_utils.instantiate_utils import instantiate
-from duckietown_utils.jpg import bgr_from_jpg
-from geometry_msgs.msg import Point
-from sensor_msgs.msg import CompressedImage, Image
-from visualization_msgs.msg import Marker
 
-from line_detector.timekeeper import TimeKeeper
+import numpy as np
 import cv2
 import rospy
-import threading
-import time
-from line_detector.line_detector_plot import color_segment, drawLines
-import numpy as np
+from cv_bridge import CvBridge
+from duckietown import DTROS
+from sensor_msgs.msg import CompressedImage, Image
+from duckietown_msgs.msg import Segment, SegmentList
+from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
 
 
-class LineDetectorNode(object):
-    def __init__(self):
-        self.node_name = "LineDetectorNode"
+class LineDetectorNode(DTROS):
+    """
+    The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an image and
+    is used for lane localization.
 
-        # Constructor of line detector
+    Upon receiving an image, this node reduces its resolution, cuts off the top part so that only the
+    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes them.
+    The main functionality of this node is implemented in the :py:class:`line_detector.LineDetector` class.
+
+    The performance of this node can be very sensitive to its configuration parameters. Therefore, it also provides a
+    number of debug topics which can be used for fine-tuning these parameters. These configuration parameters can be
+    changed dynamically while the node is running via ``rosparam set`` commands.
+
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+
+    Configuration:
+        ~line_detector_parameters (:obj:`dict`): A dictionary with the parameters for the detector. The full list can be found in :py:class:`line_detector.LineDetector`.
+        ~colors (:obj:`dict`): A dictionary of colors and color ranges to be detected in the image. The keys (color names) should match the ones in the Segment message definition, otherwise an exception will be thrown! See the ``config`` directory in the node code for the default ranges.
+        ~img_size (:obj:`list` of ``int``): The desired downsized resolution of the image. Lower resolution would result in faster detection but lower performance, default is ``[120,160]``
+        ~top_cutoff (:obj:`int`): The number of rows to be removed from the top of the image _after_ resizing, default is 40
+
+    Subscriber:
+        ~corrected_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The (color-corrected) camera images
+
+    Publishers:
+        ~segment_list (:obj:`duckietown_msgs.msg.SegmentList`): A list of the detected segments. Each segment is an :obj:`duckietown_msgs.msg.Segment` message
+        ~debug/segments/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the segments drawn on the input image
+        ~debug/edges/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the Canny edges drawn on the input image
+        ~debug/maps/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the regions falling in each color range drawn on the input image
+        ~debug/ranges_HS (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Hue-Saturation projection
+        ~debug/ranges_SV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Saturation-Value projection
+        ~debug/ranges_HV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Hue-Value projection
+
+    """
+
+    def __init__(self, node_name):
+        # Initialize the DTROS parent class
+        super(LineDetectorNode, self).__init__(node_name=node_name)
+
+        # Add the node parameters to the parameters dictionary and load their default values
+        self.parameters['~line_detector_parameters'] = None
+        self.parameters['~colors'] = None
+        self.parameters['~img_size'] = None
+        self.parameters['~top_cutoff'] = None
+        self.updateParameters()
+
         self.bridge = CvBridge()
-
-        self.active = True
-
-        self.stats = Stats()
-
-        # Only be verbose every 10 cycles
-        self.intermittent_interval = 100
-        self.intermittent_counter = 0
-
-        # these will be added if it becomes verbose
-        self.pub_edge = None
-        self.pub_colorSegment = None
-
-        # We use two different detectors (parameters) for lane following and
-        # intersection navigation (both located in yaml file)
-        self.detector = None
-        self.detector_intersection = None
-        self.detector_used = self.detector
-
-
-        self.verbose = None
-        self.updateParams(None)
-
-        self.fsm_state = "NORMAL_JOYSTICK_CONTROL"
-
-        # Publishers
-        self.pub_lines = rospy.Publisher("~segment_list", SegmentList, queue_size=1)
-        self.pub_image = rospy.Publisher("~image_with_lines", Image, queue_size=1)
+        self.colormaps = dict()  #: Holds the colormaps for the debug/ranges images after they are computed once
 
         # Subscribers
-        self.sub_image = rospy.Subscriber("~corrected_image/compressed", CompressedImage, self.processImage, queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm = rospy.Subscriber("~fsm_mode", FSMState, self.cbFSM, queue_size=1)
+        self.sub_image = self.subscriber("~corrected_image/compressed", CompressedImage, self.cbImage,
+                                         queue_size=1)
 
-        rospy.loginfo("[%s] Initialized (verbose = %s)." %(self.node_name, self.verbose))
+        # Publishers
+        self.pub_lines = self.publisher("~segment_list", SegmentList, queue_size=1)
+        self.pub_d_segments = self.publisher("~debug/segments/compressed", CompressedImage, queue_size=1)
+        self.pub_d_edges = self.publisher("~debug/edges/compressed", CompressedImage, queue_size=1)
+        self.pub_d_maps = self.publisher("~debug/maps/compressed", CompressedImage, queue_size=1)
+        # these are not compressed because compression adds undesired blur
+        self.pub_d_ranges_HS = self.publisher("~debug/ranges_HS", Image, queue_size=1)
+        self.pub_d_ranges_SV = self.publisher("~debug/ranges_SV", Image, queue_size=1)
+        self.pub_d_ranges_HV = self.publisher("~debug/ranges_HV", Image, queue_size=1)
 
-        rospy.Timer(rospy.Duration.from_sec(2.0), self.updateParams)
+    def cbParametersChanged(self):
+        # Create a new LineDetector object with the parameters from the Parameter Server / config file
+        self.detector = LineDetector(**self.parameters['~line_detector_parameters'])
+        # Update the color ranges objects
+        self.color_ranges = {color: ColorRange.fromDict(d) for color, d in self.parameters['~colors'].iteritems()}
 
+    def cbImage(self, image_msg):
+        """ Processes the incoming image messages.
 
-    def cbFSM(self, msg):
-        self.fsm_state = msg.state
+        Performs the following steps for each incoming image:
 
-        if self.fsm_state in ["INTERSECTION_PLANNING", "INTERSECTION_COORDINATION", "INTERSECTION_CONTROL"]:
-            self.detector_used = self.detector_intersection
-        else:
-            self.detector_used = self.detector
+        #. Resizes the image to the ``~img_size`` resolution
+        #. Removes the top ``~top_cutoff`` rows in order to remove the part of the image that doesn't include the road
+        #. Extracts the line segments in the image using :py:class:`line_detector.LineDetector`
+        #. Converts the coordinates of detected segments to normalized ones
+        #. Creates and publishes the resultant :obj:`duckietown_msgs.msg.SegmentList` message
+        #. Creates and publishes debug images if there is a subscriber to the respective topics
 
+        Args:
+            image_msg (:obj:`sensor_msgs.msg.CompressedImage`): The receive image message
 
-    def updateParams(self, _event):
-        old_verbose = self.verbose
-        self.verbose = rospy.get_param('~verbose', True)
-        # self.loginfo('verbose = %r' % self.verbose)
-        if self.verbose != old_verbose:
-            self.loginfo('Verbose is now %r' % self.verbose)
-
-        self.image_size = rospy.get_param('~img_size')
-        self.top_cutoff = rospy.get_param('~top_cutoff')
-
-        if self.detector is None:
-            c = rospy.get_param('~detector')
-            assert isinstance(c, list) and len(c) == 2, c
-
-#         if str(self.detector_config) != str(c):
-            self.loginfo('new detector config: %s' % str(c))
-
-            self.detector = instantiate(c[0], c[1])
-#             self.detector_config = c
-            self.detector_used = self.detector
-
-        if self.detector_intersection is None:
-            c = rospy.get_param('~detector_intersection')
-            assert isinstance(c, list) and len(c) == 2, c
-
-#         if str(self.detector_config) != str(c):
-            self.loginfo('new detector_intersection config: %s' % str(c))
-
-            self.detector_intersection = instantiate(c[0], c[1])
-#             self.detector_config = c
-
-        if self.verbose and self.pub_edge is None:
-            self.pub_edge = rospy.Publisher("~edge", Image, queue_size=1)
-            self.pub_colorSegment = rospy.Publisher("~colorSegment", Image, queue_size=1)
-
-
-    def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data
-
-    def loginfo(self, s):
-        rospy.loginfo('[%s] %s' % (self.node_name, s))
-
-    def intermittent_log_now(self):
-        return self.intermittent_counter % self.intermittent_interval == 1
-
-    def intermittent_log(self, s):
-        if not self.intermittent_log_now():
-            return
-        self.loginfo('%3d:%s' % (self.intermittent_counter, s))
-
-    def processImage(self, image_msg):
-        self.stats.received()
-
-        if not self.active:
-            return
-        
-        try:
-            self.processImage_(image_msg)
-        finally:
-            return
-
-    def processImage_(self, image_msg):
-
-        self.stats.processed()
-
-        if self.intermittent_log_now():
-            self.intermittent_log(self.stats.info())
-            self.stats.reset()
-
-        tk = TimeKeeper(image_msg)
-
-        self.intermittent_counter += 1
+        """
 
         # Decode from compressed image with OpenCV
         try:
-            image_cv = bgr_from_jpg(image_msg.data)
+            image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
         except ValueError as e:
             self.loginfo('Could not decode image: %s' % e)
             return
 
-        tk.completed('decoded')
-
-        # Resize and crop image
-        hei_original, wid_original = image_cv.shape[0:2]
-
-        if self.image_size[0] != hei_original or self.image_size[1] != wid_original:
+        # Resize the image to the desired dimensions
+        height_original, width_original = image.shape[0:2]
+        if self.parameters['~img_size'][0] != height_original or self.parameters['~img_size'][1] != width_original:
             # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
-            image_cv = cv2.resize(image_cv, (self.image_size[1], self.image_size[0]),
-                                   interpolation=cv2.INTER_NEAREST)
-        image_cv = image_cv[self.top_cutoff:,:,:]
+            image = cv2.resize(image, (self.parameters['~img_size'][1], self.parameters['~img_size'][0]),
+                               interpolation=cv2.INTER_NEAREST)
+        image = image[self.parameters['~top_cutoff']:, :, :]
 
-        tk.completed('resized')
+        # Extract the line segments for every color
+        self.detector.setImage(image)
+        detections = {color: self.detector.detectLines(ranges) for color, ranges in self.color_ranges.iteritems()}
 
-        # Set the image to be detected
-        self.detector_used.setImage(image_cv)
+        # Construct a SegmentList
+        segment_list = SegmentList()
+        segment_list.header.stamp = image_msg.header.stamp
 
-        # Detect lines and normals
+        # Remove the offset in coordinates coming from the removing of the top part and
+        arr_cutoff = np.array([0, self.parameters['~top_cutoff'], 0, self.parameters['~top_cutoff']])
+        arr_ratio = np.array([1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0],
+                              1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0]])
 
-        white = self.detector_used.detectLines('white')
-        yellow = self.detector_used.detectLines('yellow')
-        red = self.detector_used.detectLines('red')
+        # Fill in the segment_list with all the detected segments
+        for color, det in detections.iteritems():
+            # Get the ID for the color from the Segment msg definition
+            # Throw and exception otherwise
+            if len(det.lines) > 0 and len(det.normals) > 0:
+                try:
+                    color_id = getattr(Segment, color)
+                    lines_normalized = (det.lines + arr_cutoff) * arr_ratio
+                    segment_list.segments.extend(self.toSegmentMsg(lines_normalized, det.normals, color_id))
+                except AttributeError:
+                    self.logerr("Color name %s is not defined in the Segment message" % color)
 
-        tk.completed('detected')
+        # Publish the message
+        self.pub_lines.publish(segment_list)
 
-        # SegmentList constructor
-        segmentList = SegmentList()
-        segmentList.header.stamp = image_msg.header.stamp
+        # If there are any subscribers to the debug topics, generate a debug image and publish it
+        if self.pub_d_segments.get_num_connections() > 0:
+            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.iteritems()}
+            debug_img = plotSegments(image, colorrange_detections)
+            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
+            debug_image_msg.header = image_msg.header
+            self.pub_d_segments.publish(debug_image_msg)
 
-        # Convert to normalized pixel coordinates, and add segments to segmentList
-        arr_cutoff = np.array((0, self.top_cutoff, 0, self.top_cutoff))
-        arr_ratio = np.array((1./self.image_size[1], 1./self.image_size[0], 1./self.image_size[1], 1./self.image_size[0]))
-        if len(white.lines) > 0:
-            lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
-            segmentList.segments.extend(self.toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
-        if len(yellow.lines) > 0:
-            lines_normalized_yellow = ((yellow.lines + arr_cutoff) * arr_ratio)
-            segmentList.segments.extend(self.toSegmentMsg(lines_normalized_yellow, yellow.normals, Segment.YELLOW))
-        if len(red.lines) > 0:
-            lines_normalized_red = ((red.lines + arr_cutoff) * arr_ratio)
-            segmentList.segments.extend(self.toSegmentMsg(lines_normalized_red, red.normals, Segment.RED))
+        if self.pub_d_edges.get_num_connections() > 0:
+            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(self.detector.canny_edges)
+            debug_image_msg.header = image_msg.header
+            self.pub_d_edges.publish(debug_image_msg)
 
-        self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
-                len(yellow.lines), len(red.lines)))
+        if self.pub_d_maps.get_num_connections() > 0:
+            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.iteritems()}
+            debug_img = plotMaps(image, colorrange_detections)
+            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
+            debug_image_msg.header = image_msg.header
+            self.pub_d_maps.publish(debug_image_msg)
 
-        tk.completed('prepared')
+        for channels in ['HS', 'SV', 'HV']:
+            publisher = getattr(self, 'pub_d_ranges_%s' % channels)
+            if publisher.get_num_connections() > 0:
+                debug_img = self.plotRangesHistogram(channels)
+                debug_image_msg = self.bridge.cv2_to_imgmsg(debug_img, encoding="bgr8")
+                debug_image_msg.header = image_msg.header
+                publisher.publish(debug_image_msg)
 
-        # Publish segmentList
-        self.pub_lines.publish(segmentList)
-        tk.completed('--pub_lines--')
+    @staticmethod
+    def toSegmentMsg(lines, normals, color):
+        """ Converts line detections to a list of Segment messages.
 
-        # VISUALIZATION only below
+        Converts the resultant line segments and normals from the line detection to a list of Segment messages.
 
-        if self.verbose:
+        Args:
+            lines (:obj:`numpy array`): An ``Nx4`` array where each row represents a line.
+            normals (:obj:`numpy array`): An ``Nx2`` array where each row represents the normal of a line.
+            color (:obj:`str`): Color name string, should be one of the pre-defined in the Segment message definition.
 
-            # print('line_detect_node: verbose is on!')
+        Returns:
+            :obj:`list` of :obj:`duckietown_msgs.msg.Segment`: List of Segment messages
 
-            # Draw lines and normals
-            image_with_lines = np.copy(image_cv)
-            drawLines(image_with_lines, white.lines, (0, 0, 0))
-            drawLines(image_with_lines, yellow.lines, (255, 0, 0))
-            drawLines(image_with_lines, red.lines, (0, 255, 0))
-
-            tk.completed('drawn')
-
-            # Publish the frame with lines
-            image_msg_out = self.bridge.cv2_to_imgmsg(image_with_lines, "bgr8")
-            image_msg_out.header.stamp = image_msg.header.stamp
-            self.pub_image.publish(image_msg_out)
-
-            tk.completed('pub_image')
-
-#         if self.verbose:
-            colorSegment = color_segment(white.area, red.area, yellow.area)
-            edge_msg_out = self.bridge.cv2_to_imgmsg(self.detector_used.edges, "mono8")
-            colorSegment_msg_out = self.bridge.cv2_to_imgmsg(colorSegment, "bgr8")
-            self.pub_edge.publish(edge_msg_out)
-            self.pub_colorSegment.publish(colorSegment_msg_out)
-
-            tk.completed('pub_edge/pub_segment')
-
-
-        self.intermittent_log(tk.getall())
-
-
-    def onShutdown(self):
-        self.loginfo("Shutdown.")
-
-    def toSegmentMsg(self,  lines, normals, color):
-
-        segmentMsgList = []
-        for x1,y1,x2,y2,norm_x,norm_y in np.hstack((lines,normals)):
+        """
+        segment_msg_list = []
+        for x1, y1, x2, y2, norm_x, norm_y in np.hstack((lines, normals)):
             segment = Segment()
             segment.color = color
             segment.pixels_normalized[0].x = x1
@@ -250,59 +193,76 @@ class LineDetectorNode(object):
             segment.pixels_normalized[1].y = y2
             segment.normal.x = norm_x
             segment.normal.y = norm_y
+            segment_msg_list.append(segment)
+        return segment_msg_list
 
-            segmentMsgList.append(segment)
-        return segmentMsgList
+    def plotRangesHistogram(self, channels):
+        """ Utility method for plotting color histograms and color ranges.
 
-class Stats():
-    def __init__(self):
-        self.nresets = 0
-        self.reset()
+        Args:
+            channels (:obj:`str`): The desired two channels, should be one of ``['HS','SV','HV']``
 
-    def reset(self):
-        self.nresets += 1
-        self.t0 = time.time()
-        self.nreceived = 0
-        self.nskipped = 0
-        self.nprocessed = 0
+        Returns:
+            :obj:`numpy array`: The resultant plot image
 
-    def received(self):
-        if self.nreceived == 0 and self.nresets == 1:
-            rospy.loginfo('line_detector_node received first image.')
-        self.nreceived += 1
+        """
 
-    def skipped(self):
-        self.nskipped += 1
+        channel_to_axis = {'H': 0, 'S': 1, 'V': 2}
+        axis_to_range = {0: 180, 1: 256, 2: 256}
 
-    def processed(self):
-        if self.nprocessed == 0 and self.nresets == 1:
-            rospy.loginfo('line_detector_node processing first image.')
+        # Get which is the third channel that will not be shown in this plot
+        missing_channel = 'HSV'.replace(channels[0], '').replace(channels[1], '')
 
-        self.nprocessed += 1
+        hsv_im = self.detector.hsv
+        # Get the pixels as a list (flatten the horizontal and vertical dimensions)
+        hsv_im = hsv_im.reshape((-1, 3))
 
-    def info(self):
-        delta = time.time() - self.t0
+        channel_idx = [channel_to_axis[channels[0]], channel_to_axis[channels[1]]]
 
-        if self.nreceived:
-            skipped_perc = (100.0 * self.nskipped / self.nreceived)
-        else:
-            skipped_perc = 0
+        # Get only the relevant channels
+        x_bins = np.arange(0, axis_to_range[channel_idx[1]] + 1, 2)
+        y_bins = np.arange(0, axis_to_range[channel_idx[0]] + 1, 2)
+        h, _, _ = np.histogram2d(x=hsv_im[:, channel_idx[0]], y=hsv_im[:, channel_idx[1]],
+                                 bins=[y_bins, x_bins])
+        # Log-normalized histogram
+        np.log(h, out=h, where=(h != 0))
+        h = (255 * h / np.max(h)).astype(np.uint8)
 
-        def fps(x):
-            return '%.1f fps' % (x / delta)
+        # Make a color map, for the missing channel, just take the middle of the range
+        if channels not in self.colormaps:
+            colormap_1, colormap_0 = np.meshgrid(x_bins[:-1], y_bins[:-1])
+            colormap_2 = np.ones_like(colormap_0) * (axis_to_range[channel_to_axis[missing_channel]]/2)
 
-        m = ('In the last %.1f s: received %d (%s) processed %d (%s) skipped %d (%s) (%1.f%%)' %
-             (delta, self.nreceived, fps(self.nreceived),
-              self.nprocessed, fps(self.nprocessed),
-              self.nskipped, fps(self.nskipped), skipped_perc))
-        return m
+            channel_to_map = {channels[0]: colormap_0,
+                              channels[1]: colormap_1,
+                              missing_channel: colormap_2}
+
+            self.colormaps[channels] = np.stack([channel_to_map['H'], channel_to_map['S'], channel_to_map['V']], axis=-1).astype(np.uint8)
+            self.colormaps[channels] = cv2.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
+
+        # resulting histogram image as a blend of the two images
+        im = cv2.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
+        im = cv2.addWeighted(im, 0.5 , self.colormaps[channels], 1 - 0.5, 0.0)
+
+        # now plot the color ranges on top
+        for _, color_range in self.color_ranges.iteritems():
+            # convert HSV color to BGR
+            c = color_range.representative
+            c = np.uint8([[[c[0], c[1], c[2]]]])
+            color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int)
+            for i in range(len(color_range.low)):
+                cv2.rectangle(im,
+                              pt1=((color_range.high[i, channel_idx[1]]/2).astype(np.uint8), (color_range.high[i, channel_idx[0]]/2).astype(np.uint8)),
+                              pt2=((color_range.low[i, channel_idx[1]]/2).astype(np.uint8), (color_range.low[i, channel_idx[0]]/2).astype(np.uint8)),
+                              color=color,
+                              lineType=cv2.LINE_4)
 
 
-
+        return im
 
 
 if __name__ == '__main__':
-    rospy.init_node('line_detector',anonymous=False)
-    line_detector_node = LineDetectorNode()
-    rospy.on_shutdown(line_detector_node.onShutdown)
-rospy.spin()
+    # Initialize the node
+    line_detector_node = LineDetectorNode(node_name='line_detector_node')
+    # Keep it spinning to keep the node alive
+    rospy.spin()
