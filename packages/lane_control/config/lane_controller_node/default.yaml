@@ -25,4 +25,8 @@ integral_bounds:
 d_resolution: 0.011
 phi_resolution: 0.051
 
+stop_line_slowdown:
+  start: 0.6
+  end: 0.15
+
 verbose: 0

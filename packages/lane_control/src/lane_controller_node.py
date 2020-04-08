@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import math
 import numpy as np
 import rospy
 
@@ -13,7 +12,7 @@ class LaneControllerNode(DTROS):
     """Computes control action.
     The node compute the commands in form of linear and angular velocities, by processing the estimate error in
     lateral deviationa and heading.
-    The configuration parameters can be changed dynamically while the node is running via `rosparam set` commands.
+    The configuration parameters can be changed dynamically while the node is running via ``rosparam set`` commands.
     Args:
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
     Configuration:
@@ -32,6 +31,7 @@ class LaneControllerNode(DTROS):
         ~phi_resolution (:obj:`float`): Resolution of heading estimate
         ~omega_ff (:obj:`float`): Feedforward part of controller
         ~verbose (:obj:`bool`): Verbosity level (0,1,2)
+        ~stop_line_slowdown (:obj:`dict`): Start and end distances for slowdown at stop lines
 
     Publisher:
         ~car_cmd (:obj:`Twist2DStamped`): The computed control action
@@ -63,10 +63,11 @@ class LaneControllerNode(DTROS):
         self.parameters['~phi_resolution'] = None
         self.parameters['~omega_ff'] = None
         self.parameters['~verbose'] = None
+        self.parameters['~stop_line_slowdown'] = None
 
         # Need to create controller object before updating parameters, otherwise it will fail
         self.controller = LaneController(self.parameters)
-        self.cbParametersChanged()
+        self.updateParameters()
 
         # Initialize variables
         self.fsm_state = None
@@ -110,7 +111,7 @@ class LaneControllerNode(DTROS):
         Args:
             msg (:obj:`StopLineReading`): Message containing information about the next stop line.
         """
-        self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2 + msg.stop_line_point.z**2)
+        self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2)
         self.stop_line_detected = msg.stop_line_detected
 
     def cbMode(self, fsm_state_msg):
@@ -172,7 +173,7 @@ class LaneControllerNode(DTROS):
         phi_err = pose_msg.phi
 
         # We cap the error if it grows too large
-        if math.fabs(d_err) > self.parameters['~d_thres']:
+        if np.abs(d_err) > self.parameters['~d_thres']:
             self.log("d_err too large, thresholding it!", 'error')
             d_err = np.sign(d_err) * self.parameters['~d_thres']
 
@@ -201,7 +202,6 @@ class LaneControllerNode(DTROS):
 
     def cbParametersChanged(self):
         """Updates parameters in the controller object."""
-        super(LaneControllerNode, self).cbParametersChanged()
         self.controller.update_parameters(self.parameters)
 
 

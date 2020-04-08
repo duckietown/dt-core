@@ -2,6 +2,33 @@ import numpy as np
 
 
 class LaneController:
+    """
+    The Lane Controller can be used to compute control commands from pose estimations.
+
+    The control commands are in terms of linear and angular velocity (v, omega). The input are errors in the relative
+    pose of the Duckiebot in the current lane.
+
+    This implementation is a simple PI(D) controller.
+
+    Args:
+        ~v_bar (:obj:`float`): Nominal velocity in m/s
+        ~k_d (:obj:`float`): Proportional term for lateral deviation
+        ~k_theta (:obj:`float`): Proportional term for heading deviation
+        ~k_Id (:obj:`float`): integral term for lateral deviation
+        ~k_Iphi (:obj:`float`): integral term for lateral deviation
+        ~d_thres (:obj:`float`): Maximum value for lateral error
+        ~theta_thres (:obj:`float`): Maximum value for heading error
+        ~d_offset (:obj:`float`): Goal offset from center of the lane
+        ~velocity_to_m_per_s (:obj:`float`): Conversion factor
+        ~omega_to_rad_per_s (:obj:`float`): Conversion factor
+        ~integral_bounds (:obj:`dict`): Bounds for integral term
+        ~d_resolution (:obj:`float`): Resolution of lateral position estimate
+        ~phi_resolution (:obj:`float`): Resolution of heading estimate
+        ~omega_ff (:obj:`float`): Feedforward part of controller
+        ~verbose (:obj:`bool`): Verbosity level (0,1,2)
+        ~stop_line_slowdown (:obj:`dict`): Start and end distances for slowdown at stop lines
+
+    """
     def __init__(self, parameters):
         self.parameters = parameters
         self.d_I = 0
@@ -73,11 +100,11 @@ class LaneController:
         if stop_line_distance is None:
             return self.parameters['~v_bar']
         else:
-            # 60cm -> v_bar, 15cm -> v_bar/2
-            d1, d2 = 0.8, 0.25
-            a = self.parameters['~v_bar'] / (2 * (d1 - d2))
-            b = self.parameters['~v_bar'] - a * d1
-            v_new = a * stop_line_distance + b
+
+            d1, d2 = self.parameters['~stop_line_slowdown']['start'], self.parameters['~stop_line_slowdown']['end']
+            # d1 -> v_bar, d2 -> v_bar/2
+            c = (0.5 * (d1 - stop_line_distance) + (stop_line_distance - d2)) / (d1 - d2)
+            v_new = self.parameters['~v_bar'] * c
             v = np.max([self.parameters['~v_bar'] / 2.0, np.min([self.parameters['~v_bar'], v_new])])
             return v
 
