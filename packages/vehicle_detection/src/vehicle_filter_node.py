@@ -16,6 +16,7 @@ from duckietown_msgs.msg import VehicleCorners, VehiclePose, Pose2DStamped
 from geometry_msgs.msg import Point32
 from mutex import mutex
 from sensor_msgs.msg import CameraInfo
+from visualization_msgs.msg import Marker
 # from math import sqrt, sin, cos
 # from std_msgs.msg import Float32
 import cv2
@@ -52,6 +53,7 @@ class VehicleFilterNode(DTROS):
 
         # publishers
         self.pub_pose = self.publisher("~pose", VehiclePose, queue_size=1)
+        self.pub_visualize = self.publisher("~debug/visualization_marker", Marker, queue_size=1)
 
         self.pcm = PinholeCameraModel()
         self.log("Initialization completed")
@@ -62,17 +64,18 @@ class VehicleFilterNode(DTROS):
 
     def cb_process_centers(self, vehicle_centers_msg):
         self.calc_circle_pattern(vehicle_centers_msg.H, vehicle_centers_msg.W)
-
+	dist_coeffs = np.array([self.pcm.distortionCoeffs()[0][0,0], self.pcm.distortionCoeffs()[1][0,0], self.pcm.distortionCoeffs()[2][0,0], self.pcm.distortionCoeffs()[3][0,0], self.pcm.distortionCoeffs()[4][0,0]])
         with self.phasetimer.time_phase('solve PnP'):
-            points = np.zeros((vehicle_centers_msg.H * vehicle_centers_msg.H, 2))
+            points = np.zeros((vehicle_centers_msg.H * vehicle_centers_msg.W, 2))
             for i in range(len(points)):
-		print(points[i])
-                points[i] = np.array([vehicle_centers_msg.corners[i].x, vehicle_centers_msg.corners[i].x])
+                points[i] = np.array([vehicle_centers_msg.corners[i].x, vehicle_centers_msg.corners[i].y])
+                print(points[i])
 
+	    print("DISTORTION COEFFICIENTS:", dist_coeffs) 
             success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=self.circlepattern,
                                                                         imagePoints=points,
-                                                                        cameraMatri=self.pcm.intrinsicMatrix(),
-                                                                        distCoeff=self.pcm.distortionCoeffs())
+                                                                        cameraMatrix=self.pcm.intrinsicMatrix(),
+                                                                        distCoeffs=self.pcm.distortionCoeffs())
 
         if success:
             with self.phasetimer.time_phase('project points and calculate reproj. error'):
@@ -98,18 +101,46 @@ class VehicleFilterNode(DTROS):
                     pose_msg_out = VehiclePose()
                     pose_msg_out.header.stamp = rospy.Time.now()
                     pose_msg_out.rho.data = np.sqrt(translation_vector[2] ** 2 + translation_vector[0] ** 2)
-                    pose_msg_out.psi.data = np.arctan2(-R_inv[2, 0], sqrt(R_inv[2, 1] ** 2 + R_inv[2, 2] ** 2))
+                    pose_msg_out.psi.data = np.arctan2(-R_inv[2, 0], np.sqrt(R_inv[2, 1] ** 2 + R_inv[2, 2] ** 2))
                     pose_msg_out.detection.data = vehicle_centers_msg.detection.data
                     R2 = np.array([[np.cos(pose_msg_out.psi.data), -np.sin(pose_msg_out.psi.data)],
                                    [np.sin(pose_msg_out.psi.data), np.cos(pose_msg_out.psi.data)]])
-                    translation_vector = - \
+                    translation_vector_2d = - \
                         np.array([translation_vector[2],
                                   translation_vector[0]])
-                    translation_vector = np.dot(
-                        np.transpose(R2), translation_vector)
+                    translation_vector_2d = np.dot(
+                        np.transpose(R2), translation_vector_2d)
                     pose_msg_out.theta.data = np.arctan2(
-                        translation_vector[1], translation_vector[0])
+                        translation_vector_2d[1], translation_vector_2d[0])
                     self.pub_pose.publish(pose_msg_out)
+
+                #TODO: Put subscription check
+                if True:
+                    with self.phasetimer.time_phase('publish marker'):
+                        marker_msg = Marker()
+                        marker_msg.header = pose_msg_out.header
+			            marker_msg.header.frame_id = 'donald'
+                        marker_msg.ns = 'my_namespace'
+                        marker_msg.id = 0
+                        marker_msg.type = Marker.CUBE
+                        marker_msg.action = Marker.ADD
+                        marker_msg.pose.position.x = -translation_vector[2]
+                        marker_msg.pose.position.y = translation_vector[0]
+                        marker_msg.pose.position.z = translation_vector[1]
+                        marker_msg.pose.orientation.x = 0.0
+                        marker_msg.pose.orientation.y = 0.0
+                        marker_msg.pose.orientation.z = 0.0
+                        marker_msg.pose.orientation.w = 1.0
+                        marker_msg.scale.x = 0.1
+                        marker_msg.scale.y = 0.1
+                        marker_msg.scale.z = 0.1
+                        marker_msg.color.r = 1.0
+                        marker_msg.color.g = 1.0
+                        marker_msg.color.b = 0.0
+                        marker_msg.color.a = 1.0
+                        marker_msg.lifetime = rospy.Duration.from_sec(1)
+                        self.pub_visualize.publish(marker_msg)
+
             else:
                 self.log("Pose estimation failed, too high reprojection error.")
         else:

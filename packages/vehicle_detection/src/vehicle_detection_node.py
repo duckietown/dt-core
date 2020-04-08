@@ -86,7 +86,8 @@ class VehicleDetectionNode(DTROS):
             vehicle_centers_msg_out.H = self.parameters['~circlepattern_dims'][1]
             vehicle_centers_msg_out.W = self.parameters['~circlepattern_dims'][0]
             self.pub_centers.publish(vehicle_centers_msg_out)
-        
+
+        # TODO: Add check if subscribed
         if True:
             cv2.drawChessboardCorners(image_cv,
                                         tuple(self.parameters['~circlepattern_dims']), centers, detection)
