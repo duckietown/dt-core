@@ -32,11 +32,11 @@
     <arg name="/lane_following/lane_filter" value="true"/>
     <arg name="/lane_following/lane_controller" value="true"/>
 
-    <!-- Vehicle avoidance stack -->
-    <arg name="vehicle_avoidance" value="true"/>
-    <arg name="/vehicle_avoidance/detection" value="true" />
-    <arg name="/vehicle_avoidance/filter" value="true" />
-    <arg name="/vehicle_avoidance/control" value="true"/>
+        <!-- Vehicle avoidance stack -->
+        <arg name="vehicle_avoidance" value="true"/>
+		<arg name="/vehicle_avoidance/detection" value="true" />
+		<arg name="/vehicle_avoidance/filter" value="true" />
+		<!--<arg name="/vehicle_avoidance/control" value="true"/>-->
 
   </include>
 

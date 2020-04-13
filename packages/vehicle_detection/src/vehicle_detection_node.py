@@ -33,7 +33,7 @@ class VehicleDetectionNode(DTROS):
         self.sub_image = self.subscriber("~image", CompressedImage, self.cbImage, queue_size=1)
 
         # Publishers
-        self.pub_detection = self.publisher("~detection", BoolStamped, queue_size=1)
+        # self.pub_detection = self.publisher("~detection", BoolStamped, queue_size=1)
         self.pub_centers = self.publisher("~centers", VehicleCorners, queue_size=1)
         self.pub_circlepattern_image = self.publisher("~debug/detection_image/compressed", CompressedImage, queue_size=1)
 
@@ -54,7 +54,7 @@ class VehicleDetectionNode(DTROS):
         else:
             self.last_stamp = now
         
-        vehicle_detected_msg_out = BoolStamped()
+        # vehicle_detected_msg_out = BoolStamped()
         vehicle_centers_msg_out = VehicleCorners()
         image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
 
@@ -64,28 +64,29 @@ class VehicleDetectionNode(DTROS):
                                                    blobDetector=self.simple_blob_detector)
 
         # if the pattern is detected, cv2.findCirclesGrid returns a non-zero result, otherwise it returns 0
-        vehicle_detected_msg_out.data = detection > 0
-        self.pub_detection.publish(vehicle_detected_msg_out)
+        # vehicle_detected_msg_out.data = detection > 0
+        # self.pub_detection.publish(vehicle_detected_msg_out)
 
         #print(centers)
 
-        if detection:
-            # print(centers)
+        vehicle_centers_msg_out.header = image_msg.header
+        vehicle_centers_msg_out.detection.data = detection > 0
+
+        # if the detection is successful add the information about it,
+        # otherwise publish a message saying that it was unsuccessful
+        if detection > 0:
             points_list = []
             for point in centers:
                 center = Point32()
-                # print(point[0])
                 center.x = point[0, 0]
-                # print(point[0,1])
                 center.y = point[0, 1]
                 center.z = 0
                 points_list.append(center)
-            vehicle_centers_msg_out.header.stamp = now
             vehicle_centers_msg_out.corners = points_list
-            vehicle_centers_msg_out.detection.data = detection
             vehicle_centers_msg_out.H = self.parameters['~circlepattern_dims'][1]
             vehicle_centers_msg_out.W = self.parameters['~circlepattern_dims'][0]
-            self.pub_centers.publish(vehicle_centers_msg_out)
+
+        self.pub_centers.publish(vehicle_centers_msg_out)
 
         # TODO: Add check if subscribed
         if True:
