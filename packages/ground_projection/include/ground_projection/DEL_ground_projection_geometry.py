@@ -2,12 +2,12 @@ import itertools
 
 import cv2
 
-from duckietown_msgs.msg import Pixel, Vector2D
-import duckietown_utils as dtu
-from geometry_msgs.msg import Point
+# from duckietown_msgs.msg import Pixel, Vector2D
+# import duckietown_utils as dtu
+# from geometry_msgs.msg import Point
 from image_geometry import PinholeCameraModel
 import numpy as np
-from sensor_msgs.msg import CameraInfo
+# from sensor_msgs.msg import CameraInfo
 
 __all__ = [
     'GroundProjectionGeometry',
