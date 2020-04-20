@@ -2,7 +2,7 @@
 <launch>
 	<!-- start args TODO: most things here should come from node's config files!-->
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
-        <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+    <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -73,6 +73,7 @@
     <group if="$(arg camera)">
 
         <group if="$(arg /camera/raw)">
+            <!-- not LF, IN -->
             <group if="$(arg /camera/raw/rect)">
                 <!-- Image Decoding -->
                 <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
@@ -230,21 +231,18 @@
     </group>
     <!-- End Vehicle Avoidance -->
 
-    <!-- Start April Tags / Not LF, IN-->
+    <!-- Start AprilTags -->
     <group if="$(arg apriltags)">
-        <!-- AprilTags Detections -->
+        <!-- Detector node -->
         <remap from="image_rect" to="camera_node/image/rect" />
-        <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
-        <remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
-        <remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/> <!-- was apriltag_ros-->
-        <include file="$(find apriltags2_ros)/launch/apriltag_detector_node.launch">
+        <remap from="camera_info" to="camera_node/raw_camera_info" />
+        <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="config" value="$(arg config)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
+
         <!-- Postprocessing node -->
         <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-        <include file="$(find apriltags_ros)/launch/apriltags_postprocessing_node.launch"> <!-- was apriltag_duckietown -->
+        <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
