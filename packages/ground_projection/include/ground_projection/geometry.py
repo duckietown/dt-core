@@ -1,14 +1,21 @@
+import numpy as np
+
 class Point:
+
     def __init__(self, x=None, y=None, z=None):
         self.x = x
         self.y = y
         self.z = z
 
-    @static_method
+    @staticmethod
     def from_message(msg):
-        self.x = msg.x
-        self.y = msg.y
-        self.z = msg.z
+        x = msg.x
+        y = msg.y
+        try:
+            z = msg.z
+	except AttributeError:
+	    z=0
+	return Point(x,y,z)
 
 class GroundProjectionGeometry:
 
@@ -20,14 +27,14 @@ class GroundProjectionGeometry:
 
     def vector2pixel(self, vec):
         """ Converts a [0,1] X [0,1] representation to [0, W] X [0, H]. """
-        x = self.camera_info.width * vec.x
-        y = self.camera_info.height * vec.y
+        x = self.im_width * vec.x
+        y = self.im_height * vec.y
         return Point(x,y)
 
     def pixel2vector(self, pixel):
         """ Converts a [0,W] X [0,H] representation to [0, 1] X [0, 1]. """
-        x = pixel.x / self.camera_info.width
-        y = pixel.y / self.camera_info.height
+        x = pixel.x / self.im_width
+        y = pixel.y / self.im_height
         return Point(x, y)
 
     def pixel2ground(self, pixel):

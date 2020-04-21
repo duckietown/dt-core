@@ -9,16 +9,21 @@
 # import rospy
 # from sensor_msgs.msg import (Image, CameraInfo)
 
-import numpy as np
 import cv2
 from cv_bridge import CvBridge
+import os
+import yaml
+import numpy as np
 
+import rospy
 from duckietown import DTROS
 from ground_projection import Point, GroundProjectionGeometry
 from image_geometry import PinholeCameraModel
 
 from sensor_msgs.msg import CameraInfo, CompressedImage
 from geometry_msgs.msg import Point as PointMsg
+from duckietown_msgs.msg import Segment, SegmentList
+
 
 #######################################################################
 #
@@ -35,7 +40,7 @@ class GroundProjectionNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(CameraNode, self).__init__(node_name=node_name)
+        super(GroundProjectionNode, self).__init__(node_name=node_name)
 
         self.bridge = CvBridge()
         self.pcm = None
@@ -51,11 +56,9 @@ class GroundProjectionNode(DTROS):
         self.pub_lineseglist = self.publisher("~lineseglist_out", SegmentList, queue_size=1)
         self.pub_debug_img = self.publisher("~debug/ground_projection_image/compressed", CompressedImage, queue_size=1)
 
-        self.robot_name = robot_name
-
-        self.gp = GroundProjection(self.robot_name)
-
         self.bridge = CvBridge()
+
+        self.debug_img_bg = None
 
         # self.gpg = get_ground_projection_geometry_for_robot(self.robot_name)
 
@@ -71,18 +74,18 @@ class GroundProjectionNode(DTROS):
         self.pcm.fromCameraInfo(msg)
         self.ground_projector = GroundProjectionGeometry(im_width=msg.width,
                                                          im_height=msg.height,
-                                                         homography=self.homography)
+                                                         homography=np.array(self.homography).reshape((3, 3)))
 
     def pixel_msg_to_ground_msg(self, point_msg):
         # normalized coordinates to pixel:
         norm_pt = Point.from_message(point_msg)
-        pixel = self.ground_projector.vector_to_pixel(pixel)
+        pixel = self.ground_projector.vector2pixel(norm_pt)
         # rectify
         rect = Point(*list(self.pcm.rectifyPoint([pixel.x, pixel.y])))
         # convert to Point
         rect_pt = Point.from_message(rect)
         # project on ground
-        ground_pt = self.ground_projector.pixel_to_ground(rect_pt)
+        ground_pt = self.ground_projector.pixel2ground(rect_pt)
         # point to message
         ground_pt_msg = PointMsg()
         ground_pt_msg.x = ground_pt.x
@@ -136,7 +139,7 @@ class GroundProjectionNode(DTROS):
 
     def load_extrinsics(self):
         # load intrinsic calibration
-        cali_file_folder = '/data/config/calibrations/camera_extrinsics/'
+        cali_file_folder = '/data/config/calibrations/camera_extrinsic/'
         cali_file = cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
 
         # Locate calibration yaml file or use the default otherwise
@@ -147,8 +150,9 @@ class GroundProjectionNode(DTROS):
 
         # Shutdown if no calibration file not found
         if not os.path.isfile(cali_file):
-            self.log("Found no calibration file ... aborting", 'err')
-            rospy.signal_shutdown()
+            msg = 'Found no calibration file ... aborting'
+            self.log(msg, 'err')
+            rospy.signal_shutdown(msg)
 
         stream = file(cali_file, 'r')
 
@@ -158,21 +162,80 @@ class GroundProjectionNode(DTROS):
         return calib_data['homography']
 
     def debug_image(self, seg_list):
-        image = np.ones((200, 200, 3), np.uint8) * 128
+        # dimensions of the image are 1m x 1m so, 1px = 2.5mm
+        # the origin is at x=200 and y=300
 
-        color_map = {Segment.WHITE: cv2.CV_RGB(255, 255, 255),
-                     Segment.RED: cv2.CV_RGB(255, 0, 0),
-                     Segment.YELLOW: cv2.CV_RGB(255, 255, 0)}
+        # if that's the first call, generate the background
+        if not self.debug_img_bg:
 
-        for segment in seg_list.segments:
-            cv2.line(image,
-                     pt1=((segment.points[0].x*100)+100, (new_segment.points[0].y*100)+100),
-                     pt2=((segment.points[1].x*100)+100, (new_segment.points[1].y*100)+100),
-                     color=color_map.get(segment.color, default=cv2.CV_RGB(0, 0, 0)),
+            # initialize gray image
+            self.debug_img_bg = np.ones((400, 400, 3), np.uint8) * 128
+
+            # draw vertical lines of the grid
+            for vline in np.arange(40,361,40):
+                cv2.line(self.debug_img_bg,
+                         pt1=(vline, 20),
+                         pt2=(vline, 300),
+                         color=(255, 255, 0),
+                         thickness=1)
+
+            # draw the coordinates
+            cv2.putText(self.debug_img_bg, "-20cm", (120-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "  0cm", (200-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "+20cm", (280-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+
+            # draw horizontal lines of the grid
+            for hline in np.arange(100, 301, 40):
+                cv2.line(self.debug_img_bg,
+                         pt1=(40, hline),
+                         pt2=(360, hline),
+                         color=(255, 255, 0),
+                         thickness=1)
+
+            # draw the coordinates
+            cv2.putText(self.debug_img_bg, "20cm", (2, 220+3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, " 0cm", (2, 300+3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+
+            # draw robot marker at the center
+            cv2.line(self.debug_img_bg,
+                     pt1=(200 + 0, 300 - 20),
+                     pt2=(200 + 0, 300 + 0),
+                     color=(255, 0, 0),
                      thickness=1)
 
+            cv2.line(self.debug_img_bg,
+                     pt1=(200 + 20, 300 - 20),
+                     pt2=(200 + 0, 300 + 0),
+                     color=(255, 0, 0),
+                     thickness=1)
+
+            cv2.line(self.debug_img_bg,
+                     pt1=(200 - 20, 300 - 20),
+                     pt2=(200 + 0, 300 + 0),
+                     color=(255, 0, 0),
+                     thickness=1)
+
+        # map segment color variables to BGR colors
+        color_map = {Segment.WHITE: (255, 255, 255),
+                     Segment.RED: (0, 0, 255),
+                     Segment.YELLOW: (0, 255, 255)}
+
+        image = self.debug_img_bg.copy()
+
+        # plot every segment if both ends are in the scope of the image (within 50cm from the origin)
+        for segment in seg_list.segments:
+            if not np.any(np.abs([segment.points[0].x, segment.points[0].y,
+                                  segment.points[1].x, segment.points[1].y]) > 0.50):
+                cv2.line(image,
+                         pt1=(int(segment.points[0].y * -400) + 200, int(segment.points[0].x * -400) + 300),
+                         pt2=(int(segment.points[1].y * -400) + 200, int(segment.points[1].x * -400) + 300),
+                         color=color_map.get(segment.color, (0, 0, 0)),
+                         thickness=1)
+
         return image
+
 
 if __name__ == '__main__':
     ground_projection_node = GroundProjectionNode(node_name='ground_projection')
     rospy.spin()
+
