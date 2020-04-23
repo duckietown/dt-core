@@ -5,7 +5,7 @@
   <!-- <arg name="rectify" default="false" doc="If set to true, rectify image before process."/> -->
 
   <group ns="$(arg veh)">
-    <node   pkg="ground_projection" type="ground_projection_node.py" name="ground_projection" output="screen" required="true">
+    <node pkg="ground_projection" type="ground_projection_node.py" name="ground_projection" output="screen" required="true">
       <param name="~config_file_name" value="$(arg veh)"/>
     </node>
   </group>
