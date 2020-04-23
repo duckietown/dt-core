@@ -2,14 +2,28 @@ import numpy as np
 import cv2
 
 class Point:
+    """
+    Point class. Convenience class for storing ROS-independent 3D points.
 
+    """
     def __init__(self, x=None, y=None, z=None):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = x  #: x-coordinate
+        self.y = y  #: y-coordinate
+        self.z = z  #: z-coordinate
 
     @staticmethod
     def from_message(msg):
+        """
+        Generates a class instance from a ROS message. Expects that the message has attributes ``x`` and ``y``.
+        If the message additionally has a ``z`` attribute, it will take it as well. Otherwise ``z`` will be set to 0.
+
+        Args:
+            msg: A ROS message or another object with ``x`` and ``y`` attributes
+
+        Returns:
+            :py:class:`Point` : A Point object
+
+        """
         x = msg.x
         y = msg.y
         try:
@@ -20,26 +34,68 @@ class Point:
 
 
 class GroundProjectionGeometry:
+    """
+    Handles the Ground Projection operations.
+
+    Note:
+        All pixel and image operations in this class assume that the pixels and images are *already rectified*! If
+        unrectified pixels or images are supplied, the outputs of these operations will be incorrect!
+
+    Args:
+        im_width (``int``): Width of the rectified image
+        im_height (``int``): Height of the rectified image
+        homography (``int``): The 3x3 Homography matrix
+
+
+    """
 
     def __init__(self, im_width, im_height, homography):
         self.im_width = im_width
         self.im_height = im_height
-        self.H = homography
+        self.H = np.array(homography).reshape((3, 3))
         self.Hinv = np.linalg.inv(self.H)
 
     def vector2pixel(self, vec):
-        """ Converts a [0,1] X [0,1] representation to [0, W] X [0, H]. """
+        """
+        Converts a ``[0,1] X [0,1]`` representation to ``[0, W] X [0, H]`` (from normalized to image coordinates).
+
+        Args:
+            vec (:py:class:`Point`): A :py:class:`Point` object in normalized coordinates. Only the ``x`` and ``y`` values are used.
+
+        Returns:
+            :py:class:`Point` : A :py:class:`Point` object in image coordinates. Only the ``x`` and ``y`` values are used.
+
+        """
         x = self.im_width * vec.x
         y = self.im_height * vec.y
         return Point(x, y)
 
     def pixel2vector(self, pixel):
-        """ Converts a [0,W] X [0,H] representation to [0, 1] X [0, 1]. """
+        """
+        Converts a ``[0,W] X [0,H]`` representation to ``[0, 1] X [0, 1]`` (from image to normalized coordinates).
+
+        Args:
+            vec (:py:class:`Point`): A :py:class:`Point` object in image coordinates. Only the ``x`` and ``y`` values are used.
+
+        Returns:
+            :py:class:`Point` : A :py:class:`Point` object in normalized coordinates. Only the ``x`` and ``y`` values are used.
+
+        """
         x = pixel.x / self.im_width
         y = pixel.y / self.im_height
         return Point(x, y)
 
     def pixel2ground(self, pixel):
+        """
+        Projects a normalized pixel (``[0, 1] X [0, 1]``) to the ground plane using the homography matrix.
+
+        Args:
+            pixel (:py:class:`Point`): A :py:class:`Point` object in normalized coordinates. Only the ``x`` and ``y`` values are used.
+
+        Returns:
+            :py:class:`Point` : A :py:class:`Point` object on the ground plane. Only the ``x`` and ``y`` values are used.
+
+        """
         uv_raw = np.array([pixel.x, pixel.y, 1.0])
         ground_point = np.dot(self.H, uv_raw)
         point = Point()
@@ -52,6 +108,19 @@ class GroundProjectionGeometry:
         return point
 
     def ground2pixel(self, point):
+        """
+        Projects a point on the ground plane to a normalized pixel (``[0, 1] X [0, 1]``) using the homography matrix.
+
+        Args:
+            point (:py:class:`Point`): A :py:class:`Point` object on the ground plane. Only the ``x`` and ``y`` values are used.
+
+        Returns:
+            :py:class:`Point` : A :py:class:`Point` object in normalized coordinates. Only the ``x`` and ``y`` values are used.
+
+        Raises:
+            ValueError: If the input point's ``z`` attribute is non-zero. The point must be on the ground (``z=0``).
+
+        """
         if point.z != 0:
             msg = 'This method assumes that the point is a ground point (z=0). '
             msg += 'However, the point is (%s,%s,%s)' % (point.x, point.y, point.z)
@@ -69,7 +138,39 @@ class GroundProjectionGeometry:
 
     @staticmethod
     def estimate_homography(cv_image_rectified, board_w, board_h, square_size, x_offset, y_offset):
-        """Image should be rectified."""
+        """
+        Estimates the homography matrix from an image with a calibration board.
+
+        By using an image of the checkerboard calibration pattern taken from the robot when placed at the origin
+        marking, detects the corners of the squares and computes the best homography matrix from them. The arguments
+        of this function determine the dimensions and the position of the checkerboard with respect to the
+        robot origin.
+
+        For more information on the called to perform these operations, consult the OpenCV reference for
+        `findChessboardCorners <https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html?highlight=findhomography#findchessboardcorners>`_,
+        `cornerSubPix <https://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html#cornersubpix>`_,
+        `findHomography <https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html?#findhomographyi>`_.
+
+
+        Note:
+            The provided image should be rectified!
+
+        Args:
+            cv_image_rectified (:obj:``numpy array``): A color (3-channel) OpenCV image
+            board_w (`int`): The width of the calibration board (number of squares)
+            board_h (`int`): The height of the calibration board (number of squares)
+            square_sizei (`float`): Side of the square (in meters)
+            x_offset (`float`): Distance from the robot origin to the first row of corners (top edge of the closest squares)
+            y_offset: ('float`): Distance from the robot origin to the first column of corners (right edge of the left-most squares)
+
+
+        Returns:
+            :py:class:`GroundProjectionGeometry`: An instance of :py:class:`GroundProjectionGeometry` with the image dimensions of the calibration image and the calculated homography matrix.
+
+        Raises:
+            RuntimeError: If no corners were found in image, or the corners couldn't be rearranged
+
+        """
 
         cv_image_rectified = cv2.cvtColor(cv_image_rectified, cv2.COLOR_BGR2GRAY)
 

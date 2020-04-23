@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 
-# from cv_bridge import CvBridge, CvBridgeError
-# from duckietown_msgs.msg import (Segment, SegmentList)
-# import duckietown_utils as dtu
-# from ground_projection.ground_projection_interface import GroundProjection, \
-#     get_ground_projection_geometry_for_robot
-# from ground_projection.srv import EstimateHomography, EstimateHomographyResponse, GetGroundCoord, GetGroundCoordResponse, GetImageCoord, GetImageCoordResponse  #@UnresolvedImport
-# import rospy
-# from sensor_msgs.msg import (Image, CameraInfo)
-
 import cv2
 from cv_bridge import CvBridge
 import os
@@ -16,7 +7,7 @@ import yaml
 import numpy as np
 
 import rospy
-from duckietown import DTROS
+from duckietown.dtros import DTROS, NodeType, TopicType
 from ground_projection import Point, GroundProjectionGeometry
 from image_geometry import PinholeCameraModel
 
@@ -25,22 +16,14 @@ from geometry_msgs.msg import Point as PointMsg
 from duckietown_msgs.msg import Segment, SegmentList
 
 
-#######################################################################
-#
-# - Intrinsic must be upadtable
-# - Extrinsic loaded from file
-# - Take line segments from an unrectified image
-# - Rectify them
-# - Project them on the ground
-#
-#######################################################################
-
-
 class GroundProjectionNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(GroundProjectionNode, self).__init__(node_name=node_name)
+        super(GroundProjectionNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION
+        )
 
         self.bridge = CvBridge()
         self.pcm = None
@@ -49,20 +32,18 @@ class GroundProjectionNode(DTROS):
         self.first_processing_done = False
 
         # subscribers
-        self.sub_camera_info = self.subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
-        self.sub_lineseglist_ = self.subscriber("~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1)
+        self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
+        self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1)
 
         # publishers
-        self.pub_lineseglist = self.publisher("~lineseglist_out", SegmentList, queue_size=1)
-        self.pub_debug_img = self.publisher("~debug/ground_projection_image/compressed", CompressedImage, queue_size=1)
+        self.pub_lineseglist = rospy.Publisher("~lineseglist_out",
+                                               SegmentList, queue_size=1, dt_topic_type=TopicType.PERCEPTION)
+        self.pub_debug_img = rospy.Publisher("~debug/ground_projection_image/compressed",
+                                             CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
 
         self.bridge = CvBridge()
 
         self.debug_img_bg = None
-
-        # self.gpg = get_ground_projection_geometry_for_robot(self.robot_name)
-
-        # self.image_channel_name = "image_raw"
 
         # Seems to be never used:
         # self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography, self.estimate_homography_cb)
