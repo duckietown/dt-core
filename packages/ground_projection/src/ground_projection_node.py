@@ -17,6 +17,22 @@ from duckietown_msgs.msg import Segment, SegmentList
 
 
 class GroundProjectionNode(DTROS):
+    """
+    This node projects the line segments detected in the image to the ground plane and in the robot's reference frame.
+    In this way it enables lane localization in the 2D ground plane. This projection is performed using the homography
+    matrix obtained from the extrinsic calibration procedure.
+
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+
+    Subscribers:
+        ~camera_info (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera. Needed for rectifying the segments.
+        ~lineseglist_in (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
+
+    Publishers:
+        ~lineseglist_out (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane relative to the robot origin
+        ~debug/ground_projection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image that shows the robot relative to the projected segments. Useful to check if the extrinsic calibration is accurate.
+    """
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
@@ -51,6 +67,14 @@ class GroundProjectionNode(DTROS):
         # self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
 
     def cb_camera_info(self, msg):
+        """
+        Stores the intrinsic calibration into a PinholeCameraModel object and generates
+        a :py:class:`ground_projection.GroundProjectionGeometry` object.
+
+        Args:
+            msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
+
+        """
         self.pcm = PinholeCameraModel()
         self.pcm.fromCameraInfo(msg)
         self.ground_projector = GroundProjectionGeometry(im_width=msg.width,
@@ -58,6 +82,18 @@ class GroundProjectionNode(DTROS):
                                                          homography=np.array(self.homography).reshape((3, 3)))
 
     def pixel_msg_to_ground_msg(self, point_msg):
+        """
+        Creates a :py:class:`ground_projection.Point` object from a normalized point message from an unrectified
+        image. It converts it to pixel coordinates and rectifies it. Then projects it to the ground plane and
+        converts it to a ROS Point message.
+
+        Args:
+            point_msg (:obj:`geometry_msgs.msg.Point`): Normalized point coordinates from an unrectified image.
+
+        Returns:
+            point_msg (:obj:`geometry_msgs.msg.Point`): Point coordinates in the ground reference frame.
+
+        """
         # normalized coordinates to pixel:
         norm_pt = Point.from_message(point_msg)
         pixel = self.ground_projector.vector2pixel(norm_pt)
@@ -76,6 +112,14 @@ class GroundProjectionNode(DTROS):
         return ground_pt_msg
 
     def lineseglist_cb(self, seglist_msg):
+        """
+        Projects a list of line segments on the ground reference frame point by point by
+        calling :py:meth:`pixel_msg_to_ground_msg`. Then publishes the projected list of segments.
+
+        Args:
+            seglist_msg (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
+
+        """
         if self.pcm is None or self.ground_projector:
             seglist_out = SegmentList()
             seglist_out.header = seglist_msg.header
@@ -119,6 +163,13 @@ class GroundProjectionNode(DTROS):
     #     return EstimateHomographyResponse()
 
     def load_extrinsics(self):
+        """
+        Loads the homography matrix from the extrinsic calibration file.
+
+        Returns:
+            :obj:`numpy array`: the loaded homography matrix
+
+        """
         # load intrinsic calibration
         cali_file_folder = '/data/config/calibrations/camera_extrinsic/'
         cali_file = cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
@@ -137,12 +188,26 @@ class GroundProjectionNode(DTROS):
 
         stream = file(cali_file, 'r')
 
-        # TODO; catch errors
-        calib_data = yaml.load(stream)
+        try:
+            calib_data = yaml.load(stream)
+        except yaml.YAMLError:
+            msg = 'Error in parsing calibration file %s ... aborting' % cali_file
+            self.log(msg, 'err')
+            rospy.signal_shutdown(msg)
 
         return calib_data['homography']
 
     def debug_image(self, seg_list):
+        """
+        Generates a debug image with all the projected segments plotted with respect to the robot's origin.
+
+        Args:
+            seg_list (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane relative to the robot origin
+
+        Returns:
+            :obj:`numpy array`: an OpenCV image
+
+        """
         # dimensions of the image are 1m x 1m so, 1px = 2.5mm
         # the origin is at x=200 and y=300
 

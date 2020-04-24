@@ -165,7 +165,7 @@ class GroundProjectionGeometry:
 
 
         Returns:
-            :py:class:`GroundProjectionGeometry`: An instance of :py:class:`GroundProjectionGeometry` with the image dimensions of the calibration image and the calculated homography matrix.
+            tuple: An instance of the :py:class:`GroundProjectionGeometry` with the image dimensions of the calibration image and the calculated homography matrix, and a status sting that is `Homography could be corrupt!` or ``None``.
 
         Raises:
             RuntimeError: If no corners were found in image, or the corners couldn't be rearranged
