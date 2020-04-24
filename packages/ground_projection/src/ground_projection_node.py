@@ -91,7 +91,7 @@ class GroundProjectionNode(DTROS):
             point_msg (:obj:`geometry_msgs.msg.Point`): Normalized point coordinates from an unrectified image.
 
         Returns:
-            point_msg (:obj:`geometry_msgs.msg.Point`): Point coordinates in the ground reference frame.
+            :obj:`geometry_msgs.msg.Point`: Point coordinates in the ground reference frame.
 
         """
         # normalized coordinates to pixel:

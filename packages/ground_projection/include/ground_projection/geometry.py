@@ -161,7 +161,7 @@ class GroundProjectionGeometry:
             board_h (`int`): The height of the calibration board (number of squares)
             square_sizei (`float`): Side of the square (in meters)
             x_offset (`float`): Distance from the robot origin to the first row of corners (top edge of the closest squares)
-            y_offset: ('float`): Distance from the robot origin to the first column of corners (right edge of the left-most squares)
+            y_offset: (`float`): Distance from the robot origin to the first column of corners (right edge of the left-most squares)
 
 
         Returns:

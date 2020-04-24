@@ -8,7 +8,7 @@
 
     .. autoclass:: ground_projection.Point
 
-    .. autoclass:: line_detector.GroundProjectionGeometry
+    .. autoclass:: ground_projection.GroundProjectionGeometry
 
 
 """
