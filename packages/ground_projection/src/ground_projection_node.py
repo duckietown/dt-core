@@ -231,7 +231,7 @@ class GroundProjectionNode(DTROS):
             cv2.putText(self.debug_img_bg, "+20cm", (280-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
 
             # draw horizontal lines of the grid
-            for hline in np.arange(100, 301, 40):
+            for hline in np.arange(20, 301, 40):
                 cv2.line(self.debug_img_bg,
                          pt1=(40, hline),
                          pt2=(360, hline),
