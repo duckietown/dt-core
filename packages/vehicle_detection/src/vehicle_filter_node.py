@@ -116,7 +116,7 @@ class VehicleFilterNode(DTROS):
 
                 mean_reproj_error = np.mean(np.sqrt(np.sum((np.squeeze(points_reproj)-points)**2, axis=1)))
 
-                if mean_reproj_error < self.max_reproj_pixelerror_pose_estimation:
+                if mean_reproj_error < self.max_reproj_pixelerror_pose_estimation.value:
                     (R, jac) = cv2.Rodrigues(rotation_vector)
                     R_inv = np.transpose(R)
                     translation_vector = -np.dot(R_inv, translation_vector)
@@ -125,7 +125,7 @@ class VehicleFilterNode(DTROS):
                     # make the message and publish
                     self.publish_stop_line_msg(header=vehicle_centers_msg.header,
                                                detected=True,
-                                               at=distance_to_vehicle <= self.virtual_stop_line_offset,
+                                               at=distance_to_vehicle <= self.virtual_stop_line_offset.value,
                                                x=distance_to_vehicle)
 
                     if self.pub_visualize.get_num_connections() > 0:
@@ -192,7 +192,7 @@ class VehicleFilterNode(DTROS):
         # check if the version generated before is still valid, if not, or first time called, create
 
         if self.last_calc_circle_pattern is None or self.last_calc_circle_pattern != (height, width):
-            self.circlepattern_dist = self.distance_between_centers
+            self.circlepattern_dist = self.distance_between_centers.value
             self.circlepattern = np.zeros([height * width, 3])
             for i in range(0, width):
                 for j in range(0, height):

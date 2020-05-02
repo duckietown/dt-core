@@ -51,6 +51,12 @@ class VehicleDetectionNode(DTROS):
         self.blobdetector_min_dist_between_blobs = DTParam('~blobdetector_min_dist_between_blobs',
                                                            param_type=ParamType.FLOAT)
 
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #
+        self.cbParametersChanged() # TODO: THIS SHOULD BE FIXED IN THE NEW DTROS!!!!!!!!!!
+        #
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         self.bridge = CvBridge()
 
         self.last_stamp = rospy.Time.now()
@@ -66,6 +72,7 @@ class VehicleDetectionNode(DTROS):
 
     def cbParametersChanged(self):
 
+        #TODO: THIS DOESN'T WORK WITH THE NEW DTROS!!!
         self.publish_duration = rospy.Duration.from_sec(1.0/self.process_frequency)
         params = cv2.SimpleBlobDetector_Params()
         params.minArea = self.blobdetector_min_area
