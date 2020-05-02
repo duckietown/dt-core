@@ -72,7 +72,7 @@ class StopLineFilterNode(DTROS):
         stop_line_reading_msg.at_stop_line = False
         self.pub_stop_line_reading.publish(stop_line_reading_msg)
         self.sleep = True
-        rospy.sleep(self.off_time)
+        rospy.sleep(self.off_time.value)
         self.sleep = False
         self.loginfo("Resuming stop line detection after the intersection")
 
@@ -87,6 +87,7 @@ class StopLineFilterNode(DTROS):
         self.lane_pose = lane_pose_msg
 
     def cb_segments(self, segment_list_msg):
+
         if not self.switch or self.sleep:
             return
 
@@ -109,7 +110,7 @@ class StopLineFilterNode(DTROS):
 
         stop_line_reading_msg = StopLineReading()
         stop_line_reading_msg.header.stamp = segment_list_msg.header.stamp
-        if good_seg_count < self.min_segs:
+        if good_seg_count < self.min_segs.value:
             stop_line_reading_msg.stop_line_detected = False
             stop_line_reading_msg.at_stop_line = False
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
@@ -128,8 +129,8 @@ class StopLineFilterNode(DTROS):
             stop_line_point.y = stop_line_y_accumulator / good_seg_count
             stop_line_reading_msg.stop_line_point = stop_line_point
             # Only detect redline if y is within max_y distance:
-            stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance and \
-                                                 np.abs(stop_line_point.y) < self.max_y
+            stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance.value and \
+                                                 np.abs(stop_line_point.y) < self.max_y.value
 
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
             # if stop_line_reading_msg.at_stop_line:
