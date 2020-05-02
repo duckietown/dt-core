@@ -8,7 +8,7 @@ from cv_bridge import CvBridge
 
 from image_geometry import PinholeCameraModel
 
-from duckietown.dtros import DTROS, NodeType, TopicType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from visualization_msgs.msg import Marker
