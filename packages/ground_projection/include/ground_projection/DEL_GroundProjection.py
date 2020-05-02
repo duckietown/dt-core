@@ -14,38 +14,49 @@ from duckietown_utils import (logger, get_duckiefleet_root)
 
 class GroundProjection():
 
-    def __init__(self, robot_name="shamrock"):
+    def __init__(self, robot_name="default"):
 
         # defaults overwritten by param
         self.robot_name = robot_name
         self.rectified_input = False
 
-        # Load homography
-        self.H = self.load_homography()
-        self.Hinv = np.linalg.inv(self.H)
-
-        self.pcm_ = PinholeCameraModel()
+        # Initialize
+        self.H = None
+        self.Hinv = None
+        # self.pcm_ = PinholeCameraModel()
 
         # Load checkerboard information
         self.board_ = self.load_board_info()
 
+    def rectify_segment(self):
+        pass
+
+    def rectify_segments(self):
+        pass
+
+    def rectify_segment_msg(self):
+        pass
+
+    def rectify_segments_msg(self):
+        pass
+
     # wait until we have recieved the camera info message through ROS and then initialize
-    def initialize_pinhole_camera_model(self,camera_info):
-        self.ci_=camera_info
-        self.pcm_.fromCameraInfo(camera_info)
-        print("pinhole camera model initialized")
+    # def initialize_pinhole_camera_model(self, camera_info):
+    #     self.ci_= camera_info
+    #     self.pcm_.fromCameraInfo(camera_info)
+    #     print("pinhole camera model initialized")
 
     def vector2pixel(self, vec):
-        pixel = Pixel()
+        pixel_msg = Pixel()
         cw = self.ci_.width
         ch = self.ci_.height
-        pixel.u = cw * vec.x
-        pixel.v = ch * vec.y
-        if (pixel.u < 0): pixel.u = 0
-        if (pixel.u > cw -1): pixel.u = cw - 1
-        if (pixel.v < 0): pixel.v = 0
-        if (pixel.v > ch - 1): pixel.v = 0
-        return pixel
+        pixel_msg.u = cw * vec.x
+        pixel_msg.v = ch * vec.y
+        if (pixel_msg.u < 0): pixel_msg.u = 0
+        if (pixel_msg.u > cw -1): pixel_msg.u = cw - 1
+        if (pixel_msg.v < 0): pixel_msg.v = 0
+        if (pixel_msg.v > ch - 1): pixel_msg.v = 0
+        return pixel_msg
 
     def pixel2vector(self, pixel):
         vec = Vector2D()
@@ -146,8 +157,23 @@ class GroundProjection():
         if(self.H[1][2] > 0):
             rospy.logerr("WARNING: Homography could be corrupt!")
 
+    def set_homography(self, H_matrix):
+        """
+        Sets the :py:attr:`H` and :py:attr:`Hinv` attributes.
+
+        Args:
+            H_matrix: A 3x3 matrix
+        """
+
+        #TODO: validate
+
+        self.H = H_matrix
+        self.Hinv = np.linalg.inv(self.H)
+
+    # TODO: remove
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''
+        # TODO: Accept full path
         filename = (get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + self.robot_name + ".yaml")
         if not os.path.isfile(filename):
             logger.warn("no extrinsic calibration parameters for {}, trying default".format(self.robot_name))
