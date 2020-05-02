@@ -212,7 +212,7 @@ class GroundProjectionNode(DTROS):
         # the origin is at x=200 and y=300
 
         # if that's the first call, generate the background
-        if not self.debug_img_bg:
+        if self.debug_img_bg is None:
 
             # initialize gray image
             self.debug_img_bg = np.ones((400, 400, 3), np.uint8) * 128
