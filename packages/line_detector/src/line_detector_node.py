@@ -4,11 +4,10 @@ import numpy as np
 import cv2
 import rospy
 from cv_bridge import CvBridge
+from duckietown import DTROS
 from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import Segment, SegmentList
 from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
-
-from duckietown.dtros import DTROS, NodeType, TopicType
 
 
 class LineDetectorNode(DTROS):
@@ -49,72 +48,40 @@ class LineDetectorNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LineDetectorNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(LineDetectorNode, self).__init__(node_name=node_name)
 
-        # Define parameters
-        self._line_detector_parameters = rospy.get_param('~line_detector_parameters', None)
-        self._colors = rospy.get_param('~colors', None)
-        self._img_size = rospy.get_param('~img_size', None)
-        self._top_cutoff = rospy.get_param('~top_cutoff', None)
+        # Add the node parameters to the parameters dictionary and load their default values
+        self.parameters['~line_detector_parameters'] = None
+        self.parameters['~colors'] = None
+        self.parameters['~img_size'] = None
+        self.parameters['~top_cutoff'] = None
+        self.updateParameters()
 
         self.bridge = CvBridge()
-
-        # This holds the colormaps for the debug/ranges images after they are computed once
-        self.colormaps = dict()
-
-        # Create a new LineDetector object with the parameters from the Parameter Server / config file
-        self.detector = LineDetector(**self._line_detector_parameters)
-        # Update the color ranges objects
-        self.color_ranges = {
-            color: ColorRange.fromDict(d)
-            for color, d in self._colors.iteritems()
-        }
+        self.colormaps = dict()  #: Holds the colormaps for the debug/ranges images after they are computed once
 
         # Subscribers
-        self.sub_image = rospy.Subscriber(
-            "~corrected_image/compressed",
-            CompressedImage,
-            self.image_cb,
-            queue_size=1
-        )
+        self.sub_image = self.subscriber("~corrected_image/compressed", CompressedImage, self.cbImage,
+                                         queue_size=1)
 
         # Publishers
-        self.pub_lines = rospy.Publisher(
-            "~segment_list", SegmentList, queue_size=1,
-            dt_topic_type=TopicType.PERCEPTION
-        )
-        self.pub_d_segments = rospy.Publisher(
-            "~debug/segments/compressed", CompressedImage, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
-        self.pub_d_edges = rospy.Publisher(
-            "~debug/edges/compressed", CompressedImage, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
-        self.pub_d_maps = rospy.Publisher(
-            "~debug/maps/compressed", CompressedImage, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
+        self.pub_lines = self.publisher("~segment_list", SegmentList, queue_size=1)
+        self.pub_d_segments = self.publisher("~debug/segments/compressed", CompressedImage, queue_size=1)
+        self.pub_d_edges = self.publisher("~debug/edges/compressed", CompressedImage, queue_size=1)
+        self.pub_d_maps = self.publisher("~debug/maps/compressed", CompressedImage, queue_size=1)
         # these are not compressed because compression adds undesired blur
-        self.pub_d_ranges_HS = rospy.Publisher(
-            "~debug/ranges_HS", Image, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
-        self.pub_d_ranges_SV = rospy.Publisher(
-            "~debug/ranges_SV", Image, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
-        self.pub_d_ranges_HV = rospy.Publisher(
-            "~debug/ranges_HV", Image, queue_size=1,
-            dt_topic_type=TopicType.DEBUG
-        )
+        self.pub_d_ranges_HS = self.publisher("~debug/ranges_HS", Image, queue_size=1)
+        self.pub_d_ranges_SV = self.publisher("~debug/ranges_SV", Image, queue_size=1)
+        self.pub_d_ranges_HV = self.publisher("~debug/ranges_HV", Image, queue_size=1)
 
-    def image_cb(self, image_msg):
-        """
-        Processes the incoming image messages.
+    def cbParametersChanged(self):
+        # Create a new LineDetector object with the parameters from the Parameter Server / config file
+        self.detector = LineDetector(**self.parameters['~line_detector_parameters'])
+        # Update the color ranges objects
+        self.color_ranges = {color: ColorRange.fromDict(d) for color, d in self.parameters['~colors'].iteritems()}
+
+    def cbImage(self, image_msg):
+        """ Processes the incoming image messages.
 
         Performs the following steps for each incoming image:
 
@@ -134,35 +101,29 @@ class LineDetectorNode(DTROS):
         try:
             image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
         except ValueError as e:
-            self.logerr('Could not decode image: %s' % e)
+            self.loginfo('Could not decode image: %s' % e)
             return
 
         # Resize the image to the desired dimensions
         height_original, width_original = image.shape[0:2]
-        img_size = (self._img_size[1], self._img_size[0])
-        if img_size[0] != width_original or img_size[1] != height_original:
-            image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
-        image = image[self._top_cutoff:, :, :]
+        if self.parameters['~img_size'][0] != height_original or self.parameters['~img_size'][1] != width_original:
+            # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
+            image = cv2.resize(image, (self.parameters['~img_size'][1], self.parameters['~img_size'][0]),
+                               interpolation=cv2.INTER_NEAREST)
+        image = image[self.parameters['~top_cutoff']:, :, :]
 
         # Extract the line segments for every color
         self.detector.setImage(image)
-        detections = {
-            color: self.detector.detectLines(ranges)
-            for color, ranges in self.color_ranges.iteritems()
-        }
+        detections = {color: self.detector.detectLines(ranges) for color, ranges in self.color_ranges.iteritems()}
 
         # Construct a SegmentList
         segment_list = SegmentList()
         segment_list.header.stamp = image_msg.header.stamp
 
         # Remove the offset in coordinates coming from the removing of the top part and
-        arr_cutoff = np.array([
-            0, self._top_cutoff, 0, self._top_cutoff
-        ])
-        arr_ratio = np.array([
-            1. / self._img_size[1], 1. / self._img_size[0],
-            1. / self._img_size[1], 1. / self._img_size[0]
-        ])
+        arr_cutoff = np.array([0, self.parameters['~top_cutoff'], 0, self.parameters['~top_cutoff']])
+        arr_ratio = np.array([1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0],
+                              1. / self.parameters['~img_size'][1], 1. / self.parameters['~img_size'][0]])
 
         # Fill in the segment_list with all the detected segments
         for color, det in detections.iteritems():
@@ -172,9 +133,7 @@ class LineDetectorNode(DTROS):
                 try:
                     color_id = getattr(Segment, color)
                     lines_normalized = (det.lines + arr_cutoff) * arr_ratio
-                    segment_list.segments.extend(
-                        self._to_segment_msg(lines_normalized, det.normals, color_id)
-                    )
+                    segment_list.segments.extend(self.toSegmentMsg(lines_normalized, det.normals, color_id))
                 except AttributeError:
                     self.logerr("Color name %s is not defined in the Segment message" % color)
 
@@ -204,15 +163,14 @@ class LineDetectorNode(DTROS):
         for channels in ['HS', 'SV', 'HV']:
             publisher = getattr(self, 'pub_d_ranges_%s' % channels)
             if publisher.get_num_connections() > 0:
-                debug_img = self._plot_ranges_histogram(channels)
+                debug_img = self.plotRangesHistogram(channels)
                 debug_image_msg = self.bridge.cv2_to_imgmsg(debug_img, encoding="bgr8")
                 debug_image_msg.header = image_msg.header
                 publisher.publish(debug_image_msg)
 
     @staticmethod
-    def _to_segment_msg(lines, normals, color):
-        """
-        Converts line detections to a list of Segment messages.
+    def toSegmentMsg(lines, normals, color):
+        """ Converts line detections to a list of Segment messages.
 
         Converts the resultant line segments and normals from the line detection to a list of Segment messages.
 
@@ -238,7 +196,7 @@ class LineDetectorNode(DTROS):
             segment_msg_list.append(segment)
         return segment_msg_list
 
-    def _plot_ranges_histogram(self, channels):
+    def plotRangesHistogram(self, channels):
         """ Utility method for plotting color histograms and color ranges.
 
         Args:
@@ -248,6 +206,7 @@ class LineDetectorNode(DTROS):
             :obj:`numpy array`: The resultant plot image
 
         """
+
         channel_to_axis = {'H': 0, 'S': 1, 'V': 2}
         axis_to_range = {0: 180, 1: 256, 2: 256}
 
@@ -292,14 +251,13 @@ class LineDetectorNode(DTROS):
             c = np.uint8([[[c[0], c[1], c[2]]]])
             color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int)
             for i in range(len(color_range.low)):
-                cv2.rectangle(
-                    im,
-                    pt1=((color_range.high[i, channel_idx[1]]/2).astype(np.uint8), (color_range.high[i, channel_idx[0]]/2).astype(np.uint8)),
-                    pt2=((color_range.low[i, channel_idx[1]]/2).astype(np.uint8), (color_range.low[i, channel_idx[0]]/2).astype(np.uint8)),
-                    color=color,
-                    lineType=cv2.LINE_4
-                )
-        # ---
+                cv2.rectangle(im,
+                              pt1=((color_range.high[i, channel_idx[1]]/2).astype(np.uint8), (color_range.high[i, channel_idx[0]]/2).astype(np.uint8)),
+                              pt2=((color_range.low[i, channel_idx[1]]/2).astype(np.uint8), (color_range.low[i, channel_idx[0]]/2).astype(np.uint8)),
+                              color=color,
+                              lineType=cv2.LINE_4)
+
+
         return im
 
 

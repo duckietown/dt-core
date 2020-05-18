@@ -2,13 +2,12 @@
 <launch>
 	<arg name="veh"  doc="Name of vehicle"/>
 
-    <arg name="node_name" default="anti_instagram_node"/>
     <arg name="param_file_name" default="default" doc="Specify a param file" />
     <arg name="pkg_name" value="anti_instagram"/>
     <arg name="node_name" default="anti_instagram_node"/>
 
     <group ns="$(arg veh)">
-        <node name="anti_instagram_node" pkg="anti_instagram" type="anti_instagram_node.py" output="screen">
+        <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
             <rosparam command="load" file="$(find anti_instagram)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
             <remap from="anti_instagram_node/uncorrected_image/compressed" to="camera_node/image/compressed"/>
         </node>

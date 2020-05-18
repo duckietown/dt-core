@@ -4,9 +4,8 @@ import cv2
 import numpy as np
 import math
 import threading
-from .anti_instagram_interface import AntiInstagramInterface
 
-class AntiInstagram(AntiInstagramInterface):
+class AntiInstagram():
 
     def __init__(self):
 

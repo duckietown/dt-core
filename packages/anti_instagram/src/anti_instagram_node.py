@@ -5,7 +5,6 @@ import threading
 
 from anti_instagram import AntiInstagram
 from cv_bridge import CvBridge
-from duckietown_utils.jpg import bgr_from_jpg
 from sensor_msgs.msg import CompressedImage
 
 
@@ -42,7 +41,7 @@ class AntiInstagramNode():
     def process_image(self, image_msg):
         try:
             self.image_lock.acquire()
-            image = bgr_from_jpg(image_msg.data)
+            image = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
             self.image = image
             self.image_lock.release()
         except ValueError as e:

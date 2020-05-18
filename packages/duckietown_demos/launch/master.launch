@@ -9,6 +9,8 @@
 	<arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
 	<arg name="fsm_file_name" default="$(arg demo_name)" />
 	<arg name="verbose" default="false" />
+	<arg name="ai_trafo_mode" default="cb" doc="'cb' for colo balance only; 'both' for color balance and linear trafo"/>
+	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
 	<!-- end args -->
@@ -357,10 +359,10 @@
 
     <!-- Start anti-instagram / LF, IN -->
     <group if="$(arg anti_instagram)">
+        <!-- NOT LOADING PARAMS FROM A YAML FILE -->
         <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
-
+            <arg name="ai_interval" value="$(arg ai_interval)"/>
         </include>
     </group>
     <!-- End anti-instagram -->
