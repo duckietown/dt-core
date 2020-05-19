@@ -1,28 +1,31 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String, ColorRGBA  # Imports msg
+from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import Segment, SegmentList
 from geometry_msgs.msg import Point
+from std_msgs.msg import String, ColorRGBA  # Imports msg
 from visualization_msgs.msg import Marker, MarkerArray
-from duckietown import DTROS
 
 
 class LineSegmentVisualizer(DTROS):
-    def __init__(self):
-        # Save the name of the node
-        self.node_name = "Line_segment_visualizer"
-        super(LineSegmentVisualizer, self).__init__(node_name=self.node_name)
-        rospy.loginfo("[%s] Initializing." % (self.node_name))
+    def __init__(self, node_name):
+        # Initialize the DTROS parent class
+        super(LineSegmentVisualizer, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.DEBUG
+        )
 
         # Read parameters
         self.veh_name = self.setupParameter("~veh_name", "megaman")
 
         # Setup publishers
         # self.pub_timestep = self.setupParameter("~pub_timestep",1.0)
-        self.pub_seg_list = self.publisher(
-            "~segment_list_markers", MarkerArray, queue_size=1)
-        self.pub_seg_list_filtered = self.publisher(
-            "~filtered_segment_list_markers", MarkerArray, queue_size=1)
+        self.pub_seg_list = rospy.Publisher(
+            "~segment_list_markers", MarkerArray, queue_size=1,
+            dt_topic_type=TopicType.DEBUG)
+        self.pub_seg_list_filtered = rospy.Publisher(
+            "~filtered_segment_list_markers", MarkerArray, queue_size=1,
+            dt_topic_type=TopicType.DEBUG)
 
         # Create a timer that calls the cbTimer function every 1.0 second
         # self.timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.cbTimer)
@@ -36,9 +39,9 @@ class LineSegmentVisualizer(DTROS):
             r=1.0, g=0.0, b=0.0, a=1.0)
 
         # Setup subscriber
-        self.sub_seg_list = self.subscriber(
+        self.sub_seg_list = rospy.Subscriber(
             "~segment_list", SegmentList, self.cbSegList)
-        self.sub_filtered_seg_list = self.subscriber(
+        self.sub_filtered_seg_list = rospy.Subscriber(
             "~segment_list_filtered", SegmentList, self.cbSegListFiltered)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
@@ -85,16 +88,10 @@ class LineSegmentVisualizer(DTROS):
         rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
         return value
 
-    def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
-
 
 if __name__ == '__main__':
     # Create the NodeName object
-    node = LineSegmentVisualizer()
-
-    # Setup proper shutdown behavior
-    rospy.on_shutdown(node.on_shutdown)
+    node = LineSegmentVisualizer(node_name="Line_segment_visualizer")
 
     # Keep it spinning to keep the node alive
     rospy.spin()

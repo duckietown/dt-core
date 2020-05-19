@@ -1,21 +1,19 @@
 #!/usr/bin/env python
+import numpy as np
 import rospy
 import tf
-import numpy as np
+from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import LanePose
 from visualization_msgs.msg import Marker, MarkerArray
-from duckietown import DTROS
 
 
 class LanePoseVisualizer(DTROS):
-    def __init__(self):
-
-        # Save the name of the node
-        self.node_name = "lane_pose_visualizer_node"
-        super(LanePoseVisualizer, self).__init__(node_name=self.node_name)
-        rospy.loginfo("[%s] Initialzing." % (self.node_name))
-
-        self.updateParameters()
+    def __init__(self, node_name):
+        # Initialize the DTROS parent class
+        super(LanePoseVisualizer, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.DEBUG
+        )
 
         # Get vehicle name from namespace
         self.veh_name = rospy.get_namespace().strip("/")
@@ -23,12 +21,13 @@ class LanePoseVisualizer(DTROS):
                       (self.node_name, self.veh_name))
 
         # Setup publisher
-        self.pub_markers = self.publisher("~lane_pose_markers",
-                                          MarkerArray, queue_size=1)
+        self.pub_markers = rospy.Publisher("~lane_pose_markers",
+                                           MarkerArray, queue_size=1,
+                                           dt_topic_type=TopicType.DEBUG)
 
         # Setup subscriber
-        self.sub_lane_pose = self.subscriber("~lane_pose", LanePose,
-                                             self.cbLanePose, queue_size=1)
+        self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose,
+                                              self.cbLanePose, queue_size=1)
 
         rospy.loginfo("[%s] Initialzed." % (self.node_name))
 
@@ -82,7 +81,7 @@ class LanePoseVisualizer(DTROS):
 
 if __name__ == '__main__':
     # Create the NodeName object
-    node = LanePoseVisualizer()
+    node = LanePoseVisualizer(node_name="lane_pose_visualizer_node")
 
     # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)

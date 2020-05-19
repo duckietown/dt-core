@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-<<<<<<< HEAD
 	<!-- start args TODO: most things here should come from node's config files!-->
 	<arg name="veh" default="$(env VEHICLE_NAME)"/>
     <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
@@ -15,21 +14,6 @@
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
 	<!-- end args -->
-=======
-    <!-- start args TODO: most things here should come from node's config files!-->
-    <arg name="veh" default="$(env VEHICLE_NAME)"/>
-    <arg name="config" default="baseline" />
-    <arg name="camera_topic" default="camera_node"/>
-    <arg name="param_file_name" default="default" />
-    <arg name="apriltags_param_file_name" default="$(arg param_file_name)" />
-    <arg name="fsm_file_name" default="default" />
-    <arg name="verbose" default="false" />
-    <arg name="ai_trafo_mode" default="cb" doc="'cb' for colo balance only; 'both' for color balance and linear trafo"/>
-    <arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
-    <arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
-    <arg name="intersectionType" default= "stopSign"/>
-    <!-- end args -->
->>>>>>> origin/daffy-edit-lane-filter-and-more
 
     <!-- general convention on remappings is that we remap the "subscribers" -->
 
@@ -125,27 +109,18 @@
         <!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
         <!-- <remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/>
         <group unless="$(arg vehicle_avoidance)">
-<<<<<<< HEAD
                 <remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
         </group> -->
 
         <group if="$(arg /fsm/logic_gate)">
           <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" />
           <include file="$(find fsm)/launch/logic_gate_node.launch">
-=======
-            <remap from="vehicle_avoidance_control_node/car_cmd" to="lane_controller_node/car_cmd" />
-        </group>
-
-        <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" />
- -->
-        <include file="$(find fsm)/launch/logic_gate_node.launch">
->>>>>>> origin/daffy-edit-lane-filter-and-more
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg fsm_file_name)"/>
           </include>
         </group>
     </group>
-    <!--End FSM -->
+    <!--End FSM -->>
 
 
     <!-- Start Lane Following / LF, IN-->
@@ -260,27 +235,14 @@
     <group if="$(arg apriltags)">
         <!-- Detector node -->
         <remap from="image_rect" to="camera_node/image/rect" />
-<<<<<<< HEAD
         <remap from="camera_info" to="camera_node/raw_camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-=======
-        <remap from="camera_node/image/camera_info" to="camera_node/raw_camera_info" />
-        <remap from="apriltags_detector_node/image_raw" to="camera_node/image/rect"/>
-        <remap from="apriltags_detector_node/camera_info" to="camera_node/raw_camera_info"/>
-        <include file="$(find apriltags_ros)/launch/apriltag_detector_node.launch">
-            <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
->>>>>>> origin/daffy-edit-lane-filter-and-more
         </include>
 
         <!-- Postprocessing node -->
         <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
-<<<<<<< HEAD
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
-=======
-        <include file="$(find apriltag_ros)/launch/apriltags_postprocessing_node.launch">
->>>>>>> origin/daffy-edit-lane-filter-and-more
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -356,7 +318,7 @@
     <!-- End Coordination -->
 
     <!-- Start Unicorn intersection -->
-    <group if="$(arg unicorn_intersection)">
+    <!-- <group if="$(arg unicorn_intersection)">
         <remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
         <remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
         <remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
@@ -376,7 +338,7 @@
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
-    </group>
+    </group> -->
     <!-- End Unicorn intersection -->
 
 
