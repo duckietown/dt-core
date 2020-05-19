@@ -362,7 +362,7 @@
         <!-- NOT LOADING PARAMS FROM A YAML FILE -->
         <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="ai_interval" value="$(arg ai_interval)"/>
+            <!-- <arg name="ai_interval" value="$(arg ai_interval)"/>-->
         </include>
     </group>
     <!-- End anti-instagram -->
