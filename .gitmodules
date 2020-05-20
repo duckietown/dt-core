@@ -1,0 +1,8 @@
+[submodule "packages/apriltag3"]
+	path = packages/apriltag3
+	branch = rectification
+	url = git@github.com:ripl-ttic/apriltag3
+[submodule "packages/lib-dt-apriltags"]
+	path = packages/lib-dt-apriltags
+	branch = rectification
+	url = git@github.com:duckietown/lib-dt-apriltags
