@@ -12,14 +12,7 @@ class LaneFilterInterface(object):
 
     # These are not used yet
 
-    LOST = 'lost'
-    GOOD = 'good'
-    STRUGGLING = 'struggling'
 
-    POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
-
-    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
-                                  ('d', 'float64')])
 
     @abstractmethod
     def initialize(self):

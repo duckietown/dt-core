@@ -3,20 +3,20 @@ from collections import OrderedDict
 
 from scipy.stats import multivariate_normal, entropy
 
-from duckietown_utils.parameters import Configurable
+# from duckietown_utils.parameters import Configurable
 
 import numpy as np
 
-from .lane_filter_interface import LaneFilterInterface
+# from .lane_filter_interface import LaneFilterInterface
 
-from .visualization import plot_phi_d_diagram_bgr
+#from .visualization import plot_phi_d_diagram_bgr
 
 from scipy.ndimage.filters import gaussian_filter
 from math import floor, sqrt
 import copy
 
 
-class LaneFilterHistogram(Configurable, LaneFilterInterface):
+class LaneFilterHistogram():
     """ Generates an estimate of the lane pose.
 
 
@@ -33,7 +33,17 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration (:obj:`List`): A list of the parameters for the filter
 
     """
-    def __init__(self, configuration):
+
+    LOST = 'lost'
+    GOOD = 'good'
+    STRUGGLING = 'struggling'
+
+    POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
+
+    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
+                                  ('d', 'float64')])
+
+    def __init__(self, **kwargs):
         param_names = [
             'mean_d_0',
             'mean_phi_0',
@@ -57,8 +67,9 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             'range_max',
         ]
 
-        configuration = copy.deepcopy(configuration)
-        Configurable.__init__(self, param_names, configuration)
+        for p_name in param_names:
+            assert p_name in kwargs
+            setattr(self, p_name, kwargs[p_name])
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                     self.phi_min:self.phi_max:self.delta_phi]
@@ -91,7 +102,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.belief = RV.pdf(pos)
 
     def getStatus(self):
-        return LaneFilterInterface.GOOD
+        return self.GOOD
 
     def get_entropy(self):
         belief = self.belief
@@ -270,6 +281,6 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         y_c = (segment.points[0].y + segment.points[1].y) / 2
         return sqrt(x_c**2 + y_c**2)
 
-    def get_plot_phi_d(self, ground_truth=None):  # @UnusedVariable
-        d, phi = self.getEstimate()
-        return plot_phi_d_diagram_bgr(self, self.belief, phi=phi, d=d)
+#    def get_plot_phi_d(self, ground_truth=None):  # @UnusedVariable
+#        d, phi = self.getEstimate()
+#        return plot_phi_d_diagram_bgr(self, self.belief, phi=phi, d=d)

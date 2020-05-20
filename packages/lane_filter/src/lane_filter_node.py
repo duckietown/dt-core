@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped, FSMState
-from duckietown_utils.instantiate_utils import instantiate
+# from duckietown_utils.instantiate_utils import instantiate
+from lane_filter import LaneFilterHistogram
 import numpy as np
 import rospy
 from sensor_msgs.msg import Image
@@ -45,14 +46,11 @@ class LaneFilterNode(DTROS):
             node_type=NodeType.PERCEPTION
         )
 
-        self._filter = rospy.get_param('~filter', None)
+        self._filter = rospy.get_param('~lane_filter_histogram_configuration', None)
         self._debug = rospy.get_param('~debug', False)
 
         # Create the filter
-        c = self._filter
-        assert isinstance(c, list) and len(c) == 2, c
-        self.loginfo('new filter config: %s' % str(c))
-        self.filter = instantiate(c[0], c[1])
+        self.filter = LaneFilterHistogram(**self._filter)
 
         # Creating cvBridge
         self.bridge = CvBridge()
@@ -93,8 +91,8 @@ class LaneFilterNode(DTROS):
         dt_topic_type = TopicType.DEBUG)
 
         # FSM
-        self.sub_switch = rospy.Subscriber(
-            "~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        # self.sub_switch = rospy.Subscriber(
+        #     "~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber(
             "~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
@@ -123,17 +121,17 @@ class LaneFilterNode(DTROS):
             param_val = params[param_name]
             exec("self.filter." + str(param_name) + "=" + str(param_val))
 
-    def cbSwitch(self, switch_msg):
-        """Callback to turn on/off the node
-
-        Args:
-            switch_msg (:obj:`BoolStamped`): message containing the on or off command
-
-        """
-        # All calls to this message should be replaced directly by the srvSwitch
-        request = SetBool()
-        request.data = switch_msg.data
-        self.srvSwitch(request)
+#    def nbSwitch(self, switch_msg):
+#        """Callback to turn on/off the node
+#
+#        Args:
+#            switch_msg (:obj:`BoolStamped`): message containing the on or off command
+#
+#        """
+#        # All calls to this message should be replaced directly by the srvSwitch
+#        request = SetBool()
+#        request.data = switch_msg.data
+#        eelf.nub_switch(request)
 
     def cbProcessSegments(self, segment_list_msg):
         """Callback to process the segments
