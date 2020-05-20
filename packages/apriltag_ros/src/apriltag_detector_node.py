@@ -58,7 +58,7 @@ class AprilTagDetector(DTROS):
         # create a CV bridge object
         self._bridge = CvBridge()
         # create subscribers
-        self._img_sub = rospy.Subscriber('image_rect', Image, self._img_cb)
+        self._img_sub = rospy.Subscriber('image_rect', CompressedImage, self._img_cb)
         self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb)
         # create publishers
         self._img_pub = rospy.Publisher(
@@ -82,7 +82,7 @@ class AprilTagDetector(DTROS):
             return
         # ---
         # turn image message into grayscale image
-        img = self._bridge.imgmsg_to_cv2(data, desired_encoding='mono8')
+        img = self._bridge.compressed_imgmsg_to_cv2(data, desired_encoding='mono8')
         # detect tags
         tags = self._at_detector.detect(img, True, self._camera_parameters, self.tag_size)
         # draw the detections on an image (if needed)
