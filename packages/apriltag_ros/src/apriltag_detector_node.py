@@ -50,7 +50,10 @@ class AprilTagDetector(DTROS):
             quad_decimate=self.quad_decimate,
             quad_sigma=self.quad_sigma,
             refine_edges=self.refine_edges,
-            decode_sharpening=self.decode_sharpening
+            decode_sharpening=self.decode_sharpening,
+            # TODO: remove this
+            searchpath=['/code/catkin_ws/devel/lib/']
+            # TODO: remove this
         )
         # create a CV bridge object
         self._bridge = CvBridge()
@@ -89,6 +92,8 @@ class AprilTagDetector(DTROS):
         # pack detections into a message
         msg = AprilTagDetectionArray()
         detection_time = rospy.Time.now()
+        # TODO: This is wrong, we might need to replace the time in the TF, but the detections
+        #  should keep that of the input message
         msg.header.stamp = detection_time
         msg.header.frame_id = self._camera_frame
         for tag in tags:
@@ -163,9 +168,10 @@ class AprilTagDetector(DTROS):
         self._img_pub_busy = False
 
     def _cinfo_cb(self, data):
-        K = np.array(data.K).reshape((3, 3))
-        self._camera_parameters = (K[0, 0], K[1, 1], K[0, 2], K[1, 2])
+        self._camera_parameters = (data.K[0], data.K[4], data.K[2], data.K[5])
         self._camera_frame = data.header.frame_id
+        # ---
+        self._at_detector.enable_rectification_step(data.K, data.D, data.P)
         # once we got the camera info, we can stop the subscriber
         self._cinfo_sub.shutdown()
 
