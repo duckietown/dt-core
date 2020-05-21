@@ -168,12 +168,15 @@ class AprilTagDetector(DTROS):
         self._img_pub_busy = False
 
     def _cinfo_cb(self, data):
-        self._camera_parameters = (data.K[0], data.K[4], data.K[2], data.K[5])
-        self._camera_frame = data.header.frame_id
-        # ---
-        self._at_detector.enable_rectification_step(data.K, data.D, data.P)
+        D = data.D + (0, 0, 0)
+        # enable rectification step in the AT detector
+        self._at_detector.enable_rectification_step(data.K, D, data.P)
         # once we got the camera info, we can stop the subscriber
         self._cinfo_sub.shutdown()
+        # store info (do this at the very end of this callback to avoid race conditions)
+        self._camera_parameters = (data.K[0], data.K[4], data.K[2], data.K[5])
+        self._camera_frame = data.header.frame_id
+        print('Camera info fetched!')
 
 
 def _matrix_to_quaternion(R):
