@@ -78,17 +78,30 @@ class AprilTagDetector(DTROS):
     def _img_cb(self, data):
         if self._camera_parameters is None:
             return
-        if not self._detection_reminder.is_time(frequency=self.detection_freq.value):
-            return
+
+        #TODO: disabled
+        #
+        # if not self._detection_reminder.is_time(frequency=self.detection_freq.value):
+        #     return
+        #
+        #TODO: disabled
+
         # ---
         # turn image message into grayscale image
         img = self._bridge.compressed_imgmsg_to_cv2(data, desired_encoding='mono8')
         # detect tags
         tags = self._at_detector.detect(img, True, self._camera_parameters, self.tag_size)
+
+
         # draw the detections on an image (if needed)
-        if self._img_pub.anybody_listening() and not self._img_pub_busy:
-            self._img_pub_busy = True
-            Thread(target=self._publish_detections_image, args=(img, tags)).start()
+        #TODO: This is wrong, creating a new Thread every time creates too much overhead
+        # the frequency drops by ~10% when we do this
+        #
+        # if self._img_pub.anybody_listening() and not self._img_pub_busy:
+        #     self._img_pub_busy = True
+        #     Thread(target=self._publish_detections_image, args=(img, tags)).start()
+
+
         # pack detections into a message
         msg = AprilTagDetectionArray()
         detection_time = rospy.Time.now()
@@ -170,7 +183,7 @@ class AprilTagDetector(DTROS):
     def _cinfo_cb(self, data):
         D = data.D + (0, 0, 0)
         # enable rectification step in the AT detector
-        self._at_detector.enable_rectification_step(data.K, D, data.P)
+        self._at_detector.enable_rectification_step(data.width, data.height, data.K, D, data.P)
         # once we got the camera info, we can stop the subscriber
         self._cinfo_sub.shutdown()
         # store info (do this at the very end of this callback to avoid race conditions)
