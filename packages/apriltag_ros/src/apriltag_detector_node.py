@@ -12,8 +12,11 @@ from dt_apriltags import Detector
 from duckietown.dtros import DTROS, NodeType, TopicType, DTReminder, DTParam, ParamType
 
 from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
-from sensor_msgs.msg import Image, CameraInfo, CompressedImage
+from sensor_msgs.msg import CameraInfo, CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
+
+
+MAXIMUM_DELAY_ALLOWED_MS = 50
 
 
 class AprilTagDetector(DTROS):
@@ -58,8 +61,8 @@ class AprilTagDetector(DTROS):
         # create a CV bridge object
         self._bridge = CvBridge()
         # create subscribers
-        self._img_sub = rospy.Subscriber('image_rect', CompressedImage, self._img_cb)
-        self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb)
+        self._img_sub = rospy.Subscriber('image_rect', CompressedImage, self._img_cb, queue_size=1)
+        self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb, queue_size=1)
         # create publishers
         self._img_pub = rospy.Publisher(
             'tag_detections_image/compressed', CompressedImage, queue_size=1,
@@ -76,7 +79,12 @@ class AprilTagDetector(DTROS):
         rospy.spin()
 
     def _img_cb(self, data):
+        # nothing to do if the camera info hasn't showed up yet
         if self._camera_parameters is None:
+            return
+        # do not accept messages with high delay, make room for newer messages
+        delay_ms = _get_msg_delay_ms(data)
+        if delay_ms > MAXIMUM_DELAY_ALLOWED_MS:
             return
 
         #TODO: disabled
@@ -152,9 +160,9 @@ class AprilTagDetector(DTROS):
         # update healthy frequency metadata
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
-
-        delay = rospy.Time.now() - data.header.stamp
-        print('Delay: %.2f msecs' % (delay.secs * 1000 + delay.nsecs / 1e+6))
+        #TODO: print delay
+        delay_ms = _get_msg_delay_ms(data)
+        print('Delay: %.2f msecs' % delay_ms)
 
     def _publish_detections_image(self, img, tags):
         # get a color buffer from the BW image
@@ -204,6 +212,11 @@ def _matrix_to_quaternion(R):
     ), dtype=np.float64)
     T[0:3, 0:3] = R
     return tf.transformations.quaternion_from_matrix(T)
+
+
+def _get_msg_delay_ms(msg):
+    delay = rospy.Time.now() - msg.header.stamp
+    return delay.secs * 1000 + delay.nsecs / 1e+6
 
 
 if __name__ == '__main__':
