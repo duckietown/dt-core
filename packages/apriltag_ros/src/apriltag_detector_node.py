@@ -153,6 +153,9 @@ class AprilTagDetector(DTROS):
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
 
+        delay = rospy.Time.now() - data.header.stamp
+        print('Delay: %.2f msecs' % (delay.secs * 1000 + delay.nsecs / 1e+6))
+
     def _publish_detections_image(self, img, tags):
         # get a color buffer from the BW image
         color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
