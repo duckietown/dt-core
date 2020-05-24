@@ -85,7 +85,7 @@
 
                 <!-- Image Rectification -->
                 <remap from="image_raw" to="camera_node/image/raw"/>
-                <remap from="camera_info" to="camera_node/raw_camera_info"/>
+                <remap from="camera_info" to="camera_node/camera_info"/>
                 <remap from="image_rect_color" to="camera_node/image/rect" />
                 <include file="$(find image_processing)/launch/image_rectification.launch">
                     <arg name="veh" value="$(arg veh)"/>
@@ -235,7 +235,7 @@
     <group if="$(arg apriltags)">
         <!-- Detector node -->
         <remap from="image_rect" to="camera_node/image/rect" />
-        <remap from="camera_info" to="camera_node/raw_camera_info" />
+        <remap from="camera_info" to="camera_node/camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>
