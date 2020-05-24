@@ -1,16 +1,16 @@
 #!/usr/bin/env python
+import json
+import numpy as np
+import rospy
 from cv_bridge import CvBridge
+from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import SegmentList, LanePose, BoolStamped, Twist2DStamped, FSMState
 # from duckietown_utils.instantiate_utils import instantiate
 from lane_filter import LaneFilterHistogram
-import numpy as np
-import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from std_srvs.srv import SetBool
-import json
 
-from duckietown.dtros import DTROS, NodeType, TopicType
 
 class LaneFilterNode(DTROS):
     """ Generates an estimate of the lane pose.
@@ -62,17 +62,17 @@ class LaneFilterNode(DTROS):
 
         # Subscribers
         self.sub = rospy.Subscriber("~segment_list",
-                                   SegmentList,
-                                   self.cbProcessSegments,
-                                   queue_size=1)
+                                    SegmentList,
+                                    self.cbProcessSegments,
+                                    queue_size=1)
 
         self.sub_velocity = rospy.Subscriber("~car_cmd",
-                                            Twist2DStamped,
-                                            self.updateVelocity)
+                                             Twist2DStamped,
+                                             self.updateVelocity)
 
         self.sub_change_params = rospy.Subscriber("~change_params",
-                                                 String,
-                                                 self.cbTemporaryChangeParams)
+                                                  String,
+                                                  self.cbTemporaryChangeParams)
 
         # Publishers
         self.pub_lane_pose = rospy.Publisher("~lane_pose",
@@ -81,14 +81,14 @@ class LaneFilterNode(DTROS):
                                              dt_topic_type=TopicType.PERCEPTION)
 
         self.pub_belief_img = rospy.Publisher("~belief_img",
-                                             Image,
-                                             queue_size=1,
+                                              Image,
+                                              queue_size=1,
                                               dt_topic_type=TopicType.DEBUG)
 
         self.pub_seglist_filtered = rospy.Publisher("~seglist_filtered",
-                                                   SegmentList,
-                                                   queue_size=1,
-        dt_topic_type = TopicType.DEBUG)
+                                                    SegmentList,
+                                                    queue_size=1,
+                                                    dt_topic_type=TopicType.DEBUG)
 
         # FSM
         # self.sub_switch = rospy.Subscriber(
@@ -111,7 +111,7 @@ class LaneFilterNode(DTROS):
         for param_name in params.keys():
             param_val = params[param_name]
             params[param_name] = eval("self.filter." + str(param_name))
-            exec("self.filter." + str(param_name) + "=" + str(param_val))
+            exec ("self.filter." + str(param_name) + "=" + str(param_val))
 
         # Sleep for reset time
         rospy.sleep(reset_time)
@@ -119,19 +119,19 @@ class LaneFilterNode(DTROS):
         # Reset parameters to old values
         for param_name in params.keys():
             param_val = params[param_name]
-            exec("self.filter." + str(param_name) + "=" + str(param_val))
+            exec ("self.filter." + str(param_name) + "=" + str(param_val))
 
-#    def nbSwitch(self, switch_msg):
-#        """Callback to turn on/off the node
-#
-#        Args:
-#            switch_msg (:obj:`BoolStamped`): message containing the on or off command
-#
-#        """
-#        # All calls to this message should be replaced directly by the srvSwitch
-#        request = SetBool()
-#        request.data = switch_msg.data
-#        eelf.nub_switch(request)
+    #    def nbSwitch(self, switch_msg):
+    #        """Callback to turn on/off the node
+    #
+    #        Args:
+    #            switch_msg (:obj:`BoolStamped`): message containing the on or off command
+    #
+    #        """
+    #        # All calls to this message should be replaced directly by the srvSwitch
+    #        request = SetBool()
+    #        request.data = switch_msg.data
+    #        eelf.nub_switch(request)
 
     def cbProcessSegments(self, segment_list_msg):
         """Callback to process the segments
@@ -164,7 +164,7 @@ class LaneFilterNode(DTROS):
         max_val = self.filter.getMax()
         # Comparing it to a minimum belief threshold to make sure we are certain enough of our estimate
         in_lane = max_val > self.filter.min_max
-        
+
         # build lane pose message to send
         lanePose = LanePose()
         lanePose.header.stamp = segment_list_msg.header.stamp
@@ -192,7 +192,7 @@ class LaneFilterNode(DTROS):
             # Latency of Estimation including curvature estimation
             estimation_latency_stamp = rospy.Time.now() - timestamp_before_processing
             estimation_latency = estimation_latency_stamp.secs + \
-                estimation_latency_stamp.nsecs/1e9
+                                 estimation_latency_stamp.nsecs / 1e9
             self.latencyArray.append(estimation_latency)
 
             if (len(self.latencyArray) >= 20):
