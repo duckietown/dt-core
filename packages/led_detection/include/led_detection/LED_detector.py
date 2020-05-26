@@ -1,8 +1,16 @@
+import cv2
 import numpy as np
 from scipy import fftpack
-import cv2
+
 
 class LEDDetector:
+    """
+    LED detector, performs actions such as blob detection, frequency extraction and signal interpretation.
+
+    Args:
+        parameters (:obj:`dict`): a dict of parameters
+        logger (:obj:`DTROS logger`): logger from the node
+    """
     def __init__(self, parameters, logger):
         self.log = logger
         self.parameters = parameters
@@ -12,7 +20,11 @@ class LEDDetector:
         self.update_parameters(self.parameters)
 
     def update_parameters(self, new_parameters):
-        """Updates parameters."""
+        """
+        Updates parameters.
+
+        Args:
+            new_parameters (:obj:`dict`): a dict of new parameters"""
         self.parameters = new_parameters
         bd_param_db = cv2.SimpleBlobDetector_Params()
         bd_param_tl = cv2.SimpleBlobDetector_Params()
@@ -28,17 +40,28 @@ class LEDDetector:
         self.detector['tl'] = cv2.SimpleBlobDetector_create(bd_param_tl)
 
     def find_blobs(self, images, target):
+        """
+        Updates parameters.
+
+        Args:
+            images (:obj:`numpy array`): an array of images in form of HxWxN_images
+            target (:obj:`str`): the target type for the detection (traffic light or duckiebot)
+
+        Returns:
+            blobs (:obj:`list`): a list of the detected blobs
+            frames (:obj:`list`): the frames in which the detection happened
+        """
 
         blobs = []
         frames = []
 
         # Iterate over the sequence of images
-        for t, img in enumerate(images):
+        for t, img in enumerate(np.rollaxis(images, 2)):
             frame = []
             keypoints = self.detector[target].detect(img)
 
             for kp in keypoints:
-                kp_coords = kp.pt
+                kp_coords = np.asarray(kp.pt)
                 frame.append(kp_coords)
 
                 if len(blobs) == 0:
@@ -65,6 +88,19 @@ class LEDDetector:
         return blobs, frames
 
     def interpret_signal(self, blobs, t_s, num_img):
+        """
+        Interprets the signal of blinking blobs.
+
+        Args:
+            blobs (:obj:`list`): A list of the detected blobs.
+            t_s (:obj:`float`): The sample time.
+            num_img (:obj:`int`): The number of images in the detection.
+
+
+        Returns:
+            detected_signal (:obj:`str`): The name of a signal in the LED protocol.
+        """
+
         # Semantically decide if blobs represent a known signal
         for blob in blobs:
             # Detection
@@ -85,12 +121,24 @@ class LEDDetector:
                 for signal_name, signal_value in self.parameters['~LED_protocol']['signals'].items():
                     if signal_value['frequency'] == freq_identified:
                         detected_signal = signal_name
-                    break
+                        break
 
             return detected_signal
 
     def examine_blob(self, blob, t_s, num_img):
-        """Detects if a blob is blinking at specific frequencies."""
+        """
+        Detects if a blob is blinking at specific frequencies.
+
+        Args:
+            blob (:obj:`list`): A detected blob.
+            t_s (:obj:`float`): The sample time.
+            num_img (:obj:`int`): The number of images in the detection.
+
+        Returns:
+            detected (:obj:`bool`): Whether a signal was detected.
+            freq_identified (:obj:`float`): The identified frequency (must be in the protocol)
+            fft_peak_freq (:obj:`float`): The computed signal frequency using the FFT.
+        """
         # Percentage of appearance
         appearance_percentage = (1.0 * blob['N']) / (1.0 * num_img)
 
@@ -117,10 +165,20 @@ class LEDDetector:
 
     @staticmethod
     def get_keypoints(blobs, radius):
+        """
+        Get the keypoints for drawuing.
+
+        Args:
+            blobs (:obj:`list`): The detected blobs.
+            radius (:obj:`float`): Radius of the blob (pixel).
+
+        Returns:
+            keypoint_blob (:obj:`list`): List of keypoints containing blob location and size.
+        """
         # Extract blobs
         keypoint_blob = []
         for blob in blobs:
-            assert np.sum(blob['Signal']) == blobs['N']
+            assert np.sum(blob['Signal']) == blob['N']
             keypoint_blob.append(cv2.KeyPoint(blob['p'][0], blob['p'][1], radius))
         return keypoint_blob
 

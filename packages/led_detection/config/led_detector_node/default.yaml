@@ -17,8 +17,8 @@ blob_detector_db:
   thresholdStep: 10
   # Filter by Area.
   filterByArea: True
-  minArea: 78.5  # 5*5*3.14
-  maxArea: 706.5  # 15*15*3.14
+  minArea: 28.2  # 3*3*3.14
+  maxArea: 200.96  # 8*8*3.14
 
   # Filter by Circularity
   filterByCircularity: True
@@ -39,8 +39,8 @@ blob_detector_tl:
   thresholdStep: 10
   # Filter by Area.
   filterByArea: True
-  minArea: 314  # 10*10*3.14
-  maxArea: 1256  # 20*20*3.14
+  minArea: 50.24  # 4*4*3.14
+  maxArea: 200.96  # 8*8*3.14
 
   # Filter by Circularity
   filterByCircularity: True

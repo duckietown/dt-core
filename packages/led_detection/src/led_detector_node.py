@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-import rospy
 
-import numpy as np
-import cv2
 from cv_bridge import CvBridge, CvBridgeError
-import scipy.fftpack
+import cv2
+import numpy as np
+import rospy
 
 from duckietown import DTROS, DTPublisher, DTSubscriber
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
@@ -15,8 +14,26 @@ from sensor_msgs.msg import CompressedImage
 
 
 class LEDDetectorNode(DTROS):
-    def __init__(self, node_name):
+    """
+    This node extracts signals from a series of images. The images are collected,
+    a blob detection is applied, then a FFT (https://en.wikipedia.org/wiki/Fast_Fourier_transform)
+    is used to extract a frequency of a blinking LED. If this matches a signal specified in the
+    LED protocol, the signal is published.
 
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+
+    Subscribers:
+        ~~image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The compressed image from the camera.
+
+    Publishers:
+        ~signals_detection (:obj:`duckietown_msgs.msg.SignalsDetection`): The signals detected.
+        ~image_detection_right/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections on the right.
+        ~image_detection_front/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections in front.
+        ~image_detection_TL (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections of traffic lights.
+    """
+
+    def __init__(self, node_name):
         # Initialize the DTROS parent class
         super(LEDDetectorNode, self).__init__(node_name=node_name)
 
@@ -71,7 +88,13 @@ class LEDDetectorNode(DTROS):
         self.log('Initialized!')
 
     def camera_callback(self, msg):
+        """
+        Callback that collects images and starts the detection. It unregister the subscriber while processing
+        the images. Once finished, it restarts it.
 
+        Args:
+            msg (:obj:`sensor_msgs.msg.CompressedImage`): Input image.
+        """
         float_time = msg.header.stamp.to_sec()
 
         if self.trigger:
@@ -111,7 +134,15 @@ class LEDDetectorNode(DTROS):
                 # Process image and publish results
                 self.process_and_publish()
 
-    def crop_image(self, images, crop_norm):
+    @staticmethod
+    def crop_image(images, crop_norm):
+        """
+        Crops an array of images according to `crop_norm`.
+
+        Args:
+            images (:obj:`numpy array`): Images in form HxWxN_images
+            crop_norm (:obj:`list`): List of lists containing the crop limits.
+        """
         # Get size
         height, width, _ = images.shape
         # Compute indices
@@ -124,8 +155,10 @@ class LEDDetectorNode(DTROS):
         # Return cropped image
         return image_cropped
 
-
     def process_and_publish(self):
+        """
+        Processes the images (detection and interpretation) using an instantiated `LED_detector` object.
+        """
         # Initial time
         tic = rospy.Time.now().to_sec()
 
@@ -209,6 +242,15 @@ class LEDDetectorNode(DTROS):
         self.sub_cam = DTSubscriber("~image/compressed", CompressedImage, self.camera_callback)
 
     def publish(self, img_right, img_front, img_tl):
+        """
+        Publishes the results of the detection, in case of high verbosity, it publishes debug images of the
+        detection, otherwise just the detection result.
+
+        Args:
+            img_right (:obj:`numpy array`): Debug image
+            img_front (:obj:`numpy array`): Debug image
+            img_tl (:obj:`numpy array`): Debug image
+        """
         #  Publish image with circles if verbose is > 0
         if self.parameters['~verbose'] > 0:
             img_right_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_right) # , encoding="bgr8")
