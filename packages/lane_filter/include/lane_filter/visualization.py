@@ -5,11 +5,11 @@ from reprep.graphics.filter_scale import scale
 
 
 def plot_phi_d_diagram_bgr(lane_filter, belief, phi, d, dpi=120,
-                           bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW,
+                           bgcolor=(0, 204, 255),
                            other_phi=None, other_d=None):
     """ Returns a BGR image """
 
-    figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
+    figure_args = dict(facecolor=tuple(x / 255.0 for x in bgcolor))
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
     with a as pylab:
