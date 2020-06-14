@@ -16,6 +16,8 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
 
             'hsv_white1',
             'hsv_white2',
+            'hsv_white3',
+            'hsv_white4',
             'hsv_yellow1',
             'hsv_yellow2',
             'hsv_red1',
@@ -34,6 +36,7 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
         # threshold colors in HSV space
         if color == 'white':
             bw = cv2.inRange(self.hsv, self.hsv_white1, self.hsv_white2)
+            bw = cv2.inRange(self.hsv, self.hsv_white3, self.hsv_white4)
         elif color == 'yellow':
             bw = cv2.inRange(self.hsv, self.hsv_yellow1, self.hsv_yellow2)
         elif color == 'red':
