@@ -120,7 +120,7 @@ class GroundProjectionNode(DTROS):
             seglist_msg (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
 
         """
-        if self.pcm is None or self.ground_projector:
+        if self.pcm is not None and self.ground_projector is not None:
             seglist_out = SegmentList()
             seglist_out.header = seglist_msg.header
             for received_segment in seglist_msg.segments:
