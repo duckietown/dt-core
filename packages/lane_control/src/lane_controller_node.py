@@ -194,7 +194,8 @@ class LaneControllerNode(DTROS):
         wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
         v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
 
-	self.log('dist to stop: %s' % str(self.stop_line_distance))
+        # LP commenting out since too much output
+	    # self.log('dist to stop: %s' % str(self.stop_line_distance))
 
         # For feedforward action (i.e. during intersection navigation)
         omega += self.params['~omega_ff']
