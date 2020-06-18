@@ -4,4 +4,5 @@ set -e
 
 # YOUR CODE BELOW THIS LINE
 # ----------------------------------------------------------------------------
-roslaunch --wait duckietown_demos indefinite_navigation.launch
+roslaunch --wait duckietown_demos lane_following.launch
+
