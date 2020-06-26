@@ -8,7 +8,7 @@ dts duckiebot demo --demo_name all --duckiebot_name $DUCKIEBOT_NAME --package_na
 
 sleep 20
 
-dts duckiebot demo --demo_name lane_following --duckiebot_name $DUCKIEBOT_NAME --package_name duckietown_demos --image duckietown/dt-core:color-range-thesis-arm32v7
+dts duckiebot demo --demo_name lane_following --duckiebot_name $DUCKIEBOT_NAME --package_name duckietown_demos --image duckietown/dt-core:daffy-lighting-system-arm32v7
 
 sleep 60
 
