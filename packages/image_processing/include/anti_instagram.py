@@ -3,18 +3,14 @@
 import cv2
 import numpy as np
 import math
-import threading
 
 class AntiInstagram():
 
     def __init__(self):
 
-        self.threshold_lock = threading.Lock()
-
-        self.lower_threshold = None
         self.higher_threshold = [255,255,255]
 
-    def calculate_color_balance_thresholds(self, image, scale=1, percentage=0.8):
+    def calculate_color_balance_thresholds(self, image, scale, percentage):
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         H = resized_image.shape[0]
@@ -24,7 +20,6 @@ class AntiInstagram():
         channels = cv2.split(cropped_image)
 
         lower_threshold = []
-        higher_threshold = []
         for idx, channel in enumerate(channels):
             # find the low and high precentile values (based on the input percentile)
             height, width = channel.shape
@@ -37,21 +32,10 @@ class AntiInstagram():
             # calculate thresholds
             lower_threshold.append(
                 flattened[int(math.floor(num_pixels * half_percent))]) 
-            
-            higher_threshold.append(
-                flattened[int(math.ceil(num_pixels * (1.0 - half_percent)))])
 
-        self.threshold_lock.acquire()
-        self.lower_threshold = lower_threshold
-        # Note: higher_threshold is not being changed
-        self.threshold_lock.release()
+        return (lower_threshold, self.higher_threshold)
 
-    def apply_color_balance(self, image, scale=1):
-
-        self.threshold_lock.acquire()
-        lower_threshold = self.lower_threshold
-        higher_threshold = self.higher_threshold
-        self.threshold_lock.release()
+    def apply_color_balance(self, lower_threshold, higher_threshold, image, scale=1):
 
         if lower_threshold == None:
             return None
