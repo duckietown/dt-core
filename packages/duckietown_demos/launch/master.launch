@@ -74,15 +74,15 @@
 
         <group if="$(arg /camera/raw)">
             <!-- not LF, IN -->
-            <group if="$(arg /camera/raw/rect)">
-                <!-- Image Decoding -->
-                <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
-                <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
-                <include file="$(find image_processing)/launch/image_decoding.launch">
-                    <arg name="veh" value="$(arg veh)"/>
-                    <arg name="param_file_name" value="$(arg param_file_name)"/>
-                </include>
+            <!-- Image Decoding -->
+            <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
+            <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
+            <include file="$(find image_processing)/launch/image_decoding.launch">
+                <arg name="veh" value="$(arg veh)"/>
+                <arg name="param_file_name" value="$(arg param_file_name)"/>
+            </include>
 
+            <group if="$(arg /camera/raw/rect)">
                 <!-- Image Rectification -->
                 <remap from="image_raw" to="camera_node/image/raw"/>
                 <remap from="camera_info" to="camera_node/camera_info"/>
