@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import rospy
 
-from duckietown import DTROS, DTPublisher, DTSubscriber
+from duckietown.dtros import DTROS, NodeType
 from duckietown_utils.bag_logs import numpy_from_ros_compressed
 from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray,\
                                 BoolStamped, SignalsDetection
@@ -33,31 +33,30 @@ class LEDDetectorNode(DTROS):
         ~image_detection_TL (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections of traffic lights.
     """
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, node_type):
         # Initialize the DTROS parent class
-        super(LEDDetectorNode, self).__init__(node_name=node_name)
+        super(LEDDetectorNode, self).__init__(node_name=node_name, node_type=node_type)
 
         # Needed to publish images
         self.bridge = CvBridge()
 
         # Add the node parameters to the parameters dictionary
-        self.parameters['~capture_time'] = None
-        self.parameters['~DTOL'] = None
-        self.parameters['~useFFT'] = None
-        self.parameters['~freqIdentity'] = None
-        self.parameters['~crop_params'] = None
-        self.parameters['~blob_detector_db'] = {}
-        self.parameters['~blob_detector_tl'] = {}
-        self.parameters['~verbose'] = None
-        self.parameters['~cell_size'] = None
-        self.parameters['~LED_protocol'] = None
+        self.params = dict()
+        self.params['~capture_time'] = rospy.get_param('~capture_time', None)
+        self.params['~DTOL'] = rospy.get_param('~DTOL', None)
+        self.params['~useFFT'] = rospy.get_param('~useFFT', None)
+        self.params['~freqIdentity'] = rospy.get_param('~freqIdentity', None)
+        self.params['~crop_params'] = rospy.get_param('~crop_params', None)
+        self.params['~blob_detector_db'] = {}
+        self.params['~blob_detector_tl'] = {}
+        self.params['~verbose'] = rospy.get_param('~verbose', None)
+        self.params['~cell_size'] = rospy.get_param('~cell_size', None)
+        self.params['~LED_protocol'] = rospy.get_param('~LED_protocol', None)
 
         # Initialize detector
-        self.detector = LEDDetector(self.parameters, self.log)
+        self.detector = LEDDetector(self.params, self.log)
 
-        # To trigger the first change, we set this manually
-        self.parameterChanged = True
-        self.updateParameters()
+        #self.updateParameters()  TODO: This needs be replaced by the new DTROS callback when it is implemented
 
         self.first_timestamp = 0
         self.capture_finished = True
@@ -74,15 +73,15 @@ class LEDDetectorNode(DTROS):
         self.left = "UNKNOWN"
 
         # Publishers
-        self.pub_detections = DTPublisher("~signals_detection", SignalsDetection, queue_size=1)
+        self.pub_detections = rospy.Publisher("~signals_detection", SignalsDetection, queue_size=1)
 
         # Publishers for debug images
-        self.pub_image_right = DTPublisher("~image_detection_right/compressed", CompressedImage, queue_size=1)
-        self.pub_image_front = DTPublisher("~image_detection_front/compressed", CompressedImage, queue_size=1)
-        self.pub_image_TL = DTPublisher("~image_detection_TL/compressed", CompressedImage, queue_size=1)
+        self.pub_image_right = rospy.Publisher("~image_detection_right/compressed", CompressedImage, queue_size=1)
+        self.pub_image_front = rospy.Publisher("~image_detection_front/compressed", CompressedImage, queue_size=1)
+        self.pub_image_TL = rospy.Publisher("~image_detection_TL/compressed", CompressedImage, queue_size=1)
 
         # Subscribers
-        self.sub_cam = DTSubscriber("~image/compressed", CompressedImage, self.camera_callback)
+        self.sub_cam = rospy.Subscriber("~image/compressed", CompressedImage, self.camera_callback)
 
         # Log info
         self.log('Initialized!')
@@ -112,7 +111,7 @@ class LEDDetectorNode(DTROS):
             rel_time = float_time - self.first_timestamp
 
             # Capturing
-            if rel_time < self.parameters['~capture_time']:
+            if rel_time < self.params['~capture_time']:
                 self.node_state = 1
                 # Capture image
                 rgb = numpy_from_ros_compressed(msg)
@@ -122,7 +121,7 @@ class LEDDetectorNode(DTROS):
 
             # Start processing
             elif not self.capture_finished and self.first_timestamp > 0:
-                if self.parameters['~verbose'] == 2:
+                if self.params['~verbose'] == 2:
                     self.log('Relative Time %s, processing' % rel_time)
                 self.node_state = 2
                 self.capture_finished = True
@@ -174,12 +173,12 @@ class LEDDetectorNode(DTROS):
             images[:, :, i] = v['rgb']
 
         # Crop images
-        img_right = self.crop_image(images, self.parameters['~crop_params']['cropNormalizedRight'])
-        img_front = self.crop_image(images, self.parameters['~crop_params']['cropNormalizedFront'])
-        img_tl = self.crop_image(images, self.parameters['~crop_params']['cropNormalizedTL'])
+        img_right = self.crop_image(images, self.params['~crop_params']['cropNormalizedRight'])
+        img_front = self.crop_image(images, self.params['~crop_params']['cropNormalizedFront'])
+        img_tl = self.crop_image(images, self.params['~crop_params']['cropNormalizedTL'])
 
         # Print on screen
-        if self.parameters['~verbose'] == 2:
+        if self.params['~verbose'] == 2:
             self.log('Analyzing %s images of size %s X %s' % (num_img, w, h))
 
         # Get blobs right
@@ -189,9 +188,9 @@ class LEDDetectorNode(DTROS):
         # Get blobs right
         blobs_tl, frame_tl = self.detector.find_blobs(img_tl, 'tl')
 
-        radius = self.parameters['~DTOL']/2.0
+        radius = self.params['~DTOL']/2.0
 
-        if self.parameters['~verbose'] > 0:
+        if self.params['~verbose'] > 0:
             # Extract blobs for visualization
             keypoint_blob_right = self.detector.get_keypoints(blobs_right, radius)
             keypoint_blob_front = self.detector.get_keypoints(blobs_front, radius)
@@ -215,7 +214,7 @@ class LEDDetectorNode(DTROS):
         self.traffic_light = None
 
         # Sampling time
-        t_s = (1.0*self.parameters['~capture_time'])/(1.0*num_img)
+        t_s = (1.0*self.params['~capture_time'])/(1.0*num_img)
 
         # Decide whether LED or not
         self.right = self.detector.interpret_signal(blobs_right, t_s, num_img)
@@ -233,13 +232,13 @@ class LEDDetectorNode(DTROS):
         self.publish(img_pub_right, img_pub_front, img_pub_tl)
 
         # Print performance
-        if self.parameters['~verbose'] == 2:
+        if self.params['~verbose'] == 2:
             self.log('[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s' %
                      (self.node_name, processing_time, total_time))
 
         # Keep going
         self.trigger = True
-        self.sub_cam = DTSubscriber("~image/compressed", CompressedImage, self.camera_callback)
+        self.sub_cam = rospy.Subscriber("~image/compressed", CompressedImage, self.camera_callback)
 
     def publish(self, img_right, img_front, img_tl):
         """
@@ -252,7 +251,7 @@ class LEDDetectorNode(DTROS):
             img_tl (:obj:`numpy array`): Debug image
         """
         #  Publish image with circles if verbose is > 0
-        if self.parameters['~verbose'] > 0:
+        if self.params['~verbose'] > 0:
             img_right_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_right) # , encoding="bgr8")
             img_front_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_front) # , encoding="bgr8")
             img_tl_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_tl) # , encoding="bgr8")
@@ -275,15 +274,12 @@ class LEDDetectorNode(DTROS):
 
     def cbParametersChanged(self):
         """Updates parameters."""
-        super(LEDDetectorNode, self).cbParametersChanged()
-        if self.parameterChanged:
-            self.detector.update_parameters(self.parameters)
-
-            self.parameterChanged = False
+        self.detector.update_parameters(self.params)
+    
 
 
 if __name__ == '__main__':
     # Initialize the node
-    led_detector_node = LEDDetectorNode(node_name='led_detector_node')
+    led_detector_node = LEDDetectorNode(node_name='led_detector_node', node_type=NodeType.PERCEPTION)
     # Keep it spinning to keep the node alive
     rospy.spin()
