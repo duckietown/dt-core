@@ -42,7 +42,7 @@
     <arg name="vehicle_avoidance" default="false"/>
     <arg name="/vehicle_avoidance/detection" default="false" />
     <arg name="/vehicle_avoidance/filter" default="false" />
-    <!-- <arg name="/vehicle_avoidance/control" default="false"/> -->
+    <arg name="/vehicle_avoidance/control" default="false"/>
 
     <arg name="apriltags" default="false"/>
 

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import sys
 import rospy
-from navigation.srv import *
-from duckietown_msgs.msg import FSMState, SourceTargetNodes, BoolStamped, Twist2DStamped
+from navigation.srv import GraphSearch
+from duckietown_msgs.msg import FSMState, SourceTargetNodes, BoolStamped
 from std_msgs.msg import Int16, String
 
-class ActionsDispatcherNode():
+
+class ActionsDispatcherNode:
+
     def __init__(self):
         self.node_name = rospy.get_name()
 
@@ -59,7 +60,7 @@ class ActionsDispatcherNode():
         
             # Proceed with action dispatching:
             action = self.actions.pop(0)
-            print 'Dispatched:', action
+            print('Dispatched:', action)
             if action == 's':
                 self.pub.publish(Int16(1))
             elif action == 'r':
@@ -77,7 +78,7 @@ class ActionsDispatcherNode():
             self.firstUpdate = False
 
     def graph_search(self, data):
-        print 'Requesting map for src: ', data.source_node, ' and target: ', data.target_node
+        print('Requesting map for src: ', data.source_node, ' and target: ', data.target_node)
         rospy.wait_for_service('graph_search')
         try:
             graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
@@ -87,17 +88,16 @@ class ActionsDispatcherNode():
                 # remove 'f' (follow line) from actions and add wait action in the end of queue
                 self.actions = [x for x in self.actions if x != 'f']
                 self.actions.append('w')
-                print 'Actions to be executed:', self.actions
+                print('Actions to be executed:', self.actions)
                 action_str = ''
                 for letter in self.actions:
                     action_str += letter
                 self.pubList.publish(action_str)
                 self.dispatcher()
             else:
-                print 'Actions to be executed:', self.actions
-
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+                print('Actions to be executed:', self.actions)
+        except rospy.ServiceException as e:
+            print("Service call failed: %s" % e)
 
     def pubLocalized(self):
         msg = BoolStamped()

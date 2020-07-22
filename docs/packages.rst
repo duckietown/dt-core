@@ -1,5 +1,5 @@
-dt-core
-=======
+Duckietown Module: dt-core
+==========================
 
 .. toctree::
    :glob:
