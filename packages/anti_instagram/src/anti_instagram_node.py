@@ -2,7 +2,7 @@
 
 import rospy
 
-from image_processing import AntiInstagram
+from image_processing.anti_instagram import AntiInstagram
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import AntiInstagramThresholds
@@ -34,7 +34,6 @@ class AntiInstagramNode(DTROS):
         self._interval = rospy.get_param("~interval")
         self._color_balance_percentage = rospy.get_param("~color_balance_scale")
         self._output_scale = rospy.get_param("~output_scale")
-        self._calculation_scale = rospy.get_param("~resize_factor")
 
         # Construct publisher
         self.pub = rospy.Publisher(
@@ -52,7 +51,7 @@ class AntiInstagramNode(DTROS):
         )
 
         # Initialize Timer
-        rospy.Timer(rospy.Duration(self.interval),
+        rospy.Timer(rospy.Duration(self._interval),
                     self.calculate_new_parameters)
 
         # Initialize objects and data
@@ -78,10 +77,9 @@ class AntiInstagramNode(DTROS):
             self.log("[%s] Waiting for first image!")
             return
 
-        (lower_thresholds, higher_thresholds) =
-            self.ai.calculate_color_balance_thresholds(image,
-                                                self.calculation_scale,
-                                                self.color_balance_percentage)
+        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(self.image,
+                                                self._output_scale,
+                                                self._color_balance_percentage)
 
         # Publish parameters
         msg = AntiInstagramThresholds()
@@ -92,6 +90,5 @@ class AntiInstagramNode(DTROS):
 
 
 if __name__ == '__main__':
-    rospy.init_node('anti_instagram_node', anonymous=False)
-    node = AntiInstagramNode()
+    node = AntiInstagramNode(node_name='anti_instagram_node')
     rospy.spin()

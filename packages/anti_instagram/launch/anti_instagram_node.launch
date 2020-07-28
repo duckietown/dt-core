@@ -9,7 +9,7 @@
     <group ns="$(arg veh)">
         <node  name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
             <rosparam command="load" file="$(find anti_instagram)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
-            <remap from="anti_instagram_node/uncorrected_image/compressed" to="camera_node/image/compressed"/>
+
         </node>
 
     </group>

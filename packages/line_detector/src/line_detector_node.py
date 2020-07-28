@@ -7,7 +7,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import Segment, SegmentList, AntiInstagramThresholds
 from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
-from image_processing import AntiInstgram()
+from image_processing.anti_instagram import AntiInstagram
 
 from duckietown.dtros import DTROS, NodeType, TopicType
 
@@ -65,6 +65,7 @@ class LineDetectorNode(DTROS):
         self.bridge = CvBridge()
 
         # The thresholds to be used for AntiInstagram color correction
+        self.ai_thresholds_received = False
         self.anti_instagram_thresholds=dict()
         self.ai = AntiInstagram()
 
@@ -78,21 +79,6 @@ class LineDetectorNode(DTROS):
             color: ColorRange.fromDict(d)
             for color, d in self._colors.iteritems()
         }
-
-        # Subscribers
-        self.sub_image = rospy.Subscriber(
-            "~corrected_image/compressed",
-            CompressedImage,
-            self.image_cb,
-            queue_size=1
-        )
-
-        self.sub_thresholds = rospy.Subscriber(
-            "~thresholds",
-            AntiInstagramThresholds,
-            self.thresholds_cv,
-            queue_size=1
-        )
 
         # Publishers
         self.pub_lines = rospy.Publisher(
@@ -125,9 +111,26 @@ class LineDetectorNode(DTROS):
             dt_topic_type=TopicType.DEBUG
         )
 
-    def thresholds_cv(self, thresh_msg):
+        # Subscribers
+        self.sub_image = rospy.Subscriber(
+            "~corrected_image/compressed",
+            CompressedImage,
+            self.image_cb,
+            queue_size=1
+        )
+
+        self.sub_thresholds = rospy.Subscriber(
+            "~thresholds",
+            AntiInstagramThresholds,
+            self.thresholds_cb,
+            queue_size=1
+        )
+
+
+    def thresholds_cb(self, thresh_msg):
         self.anti_instagram_thresholds["lower"] = thresh_msg.low
         self.anti_instagram_thresholds["higher"] = thresh_msg.high
+        self.ai_thresholds_received = True
 
 
     def image_cb(self, image_msg):
@@ -157,11 +160,14 @@ class LineDetectorNode(DTROS):
             return
 
         # Perform color correction
-        corrected_image = self.ai.apply_color_balance(
-            self.anti_instagram_thresholds["lower"],
-            self.anti_instagram_thresholds["higher"],
-            image
-        )
+        if self.ai_thresholds_received:
+            corrected_image = self.ai.apply_color_balance(
+                self.anti_instagram_thresholds["lower"],
+                self.anti_instagram_thresholds["higher"],
+                image
+            )
+        else:
+            corrected_image = image
 
         # Resize the image to the desired dimensions
         height_original, width_original = corrected_image.shape[0:2]

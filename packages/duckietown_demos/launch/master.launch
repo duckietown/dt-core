@@ -128,7 +128,8 @@
 
         <!-- Line Detector -->
         <group if="$(arg /lane_following/line_detection)">
-            <remap from="line_detector_node/corrected_image/compressed" to="anti_instagram_node/corrected_image/compressed"/>
+            <remap from="line_detector_node/thresholds" to="anti_instagram_node/thresholds"/>
+            <remap from="line_detector_node/corrected_image/compressed" to="camera_node/image/compressed"/>
             <include file="$(find line_detector)/launch/line_detector_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
@@ -348,6 +349,7 @@
 
     <!-- Start anti-instagram / LF, IN -->
     <group if="$(arg anti_instagram)">
+        <remap from="anti_instagram_node/uncorrected_image/compressed" to="camera_node/image/compressed"/>
         <!-- NOT LOADING PARAMS FROM A YAML FILE -->
         <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
             <arg name="veh" value="$(arg veh)"/>
