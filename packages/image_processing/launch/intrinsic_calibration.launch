@@ -1,7 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <launch>
-	<arg name="veh"/>
-
-	<param name="$(arg veh)/decoder_node/publish_freq" value="10.0"/>
-
-	<node ns="$(arg veh)" pkg="camera_calibration" type="cameracalibrator.py" name="intrinsic_calibrator" args="--size 7x5 --square 0.031 image:=/$(arg veh)/camera_node/image/raw camera:=/$(arg veh)/camera_node"/>
-</launch> 
+  <arg name="veh"/>
+  <arg name="demo_name" value="intrinsic_calibration"/>
+  <include file="$(find duckietown_demos)/launch/master.launch">
+    <arg name="veh" value="$(arg veh)"/>
+    <arg name="demo_name" value="$(arg demo_name)"/>
+    <arg name="param_file_name" value="default" />
+    <arg name="/camera/raw" value="true" />
+  </include>
+</launch>
