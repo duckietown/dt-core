@@ -21,6 +21,10 @@ custom_sections:  [
   "outputs",
   "output"
 ]
+intersphinx_mapping:
+  python:
+    url: https://docs.python.org/2.7
+    inventories: ['objects.inv']
 
 # REFRAIN FROM CHANGING THESE SPHINX-SPECIFIC CONFIGURATION SETTINGS:
 autodoc_default_flags:
