@@ -9,7 +9,7 @@ The ``line_detector`` package provides the tools for extracting colored line seg
 LineDetectorNode
 ----------------
 
-.. autoclass:: nodes.LineDetectorNode
+.. autoclass:: dt_core.LineDetectorNode
 
 Included libraries
 ------------------
