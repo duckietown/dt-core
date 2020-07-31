@@ -9,7 +9,9 @@ from threading import Thread
 from cv_bridge import CvBridge
 
 from dt_apriltags import Detector
-from duckietown.dtros import DTROS, NodeType, TopicType, DTReminder, DTParam, ParamType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
+
+from dt_class_utils import DTReminder
 
 from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
