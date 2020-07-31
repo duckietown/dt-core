@@ -9,7 +9,7 @@ The ``ground_projection`` package provides the tools for projecting line segment
 GroundProjectionNode
 --------------------
 
-.. autoclass:: nodes.GroundProjectionNode
+.. autoclass:: dt_core.GroundProjectionNode
 
 Included libraries
 ------------------
