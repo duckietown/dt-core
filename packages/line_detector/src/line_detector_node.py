@@ -5,8 +5,9 @@ import cv2
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage, Image
-from duckietown_msgs.msg import Segment, SegmentList
+from duckietown_msgs.msg import Segment, SegmentList, AntiInstagramThresholds
 from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
+from image_processing.anti_instagram import AntiInstagram
 
 from duckietown.dtros import DTROS, NodeType, TopicType
 
@@ -34,7 +35,8 @@ class LineDetectorNode(DTROS):
         ~top_cutoff (:obj:`int`): The number of rows to be removed from the top of the image _after_ resizing, default is 40
 
     Subscriber:
-        ~corrected_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The (color-corrected) camera images
+        ~camera_node/image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The camera images
+        ~anti_instagram_node/thresholds(:obj:`duckietown_msgs.msg.AntiInstagramThresholds`): The thresholds to do color correction
 
     Publishers:
         ~segment_list (:obj:`duckietown_msgs.msg.SegmentList`): A list of the detected segments. Each segment is an :obj:`duckietown_msgs.msg.Segment` message
@@ -62,6 +64,11 @@ class LineDetectorNode(DTROS):
 
         self.bridge = CvBridge()
 
+        # The thresholds to be used for AntiInstagram color correction
+        self.ai_thresholds_received = False
+        self.anti_instagram_thresholds=dict()
+        self.ai = AntiInstagram()
+
         # This holds the colormaps for the debug/ranges images after they are computed once
         self.colormaps = dict()
 
@@ -72,14 +79,6 @@ class LineDetectorNode(DTROS):
             color: ColorRange.fromDict(d)
             for color, d in self._colors.iteritems()
         }
-
-        # Subscribers
-        self.sub_image = rospy.Subscriber(
-            "~corrected_image/compressed",
-            CompressedImage,
-            self.image_cb,
-            queue_size=1
-        )
 
         # Publishers
         self.pub_lines = rospy.Publisher(
@@ -112,12 +111,35 @@ class LineDetectorNode(DTROS):
             dt_topic_type=TopicType.DEBUG
         )
 
+        # Subscribers
+        self.sub_image = rospy.Subscriber(
+            "~corrected_image/compressed",
+            CompressedImage,
+            self.image_cb,
+            queue_size=1
+        )
+
+        self.sub_thresholds = rospy.Subscriber(
+            "~thresholds",
+            AntiInstagramThresholds,
+            self.thresholds_cb,
+            queue_size=1
+        )
+
+
+    def thresholds_cb(self, thresh_msg):
+        self.anti_instagram_thresholds["lower"] = thresh_msg.low
+        self.anti_instagram_thresholds["higher"] = thresh_msg.high
+        self.ai_thresholds_received = True
+
+
     def image_cb(self, image_msg):
         """
         Processes the incoming image messages.
 
         Performs the following steps for each incoming image:
 
+        #. Performs color correction
         #. Resizes the image to the ``~img_size`` resolution
         #. Removes the top ``~top_cutoff`` rows in order to remove the part of the image that doesn't include the road
         #. Extracts the line segments in the image using :py:class:`line_detector.LineDetector`
@@ -137,8 +159,18 @@ class LineDetectorNode(DTROS):
             self.logerr('Could not decode image: %s' % e)
             return
 
+        # Perform color correction
+        if self.ai_thresholds_received:
+            corrected_image = self.ai.apply_color_balance(
+                self.anti_instagram_thresholds["lower"],
+                self.anti_instagram_thresholds["higher"],
+                image
+            )
+        else:
+            corrected_image = image
+
         # Resize the image to the desired dimensions
-        height_original, width_original = image.shape[0:2]
+        height_original, width_original = corrected_image.shape[0:2]
         img_size = (self._img_size[1], self._img_size[0])
         if img_size[0] != width_original or img_size[1] != height_original:
             image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
