@@ -113,9 +113,10 @@ class LineDetectorNode(DTROS):
 
         # Subscribers
         self.sub_image = rospy.Subscriber(
-            "~corrected_image/compressed",
+            "~image/compressed",
             CompressedImage,
             self.image_cb,
+            buff_size=921600,
             queue_size=1
         )
 
