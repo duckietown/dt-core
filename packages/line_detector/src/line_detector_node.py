@@ -159,18 +159,17 @@ class LineDetectorNode(DTROS):
             self.logerr('Could not decode image: %s' % e)
             return
 
+
         # Perform color correction
         if self.ai_thresholds_received:
-            corrected_image = self.ai.apply_color_balance(
+            image = self.ai.apply_color_balance(
                 self.anti_instagram_thresholds["lower"],
                 self.anti_instagram_thresholds["higher"],
                 image
             )
-        else:
-            corrected_image = image
 
         # Resize the image to the desired dimensions
-        height_original, width_original = corrected_image.shape[0:2]
+        height_original, width_original = image.shape[0:2]
         img_size = (self._img_size[1], self._img_size[0])
         if img_size[0] != width_original or img_size[1] != height_original:
             image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
