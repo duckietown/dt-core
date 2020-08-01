@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-
+from multiprocessing import Lock
 from image_processing.anti_instagram import AntiInstagram
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CompressedImage
@@ -47,7 +47,7 @@ class AntiInstagramNode(DTROS):
         self.uncorrected_image_subscriber = rospy.Subscriber(
             '~uncorrected_image/compressed',
             CompressedImage,
-            self.process_image,
+            self.store_image_msg,
             buff_size=921600,
             queue_size=1
         )
@@ -59,27 +59,31 @@ class AntiInstagramNode(DTROS):
         # Initialize objects and data
         self.ai = AntiInstagram()
         self.bridge = CvBridge()
-        self.image = None
+        self.image_msg = None
+        self.mutex = Lock()
 
         # ---
         self.log("Initialized.")
 
 
+    def store_image_msg(self, image_msg):
+        with self.mutex:
+            self.image_msg = image_msg
 
-    def process_image(self, image_msg):
-        try:
-            image = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
-            self.image = image
-        except ValueError as e:
-            self.log('Anti_instagram cannot decode image: %s' % e)
-            return
+    def decode_image_msg(self):
+        with self.mutex:
+            try:
+                image = self.bridge.compressed_imgmsg_to_cv2(self.image_msg, "bgr8")
+            except ValueError as e:
+                self.log('Anti_instagram cannot decode image: %s' % e)
+        return image
 
     def calculate_new_parameters(self, event):
-        if self.image is None:
+        if self.image_msg is None:
             self.log("[%s] Waiting for first image!")
             return
-
-        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(self.image,
+        image = self.decode_image_msg()
+        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(image,
                                                 self._output_scale,
                                                 self._color_balance_percentage)
 
