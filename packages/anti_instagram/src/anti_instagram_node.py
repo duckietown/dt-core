@@ -47,7 +47,9 @@ class AntiInstagramNode(DTROS):
         self.uncorrected_image_subscriber = rospy.Subscriber(
             '~uncorrected_image/compressed',
             CompressedImage,
-            self.process_image
+            self.process_image,
+            buff_size=921600,
+            queue_size=1
         )
 
         # Initialize Timer
