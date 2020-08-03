@@ -2,7 +2,7 @@
 import numpy as np
 import rospy
 
-from duckietown.dtros import DTROS, NodeType, TopicType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
 from lane_controller.controller import LaneController
@@ -53,11 +53,36 @@ class LaneControllerNode(DTROS):
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
         self.params = dict()
-        self.params['~v_bar'] = rospy.get_param('~v_bar', None)
-        self.params['~k_d'] = rospy.get_param('~k_d', None)
-        self.params['~k_theta'] = rospy.get_param('~k_theta', None)
-        self.params['~k_Id'] = rospy.get_param('~k_Id', None)
-        self.params['~k_Iphi'] = rospy.get_param('~k_Iphi', None)
+        self.params['~v_bar'] = DTParam(
+            '~v_bar',
+            param_type=ParamType.FLOAT,
+            min_value=0.0,
+            max_value=5.0
+        )
+        self.params['~k_d'] = DTParam(
+            '~k_d',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_theta'] = DTParam(
+            '~k_theta',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_Id'] = DTParam(
+            '~k_Id',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_Iphi'] = DTParam(
+            '~k_Iphi',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
         self.params['~theta_thres'] = rospy.get_param('~theta_thres', None)
         self.params['~d_thres'] = rospy.get_param('~d_thres', None)
         self.params['~d_offset'] = rospy.get_param('~d_offset', None)

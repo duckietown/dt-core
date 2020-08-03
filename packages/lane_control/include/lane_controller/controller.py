@@ -19,8 +19,6 @@ class LaneController:
         ~d_thres (:obj:`float`): Maximum value for lateral error
         ~theta_thres (:obj:`float`): Maximum value for heading error
         ~d_offset (:obj:`float`): Goal offset from center of the lane
-        ~velocity_to_m_per_s (:obj:`float`): Conversion factor
-        ~omega_to_rad_per_s (:obj:`float`): Conversion factor
         ~integral_bounds (:obj:`dict`): Bounds for integral term
         ~d_resolution (:obj:`float`): Resolution of lateral position estimate
         ~phi_resolution (:obj:`float`): Resolution of heading estimate
@@ -31,10 +29,10 @@ class LaneController:
     """
     def __init__(self, parameters):
         self.parameters = parameters
-        self.d_I = 0
-        self.phi_I = 0
-        self.prev_d_err = 0
-        self.prev_phi_err = 0
+        self.d_I = 0.0
+        self.phi_I = 0.0
+        self.prev_d_err = 0.0
+        self.prev_phi_err = 0.0
 
     def update_parameters(self, parameters):
         """Updates parameters of LaneController object.
@@ -73,10 +71,10 @@ class LaneController:
         self.reset_if_needed(d_err, phi_err, wheels_cmd_exec)
 
         # Scale the parameters linear such that their real value is at 0.22m/s
-        omega = self.parameters['~k_d'] * (0.22 / self.parameters['~v_bar']) * d_err + \
-            self.parameters['~k_theta'] * (0.22 / self.parameters['~v_bar']) * phi_err + \
-            self.parameters['~k_Id'] * (0.22 / self.parameters['~v_bar']) * self.d_I + \
-            self.parameters['~k_Iphi'] * (0.22 / self.parameters['~v_bar']) * self.phi_I
+        omega = self.parameters['~k_d'].value * (0.22 / self.parameters['~v_bar'].value) * d_err + \
+            self.parameters['~k_theta'].value * (0.22 / self.parameters['~v_bar'].value) * phi_err + \
+            self.parameters['~k_Id'].value * (0.22 / self.parameters['~v_bar'].value) * self.d_I + \
+            self.parameters['~k_Iphi'].value * (0.22 / self.parameters['~v_bar'].value) * self.phi_I
 
         # apply magic conversion factors
         omega = omega * self.parameters['~omega_to_rad_per_s']
@@ -98,14 +96,14 @@ class LaneController:
             stop_line_distance (:obj:`float`): distance of the stop line, None if not detected.
         """
         if stop_line_distance is None:
-            return self.parameters['~v_bar']
+            return self.parameters['~v_bar'].value
         else:
 
             d1, d2 = self.parameters['~stop_line_slowdown']['start'], self.parameters['~stop_line_slowdown']['end']
             # d1 -> v_bar, d2 -> v_bar/2
             c = (0.5 * (d1 - stop_line_distance) + (stop_line_distance - d2)) / (d1 - d2)
-            v_new = self.parameters['~v_bar'] * c
-            v = np.max([self.parameters['~v_bar'] / 2.0, np.min([self.parameters['~v_bar'], v_new])])
+            v_new = self.parameters['~v_bar'].value * c
+            v = np.max([self.parameters['~v_bar'].value / 2.0, np.min([self.parameters['~v_bar'].value, v_new])])
             return v
 
     def integrate_errors(self, d_err, phi_err, dt):
