@@ -66,23 +66,12 @@ class CalibrateExtrinsics(D8App):
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
             print('Resized to: %s ' % str(bgr.shape))
-
-        print('here')
         # Disable the old calibration file
         disable_old_homography(robot_name)
-        print('here')
-
         camera_info = get_camera_info_for_robot(robot_name)
-        print('here')
-
         homography_dummy = get_homography_default()
-        print('here')
-
         rect = Rectify(camera_info)
-        print('here')
-
         gpg = GroundProjectionGeometry(camera_info.width,camera_info.height,homography_dummy.reshape((3, 3)))
-        print('here')
 
         res = OrderedDict()
         try:

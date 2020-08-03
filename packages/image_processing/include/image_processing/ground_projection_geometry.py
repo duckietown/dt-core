@@ -185,6 +185,10 @@ class GroundProjectionGeometry:
         ret, corners = cv2.findChessboardCorners(cv_image_rectified, (board_w, board_h),
                                                  cv2.CALIB_CB_ADAPTIVE_THRESH)
 
+        bgr_detected = cv_image_rectified.copy()
+        cv2.drawChessboardCorners(bgr_detected,(7,5),corners,ret)
+        cv2.imwrite('/data/detected.png',bgr_detected)
+
         if ret == False:
             raise RuntimeError("No corners found in image, or the corners couldn't be rearranged. Make sure that the "
                                "camera is positioned correctly.")
@@ -196,7 +200,8 @@ class GroundProjectionGeometry:
         for r in range(board_h):
             for c in range(board_w):
                 src_pts.append(
-                    np.array([r * square_size, c * square_size], dtype='float32') + np.array([x_offset -y_offset]))
+                    np.array([r * square_size, c * square_size], dtype='float32') +
+                    np.array([x_offset, -y_offset]))
 
         # OpenCV labels corners left-to-right, top-to-bottom
         # We're having a problem with our pattern since it's not rotation-invariant
