@@ -48,7 +48,7 @@ class AntiInstagramNode(DTROS):
             '~uncorrected_image/compressed',
             CompressedImage,
             self.store_image_msg,
-            buff_size=921600,
+            buff_size=10000000,
             queue_size=1
         )
 

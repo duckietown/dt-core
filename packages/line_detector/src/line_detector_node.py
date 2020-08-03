@@ -116,7 +116,7 @@ class LineDetectorNode(DTROS):
             "~image/compressed",
             CompressedImage,
             self.image_cb,
-            buff_size=921600,
+            buff_size=10000000,
             queue_size=1
         )
 
@@ -176,6 +176,7 @@ class LineDetectorNode(DTROS):
             image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
         image = image[self._top_cutoff:, :, :]
 
+
         # Extract the line segments for every color
         self.detector.setImage(image)
         detections = {
@@ -212,6 +213,8 @@ class LineDetectorNode(DTROS):
 
         # Publish the message
         self.pub_lines.publish(segment_list)
+
+
 
         # If there are any subscribers to the debug topics, generate a debug image and publish it
         if self.pub_d_segments.get_num_connections() > 0:
