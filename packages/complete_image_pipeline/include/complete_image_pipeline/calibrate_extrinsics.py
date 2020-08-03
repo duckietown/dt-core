@@ -86,10 +86,7 @@ class CalibrateExtrinsics(D8App):
 
         res = OrderedDict()
         try:
-            try:
-                bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
-            except Exception as e:
-                print(e)
+            bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
 
 
             res['bgr'] = bgr
@@ -102,10 +99,7 @@ class CalibrateExtrinsics(D8App):
             if status is not None:
                 raise Exception(status)
 
-            try:
-                save_homography(result_gpg.H, robot_name)
-            except Exception as e:
-                print(e)
+            save_homography(result_gpg.H, robot_name)
             msg = '''
 
 To check that this worked well, place the robot on the road, and run:
