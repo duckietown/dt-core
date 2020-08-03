@@ -2,7 +2,7 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from ground_projection import GroundProjectionGeometry
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
 from .pipeline import run_pipeline
 

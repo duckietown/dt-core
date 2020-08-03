@@ -5,12 +5,10 @@ import cv2
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from ground_projection.configuration import get_homography_default, \
-    disable_old_homography
-from ground_projection.ground_projection_geometry import GroundProjectionGeometry
-from ground_projection.ground_projection_interface import estimate_homography, \
-     HomographyEstimationResult, save_homography
-from pi_camera.camera_info import get_camera_info_for_robot
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
+from image_processing.rectification import Rectify
+from image_processing.calibration_utils import save_homography, get_homography_default, disable_old_homography, \
+    get_camera_info_for_robot
 
 __all__ = [
     'CalibrateExtrinsics',
@@ -58,43 +56,56 @@ class CalibrateExtrinsics(D8App):
                 print('\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER!\n\n\n' % (e,))
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
-            self.info('Picture taken: %s ' % str(bgr.shape))
+            print('Picture taken: %s ' % str(bgr.shape))
 
         else:
-            self.info('Loading input image %s' % self.options.input)
+            print('Loading input image %s' % self.options.input)
             bgr = dtu.bgr_from_jpg_fn(self.options.input)
 
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
-            self.info('Resized to: %s ' % str(bgr.shape))
+            print('Resized to: %s ' % str(bgr.shape))
 
+        print('here')
         # Disable the old calibration file
         disable_old_homography(robot_name)
+        print('here')
 
         camera_info = get_camera_info_for_robot(robot_name)
+        print('here')
+
         homography_dummy = get_homography_default()
-        gpg = GroundProjectionGeometry(camera_info, homography_dummy)
+        print('here')
+
+        rect = Rectify(camera_info)
+        print('here')
+
+        gpg = GroundProjectionGeometry(camera_info.width,camera_info.height,homography_dummy.reshape((3, 3)))
+        print('here')
 
         res = OrderedDict()
         try:
-            bgr_rectified = gpg.rectify(bgr, interpolation=cv2.INTER_CUBIC)
+            try:
+                bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
+            except Exception as e:
+                print(e)
+
 
             res['bgr'] = bgr
             res['bgr_rectified'] = bgr_rectified
 
-            _new_matrix, res['rectified_full_ratio_auto'] = gpg.rectify_full(bgr, ratio=1.65)
-            result = estimate_homography(bgr_rectified)
-            dtu.check_isinstance(result, HomographyEstimationResult)
+            _new_matrix, res['rectified_full_ratio_auto'] = rect.rectify_full(bgr, ratio=1.65)
 
-            if result.bgr_detected_refined is not None:
-                res['bgr_detected_refined'] = result.bgr_detected_refined
+            (result_gpg, status) = gpg.estimate_homography(bgr_rectified)
 
-            if not result.success:
-                raise Exception(result.error)
+            if status is not None:
+                raise Exception(status)
 
-            save_homography(result.H, robot_name)
-
+            try:
+                save_homography(result_gpg.H, robot_name)
+            except Exception as e:
+                print(e)
             msg = '''
 
 To check that this worked well, place the robot on the road, and run:
@@ -104,6 +115,6 @@ To check that this worked well, place the robot on the road, and run:
 Look at the produced jpgs.
 
 '''
-            self.info(msg)
+            print(msg)
         finally:
             dtu.write_bgr_images_as_jpgs(res, output)

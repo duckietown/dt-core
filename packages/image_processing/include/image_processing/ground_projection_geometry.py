@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+from .constants import BOARD_WIDTH, BOARD_HEIGHT, SQUARE_SIZE \
+    , X_OFFSET, Y_OFFSET
 
 class Point:
     """
@@ -136,8 +138,14 @@ class GroundProjectionGeometry:
 
         return pixel
 
+
     @staticmethod
-    def estimate_homography(cv_image_rectified, board_w, board_h, square_size, x_offset, y_offset):
+    def estimate_homography(cv_image_rectified,
+                            board_w=BOARD_WIDTH,
+                            board_h=BOARD_HEIGHT,
+                            square_size=SQUARE_SIZE,
+                            x_offset=X_OFFSET,
+                            y_offset=Y_OFFSET):
         """
         Estimates the homography matrix from an image with a calibration board.
 
@@ -194,14 +202,14 @@ class GroundProjectionGeometry:
         # We're having a problem with our pattern since it's not rotation-invariant
 
         # only reverse order if first point is at bottom right corner
-        if (corners[0])[0][0] < (corners[self.board_['width'] * self.board_['height'] - 1])[0][0] and \
-           (corners[0])[0][0] < (corners[self.board_['width'] * self.board_['height'] - 1])[0][1]:
+        if (corners[0])[0][0] < (corners[board_w * board_h - 1])[0][0] and \
+           (corners[0])[0][0] < (corners[board_w * board_h - 1])[0][1]:
             src_pts.reverse()
 
         # Compute homography from image to ground
         H, _ = cv2.findHomography(corners_subpix.reshape(len(corners_subpix), 2), np.array(src_pts), cv2.RANSAC)
 
-        if (self.H[1][2] > 0):
+        if (H[1][2] > 0):
             status = "Homography could be corrupt!"
         else:
             status = None

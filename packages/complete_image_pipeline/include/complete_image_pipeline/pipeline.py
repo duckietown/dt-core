@@ -18,12 +18,13 @@ from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector.visual_state_fancy_display import vs_fancy_display, normalized_to_image
 from line_detector2.image_prep import ImagePrep
+from image_processing.anti_instagram import AntiInstagram
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 
 
-@dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name, anti_instagram_name,
+@dtu.contract(gpg=GroundProjectionGeometry, rect=Rectify, ground_truth='SE2|None', image='array[HxWx3](uint8)')
+def run_pipeline(image, gpg, rect, line_detector_name, image_prep_name, lane_filter_name,
                  all_details=False,
                  ground_truth=None,
                  actual_map=None):
@@ -35,7 +36,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         ground_truth = pose
     """
-    from anti_instagram import AntiInstagramInterface
+
 
     print('backend: %s' % matplotlib.get_backend())
     print('fname: %s' % matplotlib.matplotlib_fname())
@@ -54,7 +55,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
     line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
     lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
     image_prep = algo_db.create_instance(ImagePrep.FAMILY, image_prep_name)
-    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
+    ai = AntiInstagram()
 
     pts = ProcessingTimingStats()
     pts.reset()
@@ -68,11 +69,11 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
         res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
 
     with pts.phase('calculate AI transform'):
-        ai.calculate_color_balance_thresholds(image)
+        [lower,upper] = ai.calculate_color_balance_thresholds(image)
 
     with pts.phase('apply AI transform'):
 
-        transformed = ai.apply_color_balance(image)
+        transformed = ai.apply_color_balance(lower,upper,image)
 
         if all_details:
             res['image_input_transformed'] = transformed
