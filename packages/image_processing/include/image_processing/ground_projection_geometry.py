@@ -183,7 +183,7 @@ class GroundProjectionGeometry:
         cv_image_rectified = cv2.cvtColor(cv_image_rectified, cv2.COLOR_BGR2GRAY)
 
         ret, corners = cv2.findChessboardCorners(cv_image_rectified, (board_w, board_h),
-                                                 cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
+                                                 cv2.CALIB_CB_ADAPTIVE_THRESH)
 
         if ret == False:
             raise RuntimeError("No corners found in image, or the corners couldn't be rearranged. Make sure that the "
@@ -207,7 +207,7 @@ class GroundProjectionGeometry:
             src_pts.reverse()
 
         # Compute homography from image to ground
-        H, _ = cv2.findHomography(corners_subpix.reshape(len(corners_subpix), 2), np.array(src_pts), cv2.RANSAC)
+        H, status = cv2.findHomography(corners_subpix.reshape(len(corners_subpix), 2), np.array(src_pts), cv2.RANSAC)
 
         if (H[1][2] > 0):
             status = "Homography could be corrupt!"
