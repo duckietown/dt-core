@@ -46,7 +46,7 @@ class StopLineFilterNode(DTROS):
         self.sub_lane = rospy.Subscriber("~lane_pose", LanePose, self.cb_lane_pose)
         self.sub_mode = rospy.Subscriber("fsm_node/mode", FSMState, self.cb_state_change)
         self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1)
-        # self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
+        self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
 
     # def setupParam(self,param_name,default_value):
     #     value = rospy.get_param(param_name,default_value)
@@ -133,11 +133,11 @@ class StopLineFilterNode(DTROS):
                                                  np.abs(stop_line_point.y) < self.max_y.value
 
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
-            # if stop_line_reading_msg.at_stop_line:
-            #     msg = BoolStamped()
-            #     msg.header.stamp = stop_line_reading_msg.header.stamp
-            #     msg.data = True
-            #     self.pub_at_stop_line.publish(msg)
+            if stop_line_reading_msg.at_stop_line:
+                msg = BoolStamped()
+                msg.header.stamp = stop_line_reading_msg.header.stamp
+                msg.data = True
+                self.pub_at_stop_line.publish(msg)
 
     def to_lane_frame(self, point):
         p_homo = np.array([point.x, point.y, 1])
