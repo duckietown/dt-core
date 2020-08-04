@@ -71,13 +71,11 @@ class LaneController:
         self.reset_if_needed(d_err, phi_err, wheels_cmd_exec)
 
         # Scale the parameters linear such that their real value is at 0.22m/s
-        omega = self.parameters['~k_d'].value * (0.22 / self.parameters['~v_bar'].value) * d_err + \
-            self.parameters['~k_theta'].value * (0.22 / self.parameters['~v_bar'].value) * phi_err + \
-            self.parameters['~k_Id'].value * (0.22 / self.parameters['~v_bar'].value) * self.d_I + \
-            self.parameters['~k_Iphi'].value * (0.22 / self.parameters['~v_bar'].value) * self.phi_I
+        omega = self.parameters['~k_d'].value * d_err + \
+            self.parameters['~k_theta'].value * phi_err + \
+            self.parameters['~k_Id'].value * self.d_I + \
+            self.parameters['~k_Iphi'].value * self.phi_I
 
-        # apply magic conversion factors
-        omega = omega * self.parameters['~omega_to_rad_per_s']
 
         self.prev_d_err = d_err
         self.prev_phi_err = phi_err

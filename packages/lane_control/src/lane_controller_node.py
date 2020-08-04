@@ -24,8 +24,6 @@ class LaneControllerNode(DTROS):
         ~d_thres (:obj:`float`): Maximum value for lateral error
         ~theta_thres (:obj:`float`): Maximum value for heading error
         ~d_offset (:obj:`float`): Goal offset from center of the lane
-        ~velocity_to_m_per_s (:obj:`float`): Conversion factor
-        ~omega_to_rad_per_s (:obj:`float`): Conversion factor
         ~integral_bounds (:obj:`dict`): Bounds for integral term
         ~d_resolution (:obj:`float`): Resolution of lateral position estimate
         ~phi_resolution (:obj:`float`): Resolution of heading estimate
@@ -86,8 +84,6 @@ class LaneControllerNode(DTROS):
         self.params['~theta_thres'] = rospy.get_param('~theta_thres', None)
         self.params['~d_thres'] = rospy.get_param('~d_thres', None)
         self.params['~d_offset'] = rospy.get_param('~d_offset', None)
-        self.params['~velocity_to_m_per_s'] = rospy.get_param('~velocity_to_m_per_s', None)
-        self.params['~omega_to_rad_per_s'] = rospy.get_param('~omega_to_rad_per_s', None)
         self.params['~integral_bounds'] = rospy.get_param('~integral_bounds', None)
         self.params['~d_resolution'] = rospy.get_param('~d_resolution', None)
         self.params['~phi_resolution'] = rospy.get_param('~phi_resolution', None)
@@ -230,7 +226,7 @@ class LaneControllerNode(DTROS):
         car_control_msg.header = pose_msg.header
 
         # Add commands to car message
-        car_control_msg.v = v * self.params['~velocity_to_m_per_s']
+        car_control_msg.v = v
         car_control_msg.omega = omega
 
         self.publishCmd(car_control_msg)

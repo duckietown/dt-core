@@ -1,15 +1,12 @@
 #lane_control/lane_controller_node
-v_bar: 0.22
-k_d: -3
-k_theta: -0.5
-k_Id: -1
+v_bar: 0.19
+k_d: -6.0
+k_theta: -5
+k_Id: -0.3
 k_Iphi: 0.0
 theta_thres: 0.523
 d_thres: 0.2615
 d_offset: 0.0
-
-velocity_to_m_per_s: 0.67
-omega_to_rad_per_s: 4.75
 
 omega_ff: 0
 
