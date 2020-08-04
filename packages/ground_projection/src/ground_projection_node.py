@@ -8,7 +8,8 @@ import numpy as np
 
 import rospy
 from duckietown.dtros import DTROS, NodeType, TopicType
-from ground_projection import Point, GroundProjectionGeometry
+from image_processing.ground_projection_geometry import Point, GroundProjectionGeometry
+from image_processing.rectification import Rectify
 from image_geometry import PinholeCameraModel
 
 from sensor_msgs.msg import CameraInfo, CompressedImage
@@ -42,10 +43,11 @@ class GroundProjectionNode(DTROS):
         )
 
         self.bridge = CvBridge()
-        self.pcm = None
         self.ground_projector = None
+        self.rectifier = None
         self.homography = self.load_extrinsics()
         self.first_processing_done = False
+        self.camera_info_received = False
 
         # subscribers
         self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
@@ -68,18 +70,19 @@ class GroundProjectionNode(DTROS):
 
     def cb_camera_info(self, msg):
         """
-        Stores the intrinsic calibration into a PinholeCameraModel object and generates
-        a :py:class:`ground_projection.GroundProjectionGeometry` object.
+        Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
+        :py:class:`image_processing.Rectify` object for image rectification
 
         Args:
             msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
 
         """
-        self.pcm = PinholeCameraModel()
-        self.pcm.fromCameraInfo(msg)
-        self.ground_projector = GroundProjectionGeometry(im_width=msg.width,
+        if not self.camera_info_received:
+            self.rectifier = Rectify(msg)
+            self.ground_projector = GroundProjectionGeometry(im_width=msg.width,
                                                          im_height=msg.height,
                                                          homography=np.array(self.homography).reshape((3, 3)))
+        self.camera_info_received=True
 
     def pixel_msg_to_ground_msg(self, point_msg):
         """
@@ -98,7 +101,7 @@ class GroundProjectionNode(DTROS):
         norm_pt = Point.from_message(point_msg)
         pixel = self.ground_projector.vector2pixel(norm_pt)
         # rectify
-        rect = Point(*list(self.pcm.rectifyPoint([pixel.x, pixel.y])))
+        rect = self.rectifier.rectify_point(pixel)
         # convert to Point
         rect_pt = Point.from_message(rect)
         # project on ground
@@ -120,7 +123,7 @@ class GroundProjectionNode(DTROS):
             seglist_msg (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
 
         """
-        if self.pcm is not None and self.ground_projector is not None:
+        if self.camera_info_received:
             seglist_out = SegmentList()
             seglist_out.header = seglist_msg.header
             for received_segment in seglist_msg.segments:

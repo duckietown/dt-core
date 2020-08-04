@@ -2,7 +2,7 @@
 import numpy as np
 import rospy
 
-from duckietown.dtros import DTROS, NodeType, TopicType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
 from lane_controller.controller import LaneController
@@ -24,8 +24,6 @@ class LaneControllerNode(DTROS):
         ~d_thres (:obj:`float`): Maximum value for lateral error
         ~theta_thres (:obj:`float`): Maximum value for heading error
         ~d_offset (:obj:`float`): Goal offset from center of the lane
-        ~velocity_to_m_per_s (:obj:`float`): Conversion factor
-        ~omega_to_rad_per_s (:obj:`float`): Conversion factor
         ~integral_bounds (:obj:`dict`): Bounds for integral term
         ~d_resolution (:obj:`float`): Resolution of lateral position estimate
         ~phi_resolution (:obj:`float`): Resolution of heading estimate
@@ -53,16 +51,39 @@ class LaneControllerNode(DTROS):
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
         self.params = dict()
-        self.params['~v_bar'] = rospy.get_param('~v_bar', None)
-        self.params['~k_d'] = rospy.get_param('~k_d', None)
-        self.params['~k_theta'] = rospy.get_param('~k_theta', None)
-        self.params['~k_Id'] = rospy.get_param('~k_Id', None)
-        self.params['~k_Iphi'] = rospy.get_param('~k_Iphi', None)
+        self.params['~v_bar'] = DTParam(
+            '~v_bar',
+            param_type=ParamType.FLOAT,
+            min_value=0.0,
+            max_value=5.0
+        )
+        self.params['~k_d'] = DTParam(
+            '~k_d',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_theta'] = DTParam(
+            '~k_theta',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_Id'] = DTParam(
+            '~k_Id',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
+        self.params['~k_Iphi'] = DTParam(
+            '~k_Iphi',
+            param_type=ParamType.FLOAT,
+            min_value=-100.0,
+            max_value=100.0
+        )
         self.params['~theta_thres'] = rospy.get_param('~theta_thres', None)
         self.params['~d_thres'] = rospy.get_param('~d_thres', None)
         self.params['~d_offset'] = rospy.get_param('~d_offset', None)
-        self.params['~velocity_to_m_per_s'] = rospy.get_param('~velocity_to_m_per_s', None)
-        self.params['~omega_to_rad_per_s'] = rospy.get_param('~omega_to_rad_per_s', None)
         self.params['~integral_bounds'] = rospy.get_param('~integral_bounds', None)
         self.params['~d_resolution'] = rospy.get_param('~d_resolution', None)
         self.params['~phi_resolution'] = rospy.get_param('~phi_resolution', None)
@@ -205,7 +226,7 @@ class LaneControllerNode(DTROS):
         car_control_msg.header = pose_msg.header
 
         # Add commands to car message
-        car_control_msg.v = v * self.params['~velocity_to_m_per_s']
+        car_control_msg.v = v
         car_control_msg.omega = omega
 
         self.publishCmd(car_control_msg)

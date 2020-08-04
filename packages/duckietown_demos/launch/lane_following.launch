@@ -31,8 +31,6 @@
 	    <arg name="/vehicle_avoidance/detection" value="true" />
 	    <arg name="/vehicle_avoidance/filter" value="true" />
 
-	    <!-- JUST FOR TESTING THE NODE, REMOVE LATER -->
-	    <arg name="/lane_following/stop_line_filter" value="true"/>
   	</include>
 
 </launch>

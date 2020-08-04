@@ -10,20 +10,17 @@ from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import ProcessingTimingStats, FakeContext
-from ground_projection import GroundProjection
-from ground_projection.ground_projection_interface import find_ground_coordinates
-from ground_projection.segment import rectify_segments
-from lane_filter import FAMILY_LANE_FILTER
-from lane_filter_generic import LaneFilterMoreGeneric
-from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
-from line_detector.visual_state_fancy_display import vs_fancy_display, normalized_to_image
-from line_detector2.image_prep import ImagePrep
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
+from image_processing.rectification import Rectify
+from lane_filter.lane_filter import LaneFilterHistogram
+from line_detector.line_detector import LineDetector
+from image_processing.anti_instagram import AntiInstagram
 from localization_templates import FAMILY_LOC_TEMPLATES
 import numpy as np
 
 
-@dtu.contract(gp=GroundProjection, ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_name, anti_instagram_name,
+@dtu.contract(ground_truth='SE2|None', image='array[HxWx3](uint8)')
+def run_pipeline(image,
                  all_details=False,
                  ground_truth=None,
                  actual_map=None):
@@ -35,7 +32,7 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
         ground_truth = pose
     """
-    from anti_instagram import AntiInstagramInterface
+
 
     print('backend: %s' % matplotlib.get_backend())
     print('fname: %s' % matplotlib.matplotlib_fname())
@@ -44,38 +41,27 @@ def run_pipeline(image, gp, line_detector_name, image_prep_name, lane_filter_nam
 
     dtu.check_isinstance(image, np.ndarray)
 
-    gpg = gp.get_ground_projection_geometry()
 
     res = OrderedDict()
     stats = OrderedDict()
 
     res['Raw input image'] = image
-    algo_db = get_easy_algo_db()
-    line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
-    lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
-    image_prep = algo_db.create_instance(ImagePrep.FAMILY, image_prep_name)
-    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
+    gpg = GroundProjectionGeometry()
+    rect = Rectify()
+    line_detector = LineDetector()
+    lane_filter = LaneFilterHistogram()
+    ai = AntiInstagram()
 
     pts = ProcessingTimingStats()
     pts.reset()
     pts.received_message()
     pts.decided_to_process()
 
-    if all_details:
-        segment_list = image_prep.process(FakeContext(), image, line_detector, transform=None)
-
-        res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
-        res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
-
     with pts.phase('calculate AI transform'):
-        ai.calculate_color_balance_thresholds(image)
+        [lower,upper] = ai.calculate_color_balance_thresholds(image)
 
     with pts.phase('apply AI transform'):
-
-        transformed = ai.apply_color_balance(image)
-
-        if all_details:
-            res['image_input_transformed'] = transformed
+        transformed = ai.apply_color_balance(lower,upper,image)
 
     with pts.phase('edge detection'):
         # note: do not apply transform twice!
