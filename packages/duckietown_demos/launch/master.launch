@@ -210,11 +210,16 @@
         <!-- Vehicle Avoidance Filter Node -->
         <remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
         <remap from="vehicle_filter_node/centers" to="vehicle_detection_node/centers" />
+        <!-- Breaking convenction and remapping an output to make the virtual stop line readings look like
+        real stop line readings -->
+        <remap from="vehicle_filter_node/virtual_stop_line" to="stop_line_filter_node/stop_line_reading"/>
+
         <group if="$(arg /vehicle_avoidance/filter)">
             <include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
             </include>
         </group>
+
         <!-- Vehicle Avoidance Control Node
         <group if="$(arg /vehicle_avoidance/control)">
             <remap from="vehicle_avoidance_control_node/detection" to="vehicle_detection_node/detection"/>
