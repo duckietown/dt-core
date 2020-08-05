@@ -104,6 +104,7 @@ class LaneControllerNode(DTROS):
         self.last_s = None
         self.stop_line_distance = None
         self.stop_line_detected = False
+        self.at_stop_line = False
 
         self.current_pose_source = 'lane_filter'
 
@@ -142,6 +143,7 @@ class LaneControllerNode(DTROS):
         """
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
         self.stop_line_detected = msg.stop_line_detected
+        self.at_stop_line = msg.at_stop_line
 
     def cbMode(self, fsm_state_msg):
 
@@ -196,30 +198,32 @@ class LaneControllerNode(DTROS):
         Args:
             pose_msg (:obj:`LanePose`): Message containing information about the current lane pose.
         """
-
-        # Compute errors
-        d_err = pose_msg.d - self.params['~d_offset']
-        phi_err = pose_msg.phi
-
-        # We cap the error if it grows too large
-        if np.abs(d_err) > self.params['~d_thres']:
-            self.log("d_err too large, thresholding it!", 'error')
-            d_err = np.sign(d_err) * self.params['~d_thres']
-
         current_s = rospy.Time.now().to_sec()
-
         dt = None
         if self.last_s is not None:
             dt = (current_s - self.last_s)
 
-        wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
-        v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
+        if self.at_stop_line:
+            v = 0
+            omega = 0
+        else:
 
-        # LP commenting out since too much output
-	    # self.log('dist to stop: %s' % str(self.stop_line_distance))
+            # Compute errors
+            d_err = pose_msg.d - self.params['~d_offset']
+            phi_err = pose_msg.phi
 
-        # For feedforward action (i.e. during intersection navigation)
-        omega += self.params['~omega_ff']
+            # We cap the error if it grows too large
+            if np.abs(d_err) > self.params['~d_thres']:
+                self.log("d_err too large, thresholding it!", 'error')
+                d_err = np.sign(d_err) * self.params['~d_thres']
+
+
+            wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
+            v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
+
+
+            # For feedforward action (i.e. during intersection navigation)
+            omega += self.params['~omega_ff']
 
         # Initialize car control msg, add header from input message
         car_control_msg = Twist2DStamped()
