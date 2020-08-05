@@ -76,7 +76,7 @@ class LogicGateNode(object):
 
 
                 if self.debugging:
-                    print "sub-event: " + event_name
+                    print("sub-event: " + event_name)
 
 
 
@@ -113,7 +113,7 @@ class LogicGateNode(object):
 
 
         if self.debugging:
-            print bool_list, "->", msg.data
+            print(bool_list, "->", msg.data)
 
 
         # print bool_list, msg.data

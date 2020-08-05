@@ -11,7 +11,7 @@ import numpy as np
 
 class graph_search_server():
     def __init__(self):
-        print 'Graph Search Service Started'
+        print('Graph Search Service Started')
 
         # Input: csv file
         self.map_name = rospy.get_param('/map_name')
@@ -25,7 +25,7 @@ class graph_search_server():
         self.duckietown_graph = gc.build_graph_from_csv(csv_filename=self.map_name)
         self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)
     
-        print "Map loaded successfully!\n"
+        print("Map loaded successfully!\n")
 
         self.image_pub = rospy.Publisher("~map_graph",Image, queue_size = 1, latch=True)
         self.bridge = CvBridge()
@@ -39,7 +39,7 @@ class graph_search_server():
     def handle_graph_search(self,req):
         # Checking if nodes exists
         if (req.source_node not in self.duckietown_graph) or (req.target_node not in self.duckietown_graph):
-            print "Source or target node do not exist."
+            print("Source or target node do not exist.")
             self.publishImage(req, [])
             return GraphSearchResponse([])
 
@@ -76,6 +76,6 @@ class graph_search_server():
 if __name__ == "__main__":
     rospy.init_node('graph_search_server_node')
     gss = graph_search_server()
-    print 'Starting server...\n'
+    print('Starting server...\n')
     s = rospy.Service('graph_search', GraphSearch, gss.handle_graph_search)
     rospy.spin()

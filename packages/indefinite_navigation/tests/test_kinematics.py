@@ -39,8 +39,8 @@ class KinematicsTestNode(unittest.TestCase):
         while not (self.lane_message_received or self.stop_message_received) and not rospy.is_shutdown() and time.time()<timeout:
             rospy.sleep(0.1)
 
-        self.assert_(self.lane_message_received)
-        self.assert_(self.stop_message_received)
+        self.assertTrue(self.lane_message_received)
+        self.assertTrue(self.stop_message_received)
 
     def cbLane(self, data):
         self.lane_message_received = True
@@ -59,7 +59,7 @@ class KinematicsTestNode(unittest.TestCase):
                 rospy.sleep(1)
         if self.lane==None or self.stop == None:
             rospy.loginfo("could not subscribe to lane and stop line")
-            assertTrue(False)
+            self.assertTrue(False)
 
         #Measured dist for stop as 146+8cm cm physically
         self.init = self.lane, -1.54
@@ -125,8 +125,8 @@ class KinematicsTestNode(unittest.TestCase):
                 off_d, off_phi, result_trim,\
                 init_stop_y, final_stop_y, velocity, vel_diff, result_vel
                 )
-        print info
-        self.assertEquals(result_trim,"PASSED", info)
+        print(info)
+        self.assertEqual(result_trim,"PASSED", info)
 
 
 

@@ -108,7 +108,7 @@ class IndefNavigationNode(object):
                 off_d, off_phi, result_trim,\
                 init_stop_y, final_stop_y, velocity, vel_diff, result_vel
                 )
-        print info
+        print(info)
 
 
 
