@@ -30,7 +30,7 @@ class VehicleDetectionNode(DTROS):
     Publishers:
         ~centers (:obj:`duckietown_msgs.msg.VehicleCorners`): Detected pattern (if any)
         ~debug/detection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image that shows the detected pattern
-
+        ~detection (:obj:`boolStamped`): Vehicle Detection Flag
     """
 
     def __init__(self, node_name):
@@ -67,7 +67,7 @@ class VehicleDetectionNode(DTROS):
         # Publishers
         self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)
         self.pub_circlepattern_image = rospy.Publisher("~debug/detection_image/compressed", CompressedImage, queue_size=1)
-
+        self.pub_detection_flag = rospy.Publisher("~detection",BoolStamped, queue_size=1)
         self.log("Initialization completed.")
 
     def cbParametersChanged(self):
@@ -97,6 +97,7 @@ class VehicleDetectionNode(DTROS):
             self.last_stamp = now
         
         vehicle_centers_msg_out = VehicleCorners()
+        detection_flag_msg_out = BoolStamped()
         image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
 
         (detection, centers) = cv2.findCirclesGrid(image_cv,
@@ -110,6 +111,8 @@ class VehicleDetectionNode(DTROS):
 
         vehicle_centers_msg_out.header = image_msg.header
         vehicle_centers_msg_out.detection.data = detection > 0
+        detection_flag_msg_out.header = image_msg.header
+        detection_flag_msg_out.data = detection > 0
 
         # if the detection is successful add the information about it,
         # otherwise publish a message saying that it was unsuccessful
@@ -126,7 +129,7 @@ class VehicleDetectionNode(DTROS):
             vehicle_centers_msg_out.W = self.circlepattern_dims.value[0]
 
         self.pub_centers.publish(vehicle_centers_msg_out)
-
+        self.pub_detection_flag.publish(detection_flag_msg_out)
         if self.pub_circlepattern_image.get_num_connections() > 0:
             cv2.drawChessboardCorners(image_cv,
                                       tuple(self.circlepattern_dims.value), centers, detection)
