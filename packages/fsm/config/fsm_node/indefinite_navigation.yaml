@@ -139,7 +139,7 @@ states:
       - vehicle_filter_node
       - vehicle_detection_node
       - vehicle_avoidance_control_node
-    lights: ["coordination"] #TODO: Add abonormal halt indicator state
+    lights: ["coordination"]
     current_status: "in_progress"
 
   OBSTACLE_STOP:
@@ -156,5 +156,5 @@ states:
       - vehicle_filter_node
       - vehicle_detection_node
       - vehicle_avoidance_control_node
-    lights: ["coordination"] #TODO: Add abonormal halt indicator state
+    lights: ["coordination"]
     current_status: "in_progress"
