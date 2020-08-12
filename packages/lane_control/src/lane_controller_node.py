@@ -106,6 +106,9 @@ class LaneControllerNode(DTROS):
         self.stop_line_distance = None
         self.stop_line_detected = False
         self.at_stop_line = False
+        self.obstacle_stop_line_distance = None
+        self.obstacle_stop_line_detected = False
+        self.at_obstacle_stop_line = False
 
         self.current_pose_source = 'lane_filter'
 
@@ -148,8 +151,8 @@ class LaneControllerNode(DTROS):
         Args:
             msg(:obj:`StopLineReading`): Message containing information about the virtual obstacle stopline.
         """
-        self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
-        self.stop_line_detected = msg.stop_line_detected
+        self.obstacle_stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
+        self.obstacle_stop_line_detected = msg.stop_line_detected
         self.at_stop_line = msg.at_stop_line
 
     def cbStopLineReading(self, msg):
@@ -160,7 +163,7 @@ class LaneControllerNode(DTROS):
         """
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
         self.stop_line_detected = msg.stop_line_detected
-        self.at_stop_line = msg.at_stop_line
+        self.at_obstacle_stop_line = msg.at_stop_line
 
     def cbMode(self, fsm_state_msg):
 
@@ -220,11 +223,12 @@ class LaneControllerNode(DTROS):
         if self.last_s is not None:
             dt = (current_s - self.last_s)
 
-        if self.at_stop_line:
+        if self.at_stop_line or self.at_obstacle_stop_line:
+            self.log("Arrived at stop line... Stop!")
             v = 0
             omega = 0
         else:
-
+               
             # Compute errors
             d_err = pose_msg.d - self.params['~d_offset']
             phi_err = pose_msg.phi
@@ -236,8 +240,11 @@ class LaneControllerNode(DTROS):
 
 
             wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
-            v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
-
+            if self.obstacle_stop_line_detected:
+                self.log("Obstacle in way detected! Slowing down...")
+                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance)
+            else:
+                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
 
             # For feedforward action (i.e. during intersection navigation)
             omega += self.params['~omega_ff']
