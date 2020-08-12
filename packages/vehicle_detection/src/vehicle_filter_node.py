@@ -229,11 +229,6 @@ class VehicleFilterNode(DTROS):
         stopped_flag.data = at
         self.pub_stopped_flag.publish(stopped_flag)
 
-
-    def triggerLED(self,header,mode=0):
-        if mode == 0:
-
-
 if __name__ == '__main__':
     vehicle_filter_node = VehicleFilterNode(node_name='vehicle_filter_node')
     rospy.spin()
