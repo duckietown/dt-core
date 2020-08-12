@@ -38,6 +38,7 @@ class LaneControllerNode(DTROS):
         ~intersection_navigation_pose (:obj:`LanePose`): The lane pose estimate from intersection navigation
         ~wheels_cmd_executed (:obj:`WheelsCmdStamped`): Confirmation that the control action was executed
         ~stop_line_reading (:obj:`StopLineReading`): Distance from stopline, to reduce speed
+        ~obstacle_distance_reading (:obj:`stop_line_reading`): Distancefrom obstacle virtual stopline, to reduce speed
     """
 
     def __init__(self, node_name):
@@ -133,7 +134,23 @@ class LaneControllerNode(DTROS):
                                               StopLineReading,
                                               self.cbStopLineReading,
                                               queue_size=1)
+        self.sub_obstacle_stop_line = rospy.Subscriber("~obstacle_stop_line",
+                                                        StopLineReading,
+                                                        self.cbObstacleStopLineReading,
+                                                        queue_size=1)
+        
         self.log("Initialized!")
+
+    def cbObstacleStopLineReading(self,msg):
+        """
+        Callback storing the current obstacle distance, if detected.
+
+        Args:
+            msg(:obj:`StopLineReading`): Message containing information about the virtual obstacle stopline.
+        """
+        self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
+        self.stop_line_detected = msg.stop_line_detected
+        self.at_stop_line = msg.at_stop_line
 
     def cbStopLineReading(self, msg):
         """Callback storing current distance to the next stopline, if one is detected.
