@@ -215,6 +215,7 @@
         <!-- Breaking convenction and remapping an output to make the virtual stop line readings look like
         real stop line readings -->
         <remap from="vehicle_filter_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
+        <remap from="vehicle_filter_node/stopped" to="road_anomaly_watcher/obstacle_halted_vehicle"/>
         <group if="$(arg /vehicle_avoidance/filter)">
             <include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>

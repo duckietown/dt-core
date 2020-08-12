@@ -36,6 +36,10 @@ events: # Maps from subscribing topic to signal ids
     topic: "road_anomaly_watcher/obstacle_exists"
     msg_type: "BoolStamped"
     trigger: False
+  obstacle_caused_stop:
+    topic: "road_anomaly_watcher/obstacle_halted_vehicle"
+    msg_type: "BoolStamped"
+    trigger: True
 
 # Define nodes
 nodes:
@@ -77,7 +81,7 @@ states:
 
   LANE_FOLLOWING:
     transitions:
-      obstacle_exists: "OBSTACLE_STOP"
+      obstacle_exists: "OBSTACLE_ALERT"
       at_stop_line: "INTERSECTION_COORDINATION"
     active_nodes:
       - anti_instagram
@@ -120,10 +124,11 @@ states:
       - unicorn_intersection_node
     current_status: "in_progress"
 
-  OBSTACLE_STOP:
+  OBSTACLE_ALERT:
     transitions:
+      obstacle_caused_stop: "OBSTACLE_STOP"
+      at_stop_line: "INTERSECTION_COORDINATION"
       obstacle_cleared: "LANE_FOLLOWING"
-      
     active_nodes:
       - anti_instagram
       - decoder_node
@@ -134,5 +139,21 @@ states:
       - vehicle_filter_node
       - vehicle_detection_node
       - vehicle_avoidance_control_node
-    lights: ["lane_following"] #TODO: Add abonormal halt indicator state
+    lights: ["coordination"]
     current_status: "in_progress"
+
+  OBSTACLE_STOP:
+    transitions:
+      obstacle_cleared: "LANE_FOLLOWING"
+      active_nodes:
+        - anti_instagram
+        - decoder_node
+        - line_detector_node
+        - lane_filter_node
+        - lane_controller_node
+        - stop_line_filter_node
+        - vehicle_filter_node
+        - vehicle_detection_node
+        - vehicle_avoidance_control_node
+      lights: ["coordination"] 
+      current_status: "in_progress"
