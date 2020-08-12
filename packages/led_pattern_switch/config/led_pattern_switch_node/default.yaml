@@ -14,3 +14,5 @@ mappings: #Mapping from FSMStates.state to cmd source names. Allows different FS
   LANE_RECOVERY:     "joystick"
   INTERSECTION_RECOVERY: "joystick"
   PARALLEL_AUTONOMY: "coordination"  
+  OBSTACLE_STOP: "coordination"
+  OBSTACLE_ALERT: "coordination"

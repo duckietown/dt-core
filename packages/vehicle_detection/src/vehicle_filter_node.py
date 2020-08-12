@@ -34,7 +34,7 @@ class VehicleFilterNode(DTROS):
     Publishers:
         ~virtual_stop_line (:obj:`duckietown_msgs.msg.StopLineReading`): Message to the lane controller
         ~debug/visualization_marker (:obj:`visualization_msgs.msg.Marker`): Debug topic that publishes an rViz marker
-
+        ~stopped (:obj:`BoolStamped`): Message to FSM state machine to identify that vehicle is stopped
     """
 
     def __init__(self, node_name):
@@ -69,7 +69,7 @@ class VehicleFilterNode(DTROS):
         # publishers
         self.pub_virtual_stop_line = rospy.Publisher("~virtual_stop_line", StopLineReading, queue_size=1)
         self.pub_visualize = rospy.Publisher("~debug/visualization_marker", Marker, queue_size=1)
-
+        self.pub_stopped_flag = rospy.Publisher("~stopped",BoolStamped, queue_size=1)
         self.pcm = PinholeCameraModel()
         self.log("Initialization completed")
 
@@ -220,6 +220,18 @@ class VehicleFilterNode(DTROS):
         stop_line_msg.stop_line_point.x = x
         stop_line_msg.stop_line_point.y = y
         self.pub_virtual_stop_line.publish(stop_line_msg)
+
+        """
+        Remove once have the road anomaly watcher node
+        """
+        stopped_flag = BoolStamped()
+        stopped_flag.header = header
+        stopped_flag.data = at
+        self.pub_stopped_flag.publish(stopped_flag)
+
+
+    def triggerLED(self,header,mode=0):
+        if mode == 0:
 
 
 if __name__ == '__main__':

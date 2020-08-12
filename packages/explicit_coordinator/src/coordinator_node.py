@@ -21,6 +21,8 @@ class State:
     INTERSECTION_CONTROL = 'INTERSECTION_CONTROL'
     AT_STOP_CLEARING_AND_PRIORITY = 'AT_STOP_CLEARING_AND_PRIORITY'
     SACRIFICE_FOR_PRIORITY = 'SACRIFICE_FOR_PRIORITY'
+    OBSTACLE_ALERT = 'OBSTACLE_ALERT'
+    OBSTACLE_STOP = 'OBSTACLE_STOP'
 
 class VehicleCoordinator():
     """The Vehicle Coordination Module for Duckiebot"""
@@ -164,6 +166,14 @@ class VehicleCoordinator():
         elif self.state == State.INTERSECTION_PLANNING or self.state == State.TL_SENSING:
             self.roof_light = CoordinationSignal.OFF
 
+        elif self.state == State.OBSTACLE_ALERT:
+            self.roof_light = "OBSTACLE_ALERT"
+
+        elif self.state == State.OBSTACLE_STOP:
+            self.roof_light = "OBSTACLE_STOP"
+
+        elif self.state == State.LANE_FOLLOWING:
+            self.roof_light = "CAR_DRIVING"
     #    rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 
     # Define the time at this current state
