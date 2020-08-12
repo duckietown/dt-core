@@ -134,7 +134,7 @@ class LaneControllerNode(DTROS):
                                               StopLineReading,
                                               self.cbStopLineReading,
                                               queue_size=1)
-        self.sub_obstacle_stop_line = rospy.Subscriber("~obstacle_stop_line",
+        self.sub_obstacle_stop_line = rospy.Subscriber("~obstacle_distance_reading",
                                                         StopLineReading,
                                                         self.cbObstacleStopLineReading,
                                                         queue_size=1)
