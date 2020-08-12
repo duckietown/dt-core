@@ -27,7 +27,7 @@ def test_ok():
         <strong>Test passed!!</strong>
         </div>""", raw=True)
     except:
-        print "test ok!!"
+        print("test ok!!")
 
 
 def update(x, **entries):
@@ -70,7 +70,7 @@ class Queue:
     as lists.  If Python ever gets interfaces, Queue will be an interface."""
 
     def __init__(self):
-        abstract
+        pass
 
     def extend(self, items):
         for item in items: self.append(item)
@@ -92,7 +92,7 @@ class PriorityQueue(Queue):
         else:
             return self.A.pop()[1]
     def __contains__(self, item):
-        return some(lambda (_, x): x == item, self.A)
+        return some(lambda _, x: x == item, self.A)
     def __getitem__(self, key):
         for _, item in self.A:
             if item == key:

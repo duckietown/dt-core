@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy, unittest, rostest
 from duckietown_msgs.msg import LanePose, StopLineReading
 #from duckietown_msgs.msg import messages to command the wheels

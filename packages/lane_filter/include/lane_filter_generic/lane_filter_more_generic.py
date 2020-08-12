@@ -186,7 +186,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
                     s = array_as_string_sign(diff)
                     print('max deviation: %s' % deviation)
-                    print s
+                    print(s)
 
 
         return measurement_likelihood
