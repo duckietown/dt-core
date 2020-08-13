@@ -63,12 +63,12 @@ class VehicleFilterNode(DTROS):
         self.last_calc_circle_pattern = None
         self.circlepattern_dist = None
         self.circlepattern = None
-        self.last_led_state = ""
+        self.state = None
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
         self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
         """ TODO: REMOVE AFTER ROAD_ANOMALY NODE CONSTRUCTION"""
-        self.sub_led_state = rospy.Subscriber("~led_state",String, self.cb_process_led_state, queue_size=1)
+        self.sub_state = rospy.Subscriber("~mode",FSMState,self.cbFSMState)
         # publishers
         self.pub_virtual_stop_line = rospy.Publisher("~virtual_stop_line", StopLineReading, queue_size=1)
         self.pub_visualize = rospy.Publisher("~debug/visualization_marker", Marker, queue_size=1)
@@ -77,9 +77,8 @@ class VehicleFilterNode(DTROS):
         self.changePattern = rospy.ServiceProxy("~set_pattern",ChangePattern)
         self.log("Initialization completed")
 
-    def cb_process_led_state(self,msg):
-        if (msg.data != "OBSTACLE_STOPPED") or (msg.data!="OBSTACLE_ALERT"):
-            self.last_led_state = msg.data
+    def cbFSMState(self,msg):
+        self.state = msg.state
 
     def cb_process_camera_info(self, msg):
         """
@@ -221,12 +220,15 @@ class VehicleFilterNode(DTROS):
         
         if stopped:
             msg.data = "OBSTACLE_STOPPED"
+            self.changePattern(msg)
         elif detection:
             msg.data = "OBSTACLE_ALERT"
+            self.changePattern(msg)
         else:
-            msg.data = self.last_led_state
-        self.changePattern(msg)
-
+            if self.state == "LANE_FOLLOWING":
+                msg.data = "CAR_DRIVING"
+                self.changePattern(msg)
+        
 
     def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
         """
