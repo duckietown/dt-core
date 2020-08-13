@@ -61,17 +61,23 @@ class VehicleFilterNode(DTROS):
         self.last_calc_circle_pattern = None
         self.circlepattern_dist = None
         self.circlepattern = None
-
+        self.last_led_state = None
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
         self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
-
+        """ TODO: REMOVE AFTER ROAD_ANOMALY NODE CONSTRUCTION"""
+        from std_msgs.msg import String
+        self.sub_led_state = rospy.Subscriber("~led_state",String, self.cb_process_led_state, queue_size=1)
         # publishers
         self.pub_virtual_stop_line = rospy.Publisher("~virtual_stop_line", StopLineReading, queue_size=1)
         self.pub_visualize = rospy.Publisher("~debug/visualization_marker", Marker, queue_size=1)
         self.pub_stopped_flag = rospy.Publisher("~stopped",BoolStamped, queue_size=1)
         self.pcm = PinholeCameraModel()
         self.log("Initialization completed")
+
+    def cb_process_led_state(self,msg):
+        if (msg.data != "OBSTACLE_ALERT") or (msg.data!="OBSTACLE_ALERT"):
+            self.last_led_state = msg.data
 
     def cb_process_camera_info(self, msg):
         """
@@ -95,7 +101,6 @@ class VehicleFilterNode(DTROS):
 
         # check if there actually was a detection
         detection = vehicle_centers_msg.detection.data
-
         if detection:
             self.calc_circle_pattern(vehicle_centers_msg.H, vehicle_centers_msg.W)
             points = np.zeros((vehicle_centers_msg.H * vehicle_centers_msg.W, 2))
@@ -180,6 +185,9 @@ class VehicleFilterNode(DTROS):
                 marker_msg.action = Marker.DELETE
                 self.pub_visualize.publish(marker_msg)
 
+        trigger_led_hazard_light(detection,(distance_to_vehicle <= self.virtual_stop_line_offset.value))
+
+
     def calc_circle_pattern(self, height, width):
         """
         Calculates the physical locations of each dot in the pattern.
@@ -200,6 +208,20 @@ class VehicleFilterNode(DTROS):
                                                            self.circlepattern_dist * (width - 1) / 2
                     self.circlepattern[i + j * width, 1] = self.circlepattern_dist * j - \
                                                            self.circlepattern_dist * (height - 1) / 2
+
+    def trigger_led_hazard_light(self,detection,stopped):
+        """
+        Publish a service message to trigger the hazard light at the back of the robot.
+
+        Args:
+        """
+        if stopped:
+            rospy.ServiceProxy("~set_pattern","OBSTACLE_STOPPED")
+        elif detection:
+            rospy.ServiceProxy("~set_pattern","OBSTACLE_ALERT")
+        else:
+            rospy.ServiceProxy("~set_pattern",self.last_led_state)
+
 
     def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
         """
