@@ -13,7 +13,7 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: False
   apriltag_intersection:
-    topic: "apriltags_postprocessing_node/apriltags_intersection"
+    topic: "apriltag_postprocessing_node/apriltags_intersection"
     msg_type: "BoolStamped"
     trigger: True
   at_stop_line:

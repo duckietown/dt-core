@@ -242,7 +242,7 @@
         </include>
 
         <!-- Postprocessing node -->
-        <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
+        <remap from="apriltag_postprocessing_node/apriltags_in" to="tag_detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
@@ -291,7 +291,7 @@
             <!-- Vehicle Coordinator-->
             <remap from="coordinator_node/mode" to="fsm_node/mode" />
             <remap from="coordinator_node/signals_detection" to="led_detector_node/signals_detection" />
-            <remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
+            <remap from="coordinator_node/apriltags_out" to="apriltag_postprocessing_node/apriltags_out" />
             <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
             <remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
             <remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
@@ -336,7 +336,7 @@
     <group if="$(arg apriltags_random)">
         <!-- random april tags -->
         <remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
-        <remap from="random_april_tag_turns_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+        <remap from="random_april_tag_turns_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
 
         <remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
@@ -369,7 +369,7 @@
         <remap from="intersection_supervisor_node/mode" to="fsm_node/mode"/>
         <remap from="intersection_supervisor_node/joy" to="joy"/>
         <remap from="intersection_supervisor_node/turn_type" to="intersection_navigation_node/turn_type" />
-        <remap from="intersection_supervisor_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+        <remap from="intersection_supervisor_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
         <remap from="intersection_supervisor_node/intersection_done" to="intersection_navigation/intersection_done"/>
         <include file="$(find parallel_autonomy)/launch/lane_supervisor_node.launch">
             <arg name="veh" value="$(arg veh)"/>
