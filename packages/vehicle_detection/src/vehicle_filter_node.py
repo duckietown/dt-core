@@ -185,7 +185,7 @@ class VehicleFilterNode(DTROS):
                 marker_msg.action = Marker.DELETE
                 self.pub_visualize.publish(marker_msg)
 
-        trigger_led_hazard_light(detection,(distance_to_vehicle <= self.virtual_stop_line_offset.value))
+        self.trigger_led_hazard_light(detection,(distance_to_vehicle <= self.virtual_stop_line_offset.value))
 
 
     def calc_circle_pattern(self, height, width):
