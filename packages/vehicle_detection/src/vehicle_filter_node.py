@@ -12,6 +12,7 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from visualization_msgs.msg import Marker
+from duckietown_msgs.srv import ChangePattern
 
 class VehicleFilterNode(DTROS):
     """
@@ -73,6 +74,7 @@ class VehicleFilterNode(DTROS):
         self.pub_visualize = rospy.Publisher("~debug/visualization_marker", Marker, queue_size=1)
         self.pub_stopped_flag = rospy.Publisher("~stopped",BoolStamped, queue_size=1)
         self.pcm = PinholeCameraModel()
+        self.changePattern = rospy.ServiceProxy("~set_pattern",ChangePattern)
         self.log("Initialization completed")
 
     def cb_process_led_state(self,msg):
@@ -213,16 +215,17 @@ class VehicleFilterNode(DTROS):
 
     def trigger_led_hazard_light(self,detection,stopped):
         """
-        Publish a service message to trigger the hazard light at the back of the robot.
-
-        Args:
+        Publish a service message to trigger the hazard light at the back of the robot
         """
+        msg = String()
+        
         if stopped:
-            rospy.ServiceProxy("~set_pattern","OBSTACLE_STOPPED")
+            msg.data = "OBSTACLE_STOPPED"
         elif detection:
-            rospy.ServiceProxy("~set_pattern","OBSTACLE_ALERT")
+            msg.data = "OBSTACLE_ALERT"
         else:
-            rospy.ServiceProxy("~set_pattern",self.last_led_state)
+            msg.data = self.last_led_state
+        self.changePattern("OBSTACLE_STOPPED")
 
 
     def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
