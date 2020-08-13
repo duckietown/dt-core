@@ -13,6 +13,7 @@ from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from visualization_msgs.msg import Marker
 from duckietown_msgs.srv import ChangePattern
+from std_msgs.msg import String
 
 class VehicleFilterNode(DTROS):
     """
@@ -67,7 +68,6 @@ class VehicleFilterNode(DTROS):
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
         self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
         """ TODO: REMOVE AFTER ROAD_ANOMALY NODE CONSTRUCTION"""
-        from std_msgs.msg import String
         self.sub_led_state = rospy.Subscriber("~led_state",String, self.cb_process_led_state, queue_size=1)
         # publishers
         self.pub_virtual_stop_line = rospy.Publisher("~virtual_stop_line", StopLineReading, queue_size=1)
