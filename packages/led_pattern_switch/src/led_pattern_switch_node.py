@@ -37,7 +37,7 @@ class LEDPatternSwitchNode(object):
             rospy.loginfo("[%s] Led pattern switched to %s in state %s." %(self.node_name,self.current_src_name,fsm_state_msg.state))
 
     def msgincb(self,msg,src_name):
-        
+
         if src_name == self.current_src_name:
             rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
             # self.pub_cmd.publish(msg)
