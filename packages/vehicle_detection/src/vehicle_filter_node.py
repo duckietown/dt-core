@@ -9,7 +9,7 @@ from cv_bridge import CvBridge
 from image_geometry import PinholeCameraModel
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading
+from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading, FSMState
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
 from visualization_msgs.msg import Marker
 from duckietown_msgs.srv import ChangePattern
@@ -228,7 +228,9 @@ class VehicleFilterNode(DTROS):
             if self.state == "LANE_FOLLOWING":
                 msg.data = "CAR_DRIVING"
                 self.changePattern(msg)
-        
+            elif self.state == "NORMAL_JOYSTICK_CONTROL":
+                msg.data = "WHITE"
+                self.changePattern(msg)
 
     def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
         """
