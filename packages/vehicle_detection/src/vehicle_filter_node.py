@@ -63,7 +63,7 @@ class VehicleFilterNode(DTROS):
         self.last_calc_circle_pattern = None
         self.circlepattern_dist = None
         self.circlepattern = None
-        self.last_led_state = None
+        self.last_led_state = ""
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
         self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
@@ -78,7 +78,7 @@ class VehicleFilterNode(DTROS):
         self.log("Initialization completed")
 
     def cb_process_led_state(self,msg):
-        if (msg.data != "OBSTACLE_ALERT") or (msg.data!="OBSTACLE_ALERT"):
+        if (msg.data != "OBSTACLE_STOPPED") or (msg.data!="OBSTACLE_ALERT"):
             self.last_led_state = msg.data
 
     def cb_process_camera_info(self, msg):
@@ -225,7 +225,7 @@ class VehicleFilterNode(DTROS):
             msg.data = "OBSTACLE_ALERT"
         else:
             msg.data = self.last_led_state
-        self.changePattern("OBSTACLE_STOPPED")
+        self.changePattern(msg)
 
 
     def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
