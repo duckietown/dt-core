@@ -242,8 +242,8 @@ class LaneControllerNode(DTROS):
             if self.obstacle_stop_line_detected:
                 v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance)
                 #TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
-                v = v*0.5
-                omega = omega*0.5
+                v = v*0.3
+                omega = omega*0.3
 
             else:
                 v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
