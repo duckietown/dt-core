@@ -166,14 +166,6 @@ class VehicleCoordinator():
         elif self.state == State.INTERSECTION_PLANNING or self.state == State.TL_SENSING:
             self.roof_light = CoordinationSignal.OFF
 
-        elif self.state == State.OBSTACLE_ALERT:
-            self.roof_light = "OBSTACLE_ALERT"
-
-        elif self.state == State.OBSTACLE_STOP:
-            self.roof_light = "OBSTACLE_STOP"
-
-        elif self.state == State.LANE_FOLLOWING:
-            self.roof_light = "CAR_DRIVING"
     #    rospy.logdebug('[coordination_node] Transitioned to state' + self.state)
 
     # Define the time at this current state
