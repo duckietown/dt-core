@@ -224,7 +224,6 @@ class LaneControllerNode(DTROS):
             dt = (current_s - self.last_s)
 
         if self.at_stop_line or self.at_obstacle_stop_line:
-            self.log("Arrived at stop line... Stop!")
             v = 0
             omega = 0
         else:
@@ -241,7 +240,6 @@ class LaneControllerNode(DTROS):
 
             wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
             if self.obstacle_stop_line_detected:
-                self.log("Obstacle in way detected! Slowing down...")
                 v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance)
             else:
                 v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
