@@ -38,6 +38,7 @@ class LaneControllerNode(DTROS):
         ~intersection_navigation_pose (:obj:`LanePose`): The lane pose estimate from intersection navigation
         ~wheels_cmd_executed (:obj:`WheelsCmdStamped`): Confirmation that the control action was executed
         ~stop_line_reading (:obj:`StopLineReading`): Distance from stopline, to reduce speed
+        ~obstacle_distance_reading (:obj:`stop_line_reading`): Distancefrom obstacle virtual stopline, to reduce speed
     """
 
     def __init__(self, node_name):
@@ -105,6 +106,9 @@ class LaneControllerNode(DTROS):
         self.stop_line_distance = None
         self.stop_line_detected = False
         self.at_stop_line = False
+        self.obstacle_stop_line_distance = None
+        self.obstacle_stop_line_detected = False
+        self.at_obstacle_stop_line = False
 
         self.current_pose_source = 'lane_filter'
 
@@ -133,7 +137,23 @@ class LaneControllerNode(DTROS):
                                               StopLineReading,
                                               self.cbStopLineReading,
                                               queue_size=1)
+        self.sub_obstacle_stop_line = rospy.Subscriber("~obstacle_distance_reading",
+                                                        StopLineReading,
+                                                        self.cbObstacleStopLineReading,
+                                                        queue_size=1)
+        
         self.log("Initialized!")
+
+    def cbObstacleStopLineReading(self,msg):
+        """
+        Callback storing the current obstacle distance, if detected.
+
+        Args:
+            msg(:obj:`StopLineReading`): Message containing information about the virtual obstacle stopline.
+        """
+        self.obstacle_stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
+        self.obstacle_stop_line_detected = msg.stop_line_detected
+        self.at_stop_line = msg.at_stop_line
 
     def cbStopLineReading(self, msg):
         """Callback storing current distance to the next stopline, if one is detected.
@@ -143,7 +163,7 @@ class LaneControllerNode(DTROS):
         """
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
         self.stop_line_detected = msg.stop_line_detected
-        self.at_stop_line = msg.at_stop_line
+        self.at_obstacle_stop_line = msg.at_stop_line
 
     def cbMode(self, fsm_state_msg):
 
@@ -203,11 +223,11 @@ class LaneControllerNode(DTROS):
         if self.last_s is not None:
             dt = (current_s - self.last_s)
 
-        if self.at_stop_line:
+        if self.at_stop_line or self.at_obstacle_stop_line:
             v = 0
             omega = 0
         else:
-
+               
             # Compute errors
             d_err = pose_msg.d - self.params['~d_offset']
             phi_err = pose_msg.phi
@@ -219,8 +239,14 @@ class LaneControllerNode(DTROS):
 
 
             wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
-            v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
+            if self.obstacle_stop_line_detected:
+                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance)
+                #TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
+                v = v*0.25
+                omega = omega*0.25
 
+            else:
+                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
 
             # For feedforward action (i.e. during intersection navigation)
             omega += self.params['~omega_ff']

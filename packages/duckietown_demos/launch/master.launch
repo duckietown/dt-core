@@ -176,6 +176,7 @@
             <remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
             <remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
             <remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
+            <remap from="lane_controller_node/obstacle_distance_reading" to="road_anomaly_watcher/obstacle_distance"/>
             <!-- <remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" /> -->
             <!-- <remap from="lane_controller_node/obstacle_detected" to="obstacle_avoidance_node/obstacle_avoidance_active_flag" /> -->
             <remap from="lane_controller_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading" />
@@ -201,6 +202,7 @@
 
         <!-- Vehicle Avoidance Detection Node -->
         <remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
+        <remap from="vehicle_detection_node/detection" to="road_anomaly_watcher/obstacle_exists" />
         <group if="$(arg /vehicle_avoidance/detection)">
             <include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
@@ -208,12 +210,14 @@
         </group>
 
         <!-- Vehicle Avoidance Filter Node -->
+        <remap from="vehicle_filter_node/mode" to="fsm_node/mode" />
+        <remap from="vehicle_filter_node/set_pattern" to="led_emitter_node/set_pattern"/>
         <remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
         <remap from="vehicle_filter_node/centers" to="vehicle_detection_node/centers" />
         <!-- Breaking convenction and remapping an output to make the virtual stop line readings look like
         real stop line readings -->
-        <remap from="vehicle_filter_node/virtual_stop_line" to="stop_line_filter_node/stop_line_reading"/>
-
+        <remap from="vehicle_filter_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
+        <remap from="vehicle_filter_node/stopped" to="road_anomaly_watcher/obstacle_halted_vehicle"/>
         <group if="$(arg /vehicle_avoidance/filter)">
             <include file="$(find vehicle_detection)/launch/vehicle_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
@@ -242,7 +246,7 @@
         </include>
 
         <!-- Postprocessing node -->
-        <remap from="apriltags_postprocessing_node/apriltags_in" to="tag_detections" />
+        <remap from="apriltag_postprocessing_node/apriltags_in" to="tag_detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
@@ -291,7 +295,7 @@
             <!-- Vehicle Coordinator-->
             <remap from="coordinator_node/mode" to="fsm_node/mode" />
             <remap from="coordinator_node/signals_detection" to="led_detector_node/signals_detection" />
-            <remap from="coordinator_node/apriltags_out" to="apriltags_postprocessing_node/apriltags_out" />
+            <remap from="coordinator_node/apriltags_out" to="apriltag_postprocessing_node/apriltags_out" />
             <!--remap from="simple_coordinator_node/change_color_pattern" to="led_emitter_node/change_color_pattern" /-->
             <remap from="coordinator_node/path_computed" to="intersection_navigation_node/path_computed" />
             <remap from="coordinator_node/maintenance_state" to="maintenance_control_node/maintenance_state"/>
@@ -336,7 +340,7 @@
     <group if="$(arg apriltags_random)">
         <!-- random april tags -->
         <remap from="random_april_tag_turns_node/mode" to="fsm_node/mode"/>
-        <remap from="random_april_tag_turns_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+        <remap from="random_april_tag_turns_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
 
         <remap from="random_april_tag_turns_node/turn_type" to="intersection_navigation_node/turn_type"/>
 
@@ -369,7 +373,7 @@
         <remap from="intersection_supervisor_node/mode" to="fsm_node/mode"/>
         <remap from="intersection_supervisor_node/joy" to="joy"/>
         <remap from="intersection_supervisor_node/turn_type" to="intersection_navigation_node/turn_type" />
-        <remap from="intersection_supervisor_node/tag" to="apriltags_postprocessing_node/apriltags_out"/>
+        <remap from="intersection_supervisor_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
         <remap from="intersection_supervisor_node/intersection_done" to="intersection_navigation/intersection_done"/>
         <include file="$(find parallel_autonomy)/launch/lane_supervisor_node.launch">
             <arg name="veh" value="$(arg veh)"/>
