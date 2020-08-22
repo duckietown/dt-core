@@ -312,7 +312,7 @@
     <!-- End Coordination -->
 
     <!-- Start Unicorn intersection -->
-    <!-- <group if="$(arg unicorn_intersection)">
+    <group if="$(arg unicorn_intersection)">
         <remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
         <remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
         <remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
@@ -332,7 +332,7 @@
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
-    </group> -->
+    </group>
     <!-- End Unicorn intersection -->
 
 
