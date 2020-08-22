@@ -91,7 +91,7 @@ class AprilPostPros(object):
 
             new_info = TagInfo()
             #Can use id 1 as long as no bundles are used
-            new_info.id = int(detection.id[0])
+            new_info.id = int(detection.tag_id[0])
             id_info = self.tags_dict[new_info.id]
 
             # Check yaml file to fill in ID-specific information
