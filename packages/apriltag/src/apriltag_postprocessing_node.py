@@ -93,7 +93,7 @@ class AprilPostPros(object):
             #Can use id 1 as long as no bundles are used
             new_info.id = int(detection.tag_id)
             id_info = self.tags_dict[new_info.id]
-            rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
+            #rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
             # Check yaml file to fill in ID-specific information
             new_info.tag_type = self.sign_types[id_info['tag_type']]
             if new_info.tag_type == self.info.S_NAME:
