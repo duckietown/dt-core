@@ -108,7 +108,7 @@
         </group> -->
 
         <group if="$(arg /fsm/logic_gate)">
-          <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" />
+          <!-- <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
           <include file="$(find fsm)/launch/logic_gate_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg fsm_file_name)"/>
@@ -315,7 +315,7 @@
     <group if="$(arg unicorn_intersection)">
         <remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
         <remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
-        <remap from="unicorn_intersection_node/intersection_go" to="logic_gate_node/intersection_go"/>
+        <remap from="unicorn_intersection_node/intersection_go" to="coordinator_node/intersection_go"/>
         <remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
         <remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
         <remap from="unicorn_intersection_node/lane_controller/omega_ff" to="lane_controller_node/omega_ff"/>
