@@ -2,7 +2,6 @@
 
 initial_state: "NORMAL_JOYSTICK_CONTROL"
 
-
 events: # Maps from subscribing topic to signal ids
   joystick_override_on:
     topic: "joy_mapper_node/joystick_override"
@@ -13,7 +12,7 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: False
   apriltag_intersection:
-    topic: "apriltags_postprocessing_node/apriltags_intersection"
+    topic: "apriltag_postprocessing_node/apriltags_intersection"
     msg_type: "BoolStamped"
     trigger: True
   at_stop_line:
@@ -24,12 +23,22 @@ events: # Maps from subscribing topic to signal ids
     topic: "coordinator_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True
-  intersection_done:  ## closed loop new
+  intersection_done: ## closed loop new
     topic: "intersection_navigation_node/intersection_done"
     msg_type: "BoolStamped"
     trigger: True
-
-
+  obstacle_exists:
+    topic: "road_anomaly_watcher/obstacle_exists"
+    msg_type: "BoolStamped"
+    trigger: True
+  obstacle_cleared:
+    topic: "road_anomaly_watcher/obstacle_exists"
+    msg_type: "BoolStamped"
+    trigger: False
+  obstacle_caused_stop:
+    topic: "road_anomaly_watcher/obstacle_halted_vehicle"
+    msg_type: "BoolStamped"
+    trigger: True
 
 # Define nodes
 nodes:
@@ -44,12 +53,12 @@ nodes:
   framerate_high: "camera_node/framerate_high_switch"
   # extras added
 
-  coordinator_node: "coordinator_node/switch"  #NOTE explicit coordination
+  coordinator_node: "coordinator_node/switch" #NOTE explicit coordination
   unicorn_intersection_node: "unicorn_intersection_node/switch" #NOTE a.k.a. semi closed loop intersection navigation
   lane_controller_node: "lane_controller_node/switch"
   vehicle_filter_node: "vehicle_filter_node/switch"
   vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
-  vehicle_detection_node : "vehicle_detection_node/switch"
+  vehicle_detection_node: "vehicle_detection_node/switch"
 
 # Define state transitions
 
@@ -71,8 +80,8 @@ states:
 
   LANE_FOLLOWING:
     transitions:
+      obstacle_exists: "OBSTACLE_ALERT"
       at_stop_line: "INTERSECTION_COORDINATION"
-
     active_nodes:
       - anti_instagram
       - decoder_node
@@ -114,3 +123,38 @@ states:
       - unicorn_intersection_node
     current_status: "in_progress"
 
+  OBSTACLE_ALERT:
+    transitions:
+      at_stop_line: "INTERSECTION_COORDINATION"
+      obstacle_caused_stop: "OBSTACLE_STOP"
+      obstacle_cleared: "LANE_FOLLOWING"
+
+    active_nodes:
+      - anti_instagram
+      - decoder_node
+      - line_detector_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+      - vehicle_filter_node
+      - vehicle_detection_node
+      - vehicle_avoidance_control_node
+    lights: ["coordination"]
+    current_status: "in_progress"
+
+  OBSTACLE_STOP:
+    transitions:
+      obstacle_cleared: "LANE_FOLLOWING"
+
+    active_nodes:
+      - anti_instagram
+      - decoder_node
+      - line_detector_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+      - vehicle_filter_node
+      - vehicle_detection_node
+      - vehicle_avoidance_control_node
+    lights: ["coordination"]
+    current_status: "in_progress"

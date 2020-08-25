@@ -1,96 +1,100 @@
 #!/usr/bin/env python
 
 import rospy
-import threading
-
-from anti_instagram import AntiInstagram
+from multiprocessing import Lock
+from image_processing.anti_instagram import AntiInstagram
 from cv_bridge import CvBridge
-from duckietown_utils.jpg import bgr_from_jpg
 from sensor_msgs.msg import CompressedImage
+from duckietown_msgs.msg import AntiInstagramThresholds
 
-class AntiInstagramNode():
-    def __init__(self):
-        self.node_name = rospy.get_name()
-        self.image_lock = threading.Lock()
+from duckietown.dtros import DTROS, NodeType, TopicType
 
-        self.ai = AntiInstagram()
 
-        # XXX: read parameters
-        # XXX: parameters need to go inside config file, ask aleks about heirarchy 
-        self.interval = self.setup_parameter("~ai_interval", 10)
-        self.color_balance_percentage = self.setup_parameter("~cb_percentage", 0.8) # XXX: change in all launch files
-        self.output_scale = self.setup_parameter("~scale_percent", 0.4) # XXX: change in all launch files 
-        self.calculation_scale = self.setup_parameter("~resize", 0.2)
+class AntiInstagramNode(DTROS):
 
-        self.bridge = CvBridge()
+    """
 
-        self.image = None
+    Subscriber:
+        ~uncorrected_image/compressed: The uncompressed image coming from the camera
 
-        rospy.Timer(rospy.Duration(self.interval), self.calculate_new_parameters)
-        
+
+    Publisher:
+        ~
+
+    """
+    def __init__(self, node_name):
+
+        super(AntiInstagramNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION
+        )
+
+        # Read parameters
+
+        self._interval = rospy.get_param("~interval")
+        self._color_balance_percentage = rospy.get_param("~color_balance_scale")
+        self._output_scale = rospy.get_param("~output_scale")
+
+        # Construct publisher
+        self.pub = rospy.Publisher(
+            "~thresholds",
+            AntiInstagramThresholds,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION
+        )
+
+        # Construct subscriber
         self.uncorrected_image_subscriber = rospy.Subscriber(
-                                                '~uncorrected_image/compressed', 
-                                                CompressedImage, 
-                                                self.process_image,
-                                                buff_size=921600, 
-                                                queue_size=1)
+            '~uncorrected_image/compressed',
+            CompressedImage,
+            self.store_image_msg,
+            buff_size=10000000,
+            queue_size=1
+        )
 
-        self.corrected_image_publisher = rospy.Publisher(
-                                             "~corrected_image/compressed", 
-                                             CompressedImage, 
-                                             queue_size=1)
-        
+        # Initialize Timer
+        rospy.Timer(rospy.Duration(self._interval),
+                    self.calculate_new_parameters)
 
-    def process_image(self, image_msg):        
-        try:
-            self.image_lock.acquire()
-            image = bgr_from_jpg(image_msg.data)
-            self.image = image
-            self.image_lock.release()
-        except ValueError as e:
-            rospy.loginfo('Anti_instagram cannot decode image: %s' % e)
-            self.image_lock.release()
-            return
+        # Initialize objects and data
+        self.ai = AntiInstagram()
+        self.bridge = CvBridge()
+        self.image_msg = None
+        self.mutex = Lock()
 
-        color_balanced_image = self.ai.apply_color_balance(image, 
-                                   self.output_scale)
+        # ---
+        self.log("Initialized.")
 
-        if color_balanced_image is None:
-            self.calculate_new_parameters(None)
-            return
 
-        corrected_image = self.bridge.cv2_to_compressed_imgmsg(
-                              color_balanced_image)
-        corrected_image.header.stamp = image_msg.header.stamp           
-        self.corrected_image_publisher.publish(corrected_image)        
-        
+    def store_image_msg(self, image_msg):
+        with self.mutex:
+            self.image_msg = image_msg
+
+    def decode_image_msg(self):
+        with self.mutex:
+            try:
+                image = self.bridge.compressed_imgmsg_to_cv2(self.image_msg, "bgr8")
+            except ValueError as e:
+                self.log('Anti_instagram cannot decode image: %s' % e)
+        return image
 
     def calculate_new_parameters(self, event):
-        self.image_lock.acquire()
-        image = self.image
-        self.image_lock.release()
-
-        if image is None:
-            rospy.loginfo("[%s] Waiting for first image!" % self.node_name)
+        if self.image_msg is None:
+            self.log("[%s] Waiting for first image!")
             return
+        image = self.decode_image_msg()
+        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(image,
+                                                self._output_scale,
+                                                self._color_balance_percentage)
 
-        self.ai.calculate_color_balance_thresholds(image, 
-            self.calculation_scale,
-            self.color_balance_percentage)
-        
-        rospy.loginfo("[%s] New parameters computed" % self.node_name)
-        
-        
+        # Publish parameters
+        msg = AntiInstagramThresholds()
+        msg.low = lower_thresholds
+        msg.high = higher_thresholds
+        self.pub.publish(msg)
 
 
-    def setup_parameter(self, param_name, default_value):
-        value = rospy.get_param(param_name, default_value)
-        rospy.set_param(param_name, value)
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
-        return value
 
 if __name__ == '__main__':
-    rospy.init_node('anti_instagram_node', anonymous=False)
-    node = AntiInstagramNode()
+    node = AntiInstagramNode(node_name='anti_instagram_node')
     rospy.spin()
-

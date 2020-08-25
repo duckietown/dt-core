@@ -51,12 +51,14 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>duckietown</build_depend>
   <build_depend>duckietown_msgs</build_depend>
+  <build_depend>image_processing</build_depend>
   <build_depend>rospy</build_depend>
   <build_export_depend>duckietown</build_export_depend>
   <build_export_depend>duckietown_msgs</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>duckietown</exec_depend>
   <exec_depend>duckietown_msgs</exec_depend>
+  <exec_depend>image_processing</exec_depend>
   <exec_depend>rospy</exec_depend>
 
 

@@ -32,7 +32,7 @@ events:
     msg_type: "BoolStamped"
     trigger: True
   apriltag_parking:
-    topic: "apriltags_postprocessing_node/apriltags_parking"
+    topic: "apriltag_postprocessing_node/apriltags_parking"
     msg_type: "BoolStamped"
     trigger: True
   parking_on:

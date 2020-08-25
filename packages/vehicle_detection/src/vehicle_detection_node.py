@@ -1,132 +1,141 @@
 #!/usr/bin/env python
-from copy import deepcopy
-from cv_bridge import CvBridge, CvBridgeError
+
+import cv2
+import rospy
+from cv_bridge import CvBridge
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
+from sensor_msgs.msg import CompressedImage, Image
+
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
-from mutex import mutex
-from sensor_msgs.msg import CompressedImage, Image
-from std_msgs.msg import Float32
-import cv2
-import numpy as np
-import os
-import rospkg
-import rospy
-import threading
-import time
-import yaml
 
 
-class VehicleDetectionNode(object):
+class VehicleDetectionNode(DTROS):
+    """
+    This node detects if there is another Duckiebot in the image. This is done by recognizing the pattern of circles on
+    the back of every robot.
 
-    def __init__(self):
-        self.node_name = rospy.get_name()
+    Args:
+        node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
+
+    Configuration:
+        ~process_frequency (:obj:`float`): Frequency at which to process the incoming images
+        ~circlepattern_dims (:obj:`list` of `int`): Number of dots in the pattern, two elements: [number of columns, number of rows]
+        ~blobdetector_min_area (:obj:`int`): Parameter for the blob detector, passed to `SimpleBlobDetector <https://docs.opencv.org/4.3.0/d0/d7a/classcv_1_1SimpleBlobDetector.html>`_
+        ~blobdetector_min_dist_between_blobs (:obj:`str`): Parameter for the blob detector, passed to `SimpleBlobDetector <https://docs.opencv.org/4.3.0/d0/d7a/classcv_1_1SimpleBlobDetector.html>`_
+
+    Subscriber:
+        ~image (:obj:`sensor_msgs.msg.CompressedImage`): Input image
+
+    Publishers:
+        ~centers (:obj:`duckietown_msgs.msg.VehicleCorners`): Detected pattern (if any)
+        ~debug/detection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image that shows the detected pattern
+        ~detection (:obj:`boolStamped`): Vehicle Detection Flag
+    """
+
+    def __init__(self, node_name):
+
+        # Initialize the DTROS parent class
+        super(VehicleDetectionNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION
+        )
+
+        # Initialize the parameters
+        self.process_frequency = DTParam('~process_frequency',
+                                         param_type=ParamType.FLOAT)
+        self.circlepattern_dims = DTParam('~circlepattern_dims',
+                                          param_type=ParamType.LIST)
+        self.blobdetector_min_area = DTParam('~blobdetector_min_area',
+                                             param_type=ParamType.FLOAT)
+        self.blobdetector_min_dist_between_blobs = DTParam('~blobdetector_min_dist_between_blobs',
+                                                           param_type=ParamType.FLOAT)
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #
+        self.cbParametersChanged() # TODO: THIS SHOULD BE FIXED IN THE NEW DTROS!!!!!!!!!!
+        #
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         self.bridge = CvBridge()
-        self.active = True
 
-        self.publish_freq = self.setupParam("~publish_freq", 2.0)
-        self.circlepattern_dims = tuple(self.setupParam('~circlepattern_dims/data', [7, 3]))
-        self.blobdetector_min_area = self.setupParam('~blobdetector_min_area', 10)
-        self.blobdetector_min_dist_between_blobs = self.setupParam('~blobdetector_min_dist_between_blobs', 2)
-        self.publish_circles = self.setupParam('~publish_circles', True)
-
-        self.publish_duration = rospy.Duration.from_sec(1.0/self.publish_freq)
         self.last_stamp = rospy.Time.now()
 
+        # Subscriber
+        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cb_image, queue_size=1)
 
-        self.lock = mutex()
-        self.sub_image = rospy.Subscriber("~image", CompressedImage,
-                                          self.cbImage, buff_size=921600, 
-                                          queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch", BoolStamped,
-                                           self.cbSwitch, queue_size=1)
-        self.pub_detection = rospy.Publisher("~detection",
-                                             BoolStamped, queue_size=1)
-        self.pub_corners = rospy.Publisher("~corners",
-                                           VehicleCorners, queue_size=1)
-        self.pub_circlepattern_image = rospy.Publisher("~circlepattern_image",
-                                                       Image, queue_size=1)
-        self.pub_time_elapsed = rospy.Publisher("~detection_time",
-                                                Float32, queue_size=1)
+        # Publishers
+        self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)
+        self.pub_circlepattern_image = rospy.Publisher("~debug/detection_image/compressed", CompressedImage, queue_size=1)
+        self.pub_detection_flag = rospy.Publisher("~detection",BoolStamped, queue_size=1)
+        self.log("Initialization completed.")
 
-        rospy.loginfo("[%s] Initialization completed" % (self.node_name))
+    def cbParametersChanged(self):
 
-    def setupParam(self, param_name, default_value):
-        value = rospy.get_param(param_name, default_value)
-        rospy.set_param(param_name, value)
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
-        return value
+        #TODO: THIS DOESN'T WORK WITH THE NEW DTROS!!!
+        self.publish_duration = rospy.Duration.from_sec(1.0/self.process_frequency.value)
+        params = cv2.SimpleBlobDetector_Params()
+        params.minArea = self.blobdetector_min_area.value
+        params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs.value
+        self.simple_blob_detector = cv2.SimpleBlobDetector_create(params)
 
-    def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data
+    def cb_image(self, image_msg):
+        """
+        Callback for processing a image which potentially contains a back pattern. Processes the image only if
+        sufficient time has passed since processing the previous image (relative to the chosen processing frequency).
 
-    def cbImage(self, image_msg):
-        if not self.active:
-             return
-        # Start a daemon thread to process the image
-        thread = threading.Thread(target=self.processImage,args=(image_msg,))
-        thread.setDaemon(True)
-        thread.start()
-        # Returns rightaway
+        The pattern detection is performed using OpenCV's `findCirclesGrid <https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html?highlight=solvepnp#findcirclesgrid>`_ function.
 
-    def processImage(self, image_msg): 
-        if not self.active:
-            return
+        Args:
+            image_msg (:obj:`sensor_msgs.msg.CompressedImage`): Input image
+
+        """
         now = rospy.Time.now()
         if now - self.last_stamp < self.publish_duration:
             return
         else:
             self.last_stamp = now
         
-        
-        vehicle_detected_msg_out = BoolStamped()
-        vehicle_corners_msg_out = VehicleCorners()
-        try:
-            image_cv = self.bridge.compressed_imgmsg_to_cv2(
-                image_msg, "bgr8")
-        except CvBridgeError as e:
-            print e
+        vehicle_centers_msg_out = VehicleCorners()
+        detection_flag_msg_out = BoolStamped()
+        image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
 
-        start = rospy.Time.now()
-        params = cv2.SimpleBlobDetector_Params()
-        params.minArea = self.blobdetector_min_area
-        params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs
-        simple_blob_detector = cv2.SimpleBlobDetector_create(params)
-        (detection, corners) = cv2.findCirclesGrid(image_cv,
-                                                    self.circlepattern_dims, flags=cv2.CALIB_CB_SYMMETRIC_GRID,
-                                                    blobDetector=simple_blob_detector)
+        (detection, centers) = cv2.findCirclesGrid(image_cv,
+                                                   patternSize=tuple(self.circlepattern_dims.value),
+                                                   flags=cv2.CALIB_CB_SYMMETRIC_GRID,
+                                                   blobDetector=self.simple_blob_detector)
 
-        # print(corners)
+        # if the pattern is detected, cv2.findCirclesGrid returns a non-zero result, otherwise it returns 0
+        # vehicle_detected_msg_out.data = detection > 0
+        # self.pub_detection.publish(vehicle_detected_msg_out)
 
-        vehicle_detected_msg_out.data = detection
-        self.pub_detection.publish(vehicle_detected_msg_out)
-        if detection:
-            # print(corners)
+        vehicle_centers_msg_out.header = image_msg.header
+        vehicle_centers_msg_out.detection.data = detection > 0
+        detection_flag_msg_out.header = image_msg.header
+        detection_flag_msg_out.data = detection > 0
+
+        # if the detection is successful add the information about it,
+        # otherwise publish a message saying that it was unsuccessful
+        if detection > 0:
             points_list = []
-            for point in corners:
-                corner = Point32()
-                # print(point[0])
-                corner.x = point[0, 0]
-                # print(point[0,1])
-                corner.y = point[0, 1]
-                corner.z = 0
-                points_list.append(corner)
-            vehicle_corners_msg_out.header.stamp = rospy.Time.now()
-            vehicle_corners_msg_out.corners = points_list
-            vehicle_corners_msg_out.detection.data = detection
-            vehicle_corners_msg_out.H = self.circlepattern_dims[1]
-            vehicle_corners_msg_out.W = self.circlepattern_dims[0]
-            self.pub_corners.publish(vehicle_corners_msg_out)
-        
-        elapsed_time = (rospy.Time.now() - start).to_sec()
-        self.pub_time_elapsed.publish(elapsed_time)
-        
-        if detection and self.publish_circles:
+            for point in centers:
+                center = Point32()
+                center.x = point[0, 0]
+                center.y = point[0, 1]
+                center.z = 0
+                points_list.append(center)
+            vehicle_centers_msg_out.corners = points_list
+            vehicle_centers_msg_out.H = self.circlepattern_dims.value[1]
+            vehicle_centers_msg_out.W = self.circlepattern_dims.value[0]
+
+        self.pub_centers.publish(vehicle_centers_msg_out)
+        self.pub_detection_flag.publish(detection_flag_msg_out)
+        if self.pub_circlepattern_image.get_num_connections() > 0:
             cv2.drawChessboardCorners(image_cv,
-                                        self.circlepattern_dims, corners, detection)
-            image_msg_out = self.bridge.cv2_to_imgmsg(image_cv, "bgr8")
+                                      tuple(self.circlepattern_dims.value), centers, detection)
+            image_msg_out = self.bridge.cv2_to_compressed_imgmsg(image_cv)
             self.pub_circlepattern_image.publish(image_msg_out)
 
 if __name__ == '__main__':
-    rospy.init_node('vehicle_detection', anonymous=False)
-    vehicle_detection_node = VehicleDetectionNode()
+    vehicle_detection_node = VehicleDetectionNode('vehicle_detection')
     rospy.spin()

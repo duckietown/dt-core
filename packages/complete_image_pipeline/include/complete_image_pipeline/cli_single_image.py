@@ -2,7 +2,7 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from ground_projection import GroundProjection
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
 from .pipeline import run_pipeline
 
@@ -22,13 +22,6 @@ class SingleImagePipeline(D8App):
         g = "Input/output"
         params.add_string('image', help="Image to use.", group=g, default=None)
         params.add_string('output', default=None, short='-o', help='Output directory', group=g)
-        g = "Pipeline"
-        params.add_string('line_detector', default='baseline', help="Which line detector to use", group=g)
-        params.add_string('image_prep', default='baseline', help="Which image prep to use", group=g)
-        params.add_string('anti_instagram', default='baseline', help="Which anti_instagram to use", group=g)
-        params.add_string('lane_filter',
-                          default='moregeneric_straight',
-                          help="Which lane_filter to use", group=g)
 
     def go(self):
         vehicle_name = dtu.get_current_robot_name()
@@ -68,11 +61,7 @@ class SingleImagePipeline(D8App):
         gp = GroundProjection(vehicle_name)
 
         dtu.DuckietownConstants.show_timeit_benchmarks = True
-        res, _stats = run_pipeline(bgr, gp,
-                                   line_detector_name=self.options.line_detector,
-                                   image_prep_name=self.options.image_prep,
-                                   anti_instagram_name=self.options.anti_instagram,
-                                   lane_filter_name=self.options.lane_filter)
+        res, _stats = run_pipeline(bgr)
 
         self.info('Resizing images..')
         res = dtu.resize_small_images(res)
