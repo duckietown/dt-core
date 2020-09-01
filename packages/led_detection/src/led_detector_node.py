@@ -262,8 +262,8 @@ class LEDDetectorNode(DTROS):
             self.pub_image_TL.publish(img_tl_circle_msg)
 
         # Log results to the terminal
-        self.log("The observed LEDs are:\n Front = %s\n Right = %s\n Traffic light state = %s" %
-                 (self.front, self.right, self.traffic_light))
+        rospy.loginfo("[%s] The observed LEDs are: Front = [%s] Right = [%s] Traffic light state = [%s]"
+                                ,self.node_name,self.front, self.right, self.traffic_light)
 
         # Publish detections
         detections_msg = SignalsDetection(front=self.front,

@@ -13,7 +13,7 @@
 
         <!-- Finite state machine -->
         <arg name="fsm" value="true"/>
-                
+        <arg name="/fsm/logic_gate" value="true"/>
 		<!-- Basic functionalities -->
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="true" />

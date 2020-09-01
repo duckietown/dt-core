@@ -52,7 +52,7 @@ class UnicornIntersectionNode(object):
         self.pub_LF_params.publish(msg)
 
     def cbIntersectionGo(self, msg):
-
+        rospy.loginfo("recieved intersection go message from coordinator")
         if not self.active:
             return
 
