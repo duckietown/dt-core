@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
