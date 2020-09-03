@@ -144,7 +144,7 @@ class LEDDetector:
 
         # Frequency estimation based on FFT
         signal_f = fftpack.fft(blob['Signal'] - np.mean(blob['Signal']))
-        y_f = 2.0 / num_img * np.abs(signal_f[:num_img / 2 + 1])
+        y_f = 2.0 / num_img * np.abs(signal_f[:num_img // 2 + 1])
         fft_peak_freq = 1.0 * np.argmax(y_f) / (num_img * t_s)
 
         if self.parameters['~verbose'] == 2:
