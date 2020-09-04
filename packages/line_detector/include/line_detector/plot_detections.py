@@ -55,7 +55,7 @@ def plotMaps(image, detections):
 
     color_map = np.zeros_like(im)
 
-    for color_range, det in detections.iteritems():
+    for color_range, det in detections.items():
 
         # convert HSV color to BGR
         c = color_range.representative
