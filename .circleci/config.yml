@@ -27,7 +27,6 @@ jobs:
             python3 -m pip install --no-cache-dir --user -U duckietown-shell
             export PATH="$PATH:$HOME/.local/bin"
             dts --set-version daffy exit
-
       - checkout
 
       - run:
