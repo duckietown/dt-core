@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from duckietown_msgs.msg import SegmentList, Segment
@@ -24,7 +24,7 @@ class LaneFilterTesterNode(object):
         elif color=="red":
             seg.color=seg.RED
         else:
-            print "error no color specified"
+            print("error no color specified")
         seg_list = SegmentList()
         seg_list.segments.append(seg)
         pub_fake_segment_list.publish(seg_list)

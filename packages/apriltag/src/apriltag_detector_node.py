@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import cv2
 import rospy
@@ -113,7 +113,7 @@ class AprilTagDetector(DTROS):
                     )
                 ),
                 tag_id=tag.tag_id,
-                tag_family=tag.tag_family,
+                tag_family=str(tag.tag_family),
                 hamming=tag.hamming,
                 decision_margin=tag.decision_margin,
                 homography=tag.homography.flatten().astype(np.float32).tolist(),

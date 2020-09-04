@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import cv2
 from cv_bridge import CvBridge
@@ -189,10 +189,9 @@ class GroundProjectionNode(DTROS):
             self.log(msg, 'err')
             rospy.signal_shutdown(msg)
 
-        stream = file(cali_file, 'r')
-
         try:
-            calib_data = yaml.load(stream)
+            with open(cali_file,'r') as stream:
+                calib_data = yaml.load(stream)
         except yaml.YAMLError:
             msg = 'Error in parsing calibration file %s ... aborting' % cali_file
             self.log(msg, 'err')

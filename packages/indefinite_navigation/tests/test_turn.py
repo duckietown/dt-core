@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy, unittest, rostest
 import math
 from intersection_control.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 
@@ -85,7 +85,7 @@ class IndefNavigationTurnNode(unittest.TestCase):
             rospy.loginfo("Waiting for intersection_done")
             rospy.sleep(0.2)
             if count > 50:
-                self.assertEquals(True, False, "Timed out waiting for intersection")
+                self.assertEqual(True, False, "Timed out waiting for intersection")
                 return
 
         stop = Twist2DStamped()
@@ -126,7 +126,7 @@ class IndefNavigationTurnNode(unittest.TestCase):
         TURN TEST % s
         """ % ( init_d, init_phi, final_d, final_phi, \
                 off_d, off_phi, result_trim)
-        print info
+        print(info)
         self.assertEqual(result_trim, "PASSED", info)
 
 

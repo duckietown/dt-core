@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import json
 import numpy as np
 import rospy
@@ -199,8 +199,8 @@ class LaneFilterNode(DTROS):
                 self.latencyArray.pop(0)
 
             # print "Latency of segment list: ", segment_latency
-            print("Mean latency of Estimation:................. %s" %
-                  np.mean(self.latencyArray))
+            print(("Mean latency of Estimation:................. %s" %
+                  np.mean(self.latencyArray)))
 
             # Get the segments that agree with the best estimate and publish them
             inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments,

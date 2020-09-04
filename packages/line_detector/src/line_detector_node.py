@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 import cv2
@@ -77,7 +77,7 @@ class LineDetectorNode(DTROS):
         # Update the color ranges objects
         self.color_ranges = {
             color: ColorRange.fromDict(d)
-            for color, d in self._colors.iteritems()
+            for color, d in self._colors.items()
         }
 
         # Publishers
@@ -181,7 +181,7 @@ class LineDetectorNode(DTROS):
         self.detector.setImage(image)
         detections = {
             color: self.detector.detectLines(ranges)
-            for color, ranges in self.color_ranges.iteritems()
+            for color, ranges in self.color_ranges.items()
         }
 
         # Construct a SegmentList
@@ -198,7 +198,7 @@ class LineDetectorNode(DTROS):
         ])
 
         # Fill in the segment_list with all the detected segments
-        for color, det in detections.iteritems():
+        for color, det in detections.items():
             # Get the ID for the color from the Segment msg definition
             # Throw and exception otherwise
             if len(det.lines) > 0 and len(det.normals) > 0:
@@ -218,7 +218,7 @@ class LineDetectorNode(DTROS):
 
         # If there are any subscribers to the debug topics, generate a debug image and publish it
         if self.pub_d_segments.get_num_connections() > 0:
-            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.iteritems()}
+            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.items()}
             debug_img = plotSegments(image, colorrange_detections)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
@@ -230,7 +230,7 @@ class LineDetectorNode(DTROS):
             self.pub_d_edges.publish(debug_image_msg)
 
         if self.pub_d_maps.get_num_connections() > 0:
-            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.iteritems()}
+            colorrange_detections = {self.color_ranges[c]: det for c, det in detections.items()}
             debug_img = plotMaps(image, colorrange_detections)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
@@ -321,7 +321,7 @@ class LineDetectorNode(DTROS):
         im = cv2.addWeighted(im, 0.5 , self.colormaps[channels], 1 - 0.5, 0.0)
 
         # now plot the color ranges on top
-        for _, color_range in self.color_ranges.iteritems():
+        for _, color_range in self.color_ranges.items():
             # convert HSV color to BGR
             c = color_range.representative
             c = np.uint8([[[c[0], c[1], c[2]]]])
