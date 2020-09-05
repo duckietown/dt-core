@@ -39,7 +39,7 @@ class LEDPatternSwitchNode(object):
     def msgincb(self,msg,src_name):
 
         if src_name == self.current_src_name:
-            rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
+            #rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
             # self.pub_cmd.publish(msg)
             self.changePattern(msg)
         #else:
