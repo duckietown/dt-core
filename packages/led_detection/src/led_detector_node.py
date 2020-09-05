@@ -37,6 +37,7 @@ class LEDDetectorNode(DTROS):
         # Initialize the DTROS parent class
         super(LEDDetectorNode, self).__init__(node_name=node_name, node_type=node_type)
 
+        self.node_name = "LED_DETECTOR_NODE"
         # Needed to publish images
         self.bridge = CvBridge()
 
@@ -64,6 +65,7 @@ class LEDDetectorNode(DTROS):
         self.trigger = True
         self.node_state = 0
         self.data = []
+        self.misdetection = 0 # use to store how many times traffic light signal happend elsewhere to check calibration.
 
         # Initialize detection
         self.right = None
@@ -220,6 +222,32 @@ class LEDDetectorNode(DTROS):
         self.right = self.detector.interpret_signal(blobs_right, t_s, num_img)
         self.front = self.detector.interpret_signal(blobs_front, t_s, num_img)
         self.traffic_light = self.detector.interpret_signal(blobs_tl, t_s, num_img)
+
+        if self.traffic_light != "traffic_light_go":
+            rospy.logwarn("[%s] Traffic light detected a non-traffic light signal. Suppressed!",self.node_name)
+            self.traffic_light = None
+        else:
+            rospy.loginfo("[%s] Traffic Light is green! GO!",self.node_name)
+
+        if self.right == "traffic_light_go":
+            rospy.logwarn("[%s] Detected Vehicle with a traffic light signal. Suppressed! ", self.node_name)
+            self.right = None
+            self.misdetection += 1
+            if self.misdetection >= 5:
+                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong! Go "
+                           "with traffic light", self.node_name)
+                self.misdetection = 0
+                self.traffic_light = "traffic_light_go"
+
+        if self.front == "traffic_light_go":
+            rospy.logwarn("[%s] Detected Vehicle with a traffic light signal. Suppressed! ", self.node_name)
+            self.front = None
+            self.misdetection += 1
+            if self.misdetection >= 5:
+                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong! Go "
+                           "with traffic light", self.node_name)
+                self.misdetection = 0
+                self.traffic_light = "traffic_light_go"
 
         # Left bot (also UNKNOWN)
         self.left = "UNKNOWN"
