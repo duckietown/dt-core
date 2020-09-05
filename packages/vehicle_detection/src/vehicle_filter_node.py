@@ -231,7 +231,7 @@ class VehicleFilterNode(DTROS):
             self.last_led_state = msg.data
         else:
             if self.state == "LANE_FOLLOWING":
-                msg.data = msg.data
+                msg.data = "CAR_DRIVING"
                 if msg.data != self.last_led_state:
                     self.changePattern(msg)
                 self.last_led_state = "CAR_DRIVING"
