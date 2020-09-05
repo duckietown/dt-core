@@ -101,6 +101,15 @@ class LEDDetector:
             detected_signal (:obj:`str`): The name of a signal in the LED protocol.
         """
 
+        """
+        Traffic light identification:
+        number_leds: 4
+        activation_order: [0, 1, 2, 3]
+        green_time: 5
+        all_red_time: 4
+        frequency: 7.8
+        """
+
         # Semantically decide if blobs represent a known signal
         for blob in blobs:
             # Detection
