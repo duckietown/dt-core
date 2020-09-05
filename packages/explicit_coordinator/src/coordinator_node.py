@@ -339,7 +339,7 @@ class VehicleCoordinator():
                     self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.TL_SENSING:
-            rospy.loginfo("I have been waiting for: "+str(time()-self.begin_tl))
+            rospy.loginfo("[%s] I have been waiting for: %s", self.node_name, (time()-self.begin_tl))
             if self.traffic_light == SignalsDetection.GO:
                 self.set_state(State.GO)
 
