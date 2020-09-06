@@ -118,19 +118,19 @@ class LEDDetector:
             # Take decision
             detected_signal = None
             if detected:
-                if self.parameters['~verbose'] == 2:
-                    msg = '\n-------------------\n' + \
-                          'num_img = %d \n' % num_img + \
-                          't_samp = %f \n' % t_s + \
-                          'fft_peak_freq = %f \n' % fft_peak_freq + \
-                          'freq_identified = %f \n' % freq_identified + \
-                          '-------------------'
-                    self.log(msg)
-
                 for signal_name, signal_value in self.parameters['~LED_protocol']['signals'].items():
                     if signal_value['frequency'] == freq_identified:
                         detected_signal = signal_name
                         break
+
+                msg = '\n-------------------\n' + \
+                      'num_img = %d \n' % num_img + \
+                      't_samp = %f \n' % t_s + \
+                      'fft_peak_freq = %f \n' % fft_peak_freq + \
+                      'freq_identified = %f \n' % freq_identified + \
+                      'signal_name = %s \n' % detected_signal + \
+                      '-------------------'
+                self.log(msg)
 
             return detected_signal
 
