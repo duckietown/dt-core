@@ -76,6 +76,7 @@ class VehicleFilterNode(DTROS):
         self.pcm = PinholeCameraModel()
         self.changePattern = rospy.ServiceProxy("~set_pattern",ChangePattern)
         self.log("Initialization completed")
+        self.last_led_state = None
 
     def cbFSMState(self,msg):
         self.state = msg.state
@@ -220,19 +221,27 @@ class VehicleFilterNode(DTROS):
         
         if stopped:
             msg.data = "OBSTACLE_STOPPED"
-            self.changePattern(msg)
+            if msg.data != self.last_led_state:
+                self.changePattern(msg)
+            self.last_led_state = msg.data
         elif detection:
             msg.data = "OBSTACLE_ALERT"
-            self.changePattern(msg)
+            if msg.data != self.last_led_state:
+                self.changePattern(msg)
+            self.last_led_state = msg.data
         else:
             if self.state == "LANE_FOLLOWING":
                 msg.data = "CAR_DRIVING"
-                self.changePattern(msg)
+                if msg.data != self.last_led_state:
+                    self.changePattern(msg)
+                self.last_led_state = "CAR_DRIVING"
             elif self.state == "NORMAL_JOYSTICK_CONTROL":
                 msg.data = "WHITE"
-                self.changePattern(msg)
+                if msg.data != self.last_led_state:
+                    self.changePattern(msg)
+                self.last_led_state = msg.data
 
-    def publish_stop_line_msg(self, header, detected=False, at=False, x=0, y=0):
+    def publish_stop_line_msg(self, header, detected=False, at=False, x=0.0, y=0.0):
         """
         Makes and publishes a stop line message.
 
@@ -246,10 +255,10 @@ class VehicleFilterNode(DTROS):
 
         stop_line_msg = StopLineReading()
         stop_line_msg.header = header
-        stop_line_msg.stop_line_detected = detected
-        stop_line_msg.at_stop_line = at
-        stop_line_msg.stop_line_point.x = x
-        stop_line_msg.stop_line_point.y = y
+        stop_line_msg.stop_line_detected = bool(detected)
+        stop_line_msg.at_stop_line = bool(at)
+        stop_line_msg.stop_line_point.x = int(x)
+        stop_line_msg.stop_line_point.y = int(y)
         self.pub_virtual_stop_line.publish(stop_line_msg)
 
         """
@@ -257,7 +266,7 @@ class VehicleFilterNode(DTROS):
         """
         stopped_flag = BoolStamped()
         stopped_flag.header = header
-        stopped_flag.data = at
+        stopped_flag.data = bool(at)
         self.pub_stopped_flag.publish(stopped_flag)
 
 if __name__ == '__main__':
