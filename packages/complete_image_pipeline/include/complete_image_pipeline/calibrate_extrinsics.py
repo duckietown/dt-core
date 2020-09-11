@@ -67,12 +67,33 @@ class CalibrateExtrinsics(D8App):
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
             print('Resized to: %s ' % str(bgr.shape))
         # Disable the old calibration file
+        print("Disableing old homography")
         disable_old_homography(robot_name)
-        camera_info = get_camera_info_for_robot(robot_name)
-        homography_dummy = get_homography_default()
-        rect = Rectify(camera_info)
-        gpg = GroundProjectionGeometry(camera_info.width,camera_info.height,homography_dummy.reshape((3, 3)))
-
+        print("Obtaining camera info")
+        try:
+            camera_info = get_camera_info_for_robot(robot_name)
+        except Exception as E:
+            print("Error on obtaining camera info!")
+            print(E)
+        print("Get default homography")
+        try:
+            homography_dummy = get_homography_default()
+        except Exception as E:
+            print("Error on getting homography")
+            print(E)
+        print("Rectify image")
+        try:
+            rect = Rectify(camera_info)
+        except Exception as E:
+            print("Error rectifying image!")
+            print(E)
+        print("Calculate GPG")
+        try:
+            gpg = GroundProjectionGeometry(camera_info.width,camera_info.height,homography_dummy.reshape((3, 3)))
+        except Exception as E:
+            print("Error calculating GPG!")
+            print(E)
+        print("Ordered Dict")
         res = OrderedDict()
         try:
             bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
@@ -99,5 +120,7 @@ Look at the produced jpgs.
 
 '''
             print(msg)
+        except Exception as E:
+            print(E)
         finally:
             dtu.write_bgr_images_as_jpgs(res, output)
