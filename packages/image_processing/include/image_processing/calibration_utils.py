@@ -5,6 +5,7 @@ import shutil
 from sensor_msgs.msg import CameraInfo
 import yaml
 import numpy as np
+import time
 
 class NoHomographyInfoAvailable(dtu.DTException):
     pass
@@ -71,7 +72,7 @@ def get_homography_info_config_file(robot_name):
 
 def homography_from_yaml(data):
     try:
-        h = data['homography']
+        h = data[b'homography']
         res = np.array(h).reshape((3, 3))
         return res
     except Exception as e:
@@ -93,7 +94,9 @@ def save_homography(H, robot_name):
     ob = {'homography': sum(H.reshape(9, 1).tolist(), [])}
 
     s = yaml.dump(ob)
-    s += "\n# Calibrated on dtu.format_time_as_YYYY_MM_DD(time.time())"
+    s += "\n# Calibrated on "
+    localTime = ""+dtu.format_time_as_YYYY_MM_DD(time.time())
+    s += localTime
 
     fn = get_extrinsics_filename(robot_name)
 
@@ -201,18 +204,18 @@ def check_camera_info_sane_for_DB17(camera_info):
 def camera_info_from_yaml(calib_data):
     try:
         cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
+        cam_info.width = calib_data[b'image_width']
+        cam_info.height = calib_data[b'image_height']
 #         cam_info.K = np.matrix(calib_data['camera_matrix']['data']).reshape((3,3))
 #         cam_info.D = np.matrix(calib_data['distortion_coefficients']['data']).reshape((1,5))
 #         cam_info.R = np.matrix(calib_data['rectification_matrix']['data']).reshape((3,3))
 #         cam_info.P = np.matrix(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.K = calib_data['camera_matrix']['data']
-        cam_info.D = calib_data['distortion_coefficients']['data']
-        cam_info.R = calib_data['rectification_matrix']['data']
-        cam_info.P = calib_data['projection_matrix']['data']
+        cam_info.K = calib_data[b'camera_matrix'][b'data']
+        cam_info.D = calib_data[b'distortion_coefficients'][b'data']
+        cam_info.R = calib_data[b'rectification_matrix'][b'data']
+        cam_info.P = calib_data[b'projection_matrix'][b'data']
 
-        cam_info.distortion_model = calib_data['distortion_model']
+        cam_info.distortion_model = calib_data[b'distortion_model']
         return cam_info
     except Exception as e:
         msg = 'Could not interpret data:'
