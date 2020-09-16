@@ -1,6 +1,6 @@
 # LIST YOUR PYTHON3 PACKAGES HERE
 ruamel.yaml==0.16.10
-reprep==3.0.0
-
+reprep-z6==6.0.5 # Note: not sure why this is here
 # ATags3 Python bindings
 dt_apriltags
+pipdeptree
