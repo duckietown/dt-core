@@ -14,8 +14,8 @@ def mouse_cb(event, x, y, flags, param):
     normalized_uv.x = float(x)/float(w)
     normalized_uv.y = float(y)/float(h)
 
-    print "image coordinate: (%d, %d)" % (x, y)
-    print "normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y)
+    print("image coordinate: (%d, %d)" % (x, y))
+    print("normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y))
 
 def get_image_topic_name(veh):
   #image_topic_name = veh + "/camera_node/image_rect"
@@ -29,14 +29,14 @@ def get_image_topic_name(veh):
   try:
     rospy.wait_for_message(image_topic_name, Image, timeout=5)
     return image_topic_name
-  except rospy.ROSException, e:
-    print "%s" % e
+  except Exception as e:
+    print ("%s" % e)
 
   return None
 
 if __name__ == "__main__":
   if len(sys.argv) != 2:
-    print "usage: " + sys.argv[0] + " vehicle name"
+    print("usage: " + sys.argv[0] + " vehicle name")
     sys.exit(1)
   
   param = sys.argv[1]
@@ -47,15 +47,15 @@ if __name__ == "__main__":
   bridge = CvBridge()
 
   rospy.init_node("annotate_rosbag")
-  print "please click the image to look up the pixel coordinate"
-  print "press 'ESC' key to exit"
+  print("please click the image to look up the pixel coordinate")
+  print("press 'ESC' key to exit")
 
   cv2.namedWindow("image")
   cv2.setMouseCallback("image", mouse_cb, param=(640, 480))
   key = 0
   
   image_topic_name = get_image_topic_name(veh)
-  print "image topic name: " + image_topic_name
+  print("image topic name: " + image_topic_name)
 
   if image_topic_name is not None:
     while(key is not 27):

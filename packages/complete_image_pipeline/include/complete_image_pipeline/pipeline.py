@@ -101,7 +101,7 @@ def run_pipeline(image,
         res['prior'] = lane_filter.get_plot_phi_d()
 
     with pts.phase('lane filter update'):
-        print type(lane_filter).__name__
+        print(type(lane_filter).__name__)
         if type(lane_filter).__name__ == 'LaneFilterHistogram':
             # XXX merging pain
             _likelihood = lane_filter.update(sg.segments)
