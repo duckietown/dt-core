@@ -1,4 +1,4 @@
-from UserDict import UserDict
+from collections import UserDict
 from contextlib import contextmanager
 import rospy
 import threading
