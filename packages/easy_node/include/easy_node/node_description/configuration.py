@@ -1,7 +1,6 @@
 from collections import namedtuple, OrderedDict
 import os
-from types import NoneType
-
+NoneType = type(None)
 import duckietown_utils as dtu
 
 __all__ = [

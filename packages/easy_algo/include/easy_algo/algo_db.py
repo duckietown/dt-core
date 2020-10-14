@@ -2,7 +2,7 @@ from collections import OrderedDict, namedtuple
 import copy
 import os
 import traceback
-from types import NoneType
+NoneType = type(None)
 
 import duckietown_utils as dtu
 
