@@ -286,11 +286,30 @@ def load_camera_info_3(robot):
     return cam_info
 
 
-class Legacy_GroundProjectionGeometry(object):
+class LegacyGroundProjection(object):
+    """
+    This is the wrapper class for old GP calls.
+    """
+
+    def __init__(self, robot_name):
+        camera_info = get_camera_info_for_robot(robot_name)
+        homography = get_homography_for_robot(robot_name)
+        self._gpg = LegacyGroundProjectionGeometry(camera_info, homography)
+        self.robot_name = robot_name
+
+    @dtu.contract(returns=GroundProjectionGeometry)
+    def get_ground_projection_geometry(self):
+        return self._gpg
+
+    def get_camera_info(self):
+        return self._gpg.ci
+
+
+class LegacyGroundProjectionGeometry(object):
     """
     This is the wrapper class for old GPG calls.
     """
-    @dtu.contract(camera_info=CameraInfo, homography='array[3x3]')
+
     def __init__(self, camera_info, homography):
         self.ci = camera_info
         self.H = homography
