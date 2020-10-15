@@ -5,9 +5,9 @@ from duckietown_segmaps import FAMILY_SEGMAPS
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-from ground_projection import GroundProjection, NoHomographyInfoAvailable
+from image_processing.calibration_utils import NoHomographyInfoAvailable, NoCameraInfoAvailable
+from image_processing.calibration_utils import LegacyGroundProjection as GroundProjection
 import numpy as np
-from pi_camera import NoCameraInfoAvailable
 
 from .image_simulation import simulate_image
 

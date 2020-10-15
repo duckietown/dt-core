@@ -9,7 +9,7 @@ from complete_image_pipeline_tests.synthetic import simulate_image
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-from ground_projection.ground_projection_interface import get_ground_projection
+from image_processing.calibration_utils import get_ground_projection
 import numpy as np
 
 from .maps import FAMILY_SEGMAPS, _plot_map_segments

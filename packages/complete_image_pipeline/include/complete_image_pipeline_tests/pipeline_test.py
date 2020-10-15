@@ -1,7 +1,7 @@
 from complete_image_pipeline.pipeline import run_pipeline
 import duckietown_utils as dtu
 
-from ground_projection import GroundProjection
+from image_processing.calibration_utils import LegacyGroundProjection as GroundProjection
 
 
 @dtu.unit_test

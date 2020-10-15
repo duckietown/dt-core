@@ -3,7 +3,7 @@ import os
 import duckietown_utils as dtu
 from easy_logs import get_local_bag_file, NotAvailableLocally
 from easy_logs.app_with_logs import D8AppWithLogs
-from ground_projection import GroundProjection
+from image_processing.calibration_utils import LegacyGroundProjection as GroundProjection
 from quickapp import QuickApp
 import rosbag
 

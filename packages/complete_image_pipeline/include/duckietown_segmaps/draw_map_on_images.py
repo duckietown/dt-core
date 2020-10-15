@@ -4,7 +4,7 @@ from numpy.testing.utils import assert_almost_equal
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
 import duckietown_utils as dtu
 from geometry_msgs.msg import Point
-from ground_projection import GroundProjectionGeometry
+from image_processing.calibration_utils import LegacyGroundProjectionGeometry as GroundProjectionGeometry
 import numpy as np
 
 from .maps import SegmentsMap, FRAME_AXLE
