@@ -286,6 +286,16 @@ def load_camera_info_3(robot):
     return cam_info
 
 
+#######################################################
+
+#                   legacy support                    #
+
+#######################################################
+# This is a legacy wrapper for ground_projection_interface call
+def get_ground_projection(robot):
+    return LegacyGroundProjection(robot)
+
+
 class LegacyGroundProjection(object):
     """
     This is the wrapper class for old GP calls.
