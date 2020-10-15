@@ -63,7 +63,7 @@ class Pack(D8AppWithLogs):
         m0.add_file_content('index.html', get_index())
 
         hashed = m0.get_ipfs_hash()
-        print hashed
+        print (hashed)
         print ('Total size :  %.3f GB' % (m.total_size() / (1000 * 1000 * 1000.0)))
 
 

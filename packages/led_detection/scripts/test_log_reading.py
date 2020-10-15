@@ -16,8 +16,8 @@ print('filename: %s' % filename)
 data = d8n_read_all_images(filename)
 
 
-print data.shape # (928,)
-print data.dtype # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
+print (data.shape) # (928,)
+print (data.dtype) # [('timestamp', '<f8'), ('rgb', 'u1', (480, 640, 3))]
 
 num_images = data.shape[0]
 for k in range(num_images):
