@@ -123,6 +123,8 @@ Look at the produced jpgs.
 
 '''
             print(msg)
+            msg = "Last Calibrated on: "+time.strftime("%Y-%m-%d @ %H:%M:%S")
+            print(msg)
         except Exception as E:
             print(E)
         finally:
