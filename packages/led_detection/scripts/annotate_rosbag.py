@@ -29,7 +29,7 @@ def get_image_topic_name(veh):
   try:
     rospy.wait_for_message(image_topic_name, Image, timeout=5)
     return image_topic_name
-  except Exception as e:
+  except rospy.ROSException as e:
     print ("%s" % e)
 
   return None

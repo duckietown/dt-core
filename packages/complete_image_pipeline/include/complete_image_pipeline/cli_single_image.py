@@ -55,7 +55,7 @@ class SingleImagePipeline(D8App):
                 print('\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER!\n\n\n' % (e,))
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
-
+            print('Picture taken: %s ' % str(bgr.shape))
 
         dtu.DuckietownConstants.show_timeit_benchmarks = True
         res, _stats = run_pipeline(bgr)
@@ -63,5 +63,5 @@ class SingleImagePipeline(D8App):
         self.info('Resizing images..')
         res = dtu.resize_small_images(res)
         self.info('Writing images..')
-        dtu.write_bgr_images_as_jpgs(res, "/data")
+        dtu.write_bgr_images_as_jpgs(res, output)
 
