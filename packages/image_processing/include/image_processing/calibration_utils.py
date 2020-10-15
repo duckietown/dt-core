@@ -134,7 +134,7 @@ def save_homography(H, robot_name):
 
     s = yaml.dump(ob)
     s += "\n# Calibrated on "
-    localTime = "" + dtu.format_time_as_YYYY_MM_DD(time.time())
+    localTime = "" + time.strftime("%Y-%m-%d @ %H:%M:%S")
     s += localTime
 
     fn = get_extrinsics_filename(robot_name)
