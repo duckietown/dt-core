@@ -10,8 +10,7 @@ from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import ProcessingTimingStats, FakeContext
-from image_processing.ground_projection_geometry import GroundProjectionGeometry
-from image_processing.rectification import Rectify
+from image_processing.calibration_utils import get_ground_projection
 from lane_filter.lane_filter import LaneFilterHistogram
 from line_detector.line_detector import LineDetector
 from image_processing.anti_instagram import AntiInstagram
@@ -41,17 +40,17 @@ def run_pipeline(image,
 
     dtu.check_isinstance(image, np.ndarray)
 
-
     res = OrderedDict()
     stats = OrderedDict()
+    vehicle_name = dtu.get_current_robot_name()
 
     res['Raw input image'] = image
-    gpg = GroundProjectionGeometry()
-    rect = Rectify()
+    gp = get_ground_projection(vehicle_name)
+    gpg = gp.get_ground_projection_geometry
     line_detector = LineDetector()
-    lane_filter = LaneFilterHistogram()
+    lane_filter = LaneFilterHistogram(None)
+    print("pass lane_filter")
     ai = AntiInstagram()
-
     pts = ProcessingTimingStats()
     pts.reset()
     pts.received_message()
