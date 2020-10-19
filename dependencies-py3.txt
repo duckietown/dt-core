@@ -5,5 +5,5 @@ ruamel.yaml==0.16.10
 reprep-z6==6.0.5
 
 # ATags3 Python bindings
-dt_apriltags
+#dt_apriltags
 
