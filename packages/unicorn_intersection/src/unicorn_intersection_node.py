@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped, TurnIDandType
@@ -52,7 +52,7 @@ class UnicornIntersectionNode(object):
         self.pub_LF_params.publish(msg)
 
     def cbIntersectionGo(self, msg):
-
+        rospy.loginfo("[%s] Recieved intersection go message from coordinator",self.node_name)
         if not self.active:
             return
 
@@ -61,7 +61,7 @@ class UnicornIntersectionNode(object):
         while self.turn_type == -1:
             if not self.active:
                 return
-            rospy.loginfo("Requested to start intersection, but we do not see an april tag yet.")
+            rospy.loginfo("[%s] Requested to start intersection, but we do not see an april tag yet.",self.node_name)
             rospy.sleep(2)
 
         tag_id = self.tag_id

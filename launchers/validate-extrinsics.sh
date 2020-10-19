@@ -13,7 +13,8 @@ dt-launchfile-init
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait duckietown_demos lane_following.launch
+dt-exec rosrun complete_image_pipeline single_image_pipeline \
+    | tee /data/config/calibrations/camera_extrinsic/${VEHICLE_NAME}.test.log
 
 
 # ----------------------------------------------------------------------------

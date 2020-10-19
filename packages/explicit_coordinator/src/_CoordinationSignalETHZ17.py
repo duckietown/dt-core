@@ -105,15 +105,16 @@ string frame_id
       buff.write(_get_struct_3I().pack(_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs))
       _x = self.header.frame_id
       length = len(_x)
-      if python3 or type(_x) == unicode:
+      try:
         _x = _x.encode('utf-8')
-        length = len(_x)
+      except AttributeError:
+        pass
+      length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self.signal
       length = len(_x)
-      if python3 or type(_x) == unicode:
-        _x = _x.encode('utf-8')
-        length = len(_x)
+      _x = _x.encode('utf-8')
+      length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
@@ -165,15 +166,19 @@ string frame_id
       buff.write(_get_struct_3I().pack(_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs))
       _x = self.header.frame_id
       length = len(_x)
-      if python3 or type(_x) == unicode:
+      try:
         _x = _x.encode('utf-8')
-        length = len(_x)
+      except AttributeError:
+        pass
+      length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
       _x = self.signal
       length = len(_x)
-      if python3 or type(_x) == unicode:
+      try:
         _x = _x.encode('utf-8')
-        length = len(_x)
+      except AttributeError:
+        pass
+      length = len(_x)
       buff.write(struct.pack('<I%ss'%length, length, _x))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))

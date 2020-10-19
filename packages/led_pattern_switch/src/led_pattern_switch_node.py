@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, FSMState
 from std_msgs.msg import String
@@ -39,7 +39,7 @@ class LEDPatternSwitchNode(object):
     def msgincb(self,msg,src_name):
 
         if src_name == self.current_src_name:
-            rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
+            #rospy.loginfo("[%s] %s callback matches, publishing %s"%(self.node_name,src_name, msg.data))
             # self.pub_cmd.publish(msg)
             self.changePattern(msg)
         #else:

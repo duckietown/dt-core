@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 from random import random
 import rospy
@@ -64,7 +64,7 @@ class VehicleCoordinator():
             self.use_priority_protocol = False
 
 
-        self.tl_timeout = 60
+        self.tl_timeout = 120
         rospy.set_param("~tl_timeout", self.tl_timeout)
 
         # Initialize detection
@@ -339,8 +339,9 @@ class VehicleCoordinator():
                     self.set_state(State.AT_STOP_CLEARING)
 
         elif self.state == State.TL_SENSING:
-            rospy.loginfo("I have been waiting for: "+str(time()-self.begin_tl))
-            if self.traffic_light == SignalsDetection.GO:
+            rospy.loginfo("[%s] I have been waiting in traffic light for: %s", self.node_name, (time()-self.begin_tl))
+            if self.traffic_light == "traffic_light_go":
+                rospy.loginfo("[%s] Traffic light is green. I have priority! GO!",self.node_name)
                 self.set_state(State.GO)
 
             #If a tl intersection april tag is present but tl is switched off, wait until tl_timeout then use led coordination

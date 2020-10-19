@@ -101,6 +101,15 @@ class LEDDetector:
             detected_signal (:obj:`str`): The name of a signal in the LED protocol.
         """
 
+        """
+        Traffic light identification:
+        number_leds: 4
+        activation_order: [0, 1, 2, 3]
+        green_time: 5
+        all_red_time: 4
+        frequency: 7.8
+        """
+
         # Semantically decide if blobs represent a known signal
         for blob in blobs:
             # Detection
@@ -109,19 +118,19 @@ class LEDDetector:
             # Take decision
             detected_signal = None
             if detected:
-                if self.parameters['~verbose'] == 2:
-                    msg = '\n-------------------\n' + \
-                          'num_img = %d \n' % num_img + \
-                          't_samp = %f \n' % t_s + \
-                          'fft_peak_freq = %f \n' % fft_peak_freq + \
-                          'freq_identified = %f \n' % freq_identified + \
-                          '-------------------'
-                    self.log(msg)
-
                 for signal_name, signal_value in self.parameters['~LED_protocol']['signals'].items():
                     if signal_value['frequency'] == freq_identified:
                         detected_signal = signal_name
                         break
+
+                msg = '\n-------------------\n' + \
+                      'num_img = %d \n' % num_img + \
+                      't_samp = %f \n' % t_s + \
+                      'fft_peak_freq = %f \n' % fft_peak_freq + \
+                      'freq_identified = %f \n' % freq_identified + \
+                      'signal_name = %s \n' % detected_signal + \
+                      '-------------------'
+                self.log(msg)
 
             return detected_signal
 
@@ -144,7 +153,7 @@ class LEDDetector:
 
         # Frequency estimation based on FFT
         signal_f = fftpack.fft(blob['Signal'] - np.mean(blob['Signal']))
-        y_f = 2.0 / num_img * np.abs(signal_f[:num_img / 2 + 1])
+        y_f = 2.0 / num_img * np.abs(signal_f[:num_img // 2 + 1])
         fft_peak_freq = 1.0 * np.argmax(y_f) / (num_img * t_s)
 
         if self.parameters['~verbose'] == 2:

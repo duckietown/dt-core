@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from intersection_control.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 
 from duckietown_msgs.msg import LanePose, StopLineReading
@@ -108,7 +108,7 @@ class IndefNavigationNode(object):
                 off_d, off_phi, result_trim,\
                 init_stop_y, final_stop_y, velocity, vel_diff, result_vel
                 )
-        print info
+        print(info)
 
 
 

@@ -9,11 +9,12 @@ dt-launchfile-init
 # ----------------------------------------------------------------------------
 
 
-# NOTE: Use the variable REPO_PATH to know the absolute path to your code
+# NOTE: Use the variable DT_REPO_PATH to know the absolute path to your code
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait duckietown_demos lane_following.launch
+dt-exec rosrun complete_image_pipeline calibrate_extrinsics \
+    | tee /data/config/calibrations/camera_extrinsic/${VEHICLE_NAME}.log
 
 
 # ----------------------------------------------------------------------------

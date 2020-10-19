@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from duckietown_utils.bag_logs import d8n_read_all_images
 print('This simple test reads all images in a log and computes some stats.')
 import sys

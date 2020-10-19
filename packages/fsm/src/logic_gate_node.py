@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from duckietown_msgs.msg import BoolStamped, Twist2DStamped, AprilTagsWithInfos
@@ -76,7 +76,7 @@ class LogicGateNode(object):
 
 
                 if self.debugging:
-                    print "sub-event: " + event_name
+                    print("sub-event: " + event_name)
 
 
 
@@ -113,7 +113,7 @@ class LogicGateNode(object):
 
 
         if self.debugging:
-            print bool_list, "->", msg.data
+            print(bool_list, "->", msg.data)
 
 
         # print bool_list, msg.data

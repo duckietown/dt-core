@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import rospy
 import numpy
 from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped, TurnIDandType
+from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import String, Int16 #Imports msg
 import math
 
@@ -53,7 +54,7 @@ class RandomAprilTagTurnsNode(object):
             for idx, taginfo in enumerate(tag_msgs.infos):
                 if(taginfo.tag_type == taginfo.SIGN):
                     tag_det = (tag_msgs.detections)[idx]
-                    pos = tag_det.pose.pose.position
+                    pos = tag_det.transform.translation
                     distance = math.sqrt(pos.x**2 + pos.y**2 + pos.z**2)
                     if distance < dis_min:
                         dis_min = distance
@@ -73,7 +74,7 @@ class RandomAprilTagTurnsNode(object):
                     availableTurns = [0,1,2]
                 elif (signType == taginfo.T_INTERSECTION):
                     availableTurns = [0,2]
-
+                rospy.loginfo("[%s] reports Available turns are: [%s]",self.node_name,availableTurns)
                     #now randomly choose a possible direction
                 if(len(availableTurns)>0):
                     randomIndex = numpy.random.randint(len(availableTurns))

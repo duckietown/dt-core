@@ -1,11 +1,9 @@
 # LIST YOUR APT PACKAGES HERE
-ros-kinetic-image-transport
-ros-kinetic-image-transport-plugins
-ros-kinetic-image-geometry
-ros-kinetic-image-proc
-ros-kinetic-rqt
-ros-kinetic-rqt-common-plugins
+ros-noetic-image-geometry
+ros-noetic-image-proc
+ros-noetic-rqt
+ros-noetic-rqt-common-plugins
 libyaml-cpp-dev
-python-sklearn
+python3-sklearn
 iputils-ping
-python-tk
+python3-tk
