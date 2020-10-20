@@ -2,21 +2,25 @@ from collections import OrderedDict
 
 import cv2
 import matplotlib
+import numpy as np
 
+import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
-from duckietown_segmaps.maps import FRAME_AXLE, plot_map_and_segments, FRAME_GLOBAL
+from duckietown_segmaps.maps import FRAME_AXLE, FRAME_GLOBAL, plot_map_and_segments
 from duckietown_segmaps.transformations import TransformationsInfo
-import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
-from easy_node.utils.timing import ProcessingTimingStats, FakeContext
+from easy_node.utils.timing import ProcessingTimingStats
+from ground_projection import rectify_segments
+from ground_projection.ground_projection_interface import find_ground_coordinates
+from image_processing.anti_instagram import AntiInstagram
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
 from lane_filter.lane_filter import LaneFilterHistogram
+from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector.line_detector import LineDetector
-from image_processing.anti_instagram import AntiInstagram
+from line_detector_recovered.visual_state_fancy_display import normalized_to_image, vs_fancy_display
 from localization_templates import FAMILY_LOC_TEMPLATES
-import numpy as np
 
 
 @dtu.contract(ground_truth='SE2|None', image='array[HxWx3](uint8)')
@@ -33,14 +37,12 @@ def run_pipeline(image,
         ground_truth = pose
     """
 
-
     print('backend: %s' % matplotlib.get_backend())
     print('fname: %s' % matplotlib.matplotlib_fname())
 
     quick = False
 
     dtu.check_isinstance(image, np.ndarray)
-
 
     res = OrderedDict()
     stats = OrderedDict()
@@ -58,10 +60,10 @@ def run_pipeline(image,
     pts.decided_to_process()
 
     with pts.phase('calculate AI transform'):
-        [lower,upper] = ai.calculate_color_balance_thresholds(image)
+        [lower, upper] = ai.calculate_color_balance_thresholds(image)
 
     with pts.phase('apply AI transform'):
-        transformed = ai.apply_color_balance(lower,upper,image)
+        transformed = ai.apply_color_balance(lower, upper, image)
 
     with pts.phase('edge detection'):
         # note: do not apply transform twice!
@@ -69,7 +71,6 @@ def run_pipeline(image,
                                            line_detector, transform=ai.apply_color_balance)
 
         if all_details:
-
             res['resized and corrected'] = image_prep.image_corrected
 
     dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
@@ -87,7 +88,7 @@ def run_pipeline(image,
         res['grid'] = grid
         res['grid_remapped'] = gpg.rectify(grid)
 
-#     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
+    #     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
 
     with pts.phase('rectify_segments'):
         segment_list2_rect = rectify_segments(gpg, segment_list2)
@@ -132,9 +133,9 @@ def run_pipeline(image,
 
     if all_details:
         if actual_map is not None:
-    #         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
+            #         sm_axle = tinfo.transform_map_to_frame(actual_map, FRAME_AXLE)
             res['real'] = plot_map_and_segments(actual_map, tinfo, sg.segments, dpi=120,
-                                                 ground_truth=ground_truth)
+                                                ground_truth=ground_truth)
 
     with pts.phase('rectify'):
         rectified0 = gpg.rectify(image)
@@ -151,23 +152,25 @@ def run_pipeline(image,
 
     if not quick:
         with pts.phase('plot_map_and_segments'):
-            res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments, dpi=120,
-                                               ground_truth=ground_truth)
+            res['model assumed for localization'] = plot_map_and_segments(assumed, tinfo, sg.segments,
+                                                                          dpi=120,
+                                                                          ground_truth=ground_truth)
 
     assumed_axle = tinfo.transform_map_to_frame(assumed, FRAME_AXLE)
 
     with pts.phase('plot_map reprojected'):
         res['map reprojected on image'] = plot_map(rectified, assumed_axle, gpg,
-                                               do_ground=False, do_horizon=True,
-                                               do_faces=False, do_faces_outline=True,
-                                               do_segments=False)
+                                                   do_ground=False, do_horizon=True,
+                                                   do_faces=False, do_faces_outline=True,
+                                                   do_segments=False)
 
     with pts.phase('quality computation'):
         predicted_segment_list_rectified = predict_segments(sm=assumed_axle, gpg=gpg)
-        quality_res, quality_stats = judge_quality(image, segment_list2_rect, predicted_segment_list_rectified)
+        quality_res, quality_stats = judge_quality(image, segment_list2_rect,
+                                                   predicted_segment_list_rectified)
         res.update(quality_res)
 
-#     res['blurred']= cv2.medianBlur(image, 11)
+    #     res['blurred']= cv2.medianBlur(image, 11)
     stats['estimate'] = est
     stats.update(quality_stats)
 
@@ -179,7 +182,7 @@ def judge_quality(image, observed_segment_list, predicted_segment_list):
     res = OrderedDict()
     stats = OrderedDict()
 
-#     mask2gray = lambda x: (x * 255).clip(0, 255).astype('uint8')
+    #     mask2gray = lambda x: (x * 255).clip(0, 255).astype('uint8')
     H, W, _ = image.shape
     r = 1
     reason_shape = (H * r, W * r, 3)
@@ -210,9 +213,9 @@ def judge_quality(image, observed_segment_list, predicted_segment_list):
 
         ratio_explained = 1 - (np.sum(not_explained) / (np.sum(explained) + np.sum(not_explained) + 1))
         ratios.append(ratio_explained)
-#         res['predicted %s' % color] = mask2gray(predicted_mask)
-#         res['observed %s' % color] = mask2gray(observed_mask)
-#         res['explained %s = %d%%' % (color, ratio_explained*100)] = mask2gray(explained)
+    #         res['predicted %s' % color] = mask2gray(predicted_mask)
+    #         res['observed %s' % color] = mask2gray(observed_mask)
+    #         res['explained %s = %d%%' % (color, ratio_explained*100)] = mask2gray(explained)
 
     avg = np.mean(ratios)
 
@@ -229,7 +232,6 @@ def _draw_segment_list_on_image(mask, segment_list, width):
     shape = mask.shape[:2]
 
     for segment in segment_list.segments:
-
         p1 = segment.pixels_normalized[0]
         p2 = segment.pixels_normalized[1]
 
@@ -247,8 +249,11 @@ def only_one_color(segment_list, color):
     return SegmentList(segments=segments)
 
 
-def get_grid(shape, L=32, col={0: (255, 0, 0), 1: (0, 255, 0)}):
+def get_grid(shape, L=32, col=None):
     """ Creates a grid of given shape """
+    if col is None:
+        col = {0: (255, 0, 0), 1: (0, 255, 0)}
+
     H, W = shape
     res = np.zeros((H, W, 3), 'uint8')
     for i in range(H):

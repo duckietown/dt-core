@@ -1,14 +1,14 @@
-from collections import OrderedDict
 import os
+from collections import OrderedDict
 
-from duckietown_segmaps import FAMILY_SEGMAPS
+import numpy as np
+
 import duckietown_utils as dtu
+from duckietown_segmaps import FAMILY_SEGMAPS
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-from ground_projection import GroundProjection, NoHomographyInfoAvailable
-import numpy as np
-from pi_camera import NoCameraInfoAvailable
-
+from ground_projection import GroundProjection
+from image_processing.calibration_utils import NoCameraInfoAvailable, NoHomographyInfoAvailable
 from .image_simulation import simulate_image
 
 __all__ = [
@@ -56,11 +56,12 @@ Example:
 
         actual_map_name = 'DT17_scenario_four_way'
 
+        # noinspection PyUnresolvedReferences
         out = self.options.output
         create_visuals(robots, actual_map_name, out)
 
         for robot_name in robots:
-            _ok = try_simulated_localization(robot_name)
+            try_simulated_localization(robot_name)
 
 
 def try_simulated_localization(robot_name):

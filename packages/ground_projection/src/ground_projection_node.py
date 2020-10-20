@@ -1,38 +1,44 @@
 #!/usr/bin/env python3
 
-import cv2
-from cv_bridge import CvBridge
 import os
-import yaml
+
+import cv2
 import numpy as np
+import yaml
 
 import rospy
+from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType, TopicType
-from image_processing.ground_projection_geometry import Point, GroundProjectionGeometry
-from image_processing.rectification import Rectify
-from image_geometry import PinholeCameraModel
-
-from sensor_msgs.msg import CameraInfo, CompressedImage
-from geometry_msgs.msg import Point as PointMsg
 from duckietown_msgs.msg import Segment, SegmentList
+from geometry_msgs.msg import Point as PointMsg
+from image_processing.ground_projection_geometry import GroundProjectionGeometry, Point
+from image_processing.rectification import Rectify
+from sensor_msgs.msg import CameraInfo, CompressedImage
 
 
 class GroundProjectionNode(DTROS):
     """
-    This node projects the line segments detected in the image to the ground plane and in the robot's reference frame.
-    In this way it enables lane localization in the 2D ground plane. This projection is performed using the homography
+    This node projects the line segments detected in the image to the ground plane and in the robot's
+    reference frame.
+    In this way it enables lane localization in the 2D ground plane. This projection is performed using the
+    homography
     matrix obtained from the extrinsic calibration procedure.
 
     Args:
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
 
     Subscribers:
-        ~camera_info (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera. Needed for rectifying the segments.
-        ~lineseglist_in (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
+        ~camera_info (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera. Needed for
+        rectifying the segments.
+        ~lineseglist_in (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from
+        unrectified images
 
     Publishers:
-        ~lineseglist_out (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane relative to the robot origin
-        ~debug/ground_projection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image that shows the robot relative to the projected segments. Useful to check if the extrinsic calibration is accurate.
+        ~lineseglist_out (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane
+        relative to the robot origin
+        ~debug/ground_projection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image
+        that shows the robot relative to the projected segments. Useful to check if the extrinsic
+        calibration is accurate.
     """
 
     def __init__(self, node_name):
@@ -51,7 +57,8 @@ class GroundProjectionNode(DTROS):
 
         # subscribers
         self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
-        self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1)
+        self.sub_lineseglist_ = rospy.Subscriber("~lineseglist_in", SegmentList, self.lineseglist_cb,
+                                                 queue_size=1)
 
         # publishers
         self.pub_lineseglist = rospy.Publisher("~lineseglist_out",
@@ -64,9 +71,12 @@ class GroundProjectionNode(DTROS):
         self.debug_img_bg = None
 
         # Seems to be never used:
-        # self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography, self.estimate_homography_cb)
-        # self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord, self.get_ground_coordinate_cb)
-        # self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord, self.get_image_coordinate_cb)
+        # self.service_homog_ = rospy.Service("~estimate_homography", EstimateHomography,
+        # self.estimate_homography_cb)
+        # self.service_gnd_coord_ = rospy.Service("~get_ground_coordinate", GetGroundCoord,
+        # self.get_ground_coordinate_cb)
+        # self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord,
+        # self.get_image_coordinate_cb)
 
     def cb_camera_info(self, msg):
         """
@@ -80,18 +90,21 @@ class GroundProjectionNode(DTROS):
         if not self.camera_info_received:
             self.rectifier = Rectify(msg)
             self.ground_projector = GroundProjectionGeometry(im_width=msg.width,
-                                                         im_height=msg.height,
-                                                         homography=np.array(self.homography).reshape((3, 3)))
-        self.camera_info_received=True
+                                                             im_height=msg.height,
+                                                             homography=np.array(self.homography).reshape(
+                                                                 (3, 3)))
+        self.camera_info_received = True
 
     def pixel_msg_to_ground_msg(self, point_msg):
         """
-        Creates a :py:class:`ground_projection.Point` object from a normalized point message from an unrectified
+        Creates a :py:class:`ground_projection.Point` object from a normalized point message from an
+        unrectified
         image. It converts it to pixel coordinates and rectifies it. Then projects it to the ground plane and
         converts it to a ROS Point message.
 
         Args:
-            point_msg (:obj:`geometry_msgs.msg.Point`): Normalized point coordinates from an unrectified image.
+            point_msg (:obj:`geometry_msgs.msg.Point`): Normalized point coordinates from an unrectified
+            image.
 
         Returns:
             :obj:`geometry_msgs.msg.Point`: Point coordinates in the ground reference frame.
@@ -120,7 +133,8 @@ class GroundProjectionNode(DTROS):
         calling :py:meth:`pixel_msg_to_ground_msg`. Then publishes the projected list of segments.
 
         Args:
-            seglist_msg (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from unrectified images
+            seglist_msg (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from
+            unrectified images
 
         """
         if self.camera_info_received:
@@ -190,7 +204,7 @@ class GroundProjectionNode(DTROS):
             rospy.signal_shutdown(msg)
 
         try:
-            with open(cali_file,'r') as stream:
+            with open(cali_file, 'r') as stream:
                 calib_data = yaml.load(stream)
         except yaml.YAMLError:
             msg = 'Error in parsing calibration file %s ... aborting' % cali_file
@@ -204,7 +218,8 @@ class GroundProjectionNode(DTROS):
         Generates a debug image with all the projected segments plotted with respect to the robot's origin.
 
         Args:
-            seg_list (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane relative to the robot origin
+            seg_list (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane relative
+            to the robot origin
 
         Returns:
             :obj:`numpy array`: an OpenCV image
@@ -220,7 +235,7 @@ class GroundProjectionNode(DTROS):
             self.debug_img_bg = np.ones((400, 400, 3), np.uint8) * 128
 
             # draw vertical lines of the grid
-            for vline in np.arange(40,361,40):
+            for vline in np.arange(40, 361, 40):
                 cv2.line(self.debug_img_bg,
                          pt1=(vline, 20),
                          pt2=(vline, 300),
@@ -228,9 +243,12 @@ class GroundProjectionNode(DTROS):
                          thickness=1)
 
             # draw the coordinates
-            cv2.putText(self.debug_img_bg, "-20cm", (120-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
-            cv2.putText(self.debug_img_bg, "  0cm", (200-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
-            cv2.putText(self.debug_img_bg, "+20cm", (280-25, 300+15), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "-20cm", (120 - 25, 300 + 15), cv2.FONT_HERSHEY_PLAIN, 0.8,
+                        (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "  0cm", (200 - 25, 300 + 15), cv2.FONT_HERSHEY_PLAIN, 0.8,
+                        (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "+20cm", (280 - 25, 300 + 15), cv2.FONT_HERSHEY_PLAIN, 0.8,
+                        (255, 255, 0), 1)
 
             # draw horizontal lines of the grid
             for hline in np.arange(20, 301, 40):
@@ -241,8 +259,10 @@ class GroundProjectionNode(DTROS):
                          thickness=1)
 
             # draw the coordinates
-            cv2.putText(self.debug_img_bg, "20cm", (2, 220+3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
-            cv2.putText(self.debug_img_bg, " 0cm", (2, 300+3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0), 1)
+            cv2.putText(self.debug_img_bg, "20cm", (2, 220 + 3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0),
+                        1)
+            cv2.putText(self.debug_img_bg, " 0cm", (2, 300 + 3), cv2.FONT_HERSHEY_PLAIN, 0.8, (255, 255, 0),
+                        1)
 
             # draw robot marker at the center
             cv2.line(self.debug_img_bg,
@@ -264,9 +284,11 @@ class GroundProjectionNode(DTROS):
                      thickness=1)
 
         # map segment color variables to BGR colors
-        color_map = {Segment.WHITE: (255, 255, 255),
-                     Segment.RED: (0, 0, 255),
-                     Segment.YELLOW: (0, 255, 255)}
+        color_map = {
+            Segment.WHITE: (255, 255, 255),
+            Segment.RED: (0, 0, 255),
+            Segment.YELLOW: (0, 255, 255)
+        }
 
         image = self.debug_img_bg.copy()
 
@@ -286,4 +308,3 @@ class GroundProjectionNode(DTROS):
 if __name__ == '__main__':
     ground_projection_node = GroundProjectionNode(node_name='ground_projection')
     rospy.spin()
-

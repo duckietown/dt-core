@@ -30,12 +30,15 @@ class CalibrateExtrinsics(D8App):
     def go(self):
         robot_name = dtu.get_current_robot_name()
 
+        # noinspection PyUnresolvedReferences
         output = self.options.output
+        # noinspection PyUnresolvedReferences
+        the_input = self.options.input
         if output is None:
             output = 'out-calibrate-extrinsics'  #  + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
 
-        if self.options.input is None:
+        if the_input is None:
 
             print("{}\nCalibrating using the ROS image stream...\n".format("*"*20))
             import rospy
@@ -62,8 +65,8 @@ class CalibrateExtrinsics(D8App):
             print('Picture taken: %s ' % str(bgr.shape))
 
         else:
-            print('Loading input image %s' % self.options.input)
-            bgr = dtu.bgr_from_jpg_fn(self.options.input)
+            print(f'Loading input image {the_input}')
+            bgr = dtu.bgr_from_jpg_fn(the_input)
 
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
@@ -75,27 +78,30 @@ class CalibrateExtrinsics(D8App):
         print("Obtaining camera info")
         try:
             camera_info = get_camera_info_for_robot(robot_name)
-        except Exception as E:
-            print("Error on obtaining camera info!")
-            print(E)
+        except Exception as e:
+            msg = "Error on obtaining camera info."
+            raise Exception(msg) from e
+
         print("Get default homography")
         try:
             homography_dummy = get_homography_default()
-        except Exception as E:
-            print("Error on getting homography")
-            print(E)
+        except Exception as e:
+            msg = "Error on getting homography."
+            raise Exception(msg) from e
+
         print("Rectify image")
         try:
             rect = Rectify(camera_info)
-        except Exception as E:
-            print("Error rectifying image!")
-            print(E)
+        except Exception as e:
+            msg = "Error rectifying image."
+            raise Exception(msg) from e
+
         print("Calculate GPG")
         try:
             gpg = GroundProjectionGeometry(camera_info.width,camera_info.height,homography_dummy.reshape((3, 3)))
-        except Exception as E:
-            print("Error calculating GPG!")
-            print(E)
+        except Exception as e:
+            msg = "Error calculating GroundProjectionGeometry."
+            raise Exception(msg) from e
         print("Ordered Dict")
         res = OrderedDict()
         try:

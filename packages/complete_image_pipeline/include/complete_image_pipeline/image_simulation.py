@@ -6,7 +6,7 @@ from duckietown_segmaps.draw_map_on_images import plot_map
 from duckietown_segmaps.maps import FRAME_AXLE
 from duckietown_segmaps.transformations import TransformationsInfo
 import duckietown_utils as dtu
-from ground_projection.ground_projection_geometry import GroundProjectionGeometry
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 import numpy as np
 
 __all__ = [

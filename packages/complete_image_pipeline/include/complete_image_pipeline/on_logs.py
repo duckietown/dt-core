@@ -1,11 +1,12 @@
 import os
 
 import duckietown_utils as dtu
-from easy_logs import get_local_bag_file, NotAvailableLocally
+from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs
-from ground_projection import GroundProjection
+# from ground_projection import GroundProjection
 from quickapp import QuickApp
 import rosbag
+from ground_projection import GroundProjection
 
 from .pipeline import run_pipeline
 
@@ -46,10 +47,17 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
             query = extra
         logs = db.query(query)
 
+        # noinspection PyUnresolvedReferences
+        output = self.options.output
+        # noinspection PyUnresolvedReferences
         line_detector = self.options.line_detector
+        # noinspection PyUnresolvedReferences
         image_prep = self.options.image_prep
+        # noinspection PyUnresolvedReferences
         lane_filter = self.options.lane_filter
+        # noinspection PyUnresolvedReferences
         anti_instagram = self.options.anti_instagram
+        # noinspection PyUnresolvedReferences
         all_details = self.options.details
 
         print('anti_instagram: %s' % anti_instagram)
@@ -58,7 +66,7 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         print('lane_filter: %s' % lane_filter)
 
         for k, log in logs.items():
-            d = os.path.join(self.options.output, k)
+            d = os.path.join(output, k)
             context.comp(look_at, log, d,
                          anti_instagram, line_detector, image_prep, lane_filter, all_details)
 

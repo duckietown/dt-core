@@ -2,8 +2,6 @@ import os
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from image_processing.ground_projection_geometry import GroundProjectionGeometry
-
 from .pipeline import run_pipeline
 
 __all__ = [
@@ -26,13 +24,16 @@ class SingleImagePipeline(D8App):
     def go(self):
         vehicle_name = dtu.get_current_robot_name()
 
+        # noinspection PyUnresolvedReferences
         output = self.options.output
         if output is None:
-            output = 'out-pipeline'  #  + dtu.get_md5(self.options.image)[:6]
+            output = 'out-pipeline'  # + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
 
-        if self.options.image is not None:
-            image_filename = self.options.image
+        # noinspection PyUnresolvedReferences
+        opt_image = self.options.image
+        if opt_image is not None:
+            image_filename = opt_image
             if image_filename.startswith('http'):
                 image_filename = dtu.get_file_from_url(image_filename)
 
@@ -53,12 +54,15 @@ class SingleImagePipeline(D8App):
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
                 print('Image captured!')
             except rospy.ROSException as e:
-                print('\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER!\n\n\n' % (e,))
+                print(
+                    '\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION '
+                    '4.1.9 OR HIGHER!\n\n\n' % (
+                    e,))
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info('Picture taken: %s ' % str(bgr.shape))
 
-        gp = GroundProjection(vehicle_name)
+        # gp = GroundProjection(vehicle_name)
 
         dtu.DuckietownConstants.show_timeit_benchmarks = True
         res, _stats = run_pipeline(bgr)
@@ -67,4 +71,3 @@ class SingleImagePipeline(D8App):
         res = dtu.resize_small_images(res)
         self.info('Writing images..')
         dtu.write_bgr_images_as_jpgs(res, output)
-

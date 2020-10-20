@@ -1,12 +1,15 @@
 import os
 
-from complete_image_pipeline import run_pipeline, simulate_image
-from duckietown_segmaps import FAMILY_SEGMAPS
-import duckietown_utils as dtu
-from easy_algo import get_easy_algo_db
-from ground_projection.ground_projection_interface import get_ground_projection
-from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 import numpy as np
+
+import duckietown_utils as dtu
+# from complete_image_pipeline import run_pipeline, simulate_image
+from complete_image_pipeline.image_simulation import simulate_image
+from complete_image_pipeline.pipeline import run_pipeline
+from duckietown_segmaps import FAMILY_SEGMAPS
+from easy_algo import get_easy_algo_db
+from ground_projection import GroundProjection
+from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 
 actual_map_name = 'DT17_scenario_straight_straight'
 template = 'DT17_template_straight_straight'
@@ -39,7 +42,7 @@ def test_synthetic_zero_zerophi():
         outd = dirn(lane_filter_name)
         for _ in range(ntries):
             test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi , outd)
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 
 @dtu.unit_test
@@ -50,7 +53,7 @@ def test_synthetic_pos_zerophi():
         outd = dirn(lane_filter_name)
         for _ in range(ntries):
             test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 
 @dtu.unit_test
@@ -63,7 +66,7 @@ def test_synthetic_neg_posphi():
 
         for _ in range(ntries):
             test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 
 @dtu.unit_test
@@ -74,7 +77,7 @@ def test_synthetic_zero_posphi():
         outd = dirn(lane_filter_name)
         for _ in range(ntries):
             test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 
 @dtu.unit_test
@@ -85,7 +88,7 @@ def test_synthetic_zero_negphi():
         outd = dirn(lane_filter_name)
         for _ in range(ntries):
             test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd)
+                               image_prep_name, lane_filter_name, d, phi, outd)
 
 
 @dtu.unit_test
@@ -111,10 +114,9 @@ def test_synthetic_zero_bigposphi():
 
 
 def test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                   image_prep_name, lane_filter_name, d, phi, outd,
-                   max_phi_err=max_phi_err,
-                   max_d_err=max_d_err):
-
+                       image_prep_name, lane_filter_name, d, phi, outd,
+                       max_phi_err=max_phi_err,
+                       max_d_err=max_d_err):
     # important to have deterministic results
     # The randomness is in the line extraction
     np.random.seed(42)
@@ -122,7 +124,7 @@ def test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name
     location['phi'] = phi
     location['d'] = d
     _res, stats = test_synthetic(actual_map_name, template, robot_name, line_detector_name,
-                                image_prep_name, lane_filter_name, location, outd)
+                                 image_prep_name, lane_filter_name, location, outd)
     error = stats['error']
     estimate = stats['estimate']
     fail = False
@@ -147,7 +149,6 @@ def test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name
 @dtu.contract(actual_map_name='str')
 def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                    image_prep_name, lane_filter_name, pose_or_location, outd):
-
     np.random.seed(42)
     db = get_easy_algo_db()
     actual_map = db.create_instance(FAMILY_SEGMAPS, actual_map_name)
@@ -157,7 +158,7 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
     dtu.logger.debug('looking for localization template %r' % template)
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
 
-    gp = get_ground_projection(robot_name)
+    gp = GroundProjection(robot_name)
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry()
 
@@ -172,7 +173,7 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
 
     image = simulation_data.distorted_synthetic_bgr
 
-#     anti_instagram_name='identity' # skip
+    #     anti_instagram_name='identity' # skip
     anti_instagram_name = 'baseline'
 
     all_details = False
