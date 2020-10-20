@@ -1,5 +1,4 @@
 import graphviz
-import os
 
 class NodeNotInGraph(Exception):
     def __init__(self, node):
@@ -23,7 +22,7 @@ class Edge(object):
         return self.source == other.source and self.target == other.target \
             and self.weight == other.weight and self.action == other.action
     def __repr__(self):
-        return "Edge(%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
+        return "Edge(%r,%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
 
 
 class Graph(object):
@@ -39,7 +38,7 @@ class Graph(object):
     def add_node(self, node):
         """Adds a node to the graph."""
         self._nodes.add(node)
-    
+
     def add_edge(self, node1, node2, weight=1.0,action=None, bidirectional=False):
         """Adds an edge between node1 and node2. Adds the nodes to the graph first
         if they don't exist."""
@@ -70,12 +69,14 @@ class Graph(object):
     def node_edges(self, node):
         if not node in self:
             raise NodeNotInGraph(node)
-        return self._edges.get(node, set())        
+        return self._edges.get(node, set())
 
     def draw(self, script_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
-        if highlight_nodes:        
+        if highlight_nodes:
             start_node = highlight_nodes[0]
-            target_node = highlight_nodes[1]        
+            target_node = highlight_nodes[1]
+        else:
+            start_node = target_node = None
 
         g = graphviz.Digraph(name="duckietown", engine="neato")
         g.edge_attr.update(fontsize = '8', arrowsize = '0.5', arrowhead = 'open')
@@ -104,19 +105,19 @@ class Graph(object):
                     t = str(e.weight)
                 else:
                     t = ""
-                    
+
                 if highlight_edges and (self.node_label_fn(src_node), self.node_label_fn(e.target)) in highlight_edges:
                     c = 'cyan' #red
                     p = '3.0'
                 else:
                     c  = 'black'
                     p = '1.5'
-                    
+
                 g.edge(self.node_label_fn(src_node), self.node_label_fn(e.target), taillabel=t , color = c, penwidth = p)
-        
+
         #script_dir = os.path.dirname(__file__)
         map_path = script_dir + '/maps/'
         g.format = 'png'
         g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
-        
-      
+
+

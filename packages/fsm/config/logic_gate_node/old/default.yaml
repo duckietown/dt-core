@@ -18,7 +18,6 @@ events:
     trigger: True
     default: False
   parallel_autonomy_off:
-    default: True
     topic: "joy_mapper_node/parallel_autonomy"
     msg_type: "BoolStamped"
     trigger: False

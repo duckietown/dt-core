@@ -22,7 +22,7 @@ def run_one(cmd):
     cwd = dtu.get_output_dir_for_test()
     if not os.path.exists(cwd):
         dtu.mkdirs_thread_safe(cwd)
-    dtu.write_data_to_file('config echo 1', os.path.join(cwd, '.compmake.rc'))
+    dtu.write_str_to_file('config echo 1', os.path.join(cwd, '.compmake.rc'))
     try:
         dtu.system_cmd_result(cwd, cmd,
               display_stdout=v,

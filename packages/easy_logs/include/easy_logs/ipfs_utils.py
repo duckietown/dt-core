@@ -52,7 +52,7 @@ def get_hash_for_bytes(s):
                                 write_stdin=s)
     hashed = res.stdout.split()[1]
     if not 'Qm' in hashed:
-        msg = 'Invalid response, no Qm:\n%s' % indent(res.stdout, '  ')
+        msg = 'Invalid response, no Qm:\n%s' % dtu.indent(res.stdout, '  ')
         raise Exception(msg)
     return hashed
 

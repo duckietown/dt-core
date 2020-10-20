@@ -48,7 +48,7 @@ def write_candidate_cloud(logs):
     cache_dir = dtu.get_duckietown_cache_dir()
     fn = os.path.join(cache_dir, 'candidate_cloud.yaml')
     s = yaml_representation_of_phy_logs(logs)
-    dtu.write_data_to_file(s, fn)
+    dtu.write_str_to_file(s, fn)
 
     # try reading
     print('reading back logs')

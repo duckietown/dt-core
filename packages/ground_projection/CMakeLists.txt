@@ -23,14 +23,14 @@ catkin_python_setup()
 #  GetImageCoord.srv
 #  EstimateHomography.srv
 #)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  duckietown_msgs
-)
+#
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+#   sensor_msgs
+#   geometry_msgs
+#   duckietown_msgs
+# )
 
 catkin_package()
 

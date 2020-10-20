@@ -1,14 +1,13 @@
-from collections import namedtuple, OrderedDict
 import os
 import random
+from collections import namedtuple, OrderedDict
 
 from bs4.element import Tag
 
 import duckietown_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs
+from easy_logs.easy_logs_summary_imp import format_logs
 from easy_logs.resource_desc import DTR
-
-from .easy_logs_summary_imp import format_logs
 
 __all__ = [
     'Gallery',
@@ -97,7 +96,8 @@ def get_report(logs, url_to_resource, initial_screens=True):
     h.append('Duckietown Logs Database')
     body.append(h)
 
-    c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (len(logs), len(vehicles), length / 3600.0)
+    c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (
+    len(logs), len(vehicles), length / 3600.0)
 
     p = Tag(name='p')
     p.append(c)
@@ -149,7 +149,6 @@ def html_table_from_table(logs, url_to_resource):
 
 
 def make_sections(body, logs, url_to_resource):
-
     for i, (id_log, log) in enumerate(logs.items()):
         section = make_section(i, id_log, log, url_to_resource)
 
@@ -157,8 +156,7 @@ def make_sections(body, logs, url_to_resource):
 
 
 def make_section(_i, id_log, log, url_to_resource):
-
-#    id_log = id_log.decode('utf-8', 'ignore')
+    #    id_log = id_log.decode('utf-8', 'ignore')
 
     d = Tag(name='div')
     classes = ['log-details']
@@ -255,9 +253,9 @@ def get_row(i, log, url_to_resource):
     else:
         tr.append(td('-'))
 
-#    tr.append(td(log.log_name))
+    #    tr.append(td(log.log_name))
 
-#    trh.append(td('video'))
+    #    trh.append(td('video'))
 
     f = Tag(name='td')
 
@@ -271,7 +269,7 @@ def get_row(i, log, url_to_resource):
 
     rel = get_thumbnails2(log, url_to_resource)
     if rel:
-#        f.append(Tag(name='br'))
+        #        f.append(Tag(name='br'))
         f.append(' ')
 
         a = Tag(name='a')
@@ -279,23 +277,23 @@ def get_row(i, log, url_to_resource):
         a.append('thumbnails')
         f.append(a)
 
-#    n = append_urls(log, f)
+    #    n = append_urls(log, f)
 
-#    urls = [x for x in log.resources['bag']['urls'] if show_url(x)]
-#    for url in urls:
-#        f.append(' ')
-#        a = Tag(name='a')
-#        a.attrs['href'] = url
-#        a.append('bag')
-#        f.append(a)
+    #    urls = [x for x in log.resources['bag']['urls'] if show_url(x)]
+    #    for url in urls:
+    #        f.append(' ')
+    #        a = Tag(name='a')
+    #        a.attrs['href'] = url
+    #        a.append('bag')
+    #        f.append(a)
 
     trh.append(td('misc'))
     tr.append(f)
 
-#
-#        tr.append(td(a))
-#    else:
-#        tr.append(td(''))
+    #
+    #        tr.append(td(a))
+    #    else:
+    #        tr.append(td(''))
 
     trh.append(td('date'))
     tr.append(td(log.date))
@@ -364,7 +362,6 @@ def choose_url(urls):
 
 
 def get_resource_url(log, rname):
-
     if rname in log.resources:
         if Gallery.deploy_ipfs:
             ipfs = log.resources[rname]['hash']['ipfs']
@@ -405,11 +402,11 @@ def append_urls(id_log, log, where, url_to_resource):
         where.append(s)
 
         urls = [url_to_resource(log, rname)]
-#        if Gallery.deploy_ipfs:
-#            ipfs = log.resources[rname]['hash']['ipfs']
-#            urls = ['/ipfs/%s' % ipfs]
-#        else:
-#            urls = [x for x in dtr.urls if show_url(x)]
+        #        if Gallery.deploy_ipfs:
+        #            ipfs = log.resources[rname]['hash']['ipfs']
+        #            urls = ['/ipfs/%s' % ipfs]
+        #        else:
+        #            urls = [x for x in dtr.urls if show_url(x)]
 
         for i, url in enumerate(urls):
             where.append(' ')

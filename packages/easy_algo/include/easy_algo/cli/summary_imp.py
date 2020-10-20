@@ -10,7 +10,7 @@ class Summary(D8App):
     """ Provides information about the families and their instances. """
 
     cmd = 'rosrun easy_algo summary'
-    
+
     def define_program_options(self, params):
         params.accept_extra()
         g = "Input/output"
@@ -36,6 +36,8 @@ class Summary(D8App):
             instance = db.create_instance(family_name, instance_name)
 
             s = instance
+        else:
+            raise ValueError(args)
         print(s)
 
 

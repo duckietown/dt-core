@@ -1,18 +1,18 @@
 import collections
 import os
 
-from numpy.testing.utils import assert_equal, assert_almost_equal
+import numpy as np
+from numpy.testing.utils import assert_almost_equal, assert_equal
 
 import duckietown_utils as dtu
-from grid_helper.grid_helper_visualization import grid_helper_plot,\
-    grid_helper_plot_field, grid_helper_annotate_axes, grid_helper_mark_point
+from grid_helper.grid_helper_visualization import (grid_helper_annotate_axes, grid_helper_mark_point,
+                                                   grid_helper_plot, grid_helper_plot_field)
 from grid_helper.voting_grid import GridHelper
-import numpy as np
 
 
 @dtu.unit_test
 def grid1():
-    resolutions = [0.1,0.2]
+    resolutions = [0.1, 0.2]
     variables = collections.OrderedDict()
     variables['x'] = dict(min=1, max=2, description="X variable", resolution=resolutions[0],
                           units='m', units_display='cm')
@@ -26,20 +26,20 @@ def grid1():
     j = 7
 
     for a in [0, 1]:
-        delta = gh._centers[a][i,j] - gh._mgrids[a][i,j]
-        assert_almost_equal(delta, resolutions[a]/2)
+        delta = gh._centers[a][i, j] - gh._mgrids[a][i, j]
+        assert_almost_equal(delta, resolutions[a] / 2)
 
     # _mgrids_plus is the same as _mgrids except that there is one more row/col
-    assert gh._mgrids_plus[0][i,j] == gh._mgrids[0][i,j]
-    assert_equal(gh._mgrids_plus[0].shape, (shape[0]+1, shape[1] +1))
+    assert gh._mgrids_plus[0][i, j] == gh._mgrids[0][i, j]
+    assert_equal(gh._mgrids_plus[0].shape, (shape[0] + 1, shape[1] + 1))
 
 
 @dtu.unit_test
 def grid_visualization():
     variables = collections.OrderedDict()
-    variables['alpha'] = dict(min=-np.pi/2, max=np.pi/2, description="angle",
-                          resolution=np.deg2rad(10),
-                          units='rad', units_display='deg')
+    variables['alpha'] = dict(min=-np.pi / 2, max=np.pi / 2, description="angle",
+                              resolution=np.deg2rad(10),
+                              units='rad', units_display='deg')
     variables['r'] = dict(min=3, max=5, description="distance", resolution=0.1,
                           units='m', units_display='cm')
     gh = GridHelper(variables)
@@ -47,11 +47,12 @@ def grid_visualization():
     val.fill(0)
     val += np.random.randn(*val.shape)
 
-    val[1,2] = 0
+    val[1, 2] = 0
     d = grid_helper_plot(gh, val)
     od = dtu.get_output_dir_for_test()
     fn = os.path.join(od, 'grid_visualization.jpg')
     dtu.write_data_to_file(d.get_png(), fn)
+
 
 @dtu.unit_test
 def voting_kernel1():
@@ -84,7 +85,7 @@ def voting_kernel1():
 
         x = 125 + dx * i + Dx * u
         y = 127 + Dy * v
-        p = dict(x=x,y=y)
+        p = dict(x=x, y=y)
         points.append(p)
         weight = 1
         gh.add_vote(votes, p, weight=weight, F=F)
@@ -109,9 +110,9 @@ def voting_kernel1():
     dtu.logger.debug('errors_x_w: %s' % errors_x_w)
     dtu.logger.debug('mean: %s' % np.abs(errors_x_w).mean())
 
-    assert(errors_x.max() <= +resolution/2)
-    assert(errors_x.min() >= -resolution/2)
-    assert(np.abs(errors_x_w).max() <= resolution/10)
+    assert (errors_x.max() <= +resolution / 2)
+    assert (errors_x.min() >= -resolution / 2)
+    assert (np.abs(errors_x_w).max() <= resolution / 10)
 
     a = dtu.CreateImageFromPylab(dpi=1000)
     with a as pylab:
@@ -131,8 +132,8 @@ def voting_kernel1():
         xe = np.array([_['x'] for _ in estimated])
         xew = np.array([_['x'] for _ in estimated_weighted])
 
-        xe = xe- x
-        xew = xew -x
+        xe = xe - x
+        xew = xew - x
         x = x * 0
 
         pylab.plot(x, '.', label='x')

@@ -32,7 +32,7 @@ class Download(D8AppWithLogs, QuickAppBase):
             logs = db_cloud.query(query)
         except dtu.DTNoMatches as e:
             msg = 'Could not find the logs matching the query.'
-            dtu.raise_wrapped(dtu.DTUserError, e, msg, compact=True)
+            raise dtu.DTUserError(msg) from e
 
         for id_log, log in logs.items():
             download_if_necessary(log)

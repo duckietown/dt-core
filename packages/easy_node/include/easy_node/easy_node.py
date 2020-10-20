@@ -1,4 +1,4 @@
-from UserDict import UserDict
+from collections import UserDict
 from contextlib import contextmanager
 import rospy
 import threading
@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-class EasyNode(object):
+class EasyNode:
 
     ENV = dtu.DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
@@ -169,7 +169,7 @@ class EasyNode(object):
 
     def _init_parameters(self):
         parameters = self._configuration.parameters
-        
+
         class Config():
             def __getattr__(self, name):
                 if not name in parameters:
@@ -178,7 +178,7 @@ class EasyNode(object):
                     msg += 'The declared parameters that can be used are:\n- %s' % "\n- ".join(list(parameters))
                     raise AttributeError(msg)
                 return object.__getattr__(self, name)
-            
+
         self.config = Config()
         values = {}
 
@@ -186,7 +186,7 @@ class EasyNode(object):
         self.info('Loading parameters...')
         with dtu.rospy_timeit_wall('getting configuration files'):
             qr = get_user_configuration(self.package_name, self.node_type_name)
-            
+
         if not qr.is_complete():
             msg = '\nThe configuration that I could load is not complete:\n'
             msg += dtu.indent(str(qr), '   | ')
@@ -208,7 +208,7 @@ class EasyNode(object):
 
             setattr(self.config, p.name, val)
             values[p.name] = val
-            
+
         self. _on_parameters_changed(first_time=True, values=values)
 
         duration = self.config.en_update_params_interval
@@ -221,15 +221,15 @@ class EasyNode(object):
             values1.set_allowed(list(self._configuration.parameters))
             self.on_parameters_changed(first_time, values1)
         except  dtu.DTConfigException as e:
-            msg = 'Configuration error raised by on_parameters_changed()' 
+            msg = 'Configuration error raised by on_parameters_changed()'
             msg += '\n\n' +  dtu.indent( dtu.yaml_dump(values), '  ', 'Configuration: ')
             dtu.raise_wrapped( dtu.DTConfigException, e, msg, compact=True)
         except Exception as e:
             msg = 'Configuration error raised by on_parameters_changed().'
             msg += '\n\n' +  dtu.indent( dtu.yaml_dump(values), '  ', 'Configuration: ')
             dtu.raise_wrapped( dtu.DTConfigException, e, msg)
-             
-        
+
+
     def _update_parameters(self, _event):
         changed = self._get_changed_parameters()
 #         self.info('Parameters changed: %s' % sorted(changed))
@@ -265,12 +265,12 @@ class UpdatedParameters(UserDict):
     def __init__(self, *args, **kwargs):
         UserDict.__init__(self, *args, **kwargs)
         self.allowed = None
-    
+
     def set_allowed(self, allowed):
         self.allowed = allowed
-        
+
     def has_key(self, x):
-        
+
         return self.__contains__(self, x)
     def __contains__(self, x):
         if self.allowed is not None:
@@ -279,4 +279,3 @@ class UpdatedParameters(UserDict):
                 msg += 'however, no such parameter was declared (the declared ones were: %s).' % self.allowed
                 raise ValueError(msg)
         return UserDict.__contains__(self, x)
-    

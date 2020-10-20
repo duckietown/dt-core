@@ -1,5 +1,6 @@
 import copy
 import os
+from abc import ABCMeta
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App

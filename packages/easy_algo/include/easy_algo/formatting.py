@@ -7,6 +7,7 @@ def format_db(db, colorize=True, verbose=False):
     s = format_families(families, colorize, verbose=verbose)
     return s
 
+
 def format_families(families, colorize=True, verbose=True):
     if not families:
         s = "No algorithm families found."
@@ -15,13 +16,13 @@ def format_families(families, colorize=True, verbose=True):
 
         table = []
         table.append(['Family name',
-                  'interface',
-                  'pattern',
-                  '# found',
-                  'valid',
-                  'filename',
-                  'description',
-                  ])
+                      'interface',
+                      'pattern',
+                      '# found',
+                      'valid',
+                      'filename',
+                      'description',
+                      ])
         for family in families:
             assert isinstance(family, EasyAlgoFamily)
             row = []
@@ -60,7 +61,6 @@ def format_families(families, colorize=True, verbose=True):
         return s
 
 
-
 def format_instances(family, colorize, verbose=False):
     if not family.instances:
         s = ('No instances files found for family "%s" (pattern = %s).\n\n' %
@@ -70,7 +70,7 @@ def format_instances(family, colorize, verbose=False):
         s = ('Found %d instances of algorithm family "%s":\n' %
              (len(family.instances), family.family_name))
         table = []
-        table.append(['Instance name',  'constructor',
+        table.append(['Instance name', 'constructor',
                       'parameters', 'description', 'filename'])
         for _ in family.instances.values():
             row = []
@@ -97,6 +97,5 @@ def format_instances(family, colorize, verbose=False):
             if not _.valid:
                 msg = _.error_if_invalid
                 s += dtu.make_red('\n' + dtu.indent(msg, '', _.instance_name + ': '))
-
 
         return s

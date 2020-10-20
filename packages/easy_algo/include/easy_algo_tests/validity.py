@@ -4,7 +4,7 @@ from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 
 
-@dtu.unit_test 
+@dtu.unit_test
 def test_validity1():
     data="""
 "F.easy_algo_family.yaml": | 
@@ -14,9 +14,9 @@ def test_validity1():
     d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
-    
+
     # print format_db(db)
-    
+
     family = db.get_family('F')
     assert family.valid == False
 
@@ -29,7 +29,7 @@ class One(MyAdderInterface):
 class Two(object):
     pass
 
-@dtu.unit_test 
+@dtu.unit_test
 def test_instance():
     data="""
 "adder.easy_algo_family.yaml": | 
@@ -50,14 +50,14 @@ def test_instance():
     d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
-     
-    print format_db(db)
-    
+
+    print(format_db(db))
+
     family = db.get_family('adder')
     assert family.valid == True
-    
+
     one = db.create_instance('adder', 'one')
-    
+
     assert type(one).__name__ == 'One'
 
     try:
@@ -65,13 +65,13 @@ def test_instance():
         raise Exception()
     except Exception as e:
         assert 'not find' in str(e), e
-    
+
     try:
         db.create_instance('adder', 'does_not_exist')
         raise Exception()
     except Exception as e:
         assert 'not find' in str(e), e
-        
+
     try:
         db.create_instance('adder', 'not_sub')
         raise Exception()
