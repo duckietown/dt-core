@@ -43,10 +43,10 @@ parameters:
 @dtu.unit_test
 def parse_reg_test():
     x = dtu.yaml_load(s)
-    if isinstance(x['description'], unicode):
-        msg = 'I do not expect Unicode'
-        msg += '\n' + x.__repr__()
-        raise ValueError(msg)
+    # if isinstance(x['description'], unicode):
+    #     msg = 'I do not expect Unicode'
+    #     msg += '\n' + x.__repr__()
+    #     raise ValueError(msg)
     _ = dtu.instantiate(x['constructor'], x['parameters'])
 
 

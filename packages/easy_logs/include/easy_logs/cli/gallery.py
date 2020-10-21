@@ -68,10 +68,10 @@ class Gallery(D8AppWithLogs):
         out = self.options.destination
         fn_html = os.path.join(out, 'index.html')
 
-        dtu.write_data_to_file(res, fn_html)
+        dtu.write_str_to_file(res, fn_html)
 
 
-def get_report(logs, url_to_resource, initial_screens=True):
+def get_report(logs, url_to_resource, initial_screens: bool = True) -> str:
     length = 0
     vehicles = set()
     for _, log in logs.items():
@@ -97,7 +97,7 @@ def get_report(logs, url_to_resource, initial_screens=True):
     body.append(h)
 
     c = 'Showing %d logs from %d different Duckiebots, for a total length of %.1f hours.' % (
-    len(logs), len(vehicles), length / 3600.0)
+        len(logs), len(vehicles), length / 3600.0)
 
     p = Tag(name='p')
     p.append(c)
@@ -111,7 +111,7 @@ def get_report(logs, url_to_resource, initial_screens=True):
 
     make_sections(body, logs, url_to_resource)
 
-    s = unicode(html).encode()
+    s = str(html)
     return s
 
 

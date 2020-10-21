@@ -17,9 +17,9 @@
 
 
 '''
+import os
 from collections import OrderedDict
 from copy import deepcopy
-import os
 
 import duckietown_utils as dtu
 from duckietown_utils.test_hash import sha1_for_file_cached

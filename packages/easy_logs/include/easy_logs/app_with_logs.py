@@ -1,13 +1,12 @@
 import copy
 import os
-from abc import ABCMeta
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from .logs_db import get_all_resources, invalidate_log_cache_because_downloaded, get_easy_logs_db2, \
-    write_candidate_cloud
+from .logs_db import (get_all_resources, get_easy_logs_db2, invalidate_log_cache_because_downloaded,
+                      write_candidate_cloud)
 from .logs_structure import PhysicalLog
-from .resource_desc import DTR, _create_file_uri
+from .resource_desc import _create_file_uri, DTR
 
 __all__ = ['D8AppWithLogs', 'download_if_necessary', 'get_log_if_not_exists']
 
@@ -58,8 +57,7 @@ class D8AppWithLogs(D8App):
         return db
 
 
-@dtu.contract(log=PhysicalLog, returns=PhysicalLog)
-def download_if_necessary(log):
+def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
     """
         Downloads the log if necessary.
 
@@ -83,8 +81,7 @@ def download_if_necessary(log):
     return log
 
 
-@dtu.contract(log=PhysicalLog, returns=str)
-def get_log_if_not_exists(log, resource_name):
+def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     """" Returns the path to the log. """
     log = copy.deepcopy(log)
     dtu.logger.info('Get log if not exists: %s' % log.log_name)

@@ -43,7 +43,7 @@ def generate_from_package_info(info, package_dir):
     unique = '%s/%s' % (parent, info.name)
 
     md += '[Link to package on Github](github:org=duckietown,repo=Software,path=%s,branch=%s)' % (
-    unique, branch) + S
+        unique, branch) + S
 
     md += '### Essentials {nonumber="1"}' + S
 
