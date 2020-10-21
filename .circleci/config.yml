@@ -131,6 +131,6 @@ jobs:
       - run:
           name: run tests
           command:
-            find
-            . source devel/local_setup.bash && ./run-circle-ci-tests.sh
+            . /opt/ros/noetic/setup.sh && . /code/catkin_ws/devel/local_setup.bash && make test-circle
+
 
