@@ -1,11 +1,11 @@
-version: 2.1
+version: "2.1"
 workflows:
-  version: 2
-  build:
-      jobs:
-        - build-docs
-        - unit-tests
-        - unit-test-from-parent
+  version: "2"
+  all_of_them:
+    jobs:
+      - build-docs
+      - unit-tests
+      - unit-tests-from-parent
 jobs:
   build-docs:
     docker:
@@ -97,7 +97,6 @@ jobs:
           command:
             ./run-circle-ci-tests.sh
 
-
   unit-tests-from-parent:
     docker:
       - image:  duckietown/dt-ros-commons:daffy-amd64
@@ -134,3 +133,4 @@ jobs:
           command:
             find
             . source devel/local_setup.bash && ./run-circle-ci-tests.sh
+
