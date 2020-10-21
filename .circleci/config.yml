@@ -5,6 +5,7 @@ workflows:
       jobs:
         - build-docs
         - unit-tests
+        - unit-test-from-parent
 jobs:
   build-docs:
     docker:
