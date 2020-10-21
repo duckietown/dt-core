@@ -42,10 +42,6 @@ jobs:
             export PATH="$PATH:$HOME/.local/bin"
             dts devel build --docs
 
-      - run:
-          name: run tests
-          command:
-            make test-circle
 
       - store_artifacts:
           path: html/out
