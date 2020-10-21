@@ -121,13 +121,16 @@ jobs:
           name: deps
           command: |
             pip3 install --use-feature=2020-resolver -r dependencies-py3.txt
-            # dt-apt-install ${REPO_PATH}/dependencies-apt.txt
+      - run:
+          name: apt
+          command: |
+            dt-apt-install dependencies-apt.txt
       - run:
           name: deps
           command: |
-            . /opt/ros/${ROS_DISTRO}/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-            # dt-apt-install ${REPO_PATH}/dependencies-apt.txt
+            . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
       - run:
           name: run tests
           command:
-            ./run-circle-ci-tests.sh
+            find
+            . source devel/local_setup.bash && ./run-circle-ci-tests.sh
