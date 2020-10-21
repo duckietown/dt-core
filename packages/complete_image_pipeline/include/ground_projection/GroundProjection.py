@@ -13,7 +13,7 @@ from image_geometry import PinholeCameraModel
 from sensor_msgs.msg import CameraInfo
 
 
-class GroundProjection():
+class GroundProjection:
 
     def __init__(self, robot_name="shamrock"):
 
@@ -151,7 +151,7 @@ class GroundProjection():
         # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
         # corrupted rotation matrix)
         if (self.H[1][2] > 0):
-            rospy.logerr("WARNING: Homography could be corrupt!")
+            rospy.logerr("WARNING: Homography could be corrupt.")
 
     def load_homography(self):
         '''Load homography (extrinsic parameters)'''

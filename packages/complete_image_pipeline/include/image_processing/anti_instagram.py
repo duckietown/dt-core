@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
+import math
+
 import cv2
 import numpy as np
-import math
+
 
 class AntiInstagram():
 
     def __init__(self):
 
-        self.higher_threshold = [255,255,255]
+        self.higher_threshold = [255, 255, 255]
 
     def calculate_color_balance_thresholds(self, image, scale, percentage):
 
@@ -28,16 +30,16 @@ class AntiInstagram():
 
             # sort entries
             flattened = np.sort(flattened)
-            
+
             # calculate thresholds
             lower_threshold.append(
-                flattened[int(math.floor(num_pixels * half_percent))]) 
+                flattened[int(math.floor(num_pixels * half_percent))])
 
         return (lower_threshold, self.higher_threshold)
 
     def apply_color_balance(self, lower_threshold, higher_threshold, image, scale=1):
 
-        if lower_threshold == None:
+        if lower_threshold is None:
             return None
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
@@ -51,9 +53,9 @@ class AntiInstagram():
             out_channels.append(normalized)
 
         return cv2.merge(out_channels)
-    
+
     def apply_threshold(self, matrix, low_value, high_value):
-    
+
         low_mask = matrix < low_value
         matrix = self.apply_mask(matrix, low_mask, low_value)
 
@@ -63,7 +65,6 @@ class AntiInstagram():
         return matrix
 
     def apply_mask(self, matrix, mask, fill_value):
-        
+
         masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
         return masked.filled()
-

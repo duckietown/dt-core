@@ -1,16 +1,13 @@
-from collections import namedtuple
 import os.path
+from collections import namedtuple
 
 import cv2
-
-from duckietown_msgs.msg import Segment, SegmentList
-import duckietown_utils as dtu
-from ground_projection.configuration import get_extrinsics_filename
 import numpy as np
 
-from image_processing.calibration_utils import get_camera_info_for_robot
-from .configuration import get_homography_for_robot
-from .ground_projection_geometry import GroundProjectionGeometry
+import duckietown_utils as dtu
+from duckietown_msgs.msg import Segment, SegmentList
+from image_processing.calibration_utils import get_camera_info_for_robot, get_homography_for_robot
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
 __all__ = [
     'GroundProjection',
@@ -23,7 +20,7 @@ def get_ground_projection(robot_name):
 
 
 @dtu.contract(returns=GroundProjectionGeometry, robot_name=str)
-def get_ground_projection_geometry_for_robot(robot_name):
+def get_ground_projection_geometry_for_robot(robot_name: str) -> GroundProjectionGeometry:
     gp = get_ground_projection(robot_name)
     return gp.get_ground_projection_geometry()
 
@@ -39,7 +36,7 @@ class GroundProjection:
         self.robot_name = robot_name
 
     @dtu.contract(returns=GroundProjectionGeometry)
-    def get_ground_projection_geometry(self):
+    def get_ground_projection_geometry(self) -> GroundProjectionGeometry:
         return self._gpg
 
     def get_camera_info(self):
@@ -73,20 +70,21 @@ def estimate_homography(bgr_rectified):
 
     # Defaults
     flags = cv2.CALIB_CB_ADAPTIVE_THRESH
-    #+ cv2.CALIB_CB_NORMALIZE_IMAGE
-    #flags = cv2.CALIB_CB_NORMALIZE_IMAGE
-    #flags = cv2.CALIB_CB_NORMALIZE_IMAGE
+    # + cv2.CALIB_CB_NORMALIZE_IMAGE
+    # flags = cv2.CALIB_CB_NORMALIZE_IMAGE
+    # flags = cv2.CALIB_CB_NORMALIZE_IMAGE
 
     pattern = (board_width, board_height)
     the_input = grey_rectified.copy()
     ret, corners = cv2.findChessboardCorners(the_input, pattern, flags=flags)
 
-#    bgr_detected = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
+    #    bgr_detected = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected = bgr_rectified.copy()
     cv2.drawChessboardCorners(bgr_detected, (7, 6), corners, ret)
 
     if ret == False:
-        msg = "findChessboardCorners failed (len(corners) == %s)" % (len(corners) if corners is not None else 'none')
+        msg = "findChessboardCorners failed (len(corners) == %s)" % (
+            len(corners) if corners is not None else 'none')
         return HomographyEstimationResult(success=False,
                                           error=msg,
                                           board_info=board,
@@ -103,14 +101,14 @@ def estimate_homography(bgr_rectified):
 
     corners2 = cv2.cornerSubPix(grey_rectified, corners, (11, 11), (-1, -1), criteria)
 
-#    bgr_detected_refined = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
+    #    bgr_detected_refined = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected_refined = grey_rectified.copy()
     cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret)
 
     src_pts = []
     for r in range(board_height):
         for c in range(board_width):
-            src_pts.append(np.array([r * square_size , c * square_size] , dtype='float32')
+            src_pts.append(np.array([r * square_size, c * square_size], dtype='float32')
                            + board_offset)
 
     # OpenCV labels corners left-to-right, top-to-bottom
@@ -136,8 +134,9 @@ def estimate_homography(bgr_rectified):
 def save_homography(H, robot_name):
     dtu.logger.info('Homography:\n %s' % H)
 
-    # Check if specific point in matrix is larger than zero (this would definitly mean we're having a corrupted rotation matrix)
-    if(H[1][2] > 0):
+    # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
+    # corrupted rotation matrix)
+    if (H[1][2] > 0):
         msg = "WARNING: Homography could be corrupt."
         msg += '\n %s' % H
         raise Exception(msg)
@@ -151,6 +150,7 @@ def save_homography(H, robot_name):
     fn = get_extrinsics_filename(robot_name)
 
     dtu.write_data_to_file(s, fn)
+
 
 #    dtu.yaml_write_to_file(ob, extrinsics_filename)
 
@@ -201,7 +201,6 @@ def load_board_info(filename=None):
         'y_offset': target_data['y_offset'],
         'offset': np.array([target_data['x_offset'], -target_data['y_offset']]),
         'size': (target_data['board_w'], target_data['board_h']),
-      }
+    }
     dtu.logger.info("Loaded checkerboard parameters")
     return target_info
-

@@ -1,8 +1,8 @@
-import numpy as np
 import cv2
+import numpy as np
 
-from .line_detector_interface import Detections, LineDetectorInterface
 import duckietown_utils as dtu
+from .line_detector_interface import Detections, LineDetectorInterface
 
 
 class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
@@ -44,7 +44,8 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
             raise Exception('Error: Undefined color strings...')
 
         # binary dilation
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(self.dilation_kernel_size, self.dilation_kernel_size))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
+                                           (self.dilation_kernel_size, self.dilation_kernel_size))
 
         # refine edge for certain color
         edge_color = cv2.bitwise_and(cv2.dilate(bw, kernel), self.edges)
@@ -53,44 +54,44 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
 
     def _lineFilter(self, bw, edge_color):
         # find gradient of the bw image
-        grad_x = -cv2.Sobel(bw/255, cv2.CV_32F, 1, 0, ksize=5)
-        grad_y = -cv2.Sobel(bw/255, cv2.CV_32F, 0, 1, ksize=5)
+        grad_x = -cv2.Sobel(bw / 255, cv2.CV_32F, 1, 0, ksize=5)
+        grad_y = -cv2.Sobel(bw / 255, cv2.CV_32F, 0, 1, ksize=5)
         grad_x *= (edge_color == 255)
         grad_y *= (edge_color == 255)
 
         # compute gradient and thresholding
-        grad = np.sqrt(grad_x**2 + grad_y**2)
-        roi = (grad>self.sobel_threshold)
+        grad = np.sqrt(grad_x ** 2 + grad_y ** 2)
+        roi = (grad > self.sobel_threshold)
 
-        #print np.unique(grad)
-        #print np.sum(roi)
+        # print np.unique(grad)
+        # print np.sum(roi)
 
         # turn into a list of points and normals
         roi_y, roi_x = np.nonzero(roi)
         centers = np.vstack((roi_x, roi_y)).transpose()
         normals = np.vstack((grad_x[roi], grad_y[roi])).transpose()
-        normals /= np.sqrt(np.sum(normals**2, axis=1, keepdims=True))
+        normals /= np.sqrt(np.sum(normals ** 2, axis=1, keepdims=True))
 
         lines = self._synthesizeLines(centers, normals)
 
         return lines, normals, centers
 
     def _findEdge(self, gray):
-        edges = cv2.Canny(gray, self.canny_thresholds[0], self.canny_thresholds[1], apertureSize = 3)
+        edges = cv2.Canny(gray, self.canny_thresholds[0], self.canny_thresholds[1], apertureSize=3)
         return edges
 
     def _checkBounds(self, val, bound):
-        val[val<0]=0
-        val[val>=bound]=bound-1
+        val[val < 0] = 0
+        val[val >= bound] = bound - 1
         return val
 
     def _synthesizeLines(self, centers, normals):
         lines = []
-        if len(centers)>0:
-            x1 = (centers[:,0:1] + normals[:, 1:2] * 6.).astype('int')
-            y1 = (centers[:,1:2] - normals[:, 0:1] * 6.).astype('int')
-            x2 = (centers[:,0:1] - normals[:, 1:2] * 6.).astype('int')
-            y2 = (centers[:,1:2] + normals[:, 0:1] * 6.).astype('int')
+        if len(centers) > 0:
+            x1 = (centers[:, 0:1] + normals[:, 1:2] * 6.).astype('int')
+            y1 = (centers[:, 1:2] - normals[:, 0:1] * 6.).astype('int')
+            x2 = (centers[:, 0:1] - normals[:, 1:2] * 6.).astype('int')
+            y2 = (centers[:, 1:2] + normals[:, 0:1] * 6.).astype('int')
             x1 = self._checkBounds(x1, self.bgr.shape[1])
             y1 = self._checkBounds(y1, self.bgr.shape[0])
             x2 = self._checkBounds(x2, self.bgr.shape[1])
@@ -110,5 +111,3 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
 
     def getImage(self):
         return self.bgr
-
-

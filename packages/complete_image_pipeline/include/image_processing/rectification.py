@@ -20,9 +20,9 @@ class Rectify:
         self._rectify_inited = False
         self._distort_inited = False
 
-    def rectify_point(self, pixel):
-
-        return Point(*list(self.pcm.rectifyPoint([pixel.x, pixel.y])))
+    def rectify_point(self, pixel: Point) -> Point:
+        p = (pixel.x, pixel.y)
+        return Point(*list(self.pcm.rectifyPoint(p)))
 
     def _init_rectify_maps(self):
         W = self.pcm.width
@@ -131,8 +131,6 @@ def invert_map(mapx, mapy):
 
 def fill_holes(rmapx, rmapy):
     H, W = rmapx.shape[0:2]
-
-    nholes = 0
 
     R = 2
     F = R * 2 + 1

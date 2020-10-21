@@ -16,7 +16,7 @@ class Point:
         self.z = z  #: z-coordinate
 
     @staticmethod
-    def from_message(msg):
+    def from_message(msg) -> "Point":
         """
         Generates a class instance from a ROS message. Expects that the message has attributes ``x`` and
         ``y``.
@@ -45,24 +45,27 @@ class GroundProjectionGeometry:
 
     Note:
         All pixel and image operations in this class assume that the pixels and images are *already
-        rectified*! If
-        unrectified pixels or images are supplied, the outputs of these operations will be incorrect!
+        rectified*. If
+        unrectified pixels or images are supplied, the outputs of these operations will be incorrect.
 
     Args:
         im_width (``int``): Width of the rectified image
         im_height (``int``): Height of the rectified image
-        homography (``int``): The 3x3 Homography matrix
+        homography (``np.ndarray``): The 3x3 Homography matrix
 
 
     """
+    im_width: int
+    im_height: int
+    homography: np.ndarray
 
-    def __init__(self, im_width, im_height, homography):
+    def __init__(self, im_width: int, im_height: int, homography: np.ndarray):
         self.im_width = im_width
         self.im_height = im_height
         self.H = np.array(homography).reshape((3, 3))
         self.Hinv = np.linalg.inv(self.H)
 
-    def vector2pixel(self, vec):
+    def vector2pixel(self, vec: Point) -> Point:
         """
         Converts a ``[0,1] X [0,1]`` representation to ``[0, W] X [0, H]`` (from normalized to image
         coordinates).
@@ -122,7 +125,7 @@ class GroundProjectionGeometry:
         point.z = 0.0
         return point
 
-    def ground2pixel(self, point):
+    def ground2pixel(self, point: Point) -> Point:
         """
         Projects a point on the ground plane to a normalized pixel (``[0, 1] X [0, 1]``) using the
         homography matrix.
@@ -181,7 +184,7 @@ class GroundProjectionGeometry:
 
 
         Note:
-            The provided image should be rectified!
+            The provided image should be rectified.
 
         Args:
             cv_image_rectified (:obj:``numpy array``): A color (3-channel) OpenCV image
@@ -197,7 +200,7 @@ class GroundProjectionGeometry:
         Returns:
             tuple: An instance of the :py:class:`GroundProjectionGeometry` with the image dimensions of the
             calibration image and the calculated homography matrix, and a status sting that is `Homography
-            could be corrupt!` or ``None``.
+            could be corrupt.` or ``None``.
 
         Raises:
             RuntimeError: If no corners were found in image, or the corners couldn't be rearranged
@@ -241,7 +244,7 @@ class GroundProjectionGeometry:
                                        cv2.RANSAC)
 
         if (H[1][2] > 0):
-            status = "Homography could be corrupt!"
+            status = "Homography could be corrupt."
         else:
             status = None
 

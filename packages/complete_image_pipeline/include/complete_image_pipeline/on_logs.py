@@ -1,13 +1,13 @@
 import os
 
-import duckietown_utils as dtu
-from easy_logs import get_local_bag_file
-from easy_logs.app_with_logs import D8AppWithLogs
 # from ground_projection import GroundProjection
 from quickapp import QuickApp
-import rosbag
-from ground_projection import GroundProjection
 
+import duckietown_utils as dtu
+import rosbag
+from easy_logs import get_local_bag_file
+from easy_logs.app_with_logs import D8AppWithLogs
+from ground_projection import GroundProjection
 from .pipeline import run_pipeline
 
 __all__ = [
@@ -87,7 +87,7 @@ def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter,
 
     image_cv = res[0]['rgb']
 
-#     dtu.logger.debug(dtu.describe_value(image_cv))
+    #     dtu.logger.debug(dtu.describe_value(image_cv))
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
 

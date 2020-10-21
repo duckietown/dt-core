@@ -22,7 +22,7 @@ def get_homography_default():
     return get_homography_for_robot('default')
 
 
-def get_homography_for_robot(robot_name):
+def get_homography_for_robot(robot_name: str):
     dtu.check_isinstance(robot_name, str)
     # find the file
 
@@ -83,9 +83,9 @@ def homography_from_yaml(data):
     except Exception as e:
         msg = 'Could not interpret data:'
         msg += '\n\n' + dtu.indent(yaml.dump(data), '   ')
-        print(msg)
-        print(e)
+        dtu.logger.error(msg)
         dtu.raise_wrapped(InvalidHomographyInfo, e, msg)
+        raise
 
 
 def save_homography(H, robot_name):

@@ -52,12 +52,12 @@ class SingleImagePipeline(D8App):
             img_msg = None
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
-                print('Image captured!')
+                print('Image captured')
             except rospy.ROSException as e:
                 print(
-                    '\n\n\nDidn\'t get any message!: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION '
+                    '\n\n\nDidn\'t get any message: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION '
                     '4.1.9 OR HIGHER!\n\n\n' % (
-                    e,))
+                        e,))
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info('Picture taken: %s ' % str(bgr.shape))

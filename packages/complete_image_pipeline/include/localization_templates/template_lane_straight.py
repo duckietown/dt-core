@@ -1,16 +1,16 @@
-
-import duckietown_utils as dtu
 import numpy as np
 
+import duckietown_utils as dtu
 from .map_localization_template import LocalizationTemplate
 
 __all__ = ['TemplateStraight']
 
+
 def phi_d_friendly(res):
     return 'phi: %s deg  d: %s m' % (np.rad2deg(res['phi']), res['d'])
 
-class TemplateStraight(LocalizationTemplate):
 
+class TemplateStraight(LocalizationTemplate):
     DATATYPE_COORDS = np.dtype([('phi', 'float64'), ('d', 'float64')])
 
     def __init__(self, tile_name, default_x):
@@ -19,7 +19,7 @@ class TemplateStraight(LocalizationTemplate):
 
     def _init_metrics(self):
         if self._map is None:
-            self.get_map() # need initialized
+            self.get_map()  # need initialized
         width_yellow = self._map.constants['width_yellow']
         lane_width = self._map.constants['lane_width']
         self.offset = width_yellow / 2 + lane_width / 2
@@ -34,23 +34,21 @@ class TemplateStraight(LocalizationTemplate):
         res['phi'] = dtu.norm_angle(theta)
         res['d'] = xy[1] + self.offset
         return res
-    
-    @dtu.contract(xy='array[2xN]', theta='array[N]', returns='array[N]')    
+
+    @dtu.contract(xy='array[2xN]', theta='array[N]', returns='array[N]')
     def coords_from_position_orientation(self, xy, theta):
         self._init_metrics()
         num = xy.shape[1]
         assert xy.shape == (2, num)
-        assert theta.shape == (num, )
-        
-        d = xy[1,:] + self.offset
+        assert theta.shape == (num,)
+
+        d = xy[1, :] + self.offset
         phi = dtu.norm_angle_v(theta)
-        
+
         res = np.zeros(num, dtype=self.dt)
         res['phi'] = phi
         res['d'] = d
-        return res 
-
-    
+        return res
 
     @dtu.contract(returns='SE2', res='array|dict')
     def pose_from_coords(self, res):
@@ -58,5 +56,5 @@ class TemplateStraight(LocalizationTemplate):
         x = self.default_x
         y = res['d'] - self.offset
         theta = dtu.norm_angle(res['phi'])
-        pose = dtu.geo.SE2_from_translation_angle([x,y], theta)
+        pose = dtu.geo.SE2_from_translation_angle([x, y], theta)
         return pose

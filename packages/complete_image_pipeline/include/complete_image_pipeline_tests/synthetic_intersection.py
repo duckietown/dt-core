@@ -1,11 +1,9 @@
-import duckietown_utils as dtu
 import numpy as np
 
-from .synthetic import test_synthetic_phi
-from .synthetic import dirn
+import duckietown_utils as dtu
+from .synthetic import dirn, test_synthetic_phi
 
-
-actual_map_name =  'DT17_scenario_four_way'
+actual_map_name = 'DT17_scenario_four_way'
 template = 'DT17_template_four_way'
 robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
 line_detector_name = 'baseline'
@@ -28,9 +26,10 @@ def intersection_zero_zerophi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd,
+                           image_prep_name, lane_filter_name, d, phi, outd,
                            max_phi_err=max_phi_err,
                            max_d_err=max_d_err)
+
 
 @dtu.unit_test
 def intersection_zero_negphi():
@@ -39,9 +38,10 @@ def intersection_zero_negphi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd,
+                           image_prep_name, lane_filter_name, d, phi, outd,
                            max_phi_err=max_phi_err,
                            max_d_err=max_d_err)
+
 
 @dtu.unit_test
 def intersection_zero_posphi():
@@ -50,9 +50,10 @@ def intersection_zero_posphi():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd,
+                           image_prep_name, lane_filter_name, d, phi, outd,
                            max_phi_err=max_phi_err,
                            max_d_err=max_d_err)
+
 
 @dtu.unit_test
 def intersection_zero_posphi2():
@@ -61,9 +62,10 @@ def intersection_zero_posphi2():
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                           image_prep_name, lane_filter_name, d, phi , outd,
+                           image_prep_name, lane_filter_name, d, phi, outd,
                            max_phi_err=max_phi_err,
                            max_d_err=max_d_err)
+
 
 if __name__ == '__main__':
     dtu.run_tests_for_this_module()

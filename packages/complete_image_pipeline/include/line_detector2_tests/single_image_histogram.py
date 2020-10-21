@@ -1,10 +1,10 @@
 from collections import OrderedDict
 
 import cv2
-
-import duckietown_utils as dtu
 import numpy as np
 from reprep.graphics.filter_posneg import posneg
+
+import duckietown_utils as dtu
 
 
 @dtu.unit_test
@@ -34,27 +34,27 @@ def go(image_bgr):
     hsv_map[:, :, 1] = hsv_map_s
     hsv_map[:, :, 2] = 255
     hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2BGR)
-#     cv2.imshow('hsv_map', hsv_map)
+    #     cv2.imshow('hsv_map', hsv_map)
     res['hsv_map'] = hsv_map
 
     hist_scale = 10
 
     hsv = cv2.cvtColor(image_bgr_cut, cv2.COLOR_BGR2HSV)
-#     dark = hsv[...,2] < 32
-#     hsv[dark] = 0
+    #     dark = hsv[...,2] < 32
+    #     hsv[dark] = 0
     h0 = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
 
     res['another'] = posneg(h0)
 
-#     hf = h0.flatten()
-#     c = np.empty_like(h0)
-#     for i in range(c.shape[0]):
-#         for j in range(c.shape[1]):
-#             c[i,j]=stats.percentileofscore(hf, h0[i,j])
-#     res['another2'] = posneg(c)
+    #     hf = h0.flatten()
+    #     c = np.empty_like(h0)
+    #     for i in range(c.shape[0]):
+    #         for j in range(c.shape[1]):
+    #             c[i,j]=stats.percentileofscore(hf, h0[i,j])
+    #     res['another2'] = posneg(c)
 
     h = h0 * hist_scale
-#     h = np.clip(h*0.005*hist_scale, 0, 1)
+    #     h = np.clip(h*0.005*hist_scale, 0, 1)
     vis = hsv_map * h[:, :, np.newaxis] / 255.0
     res['vis'] = vis
 

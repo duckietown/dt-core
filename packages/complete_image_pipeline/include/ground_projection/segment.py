@@ -1,10 +1,8 @@
 from duckietown_msgs.msg import Pixel, Segment, SegmentList
-import duckietown_utils as dtu
-from ground_projection.ground_projection_geometry import GroundProjectionGeometry
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
 
-@dtu.contract(gpg=GroundProjectionGeometry, s1=Segment, returns=Segment)
-def rectify_segment(gpg, s1):
+def rectify_segment(gpg: GroundProjectionGeometry, s1: Segment) -> Segment:
     pixels_normalized = []
 
     for i in (0, 1):
@@ -24,9 +22,7 @@ def rectify_segment(gpg, s1):
     return s2
 
 
-@dtu.contract(gpg=GroundProjectionGeometry, segment_list=SegmentList,
-              returns=SegmentList)
-def rectify_segments(gpg, segment_list):
+def rectify_segments(gpg: GroundProjectionGeometry, segment_list: SegmentList) -> SegmentList:
     res = []
 
     for segment in segment_list.segments:
@@ -34,4 +30,3 @@ def rectify_segments(gpg, segment_list):
         res.append(s2)
 
     return SegmentList(segments=res)
-

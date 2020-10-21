@@ -2,8 +2,8 @@ import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext
 from easy_regression import ProcessorInterface
-from line_detector.line_detector_interface import FAMILY_LINE_DETECTOR
-from line_detector.visual_state_fancy_display import vs_fancy_display
+from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
+from line_detector_recovered.visual_state_fancy_display import vs_fancy_display
 
 
 class LineDetectorProcessor(ProcessorInterface):

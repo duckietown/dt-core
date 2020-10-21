@@ -1,31 +1,31 @@
 from collections import namedtuple
 
 import cv2
+import numpy as np
 
+import duckietown_utils as dtu
 from duckietown_segmaps.draw_map_on_images import plot_map
 from duckietown_segmaps.maps import FRAME_AXLE
 from duckietown_segmaps.transformations import TransformationsInfo
-import duckietown_utils as dtu
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
-import numpy as np
 
 __all__ = [
     'simulate_image',
 ]
 
 SimulationData = namedtuple('SimulationData',
-        'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
+                            'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
 
 
 @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
-def simulate_image(sm_orig, pose, gpg, blur_sigma):
+def simulate_image(sm_orig, pose, gpg: GroundProjectionGeometry, blur_sigma: float) -> SimulationData:
     camera_info = gpg.get_camera_info()
     H = camera_info.height
     W = camera_info.width
-#     H_pad = int(0.3*H)
-#     W_pad = int(0.3*W)
-#     H_padded = H + H_pad
-#     W_padded = W + W_pad
+    #     H_pad = int(0.3*H)
+    #     W_pad = int(0.3*W)
+    #     H_padded = H + H_pad
+    #     W_padded = W + W_pad
     blank = np.zeros(dtype='uint8', shape=(H, W, 3))
     blank.fill(128)
 
@@ -47,7 +47,7 @@ def simulate_image(sm_orig, pose, gpg, blur_sigma):
     distorted_synthetic = gpg.distort(rectified_synthetic)
 
     distorted_synthetic = add_noise(distorted_synthetic)
-#     distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)
+    #     distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)
     distorted_synthetic = cv2.GaussianBlur(distorted_synthetic, (0, 0), blur_sigma)
 
     return SimulationData(distorted_synthetic_bgr=distorted_synthetic,

@@ -141,8 +141,8 @@ class LaneControllerNode(DTROS):
                                                         StopLineReading,
                                                         self.cbObstacleStopLineReading,
                                                         queue_size=1)
-        
-        self.log("Initialized!")
+
+        self.log("Initialized.")
 
     def cbObstacleStopLineReading(self,msg):
         """
@@ -227,14 +227,14 @@ class LaneControllerNode(DTROS):
             v = 0
             omega = 0
         else:
-               
+
             # Compute errors
             d_err = pose_msg.d - self.params['~d_offset']
             phi_err = pose_msg.phi
 
             # We cap the error if it grows too large
             if np.abs(d_err) > self.params['~d_thres']:
-                self.log("d_err too large, thresholding it!", 'error')
+                self.log("d_err too large, thresholding it", 'error')
                 d_err = np.sign(d_err) * self.params['~d_thres']
 
 

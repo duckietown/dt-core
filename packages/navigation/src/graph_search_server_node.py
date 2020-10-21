@@ -24,8 +24,8 @@ class graph_search_server():
         gc = graph_creator()
         self.duckietown_graph = gc.build_graph_from_csv(csv_filename=self.map_name)
         self.duckietown_problem = GraphSearchProblem(self.duckietown_graph, None, None)
-    
-        print("Map loaded successfully!\n")
+
+        print("Map loaded successfully.\n")
 
         self.image_pub = rospy.Publisher("~map_graph",Image, queue_size = 1, latch=True)
         self.bridge = CvBridge()
@@ -51,7 +51,7 @@ class graph_search_server():
         # Publish graph solution
         self.publishImage(req, path)
 
-        return GraphSearchResponse(path.actions)        
+        return GraphSearchResponse(path.actions)
 
     def publishImage(self, req, path):
         if path:
@@ -67,9 +67,9 @@ class graph_search_server():
         map_crop = map_img[16:556,29:408,:]
         map_resize = cv2.resize(map_crop,(cv_image.shape[1],955),interpolation=cv2.INTER_AREA)
         cv_image = cv_image[0:955,:,:]
-        cv_image = 255 - cv_image                                                                                                                                                                            
-        overlay = cv2.addWeighted(cv_image,0.65,map_resize,0.35,0)                                                                                                                                             
-        overlay = cv2.resize(overlay,(0,0),fx=0.9,fy=0.9,interpolation=cv2.INTER_AREA) 
+        cv_image = 255 - cv_image
+        overlay = cv2.addWeighted(cv_image,0.65,map_resize,0.35,0)
+        overlay = cv2.resize(overlay,(0,0),fx=0.9,fy=0.9,interpolation=cv2.INTER_AREA)
         overlay *= 1.4
         return overlay
 

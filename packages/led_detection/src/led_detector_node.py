@@ -244,7 +244,7 @@ class LEDDetectorNode(DTROS):
             self.front = None
             self.misdetection += 1
             if self.misdetection >= 5:
-                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong! Go "
+                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong. Go "
                            "with traffic light", self.node_name)
                 self.misdetection = 0
                 self.traffic_light = "traffic_light_go"
@@ -303,7 +303,7 @@ class LEDDetectorNode(DTROS):
     def cbParametersChanged(self):
         """Updates parameters."""
         self.detector.update_parameters(self.params)
-    
+
 
 
 if __name__ == '__main__':

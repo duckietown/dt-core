@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Optional
 
 import cv2
 import matplotlib
@@ -24,9 +25,9 @@ from localization_templates import FAMILY_LOC_TEMPLATES
 
 
 @dtu.contract(ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image,
-                 all_details=False,
-                 ground_truth=None,
+def run_pipeline(image: np.ndarray,
+                 all_details: bool = False,
+                 ground_truth: Optional[np.ndarray] = None,
                  actual_map=None):
     """
         Image: numpy (H,W,3) == BGR
@@ -37,8 +38,8 @@ def run_pipeline(image,
         ground_truth = pose
     """
 
-    print('backend: %s' % matplotlib.get_backend())
-    print('fname: %s' % matplotlib.matplotlib_fname())
+    dtu.logger.info('backend: %s' % matplotlib.get_backend())
+    dtu.logger.info('fname: %s' % matplotlib.matplotlib_fname())
 
     quick = False
 

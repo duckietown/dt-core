@@ -1,13 +1,12 @@
 import cv2
+import numpy as np
 from numpy.testing.utils import assert_almost_equal
 
-from duckietown_msgs.msg import Segment, SegmentList, Vector2D
 import duckietown_utils as dtu
+from duckietown_msgs.msg import Segment, SegmentList, Vector2D
 from geometry_msgs.msg import Point
 from ground_projection import GroundProjectionGeometry
-import numpy as np
-
-from .maps import SegmentsMap, FRAME_AXLE
+from .maps import FRAME_AXLE, SegmentsMap
 
 
 def rotate(l, n):
@@ -80,7 +79,6 @@ def get_points_rect_coords(coords0, N, d):
 
 
 def clip_to_view(coords, x_frustum, fov):
-
     theta1 = np.pi / 2 - fov / 2
     theta2 = -theta1
 
@@ -114,15 +112,15 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
         return (int(p.u * S), int(p.v * S))
 
     cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
-#     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
+    #     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
 
     if do_faces_fill:
         cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
     if do_faces_outline:
         cv2.polylines(base, [cv_points], True, (0, 0, 0), shift=shift, lineType=AA,
-                thickness=3)
+                      thickness=3)
         cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA,
-                thickness=2)
+                      thickness=2)
 
 
 def get_horizon_points(gpg, shift):
@@ -156,10 +154,10 @@ def plot_horizon(base, gpg, color_horizon, width=2):
     cv2.line(base, p1, p2, color_horizon, width, shift=shift, lineType=AA)  # @UndefinedVariable
 
 
-@dtu.contract(sm=SegmentsMap,  #camera_xyz='array[3]', camera_theta='float',
+@dtu.contract(sm=SegmentsMap,  # camera_xyz='array[3]', camera_theta='float',
               gpg=GroundProjectionGeometry)
 def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=False, do_segments=True,
-             do_horizon=True):  #, camera_xyz, camera_theta):
+             do_horizon=True):  # , camera_xyz, camera_theta):
     """
         base: already rectified image
 
@@ -201,7 +199,7 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=Fal
 
             # If we are both in FRAME_AXLE
             if ((sm.points[p1].id_frame != FRAME_AXLE) or
-                 (sm.points[p2].id_frame != FRAME_AXLE)):
+                (sm.points[p2].id_frame != FRAME_AXLE)):
                 msg = "Cannot deal with points not in frame FRAME_AXLE"
                 raise NotImplementedError(msg)
 
@@ -213,7 +211,7 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=Fal
             if not coords_inside:
                 continue
 
-#             print('coords_inside: %s' % coords_inside)
+            #             print('coords_inside: %s' % coords_inside)
             w1 = coords_inside[0]
             w2 = coords_inside[1]
             # XXX: more generated
@@ -224,7 +222,7 @@ def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=Fal
             S = 2 ** shift
             width = 2
             paint = (255, 120, 120)
-    #         paint = BGR_WHITE
+            #         paint = BGR_WHITE
             ti = lambda a, b: (int(np.round(a * S)), int(np.round(b * S)))
 
             p1 = ti(uv1.u, uv1.v)
@@ -297,7 +295,7 @@ def predict_segments(sm, gpg):
 
         # If we are both in FRAME_AXLE
         if ((sm.points[p1].id_frame != FRAME_AXLE) or
-             (sm.points[p2].id_frame != FRAME_AXLE)):
+            (sm.points[p2].id_frame != FRAME_AXLE)):
             msg = "Cannot deal with points not in frame FRAME_AXLE"
             raise NotImplementedError(msg)
 
@@ -323,7 +321,7 @@ def predict_segments(sm, gpg):
         normal = Vector2D(0, 0)
         points = [point1, point2]
 
-#         color = segment_color_constant_from_string(segment.color)
+        #         color = segment_color_constant_from_string(segment.color)
         assert segment.color in [Segment.RED, Segment.YELLOW, Segment.WHITE]
         s = Segment(pixels_normalized=pixels_normalized,
                     normal=normal,

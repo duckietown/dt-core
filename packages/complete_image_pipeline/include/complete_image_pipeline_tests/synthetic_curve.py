@@ -1,12 +1,11 @@
+import numpy as np
 from numpy.testing.utils import assert_almost_equal
 
-from complete_image_pipeline_tests.synthetic import test_synthetic, dirn
 import duckietown_utils as dtu
+from complete_image_pipeline_tests.synthetic import dirn, test_synthetic
 from easy_algo import get_easy_algo_db
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateBeforeCurve
 from localization_templates.template_lane_straight import phi_d_friendly
-import numpy as np
-
 
 template = 'DT17_template_before_curve_left'
 robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
@@ -22,7 +21,6 @@ max_phi_err = np.deg2rad(5)
 max_d_err = 0.021
 
 
-
 @dtu.unit_test
 def start_curve():
     res = np.zeros((), dtype=TemplateBeforeCurve.DATATYPE_COORDS)
@@ -31,21 +29,21 @@ def start_curve():
     res['d'] = 0
     pose_or_location = res
 
-
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
-                        image_prep_name, lane_filter_name, pose_or_location, outd)
+                       image_prep_name, lane_filter_name, pose_or_location, outd)
+
 
 @dtu.unit_test
 def inside_curve():
-
     pose_or_location = dtu.geo.SE2_from_translation_angle([0.15, -0.1], np.deg2rad(5))
 
     for lane_filter_name in lane_filter_names:
         outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
-                        image_prep_name, lane_filter_name, pose_or_location, outd)
+                       image_prep_name, lane_filter_name, pose_or_location, outd)
+
 
 @dtu.unit_test
 def inside_curve2():
@@ -55,7 +53,6 @@ def inside_curve2():
         outd = dirn(lane_filter_name)
         test_synthetic(actual_map_name, template, robot_name, line_detector_name,
                        image_prep_name, lane_filter_name, pose_or_location, outd)
-
 
 
 @dtu.unit_test
@@ -82,52 +79,52 @@ def coordinates():
     assert_almost_equal(location['phi'], np.deg2rad(10))
     assert_almost_equal(location['d'], DX)
 
-    pose = dtu.geo.SE2_from_translation_angle([center[0]+offset, center[1]], np.deg2rad(90))
+    pose = dtu.geo.SE2_from_translation_angle([center[0] + offset, center[1]], np.deg2rad(90))
     location = localization_template.coords_from_pose(pose)
     assert_almost_equal(location['phi'], np.deg2rad(0))
     assert_almost_equal(location['d'], 0)
 
     a = 0
-    pose = dtu.geo.SE2_from_translation_angle([center[0]+offset*np.cos(a),
-                                       center[1]+offset*np.sin(a)], np.deg2rad(45))
+    pose = dtu.geo.SE2_from_translation_angle([center[0] + offset * np.cos(a),
+                                               center[1] + offset * np.sin(a)], np.deg2rad(45))
     location = localization_template.coords_from_pose(pose)
 
     assert_almost_equal(location['phi'], np.deg2rad(-45))
     assert_almost_equal(location['d'], 0)
 
     a = np.deg2rad(-40)
-    pose = dtu.geo.SE2_from_translation_angle([center[0]+offset*np.cos(a),
-                                       center[1]+offset*np.sin(a)], np.deg2rad(50))
+    pose = dtu.geo.SE2_from_translation_angle([center[0] + offset * np.cos(a),
+                                               center[1] + offset * np.sin(a)], np.deg2rad(50))
     location = localization_template.coords_from_pose(pose)
-#     print('offset: %s' % offset)
-#     print('pose: %s' % SE2.friendly(pose))
-#     print('location: %s' % phi_d_friendly(location))
-#
+    #     print('offset: %s' % offset)
+    #     print('pose: %s' % SE2.friendly(pose))
+    #     print('location: %s' % phi_d_friendly(location))
+    #
     assert_almost_equal(location['phi'], np.deg2rad(0))
     assert_almost_equal(location['d'], 0)
 
-
     a = np.deg2rad(-40)
     D = 0.01
-    pose = dtu.geo.SE2_from_translation_angle([center[0]+(offset+D)*np.cos(a),
-                                       center[1]+(offset+D)*np.sin(a)], np.deg2rad(50))
+    pose = dtu.geo.SE2_from_translation_angle([center[0] + (offset + D) * np.cos(a),
+                                               center[1] + (offset + D) * np.sin(a)], np.deg2rad(50))
     location = localization_template.coords_from_pose(pose)
-#     print('offset: %s' % offset)
-#     print('pose: %s' % SE2.friendly(pose))
-#     print('location: %s' % phi_d_friendly(location))
-#
+    #     print('offset: %s' % offset)
+    #     print('pose: %s' % SE2.friendly(pose))
+    #     print('location: %s' % phi_d_friendly(location))
+    #
     assert_almost_equal(location['phi'], np.deg2rad(0))
     assert_almost_equal(location['d'], -D)
-
 
     pose = dtu.geo.SE2_from_translation_angle([+0.1095, 0], np.deg2rad(0))
     check_coords(localization_template, pose)
 
     pose = dtu.geo.SE2_from_translation_angle([+0.1095, 0], np.deg2rad(15))
     check_coords(localization_template, pose)
-#
+    #
     pose = dtu.geo.SE2_from_translation_angle([0.15, -0.1], np.deg2rad(5))
     check_coords(localization_template, pose)
+
+
 #
 def check_coords(localization_template, pose):
     location = localization_template.coords_from_pose(pose)

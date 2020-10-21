@@ -5,9 +5,9 @@ import cv2
 class ColorRange:
     """
     The Color Range class holds one or multiple color ranges. It can easily be generated with
-    the :py:meth:`fromDict` class method and extends the `OpenCV's inRange <https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981>`_  
+    the :py:meth:`fromDict` class method and extends the `OpenCV's inRange <https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981>`_
     method to work with multiple color ranges.
-    
+
     All colours must be given in ``HSV`` space.
 
     Args:
@@ -70,7 +70,7 @@ class ColorRange:
 
         else:
             raise ValueError("The input dictionary has two have an even number of "
-                             "entries: a low and high value for each color range!")
+                             "entries: a low and high value for each color range.")
 
         return cls(low=low, high=high)
 

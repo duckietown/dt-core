@@ -1,14 +1,13 @@
 import cv2
-
+import numpy as np
 from anti_instagram import AntiInstagram
+
+import duckietown_utils as dtu
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import Segment, SegmentList
-import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node import EasyNode
-import numpy as np
-
-from .plotting import drawLines, color_segment
+from .plotting import color_segment, drawLines
 
 
 class LineDetectorNode2(EasyNode):
@@ -62,16 +61,15 @@ class LineDetectorNode2(EasyNode):
             hei_original, wid_original = image_cv.shape[0:2]
 
             if self.config.img_size[0] != hei_original or self.config.img_size[1] != wid_original:
-
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
                 image_cv = cv2.resize(image_cv, (self.config.img_size[1], self.config.img_size[0]),
-                                       interpolation=cv2.INTER_NEAREST)
+                                      interpolation=cv2.INTER_NEAREST)
             image_cv = image_cv[self.config.top_cutoff:, :, :]
 
         with context.phase('correcting'):
             # apply color correction
             image_cv_corr = self.ai.applyTransform(image_cv)
-#             image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
+        #             image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
 
         with context.phase('detection'):
             # Set the image to be detected
@@ -95,16 +93,19 @@ class LineDetectorNode2(EasyNode):
             arr_ratio = np.array((1. / s1, 1. / s0, 1. / s1, 1. / s0))
             if len(white.lines) > 0:
                 lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
-                segmentList.segments.extend(toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
+                segmentList.segments.extend(
+                    toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
             if len(yellow.lines) > 0:
                 lines_normalized_yellow = ((yellow.lines + arr_cutoff) * arr_ratio)
-                segmentList.segments.extend(toSegmentMsg(lines_normalized_yellow, yellow.normals, Segment.YELLOW))
+                segmentList.segments.extend(
+                    toSegmentMsg(lines_normalized_yellow, yellow.normals, Segment.YELLOW))
             if len(red.lines) > 0:
                 lines_normalized_red = ((red.lines + arr_cutoff) * arr_ratio)
                 segmentList.segments.extend(toSegmentMsg(lines_normalized_red, red.normals, Segment.RED))
 
             self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
-                    len(yellow.lines), len(red.lines)))
+                                                                                len(yellow.lines),
+                                                                                len(red.lines)))
 
         # Publish segmentList
         with context.phase('publishing'):
@@ -113,7 +114,6 @@ class LineDetectorNode2(EasyNode):
         # VISUALIZATION only below
 
         if self.config.verbose:
-
             with context.phase('draw-lines'):
                 # Draw lines and normals
                 image_with_lines = np.copy(image_cv_corr)
@@ -127,7 +127,8 @@ class LineDetectorNode2(EasyNode):
                 self.publishers.image_with_lines.publish(out)
 
             with context.phase('pub_edge/pub_segment'):
-                out = dtu.d8n_image_msg_from_cv_image(self.detector.edges, "mono8", same_timestamp_as=image_msg)
+                out = dtu.d8n_image_msg_from_cv_image(self.detector.edges, "mono8",
+                                                      same_timestamp_as=image_msg)
                 self.publishers.edge.publish(out)
 
                 colorSegment = color_segment(white.area, red.area, yellow.area)

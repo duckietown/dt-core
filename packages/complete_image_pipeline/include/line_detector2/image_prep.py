@@ -1,14 +1,12 @@
 import cv2
-
-from duckietown_msgs.msg import Segment, SegmentList
 import numpy as np
 
+from duckietown_msgs.msg import Segment, SegmentList
 from .fuzzing import fuzzy_segment_list_image_space
 from .ldn import toSegmentMsg
 
 
 class ImagePrep(object):
-
     FAMILY = 'image_prep'
 
     def __init__(self, shape, top_cutoff, resampling_algorithm, fuzzy_mult=None, fuzzy_noise=None):
@@ -58,7 +56,7 @@ class ImagePrep(object):
             if transform is not None:
                 self.image_corrected = transform(self.image_cut)
                 # XXX
-#                 self.image_corrected = cv2.convertScaleAbs(_)
+            #                 self.image_corrected = cv2.convertScaleAbs(_)
             else:
                 self.image_corrected = self.image_cut
 
@@ -79,7 +77,7 @@ class ImagePrep(object):
 
             with context.phase('get_segment_list_normalized'):
                 segment_list = get_segment_list_normalized(self.top_cutoff,
-                                                       self.shape, white, yellow, red)
+                                                           self.shape, white, yellow, red)
 
         # SegmentList constructor
         if self.fuzzy_mult is not None:

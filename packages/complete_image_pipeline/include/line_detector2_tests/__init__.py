@@ -1,3 +1,1 @@
-
-from . import single_image
-from . import single_image_histogram
+from . import single_image, single_image_histogram

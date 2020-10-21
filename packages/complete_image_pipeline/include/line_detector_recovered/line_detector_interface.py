@@ -3,8 +3,8 @@ from collections import namedtuple
 
 FAMILY_LINE_DETECTOR = 'line_detector'
 
-Detections = namedtuple('Detections', 
-                        ['lines','normals','area','centers'])
+Detections = namedtuple('Detections',
+                        ['lines', 'normals', 'area', 'centers'])
 
 
 class LineDetectorInterface():
@@ -17,5 +17,3 @@ class LineDetectorInterface():
     @abstractmethod
     def detectLines(self, color):
         """ Returns a tuple of class Detections """
-
-

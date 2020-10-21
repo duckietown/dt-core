@@ -107,7 +107,7 @@ class VehicleCoordinator():
     def cbMaintenanceState(self, msg):
         if msg.state == "WAY_TO_MAINTENANCE" and self.use_priority_protocol:
             self.priority = True
-            rospy.loginfo('[%s] Granted priority rights on intersections!' %(self.node_name))
+            rospy.loginfo('[%s] Granted priority rights on intersections.' %(self.node_name))
         else:
             self.priority = False
 
@@ -341,7 +341,7 @@ class VehicleCoordinator():
         elif self.state == State.TL_SENSING:
             rospy.loginfo("[%s] I have been waiting in traffic light for: %s", self.node_name, (time()-self.begin_tl))
             if self.traffic_light == "traffic_light_go":
-                rospy.loginfo("[%s] Traffic light is green. I have priority! GO!",self.node_name)
+                rospy.loginfo("[%s] Traffic light is green. I have priority. GO!",self.node_name)
                 self.set_state(State.GO)
 
             #If a tl intersection april tag is present but tl is switched off, wait until tl_timeout then use led coordination

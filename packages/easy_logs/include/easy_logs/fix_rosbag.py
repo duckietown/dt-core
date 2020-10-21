@@ -9,7 +9,8 @@ def _hotfix_get_message_type(info):
     if message_type is None:
         try:
             msg_def = info.msg_def
-            msg_def = msg_def.decode('unicode_escape').encode('ascii', errors='ignore')
+            assert isinstance(msg_def, str)
+            # msg_def = msg_def.decode('unicode_escape').encode('ascii', errors='ignore')
             message_type = genpy.dynamic.generate_dynamic(info.datatype, msg_def)[info.datatype]
             if (message_type._md5sum != info.md5sum):
                 pass

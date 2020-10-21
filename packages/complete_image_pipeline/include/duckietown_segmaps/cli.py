@@ -1,18 +1,14 @@
-
 import os
 
+import numpy as np
 from reprep.plot_utils.axes import turn_all_axes_off
 
-from complete_image_pipeline.image_simulation import SimulationData, simulate_image
-
 import duckietown_utils as dtu
+from complete_image_pipeline.image_simulation import simulate_image, SimulationData
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-
-import numpy as np
-
 from ground_projection.ground_projection_interface import get_ground_projection
-from .maps import FAMILY_SEGMAPS, _plot_map_segments
+from .maps import _plot_map_segments, FAMILY_SEGMAPS
 
 
 class DisplayTileAndMaps(D8App):
@@ -50,6 +46,7 @@ For example:
         for id_map in maps:
             display_map(id_map, out)
 
+
 def display_map(id_map, out):
     dtu.logger.info('id_map == %s' % id_map)
     db = get_easy_algo_db()
@@ -65,13 +62,14 @@ def display_map(id_map, out):
     fn = os.path.join(out, '%s-segments.jpg' % (id_map))
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_segments_bgr, fn)
 
+
 @dtu.contract(returns='str', dpi=int)
 def get_texture(smap, dpi):
-    figure_args=dict(figsize=(2,2), facecolor='green')
+    figure_args = dict(figsize=(2, 2), facecolor='green')
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
     frames = list(set(_.id_frame for _ in smap.points.values()))
     id_frame = frames[0]
-#     print('frames: %s choose %s' % (frames, id_frame))
+    #     print('frames: %s choose %s' % (frames, id_frame))
     with a as pylab:
         _plot_map_segments(smap, pylab, id_frame, plot_ref_segments=False)
         pylab.axis('equal')
@@ -80,15 +78,13 @@ def get_texture(smap, dpi):
     png = a.get_png()
     return png
 
+
 @dtu.contract(returns=SimulationData)
-def simulate_camera_view(sm, robot_name = 'shamrock'):
+def simulate_camera_view(sm, robot_name='shamrock'):
     gp = get_ground_projection(robot_name)
     # GroundProjectionGeometry
     gpg = gp.get_ground_projection_geometry()
 
-    pose = dtu.geo.SE2_from_translation_angle([0,-0.05],-np.deg2rad(-5))
+    pose = dtu.geo.SE2_from_translation_angle([0, -0.05], -np.deg2rad(-5))
     res = simulate_image(sm, pose, gpg, blur_sigma=0.3)
     return res
-
-
-

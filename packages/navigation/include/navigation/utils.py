@@ -27,7 +27,7 @@ def test_ok():
         <strong>Test passed!!</strong>
         </div>""", raw=True)
     except:
-        print("test ok!!")
+        print("test ok.")
 
 
 def update(x, **entries):

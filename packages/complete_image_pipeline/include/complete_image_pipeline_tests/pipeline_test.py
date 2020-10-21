@@ -1,6 +1,5 @@
-from complete_image_pipeline.pipeline import run_pipeline
 import duckietown_utils as dtu
-
+from complete_image_pipeline.pipeline import run_pipeline
 from ground_projection import GroundProjection
 
 
@@ -17,12 +16,11 @@ def single_image1():
     gp = GroundProjection(robot_name)
 
     res, _stats = run_pipeline(image_cv, gp,
-                         line_detector_name=line_detector_name,
-                         image_prep_name=image_prep_name,
-                         lane_filter_name=lane_filter_name,
-                         anti_instagram_name=anti_instagram_name,
-                         all_details=False, ground_truth=None)
+                               line_detector_name=line_detector_name,
+                               image_prep_name=image_prep_name,
+                               lane_filter_name=lane_filter_name,
+                               anti_instagram_name=anti_instagram_name,
+                               all_details=False, ground_truth=None)
 
     outd = dtu.get_output_dir_for_test()
     dtu.write_jpgs_to_dir(res, outd)
-
