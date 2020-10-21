@@ -4,7 +4,6 @@ workflows:
   all_of_them:
     jobs:
       - build-docs
-      - unit-tests
       - unit-tests-from-parent
 jobs:
   build-docs:
