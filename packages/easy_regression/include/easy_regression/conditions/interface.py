@@ -26,9 +26,7 @@ class CheckResult(CheckResult0):
         return s
 
 
-class RTCheck(object):
-    __metaclass__ = ABCMeta
-
+class RTCheck(object, metaclass=ABCMeta):
     FAIL = 'fail'
     OK = 'ok'
     NODATA = 'nodata'  # the historical data is not there yet

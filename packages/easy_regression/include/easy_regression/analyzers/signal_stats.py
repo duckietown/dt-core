@@ -45,7 +45,7 @@ class SignalStats(AnalyzerInterface):
         topics = set(a)  # (a) + list(b))
         for topic in topics:
             a_plus_b[topic] = OrderedDict()
-            print(topic + ' ----------- ')
+            print((topic + ' ----------- '))
             reduce_stats(a[topic], b[topic], a_plus_b[topic])
 
     def summarize_as_text(self, res):
@@ -79,9 +79,9 @@ def reduce_stats(a, b, a_plus_b):
     a_plus_b['max'] = max(a['max'], b['max'])
     # Note: it is not possible to compute the median in an efficient manner
     a_plus_b['median'] = (a['median'] + b['median']) / 2.0
-    print(dtu.indent(a, 'a: '))
-    print(dtu.indent(b, 'b: '))
-    print(dtu.indent(a_plus_b, 'a_plus_b: '))
+    print((dtu.indent(a, 'a: ')))
+    print((dtu.indent(b, 'b: ')))
+    print((dtu.indent(a_plus_b, 'a_plus_b: ')))
 
 
 def look_for_topics(bag):
@@ -90,7 +90,7 @@ def look_for_topics(bag):
     ok = ['std_msgs/Float64']
 
     found = OrderedDict()
-    for t, v in stat.topics.items():
+    for t, v in list(stat.topics.items()):
         if v.message_count == 0:
             #             print('skipping %s because no count' % t)
             continue

@@ -8,9 +8,7 @@ __all__ = [
 ]
 
 
-class ProcessorUtilsInterface(object):
-
-    __metaclass__ = ABCMeta
+class ProcessorUtilsInterface(object, metaclass=ABCMeta):
 
     @abstractmethod
     def write_stat(self, t, name, value):
@@ -21,11 +19,9 @@ class ProcessorUtilsInterface(object):
         pass
 
 
-class ProcessorInterface(object):
+class ProcessorInterface(object, metaclass=ABCMeta):
 
     FAMILY = 'processor'
-
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     @dtu.contract(utils=ProcessorUtilsInterface)

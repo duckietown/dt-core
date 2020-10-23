@@ -18,7 +18,7 @@ def PlotSignalSpec_from_yaml(x):
 def StatsPlotterFromYaml(signals, **kwargs):
 #     signals = OrderedDict((k, PlotSpec_from_yaml(v)) for k,v in signals.items())
 
-    signals = map(PlotSignalSpec_from_yaml, signals)
+    signals = list(map(PlotSignalSpec_from_yaml, signals))
     return StatsPlotter(signals=signals, **kwargs)
 
     # XXX

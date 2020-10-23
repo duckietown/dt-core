@@ -59,8 +59,8 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             rect = (480, 640) if not self.all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
-            print('abs: %s  window: %s  from log: %s' % (
-                mp.time_absolute, mp.time_window, mp.time_from_physical_log_start))
+            print(('abs: %s  window: %s  from log: %s' % (
+                mp.time_absolute, mp.time_window, mp.time_from_physical_log_start)))
             headers = [
                 "Robot: %s log: %s time: %.2f s" % (vehicle_name, log_name, mp.time_from_physical_log_start),
                 "Algorithms | color correction: %s | preparation: %s | detector: %s | filter: %s" % (
@@ -82,10 +82,10 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
             t = rospy.Time.from_sec(mp.time_absolute)  # @UndefinedVariable
-            print('written %r at t = %s' % (otopic, t.to_sec()))
+            print(('written %r at t = %s' % (otopic, t.to_sec())))
             bag_out.write(prefix_out + '/' + otopic, omsg, t=t)
 
-            for name, value in stats.items():
+            for name, value in list(stats.items()):
                 utils.write_stat(prefix_out + '/' + name, value, t=t)
 
 

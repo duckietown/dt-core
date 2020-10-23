@@ -15,7 +15,7 @@ class Comparer(ProcessorInterface):
 
     @staticmethod
     def from_yaml(signals, **kwargs):
-        signals = map(PlotSignalSpec_from_yaml, signals)
+        signals = list(map(PlotSignalSpec_from_yaml, signals))
         return Comparer(signals=signals, **kwargs)
 
     @dtu.contract(signals='list($PlotSignalSpec)')
@@ -40,7 +40,7 @@ def read_data_for_signals(bag_in, prefix_in, signals):
         topic2messages[mp.topic]['data'].append(data)
         topic2messages[mp.topic]['timestamp'].append(mp.time_from_physical_log_start)
 
-    for v in topic2messages.values():
+    for v in list(topic2messages.values()):
         v['data'] = np.array(v['data'])
         v['timestamp'] = np.array(v['timestamp'])
 
@@ -63,7 +63,7 @@ def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name)
         msg = 'Not enough topics'
         raise ValueError(msg)
 
-    for i, j in itertools.product(range(n), range(n)):
+    for i, j in itertools.product(list(range(n)), list(range(n))):
         if i == j: continue
         s1 = signals[i]
         d1 = topic2messages[prefix_in + s1.topic]

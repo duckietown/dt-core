@@ -3,9 +3,7 @@ from abc import ABCMeta, abstractmethod
 __all__ = ['AnalyzerInterface']
 
 
-class AnalyzerInterface(object):
-
-    __metaclass__ = ABCMeta
+class AnalyzerInterface(object, metaclass=ABCMeta):
 
     @abstractmethod
     def analyze_log(self, bag_in, dict_out):

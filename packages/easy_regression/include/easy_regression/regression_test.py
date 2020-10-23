@@ -58,7 +58,7 @@ class RegressionTest(object):
     def get_logs(self, algo_db):
         logs = OrderedDict()
         for s in self.logs:
-            for k, log in algo_db.query(s).items():
+            for k, log in list(algo_db.query(s).items()):
                 if k in logs:
                     msg = 'Repeated log id %r' % k
                     msg += '\n query: %s' % self.logs

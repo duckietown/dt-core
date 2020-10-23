@@ -85,7 +85,7 @@ def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, d
     prefix = 'run_regression_test-%s-%s-' % (rt_name, date)
     tmpdir = dtu.create_tmpdir(prefix=prefix)
     do_before_deleting_tmp_dir = []
-    for log_name, log in logs.items():
+    for log_name, log in list(logs.items()):
         c = context.child(log_name)
         # process one
         log_out = os.path.join(tmpdir, 'logs', log_name + '/' + 'out.bag')

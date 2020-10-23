@@ -53,7 +53,7 @@ def parse_reg_test():
 @dtu.unit_test
 def parse_reg_fail():
     x = dtu.yaml_load(s_fail)
-    print(x.__repr__())
+    print((x.__repr__()))
     try:
         _ = dtu.instantiate(x['constructor'], x['parameters'])
     except RTParseError:

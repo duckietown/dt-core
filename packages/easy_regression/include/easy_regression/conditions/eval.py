@@ -13,9 +13,7 @@ class DataNotFound(Exception):
     pass
 
 
-class Evaluable(object):
-    __metaclass__ = ABCMeta
-    
+class Evaluable(object, metaclass=ABCMeta):
     @abstractmethod
     @dtu.contract(rdb=ResultDB)
     def eval(self, rdb):

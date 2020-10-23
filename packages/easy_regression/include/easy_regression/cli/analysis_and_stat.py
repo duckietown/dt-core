@@ -12,7 +12,7 @@ def print_results(analyzers: List[str], results_all, out: str):
     base = os.path.join(out, 'statistics')
     yaml_data = dtu.yaml_dump_pretty(results_all)
     dtu.write_str_to_file(yaml_data, os.path.join(base, 'statistics.yaml'))
-    print(dtu.indent(yaml_data, 'print_results '))
+    print((dtu.indent(yaml_data, 'print_results ')))
 
     for a in analyzers:
         dtu.write_str_to_file(dtu.yaml_dump_pretty(results_all[a]),
@@ -31,7 +31,7 @@ def table_for_analyzer(results_all):
 
     head = ['log name'] + keys
     table = [head]
-    for k, v in results_all.items():
+    for k, v in list(results_all.items()):
         row = [k]
 
         for key in keys:
@@ -40,7 +40,7 @@ def table_for_analyzer(results_all):
                 row.append(value)
             elif isinstance(value, dict):
                 s = ""
-                for mk, mv in value.items():
+                for mk, mv in list(value.items()):
                     s += '\n %s  %s' % (mk, mv)
                 row.append(s)
             else:

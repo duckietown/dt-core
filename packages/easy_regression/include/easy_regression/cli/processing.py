@@ -23,7 +23,7 @@ class ProcessorUtils(ProcessorUtilsInterface):
 
     def write_stat(self, name, value, t=None, prefix=()):
         if isinstance(value, dict):
-            for k, v in value.items():
+            for k, v in list(value.items()):
                 self.write_stat(k, v, t=t, prefix=prefix + (name,))
             return
         else:
