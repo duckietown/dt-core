@@ -156,7 +156,8 @@ def save_homography(H, robot_name):
 
 
 @dtu.contract(sl=SegmentList, gpg=GroundProjectionGeometry, returns=SegmentList)
-def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
+def find_ground_coordinates(gpg: GroundProjectionGeometry, sl: SegmentList,
+                            skip_not_on_ground: bool = True) -> SegmentList:
     """
         Creates a new segment list with the ground coordinates set.
 
@@ -167,6 +168,7 @@ def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
 
     # Get ground truth of segmentList
     for s1 in sl.segments:
+
         g0 = gpg.vector2ground(s1.pixels_normalized[0])
         g1 = gpg.vector2ground(s1.pixels_normalized[1])
         if skip_not_on_ground:
@@ -182,7 +184,7 @@ def find_ground_coordinates(gpg, sl, skip_not_on_ground=True):
     return sl2
 
 
-def load_board_info(filename=None):
+def load_board_info(filename: str = None) -> dict:
     '''Load calibration checkerboard info'''
     if filename is None:
         root = dtu.get_ros_package_path('duckietown')

@@ -19,7 +19,7 @@ def get_points_rect_coords(coords0, N, d):
         coords0 : list
     """
     n = len(coords0)
-    points = range(n)
+    points = list(range(n))
 
     """ Returns a list of world coordinates """
 
@@ -98,7 +98,7 @@ def clip_to_view(coords, x_frustum, fov):
     return coords
 
 
-def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
+def paint_polygon_world(base, coords, gpg: GroundProjectionGeometry, color, x_frustum, fov, do_faces_fill,
                         do_faces_outline):
     coords_inside = clip_to_view(coords, x_frustum, fov)
     if not coords_inside:
@@ -109,9 +109,9 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
 
     def pixel_from_world(c):
         p = gpg.ground2pixel(Point(c[0], c[1], c[2]))
-        return (int(p.u * S), int(p.v * S))
+        return (int(p.x * S), int(p.y * S)) # not sure
 
-    cv_points = np.array(map(pixel_from_world, coords_inside), dtype='int32')
+    cv_points = np.array(list(map(pixel_from_world, coords_inside)), dtype='int32')
     #     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
 
     if do_faces_fill:
@@ -123,17 +123,18 @@ def paint_polygon_world(base, coords, gpg, color, x_frustum, fov, do_faces_fill,
                       thickness=2)
 
 
-def get_horizon_points(gpg, shift):
+def get_horizon_points(gpg: GroundProjectionGeometry, shift):
     x = +100
     y = x * 3  # enough for field of view
     p_left = gpg.ground2pixel(Point(x, y, 0))
     p_right = gpg.ground2pixel(Point(x, -y, 0))
     S = 2 ** shift
-    return ((int(p_left.u * S), int(p_left.v * S)),
-            (int(p_right.u * S), int(p_right.v * S)))
+    # XXX
+    return ((int(p_left.x * S), int(p_left.y * S)),
+            (int(p_right.x * S), int(p_right.y * S)))
 
 
-def plot_ground_sky(base, gpg, color_ground, color_sky):
+def plot_ground_sky(base, gpg: GroundProjectionGeometry, color_ground, color_sky):
     # XXX: there is a bug somewhere here for shift != 0
     shift = 0
     S = 2 ** shift
@@ -148,7 +149,7 @@ def plot_ground_sky(base, gpg, color_ground, color_sky):
 AA = cv2.LINE_AA  # @UndefinedVariable
 
 
-def plot_horizon(base, gpg, color_horizon, width=2):
+def plot_horizon(base, gpg: GroundProjectionGeometry, color_horizon, width=2):
     shift = 8
     p1, p2 = get_horizon_points(gpg, shift)
     cv2.line(base, p1, p2, color_horizon, width, shift=shift, lineType=AA)  # @UndefinedVariable
@@ -156,7 +157,7 @@ def plot_horizon(base, gpg, color_horizon, width=2):
 
 @dtu.contract(sm=SegmentsMap,  # camera_xyz='array[3]', camera_theta='float',
               gpg=GroundProjectionGeometry)
-def plot_map(base0, sm, gpg, do_ground=True, do_faces=True, do_faces_outline=False, do_segments=True,
+def plot_map(base0, sm, gpg: GroundProjectionGeometry, do_ground=True, do_faces=True, do_faces_outline=False, do_segments=True,
              do_horizon=True):  # , camera_xyz, camera_theta):
     """
         base: already rectified image

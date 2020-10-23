@@ -6,12 +6,16 @@ __all__ = [
 ]
 
 
-class LaneFilterInterface(object):
+class LaneFilterInterface(metaclass=ABCMeta):
 
-    __metaclass__ = ABCMeta
+    LOST = 'lost'
+    GOOD = 'good'
+    STRUGGLING = 'struggling'
 
-    # These are not used yet
+    POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
 
+    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
+                                  ('d', 'float64')])
 
 
     @abstractmethod

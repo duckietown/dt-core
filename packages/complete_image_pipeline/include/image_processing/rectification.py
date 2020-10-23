@@ -1,9 +1,11 @@
 import itertools
+from typing import Tuple
 
 import cv2
 import numpy as np
 
 from image_geometry import PinholeCameraModel
+from sensor_msgs.msg import CameraInfo
 from .ground_projection_geometry import Point
 
 
@@ -13,7 +15,15 @@ class Rectify:
 
     """
 
-    def __init__(self, camera_info):
+    ci: CameraInfo
+    pcm: PinholeCameraModel
+    _rectify_inited: bool
+    _distort_inited: bool
+
+    rmapx: np.ndarray
+    rmapy: np.ndarray
+
+    def __init__(self, camera_info: CameraInfo):
         self.ci = camera_info
         self.pcm = PinholeCameraModel()
         self.pcm.fromCameraInfo(self.ci)
@@ -36,7 +46,7 @@ class Rectify:
         self.mapy = mapy
         self._rectify_inited = True
 
-    def rectify(self, cv_image_raw, interpolation=cv2.INTER_NEAREST):
+    def rectify(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST):
         ''' Undistort an image.
             To be more precise, pass interpolation= cv2.INTER_CUBIC
         '''
@@ -51,7 +61,8 @@ class Rectify:
                         cv_image_rectified)
         return res
 
-    def distort(self, rectified):
+    def distort(self, rectified: np.ndarray) -> np.ndarray:
+
         if not self._rectify_inited:
             self._init_rectify_maps()
         if not self._distort_inited:
@@ -61,7 +72,7 @@ class Rectify:
         res = cv2.remap(rectified, self.rmapx, self.rmapy, cv2.INTER_NEAREST, distorted)
         return res
 
-    def rectify_full(self, cv_image_raw, interpolation=cv2.INTER_NEAREST, ratio=1):
+    def rectify_full(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST, ratio=1):
         '''
             Undistort an image by maintaining the proportions.
             To be more precise, pass interpolation= cv2.INTER_CUBIC
@@ -93,7 +104,7 @@ class Rectify:
         return new_camera_matrix, res
 
 
-def invert_map(mapx, mapy):
+def invert_map(mapx: np.ndarray, mapy: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     H, W = mapx.shape[0:2]
     rmapx = np.empty_like(mapx)
     rmapx.fill(np.nan)

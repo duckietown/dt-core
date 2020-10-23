@@ -6,7 +6,7 @@ from .fuzzing import fuzzy_segment_list_image_space
 from .ldn import toSegmentMsg
 
 
-class ImagePrep(object):
+class ImagePrep:
     FAMILY = 'image_prep'
 
     def __init__(self, shape, top_cutoff, resampling_algorithm, fuzzy_mult=None, fuzzy_noise=None):

@@ -20,7 +20,7 @@ class TimeKeeper():
 
     def completed(self, phase):
         t = rospy.get_time()
-        c = time.clock()
+        c = time.process_time()
         latency = t - self.t_acquisition
         latency_ms = asms(latency)
 

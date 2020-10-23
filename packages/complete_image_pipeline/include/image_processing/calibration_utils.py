@@ -22,14 +22,14 @@ def get_homography_default():
     return get_homography_for_robot('default')
 
 
-def get_homography_for_robot(robot_name: str):
+def get_homography_for_robot(robot_name: str) -> np.ndarray:
     dtu.check_isinstance(robot_name, str)
     # find the file
 
     fn = get_homography_info_config_file(robot_name)
 
     # load the YAML
-    data = dtu.yaml_load_file(fn, True)  # True means "plain"
+    data = dtu.yaml_load_file(fn, plain_yaml=True)  # True means "plain"
 
     # convert the YAML
     homography = homography_from_yaml(data)
@@ -37,7 +37,13 @@ def get_homography_for_robot(robot_name: str):
     return homography
 
 
-def get_homography_info_config_file(robot_name):
+def get_homography_info_config_file(robot_name: str) -> str:
+    """
+    Raises NoHomographyInfoAvailable.
+
+    :param robot_name:
+    :return:
+    """
     strict = False
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
@@ -75,9 +81,9 @@ def get_homography_info_config_file(robot_name):
             return found[0]
 
 
-def homography_from_yaml(data):
+def homography_from_yaml(data: dict) -> np.array:
     try:
-        h = data[b'homography']
+        h = data['homography']
         res = np.array(h).reshape((3, 3))
         return res
     except Exception as e:
@@ -88,7 +94,7 @@ def homography_from_yaml(data):
         raise
 
 
-def save_homography(H, robot_name):
+def save_homography(H: np.array, robot_name: str) -> None:
     dtu.logger.info('Homography:\n %s' % H)
 
     # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
@@ -110,12 +116,12 @@ def save_homography(H, robot_name):
     dtu.write_data_to_file(s, fn)
 
 
-def get_extrinsics_filename(robot_name):
+def get_extrinsics_filename(robot_name: str) -> str:
     fn = dtu.get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + robot_name + ".yaml"
     return fn
 
 
-def disable_old_homography(robot_name):
+def disable_old_homography(robot_name: str):
     fn = get_extrinsics_filename(robot_name)
     if os.path.exists(fn):
         fn2 = None
@@ -137,7 +143,7 @@ class InvalidCameraInfo(dtu.DTException):
     pass
 
 
-def get_camera_info_default():
+def get_camera_info_default() -> CameraInfo:
     """ Returns a nominal CameraInfo """
     return get_camera_info_for_robot('default')
 
@@ -166,8 +172,7 @@ projection_matrix:
 """
 
 
-@dtu.contract(robot_name=str, returns=CameraInfo)
-def get_camera_info_for_robot(robot_name):
+def get_camera_info_for_robot(robot_name: str) -> CameraInfo:
     """
         Returns a CameraInfo object for the given robot.
         This is in a good format to pass to PinholeCameraModel:
@@ -202,7 +207,7 @@ def get_camera_info_for_robot(robot_name):
     return camera_info
 
 
-def check_camera_info_sane_for_DB17(camera_info):
+def check_camera_info_sane_for_DB17(camera_info: CameraInfo):
     """ Raises an exception if the calibration is way off with respect
         to platform DVB17 """
 
@@ -232,7 +237,7 @@ def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
         dtu.raise_wrapped(InvalidCameraInfo, e, msg)
 
 
-def get_camera_info_config_file(robot_name):
+def get_camera_info_config_file(robot_name: str):
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 
@@ -252,7 +257,7 @@ def get_camera_info_config_file(robot_name):
 
 
 # from cam_info_reader_node
-def load_camera_info_2(filename):
+def load_camera_info_2(filename: str) -> CameraInfo:
     with open(filename, 'r') as f:
         calib_data = yaml.load(f)
     cam_info = CameraInfo()
@@ -267,7 +272,7 @@ def load_camera_info_2(filename):
 
 
 # This one is used by the controllers...
-def load_camera_info_3(robot):
+def load_camera_info_3(robot: str):
     # Load camera information
     filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + robot + ".yaml")
     if not os.path.isfile(filename):

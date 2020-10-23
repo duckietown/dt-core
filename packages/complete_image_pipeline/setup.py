@@ -17,6 +17,7 @@ setup_args = generate_distutils_setup(
         'line_detector2',
         'line_detector2_tests',
         'line_detector_recovered',
+        'anti_instagram',
     ],
     package_dir={'': 'include'},
 )

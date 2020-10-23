@@ -1,5 +1,6 @@
 import math
 from collections import defaultdict, namedtuple, OrderedDict
+from typing import Iterator
 
 import numpy as np
 from geometry import SE2_from_translation_angle, SO2_from_angle
@@ -12,10 +13,11 @@ from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo import get_easy_algo_db
 from grid_helper import (convert_unit, grid_helper_annotate_axes, grid_helper_mark_point,
                          grid_helper_plot_field, grid_helper_set_axes, GridHelper)
-from grid_helper.voting_grid import array_as_string_sign
-from lane_filter.DEL_lane_filter_interface import LaneFilterInterface
+from grid_helper.voting_grid import array_as_string_sign, check_no_nans
+from lane_filter_interface.lane_filter_interface import LaneFilterInterface
 from localization_templates import FAMILY_LOC_TEMPLATES
 
+logger = dtu.logger
 __all__ = [
     'LaneFilterMoreGeneric',
 ]
@@ -23,6 +25,12 @@ __all__ = [
 
 class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
     """ """
+    localization_template: str
+    variables: object
+    precision: float
+    belief: np.ndarray
+    optimize: bool
+    bounds_theta_deg: float
 
     def __init__(self, configuration):
         param_names = [
@@ -83,15 +91,23 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 measurement_likelihood = self.generate_measurement_likelihood(segment_list.segments)
             else:
                 measurement_likelihood = self.generate_measurement_likelihood_faster(segment_list.segments)
-
+        check_no_nans(measurement_likelihood)
         with dtu.timeit_clock('multiply belief'):
             if measurement_likelihood is not None:
-                self.belief = np.multiply(self.belief, measurement_likelihood)
-                if np.sum(self.belief) == 0:
-                    self.belief = measurement_likelihood
+                s_m = np.sum(measurement_likelihood)
+                if s_m == 0:
+                    logger.warning('flat likelihood - not updating')
+                else:
 
-                alpha = 1.0 / np.sum(self.belief)
-                self.belief = self.belief * alpha
+                    self.belief = np.multiply(self.belief, measurement_likelihood)
+                    s = np.sum(self.belief)
+                    if s == 0:
+                        logger.warning('flat belief, just use likelihood')
+                        self.belief = measurement_likelihood
+
+
+                    alpha = 1.0 /s
+                    self.belief = self.belief * alpha
 
         return measurement_likelihood
 
@@ -321,7 +337,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
 
 @dtu.contract(sm=SegmentsMap, delta='float,>0')
-def iterate_segment_sections(sm, map_segment, delta):
+def iterate_segment_sections(sm: SegmentsMap, map_segment, delta: float) -> Iterator:
     """ Yields point, normal """
     w1 = np.array(sm.points[map_segment.points[0]].coords)
     w2 = np.array(sm.points[map_segment.points[1]].coords)

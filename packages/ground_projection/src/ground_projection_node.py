@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -40,8 +41,11 @@ class GroundProjectionNode(DTROS):
         that shows the robot relative to the projected segments. Useful to check if the extrinsic
         calibration is accurate.
     """
+    bridge: CvBridge
+    ground_projector: Optional[GroundProjectionGeometry]
+    rectifier: Optional[Rectify
 
-    def __init__(self, node_name):
+    def __init__(self, node_name: str):
         # Initialize the DTROS parent class
         super(GroundProjectionNode, self).__init__(
             node_name=node_name,
@@ -78,7 +82,7 @@ class GroundProjectionNode(DTROS):
         # self.service_img_coord_ = rospy.Service("~get_image_coordinate", GetImageCoord,
         # self.get_image_coordinate_cb)
 
-    def cb_camera_info(self, msg):
+    def cb_camera_info(self, msg: CameraInfo):
         """
         Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
         :py:class:`image_processing.Rectify` object for image rectification
@@ -95,7 +99,7 @@ class GroundProjectionNode(DTROS):
                                                                  (3, 3)))
         self.camera_info_received = True
 
-    def pixel_msg_to_ground_msg(self, point_msg):
+    def pixel_msg_to_ground_msg(self, point_msg)->PointMsg:
         """
         Creates a :py:class:`ground_projection.Point` object from a normalized point message from an
         unrectified
@@ -195,12 +199,12 @@ class GroundProjectionNode(DTROS):
         if not os.path.isfile(cali_file):
             self.log("Can't find calibration file: %s.\n Using default calibration instead."
                      % cali_file, 'warn')
-            cali_file = (cali_file_folder + "default.yaml")
+            cali_file = os.path.join(cali_file_folder, "default.yaml")
 
         # Shutdown if no calibration file not found
         if not os.path.isfile(cali_file):
             msg = 'Found no calibration file ... aborting'
-            self.log(msg, 'err')
+            self.logerr(msg)
             rospy.signal_shutdown(msg)
 
         try:
@@ -208,7 +212,7 @@ class GroundProjectionNode(DTROS):
                 calib_data = yaml.load(stream)
         except yaml.YAMLError:
             msg = 'Error in parsing calibration file %s ... aborting' % cali_file
-            self.log(msg, 'err')
+            self.logerr(msg)
             rospy.signal_shutdown(msg)
 
         return calib_data['homography']

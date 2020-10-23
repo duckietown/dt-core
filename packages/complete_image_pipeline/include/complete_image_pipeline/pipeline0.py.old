@@ -1,39 +1,34 @@
 from collections import OrderedDict
-from typing import Dict, Tuple
+from typing import Optional
 
 import cv2
 import matplotlib
 import numpy as np
 
 import duckietown_utils as dtu
-from anti_instagram import AntiInstagramInterface
 from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
 from duckietown_segmaps.maps import FRAME_AXLE, FRAME_GLOBAL, plot_map_and_segments
 from duckietown_segmaps.transformations import TransformationsInfo
 from easy_algo import get_easy_algo_db
-from easy_node.utils.timing import FakeContext, ProcessingTimingStats
-from ground_projection import GroundProjectionGeometry
+from easy_node.utils.timing import ProcessingTimingStats
+from ground_projection import rectify_segments
 from ground_projection.ground_projection_interface import find_ground_coordinates
-from ground_projection.segment import rectify_segments
+from image_processing.anti_instagram import AntiInstagram
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
-from lane_filter import FAMILY_LANE_FILTER
+from lane_filter.lane_filter import LaneFilterHistogram
 from lane_filter_generic import LaneFilterMoreGeneric
-from line_detector2.image_prep import ImagePrep
-from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
+from line_detector.line_detector import LineDetector
 from line_detector_recovered.visual_state_fancy_display import normalized_to_image, vs_fancy_display
 from localization_templates import FAMILY_LOC_TEMPLATES
-logger =dtu.logger
+
 
 @dtu.contract(ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
-                 rectifier: Rectify,
-                 line_detector_name: str,
-                 image_prep_name: str,
-                 lane_filter_name: str, anti_instagram_name: str,
+def run_pipeline(image: np.ndarray,
                  all_details: bool = False,
-                 ground_truth=None,
-                 actual_map=None) -> Tuple[Dict[str, np.ndarray], Dict[str, float]]:
+                 ground_truth: Optional[np.ndarray] = None,
+                 actual_map=None):
     """
         Image: numpy (H,W,3) == BGR
         Returns a dictionary, res with the following fields:
@@ -43,10 +38,10 @@ def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
         ground_truth = pose
     """
 
-    logger.debug('backend: %s' % matplotlib.get_backend())
-    logger.debug('fname: %s' % matplotlib.matplotlib_fname())
+    dtu.logger.info('backend: %s' % matplotlib.get_backend())
+    dtu.logger.info('fname: %s' % matplotlib.matplotlib_fname())
 
-    quick: bool = False
+    quick = False
 
     dtu.check_isinstance(image, np.ndarray)
 
@@ -54,42 +49,32 @@ def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
     stats = OrderedDict()
 
     res['Raw input image'] = image
-    algo_db = get_easy_algo_db()
-    line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, line_detector_name)
-    lane_filter = algo_db.create_instance(FAMILY_LANE_FILTER, lane_filter_name)
-    image_prep = algo_db.create_instance(ImagePrep.FAMILY, image_prep_name)
-    ai = algo_db.create_instance(AntiInstagramInterface.FAMILY, anti_instagram_name)
+    gpg = GroundProjectionGeometry()
+    rect = Rectify()
+    line_detector = LineDetector()
+    lane_filter = LaneFilterHistogram()
+    ai = AntiInstagram()
 
     pts = ProcessingTimingStats()
     pts.reset()
     pts.received_message()
     pts.decided_to_process()
 
-    if all_details:
-        segment_list = image_prep.process(FakeContext(), image, line_detector, transform=None)
-
-        res['segments_on_image_input'] = vs_fancy_display(image_prep.image_cv, segment_list)
-        res['segments_on_image_resized'] = vs_fancy_display(image_prep.image_resized, segment_list)
-
     with pts.phase('calculate AI transform'):
-        ai.calculateTransform(image)
+        [lower, upper] = ai.calculate_color_balance_thresholds(image)
 
     with pts.phase('apply AI transform'):
-
-        transformed = ai.applyTransform(image)
-
-        if all_details:
-            res['image_input_transformed'] = transformed
+        transformed = ai.apply_color_balance(lower, upper, image)
 
     with pts.phase('edge detection'):
         # note: do not apply transform twice!
         segment_list2 = image_prep.process(pts, image,
-                                           line_detector, transform=ai.applyTransform)
+                                           line_detector, transform=ai.apply_color_balance)
 
         if all_details:
             res['resized and corrected'] = image_prep.image_corrected
 
-    logger.debug('segment_list2: %s' % len(segment_list2.segments))
+    dtu.logger.debug('segment_list2: %s' % len(segment_list2.segments))
 
     if all_details:
         res['segments_on_image_input_transformed'] = \
@@ -102,20 +87,18 @@ def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
     if all_details:
         grid = get_grid(image.shape[:2])
         res['grid'] = grid
-        res['grid_remapped'] = rectifier.rectify(grid)
+        res['grid_remapped'] = gpg.rectify(grid)
 
     #     res['difference between the two'] = res['image_input']*0.5 + res['image_input_rect']*0.5
 
     with pts.phase('rectify_segments'):
-        segment_list2_rect = rectify_segments(rectifier, gpg, segment_list2)
+        segment_list2_rect = rectify_segments(gpg, segment_list2)
 
     # Project to ground
     with pts.phase('find_ground_coordinates'):
         sg = find_ground_coordinates(gpg, segment_list2_rect)
 
     lane_filter.initialize()
-
-    # lane_filter.get_plot_phi_d()
     if all_details:
         res['prior'] = lane_filter.get_plot_phi_d()
 
@@ -156,9 +139,9 @@ def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
                                                 ground_truth=ground_truth)
 
     with pts.phase('rectify'):
-        rectified0 = rectifier.rectify(image)
+        rectified0 = gpg.rectify(image)
 
-    rectified = ai.applyTransform(rectified0)
+    rectified = ai.apply_color_balance(rectified0)
 
     if all_details:
         res['image_input_rect'] = rectified
@@ -267,8 +250,11 @@ def only_one_color(segment_list, color):
     return SegmentList(segments=segments)
 
 
-def get_grid(shape, L=32, col={0: (255, 0, 0), 1: (0, 255, 0)}):
+def get_grid(shape, L=32, col=None):
     """ Creates a grid of given shape """
+    if col is None:
+        col = {0: (255, 0, 0), 1: (0, 255, 0)}
+
     H, W = shape
     res = np.zeros((H, W, 3), 'uint8')
     for i in range(H):

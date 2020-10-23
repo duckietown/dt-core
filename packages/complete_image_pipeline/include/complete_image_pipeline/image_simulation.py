@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import cv2
 import numpy as np
+from geometry import SE2value
 
 import duckietown_utils as dtu
 from duckietown_segmaps.draw_map_on_images import plot_map
@@ -17,8 +18,9 @@ SimulationData = namedtuple('SimulationData',
                             'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
 
 
-@dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
-def simulate_image(sm_orig, pose, gpg: GroundProjectionGeometry, blur_sigma: float) -> SimulationData:
+# @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
+def simulate_image(sm_orig, pose: SE2value, gpg: GroundProjectionGeometry,
+                   blur_sigma: float) -> SimulationData:
     camera_info = gpg.get_camera_info()
     H = camera_info.height
     W = camera_info.width
