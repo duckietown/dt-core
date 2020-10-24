@@ -13,39 +13,38 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
         self.edges = np.empty(0)
 
         param_names = [
-
-            'hsv_white1',
-            'hsv_white2',
-            'hsv_yellow1',
-            'hsv_yellow2',
-            'hsv_red1',
-            'hsv_red2',
-            'hsv_red3',
-            'hsv_red4',
-
-            'dilation_kernel_size',
-            'canny_thresholds',
-            'sobel_threshold',
+            "hsv_white1",
+            "hsv_white2",
+            "hsv_yellow1",
+            "hsv_yellow2",
+            "hsv_red1",
+            "hsv_red2",
+            "hsv_red3",
+            "hsv_red4",
+            "dilation_kernel_size",
+            "canny_thresholds",
+            "sobel_threshold",
         ]
 
         dtu.Configurable.__init__(self, param_names, configuration)
 
     def _colorFilter(self, color):
         # threshold colors in HSV space
-        if color == 'white':
+        if color == "white":
             bw = cv2.inRange(self.hsv, self.hsv_white1, self.hsv_white2)
-        elif color == 'yellow':
+        elif color == "yellow":
             bw = cv2.inRange(self.hsv, self.hsv_yellow1, self.hsv_yellow2)
-        elif color == 'red':
+        elif color == "red":
             bw1 = cv2.inRange(self.hsv, self.hsv_red1, self.hsv_red2)
             bw2 = cv2.inRange(self.hsv, self.hsv_red3, self.hsv_red4)
             bw = cv2.bitwise_or(bw1, bw2)
         else:
-            raise Exception('Error: Undefined color strings...')
+            raise Exception("Error: Undefined color strings...")
 
         # binary dilation
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                           (self.dilation_kernel_size, self.dilation_kernel_size))
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, (self.dilation_kernel_size, self.dilation_kernel_size)
+        )
 
         # refine edge for certain color
         edge_color = cv2.bitwise_and(cv2.dilate(bw, kernel), self.edges)
@@ -56,12 +55,12 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
         # find gradient of the bw image
         grad_x = -cv2.Sobel(bw / 255, cv2.CV_32F, 1, 0, ksize=5)
         grad_y = -cv2.Sobel(bw / 255, cv2.CV_32F, 0, 1, ksize=5)
-        grad_x *= (edge_color == 255)
-        grad_y *= (edge_color == 255)
+        grad_x *= edge_color == 255
+        grad_y *= edge_color == 255
 
         # compute gradient and thresholding
         grad = np.sqrt(grad_x ** 2 + grad_y ** 2)
-        roi = (grad > self.sobel_threshold)
+        roi = grad > self.sobel_threshold
 
         # print np.unique(grad)
         # print np.sum(roi)
@@ -88,10 +87,10 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
     def _synthesizeLines(self, centers, normals):
         lines = []
         if len(centers) > 0:
-            x1 = (centers[:, 0:1] + normals[:, 1:2] * 6.).astype('int')
-            y1 = (centers[:, 1:2] - normals[:, 0:1] * 6.).astype('int')
-            x2 = (centers[:, 0:1] - normals[:, 1:2] * 6.).astype('int')
-            y2 = (centers[:, 1:2] + normals[:, 0:1] * 6.).astype('int')
+            x1 = (centers[:, 0:1] + normals[:, 1:2] * 6.0).astype("int")
+            y1 = (centers[:, 1:2] - normals[:, 0:1] * 6.0).astype("int")
+            x2 = (centers[:, 0:1] - normals[:, 1:2] * 6.0).astype("int")
+            y2 = (centers[:, 1:2] + normals[:, 0:1] * 6.0).astype("int")
             x1 = self._checkBounds(x1, self.bgr.shape[1])
             y1 = self._checkBounds(y1, self.bgr.shape[0])
             x2 = self._checkBounds(x2, self.bgr.shape[1])

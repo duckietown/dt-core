@@ -18,6 +18,8 @@ test:
 	@echo
 	@echo
 
+check-environment:
+
 test-circle: \
 	test-comptests-circle \
 	test-download-logs \
@@ -78,7 +80,8 @@ test-comptests-collect-junit:
 	comptests-to-junit $(comptests_out)/compmake > $(comptests_out)/junit/junit.xml
 
 test-catkin_tests: check-environment
-	bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
+	catkin --workspace=$(CATKIN_WS_DIR)  run_tests
+	#bash -c "source environment.sh; catkin_make -C $(catkin_ws) run_tests; catkin_test_results $(catkin_ws)/build/test_results/"
 
 # onelog=20160223-amadoa-amadobot-RCDP2
 onelog=2016-04-29-dp3auto-neptunus-1
@@ -93,22 +96,6 @@ test-misc-utils:
 
 test-cloud-logs: cloud-download
 	rosrun easy_logs summary --cloud  $(onelog)
-
-test-documentation:
-	echo "<html><head></head><body></body></html>" > catkin_ws/00_main_template.html
-	DISABLE_CONTRACTS=1 mcdp-render-manual \
-	--src $(catkin_ws) \
-	--stylesheet v_manual_split \
-	--mathjax 0 \
-	-o out/test-documentation \
-	--output_file $(out_html).tmp -c "config echo 1; config colorize 0; rparmake; why failed"
-	# compmake out/test-documentation -c "ls failed"
-	# compmake out/test-documentation -c "why failed"
-	rm -f catkin_ws/00_main_template.html
-
-
-test-publish:
-	python -m SimpleHTTPServer 8000 ..
 
 
 

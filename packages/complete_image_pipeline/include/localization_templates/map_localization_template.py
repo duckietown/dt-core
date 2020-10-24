@@ -3,11 +3,11 @@ from duckietown_segmaps import FAMILY_SEGMAPS, SegmentsMap
 from duckietown_segmaps.maps import FRAME_GLOBAL
 from easy_algo import get_easy_algo_db
 
-FAMILY_LOC_TEMPLATES = 'localization_template'
+FAMILY_LOC_TEMPLATES = "localization_template"
 
 __all__ = [
-    'LocalizationTemplate',
-    'FAMILY_LOC_TEMPLATES',
+    "LocalizationTemplate",
+    "FAMILY_LOC_TEMPLATES",
 ]
 
 
@@ -29,9 +29,11 @@ class LocalizationTemplate(object):
 
             frames = set(_.id_frame for _ in self._map.points.values())
             if frames != set([FRAME_GLOBAL]):
-                msg = ('Expected that all points in the map %r are in the frame %r.' %
-                       (self.tile_name, FRAME_GLOBAL))
-                msg += ' These are the frames: %s.' % frames
+                msg = "Expected that all points in the map %r are in the frame %r." % (
+                    self.tile_name,
+                    FRAME_GLOBAL,
+                )
+                msg += " These are the frames: %s." % frames
                 raise ValueError(msg)
         return self._map
 

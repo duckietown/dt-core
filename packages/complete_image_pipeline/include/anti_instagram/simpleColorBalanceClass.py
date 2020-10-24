@@ -11,6 +11,8 @@ This class represents a basic color balance algorithm. The routine 'thresholdAna
     based on an image and a cut-off percentage. The routine 'applyTrafo' takes either two thresholds from input or the
     class own thresholds amd applies the transform.
 """
+
+
 class simpleColorBalanceClass:
     # initialize
     def __init__(self):
@@ -19,7 +21,7 @@ class simpleColorBalanceClass:
         self.ThHi = np.zeros(3, np.int16)
         self.ThHi.fill(-1)
         self.halfPercent = -1
-        print('Instance of simpleColorBalanceClass created.')
+        print("Instance of simpleColorBalanceClass created.")
 
     def apply_mask(self, matrix, mask, fill_value):
         masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
@@ -52,8 +54,7 @@ class simpleColorBalanceClass:
 
         return self.ThLow, self.ThHi
 
-
-    def applyTrafo(self, img, ThLow = [], ThHi = []):
+    def applyTrafo(self, img, ThLow=[], ThHi=[]):
         if ThLow == [] and ThHi == []:
             ThLow = self.ThLow
             ThHi = self.ThHi

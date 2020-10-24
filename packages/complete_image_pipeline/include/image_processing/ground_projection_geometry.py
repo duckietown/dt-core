@@ -8,11 +8,13 @@ from sensor_msgs.msg import CameraInfo
 from .constants import BOARD_HEIGHT, BOARD_WIDTH, SQUARE_SIZE, X_OFFSET, Y_OFFSET
 import duckietown_utils as dtu
 
+
 class Point:
     """
     Point class. Convenience class for storing ROS-independent 3D points.
 
     """
+
     x: float
     y: float
     z: Optional[float]
@@ -23,7 +25,7 @@ class Point:
         self.z = z  #: z-coordinate
 
     def __repr__(self):
-        return f'P({self.x}, {self.y}, {self.z})'
+        return f"P({self.x}, {self.y}, {self.z})"
 
     @staticmethod
     def from_message(msg) -> "Point":
@@ -49,9 +51,9 @@ class Point:
         return Point(x, y, z)
 
 
-ImageSpaceResdepPoint = NewType('ImageSpaceResdepPoint', Point)
-ImageSpaceNormalizedPoint = NewType('ImageSpaceNormalizedPoint', Point)
-GroundPoint = NewType('GroundPoint', Point)
+ImageSpaceResdepPoint = NewType("ImageSpaceResdepPoint", Point)
+ImageSpaceNormalizedPoint = NewType("ImageSpaceNormalizedPoint", Point)
+GroundPoint = NewType("GroundPoint", Point)
 
 
 class GroundProjectionGeometry:
@@ -70,6 +72,7 @@ class GroundProjectionGeometry:
 
 
     """
+
     im_width: int
     im_height: int
     H: np.ndarray
@@ -79,11 +82,10 @@ class GroundProjectionGeometry:
         self.im_width = im_width
         self.im_height = im_height
         H = np.array(homography)
-        if H.shape != (3,3):
+        if H.shape != (3, 3):
             H0 = H
             H = H0.reshape((3, 3))
-            dtu.logger.warning(f'reshaping your homography matrix:\nfrom\n{H0}\nto\n{H}')
-
+            dtu.logger.warning(f"reshaping your homography matrix:\nfrom\n{H0}\nto\n{H}")
 
         self.H = H
         self.Hinv = np.linalg.inv(self.H)
@@ -175,8 +177,8 @@ class GroundProjectionGeometry:
 
         """
         if point.z != 0:
-            msg = 'This method assumes that the point is a ground point (z=0). '
-            msg += 'However, the point is (%s,%s,%s)' % (point.x, point.y, point.z)
+            msg = "This method assumes that the point is a ground point (z=0). "
+            msg += "However, the point is (%s,%s,%s)" % (point.x, point.y, point.z)
             raise ValueError(msg)
 
         ground_point = np.array([point.x, point.y, 1.0])
@@ -189,12 +191,14 @@ class GroundProjectionGeometry:
         return ImageSpaceNormalizedPoint(Point(x, y))
 
     @staticmethod
-    def estimate_homography(cv_image_rectified: NPImageBGR,
-                            board_w: int = BOARD_WIDTH,
-                            board_h: int = BOARD_HEIGHT,
-                            square_size: float = SQUARE_SIZE,
-                            x_offset: float = X_OFFSET,
-                            y_offset: float = Y_OFFSET) -> Tuple["GroundProjectionGeometry", str]:
+    def estimate_homography(
+        cv_image_rectified: NPImageBGR,
+        board_w: int = BOARD_WIDTH,
+        board_h: int = BOARD_HEIGHT,
+        square_size: float = SQUARE_SIZE,
+        x_offset: float = X_OFFSET,
+        y_offset: float = Y_OFFSET,
+    ) -> Tuple["GroundProjectionGeometry", str]:
         """
         Estimates the homography matrix from an image with a calibration board.
 
@@ -239,16 +243,19 @@ class GroundProjectionGeometry:
 
         cv_image_rectified = cv2.cvtColor(cv_image_rectified, cv2.COLOR_BGR2GRAY)
 
-        ret, corners = cv2.findChessboardCorners(cv_image_rectified, (board_w, board_h),
-                                                 cv2.CALIB_CB_ADAPTIVE_THRESH)
+        ret, corners = cv2.findChessboardCorners(
+            cv_image_rectified, (board_w, board_h), cv2.CALIB_CB_ADAPTIVE_THRESH
+        )
 
         bgr_detected = cv_image_rectified.copy()
         cv2.drawChessboardCorners(bgr_detected, (7, 5), corners, ret)
-        cv2.imwrite('/data/detected.png', bgr_detected)
+        cv2.imwrite("/data/detected.png", bgr_detected)
 
         if not ret:
-            msg = ("No corners found in image, or the corners couldn't be rearranged. Make sure that the "
-                   "camera is positioned correctly.")
+            msg = (
+                "No corners found in image, or the corners couldn't be rearranged. Make sure that the "
+                "camera is positioned correctly."
+            )
             raise RuntimeError(msg)
 
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
@@ -258,28 +265,30 @@ class GroundProjectionGeometry:
         for r in range(board_h):
             for c in range(board_w):
                 src_pts.append(
-                    np.array([r * square_size, c * square_size], dtype='float32') +
-                    np.array([x_offset, -y_offset]))
+                    np.array([r * square_size, c * square_size], dtype="float32")
+                    + np.array([x_offset, -y_offset])
+                )
 
         # OpenCV labels corners left-to-right, top-to-bottom
         # We're having a problem with our pattern since it's not rotation-invariant
 
         # only reverse order if first point is at bottom right corner
-        if (corners[0])[0][0] < (corners[board_w * board_h - 1])[0][0] and \
-            (corners[0])[0][0] < (corners[board_w * board_h - 1])[0][1]:
+        if (corners[0])[0][0] < (corners[board_w * board_h - 1])[0][0] and (corners[0])[0][0] < (
+            corners[board_w * board_h - 1]
+        )[0][1]:
             src_pts.reverse()
 
         # Compute homography from image to ground
-        H, status = cv2.findHomography(corners_subpix.reshape(len(corners_subpix), 2), np.array(src_pts),
-                                       cv2.RANSAC)
+        H, status = cv2.findHomography(
+            corners_subpix.reshape(len(corners_subpix), 2), np.array(src_pts), cv2.RANSAC
+        )
 
-        if (H[1][2] > 0):
+        if H[1][2] > 0:
             status = "Homography could be corrupt."
         else:
             status = None
 
-        e = GroundProjectionGeometry(im_height=cv_image_rectified.shape[1],
-                                     im_width=cv_image_rectified.shape[0],
-                                     homography=H)
+        e = GroundProjectionGeometry(
+            im_height=cv_image_rectified.shape[1], im_width=cv_image_rectified.shape[0], homography=H
+        )
         return e, status
-

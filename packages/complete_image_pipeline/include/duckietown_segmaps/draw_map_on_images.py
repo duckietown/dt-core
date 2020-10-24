@@ -6,6 +6,7 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
+
 # from geometry_msgs.msg import Point
 from ground_projection import GroundProjectionGeometry
 from image_processing.ground_projection_geometry import GroundPoint, Point
@@ -99,9 +100,16 @@ def clip_to_view(coords, x_frustum, fov):
     return coords
 
 
-def paint_polygon_world(base: dtu.NPImageBGR, coords, gpg: GroundProjectionGeometry, color, x_frustum, fov,
-                        do_faces_fill,
-                        do_faces_outline: bool):
+def paint_polygon_world(
+    base: dtu.NPImageBGR,
+    coords,
+    gpg: GroundProjectionGeometry,
+    color,
+    x_frustum,
+    fov,
+    do_faces_fill,
+    do_faces_outline: bool,
+):
     coords_inside = clip_to_view(coords, x_frustum, fov)
     if not coords_inside:
         return
@@ -110,43 +118,32 @@ def paint_polygon_world(base: dtu.NPImageBGR, coords, gpg: GroundProjectionGeome
     S = 2 ** shift
 
     def pixel_from_world(c):
-        p = gpg.ground2pixel(Point(c[0], c[1], c[2]))
+        p = gpg.ground2pixel(GroundPoint(Point(c[0], c[1], c[2])))
         return (int(p.x * S), int(p.y * S))  # not sure
 
-    cv_points = np.array(list(map(pixel_from_world, coords_inside)), dtype='int32')
+    cv_points = np.array(list(map(pixel_from_world, coords_inside)), dtype="int32")
     #     cv2.fillConvexPoly(base, cv_points, color, shift=shift, lineType=AA)
 
     if do_faces_fill:
         cv2.fillPoly(base, [cv_points], color, shift=shift, lineType=AA)
     if do_faces_outline:
-        cv2.polylines(base, [cv_points], True, (0, 0, 0), shift=shift, lineType=AA,
-                      thickness=3)
-        cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA,
-                      thickness=2)
+        cv2.polylines(base, [cv_points], True, (0, 0, 0), shift=shift, lineType=AA, thickness=3)
+        cv2.polylines(base, [cv_points], True, color, shift=shift, lineType=AA, thickness=2)
 
 
 def get_horizon_points(gpg: GroundProjectionGeometry, shift: int):
-    x = +100000
+    x = +1000
     y = x * 3  # enough for field of view
 
-    # p_center = gpg.ground2pixel(GroundPoint(Point(10, 0, 0)))
-    # p_center2 = gpg.pixel2ground(GroundPoint(Point(10, 0, 0)))
-    # print(' center', p_center)
-    # print(' center2', p_center2)
-    # print(' H\n', gpg.H)
-    # print(' Hinv\n', gpg.Hinv)
+
 
     p_left = gpg.ground2pixel(GroundPoint(Point(x, y, 0)))
 
     p_right = gpg.ground2pixel(GroundPoint(Point(x, -y, 0)))
-    print('horizon points', p_left, p_right)
-    # p_left = gpg.vector2pixel(p_left)  # XXX
-    # p_right = gpg.vector2pixel(p_right)  # XXX
-    # print('horizon points 2', p_left, p_right)
+
     S = 2 ** shift
     # XXX
-    return ((int(p_left.x * S), int(p_left.y * S)),
-            (int(p_right.x * S), int(p_right.y * S)))
+    return ((int(p_left.x * S), int(p_left.y * S)), (int(p_right.x * S), int(p_right.y * S)))
 
 
 def plot_ground_sky(base: dtu.NPImageBGR, gpg: GroundProjectionGeometry, color_ground, color_sky):
@@ -156,26 +153,32 @@ def plot_ground_sky(base: dtu.NPImageBGR, gpg: GroundProjectionGeometry, color_g
     H, W = base.shape[:2]
     p1, p2 = get_horizon_points(gpg, shift)
 
-    points = np.array([p1, (0, 0), (W * S, 0), p2], dtype='int32')
+    points = np.array([p1, (0, 0), (W * S, 0), p2], dtype="int32")
     cv2.fillPoly(base, [points], color_sky, lineType=AA)
-    points2 = np.array([p1, (0, H * S), (W * S, H * S), p2], dtype='int32')
+    points2 = np.array([p1, (0, H * S), (W * S, H * S), p2], dtype="int32")
     cv2.fillPoly(base, [points2], color_ground, lineType=AA)
 
 
 AA = cv2.LINE_AA
 
 
-def plot_horizon(base, gpg: GroundProjectionGeometry, color_horizon, width: int = 2):
+def plot_horizon(base: dtu.NPImageBGR, gpg: GroundProjectionGeometry, color_horizon, width: int = 2):
     shift = 8  # FIXME just for testing
     p1, p2 = get_horizon_points(gpg, shift)
 
     cv2.line(base, p1, p2, color_horizon, width, shift=shift, lineType=AA)
 
 
-def plot_map(base0: dtu.NPImageBGR, sm: SegmentsMap, gpg: GroundProjectionGeometry, do_ground: bool = True,
-             do_faces: bool = True,
-             do_faces_outline: bool = False, do_segments: bool = True,
-             do_horizon: bool = True) -> dtu.NPImageBGR:
+def plot_map(
+    base0: dtu.NPImageBGR,
+    sm: SegmentsMap,
+    gpg: GroundProjectionGeometry,
+    do_ground: bool = True,
+    do_faces: bool = True,
+    do_faces_outline: bool = False,
+    do_segments: bool = True,
+    do_horizon: bool = True,
+) -> dtu.NPImageBGR:
     """
         base: already rectified image
 
@@ -202,13 +205,13 @@ def plot_map(base0: dtu.NPImageBGR, sm: SegmentsMap, gpg: GroundProjectionGeomet
 
             color = dtu.bgr_color_from_string(face.color)
             # don't do outline for black
-            if face.color == 'black':
+            if face.color == "black":
                 do_outline = False
             else:
                 do_outline = do_faces_outline
-            paint_polygon_world(image, coords, gpg, color, x_frustum, fov,
-                                do_faces_outline=do_outline,
-                                do_faces_fill=do_faces)
+            paint_polygon_world(
+                image, coords, gpg, color, x_frustum, fov, do_faces_outline=do_outline, do_faces_fill=do_faces
+            )
 
     if do_segments:
         for segment in sm.segments:
@@ -216,8 +219,7 @@ def plot_map(base0: dtu.NPImageBGR, sm: SegmentsMap, gpg: GroundProjectionGeomet
             p2 = segment.points[1]
 
             # If we are both in FRAME_AXLE
-            if ((sm.points[p1].id_frame != FRAME_AXLE) or
-                (sm.points[p2].id_frame != FRAME_AXLE)):
+            if (sm.points[p1].id_frame != FRAME_AXLE) or (sm.points[p2].id_frame != FRAME_AXLE):
                 msg = "Cannot deal with points not in frame FRAME_AXLE"
                 raise NotImplementedError(msg)
 
@@ -251,7 +253,7 @@ def plot_map(base0: dtu.NPImageBGR, sm: SegmentsMap, gpg: GroundProjectionGeomet
     return image
 
 
-@dtu.contract(w1='array[w]', w2='array[3]', x_frustum='float')
+@dtu.contract(w1="array[w]", w2="array[3]", x_frustum="float")
 def clip_to_frustum(w1, w2, x_frustum, noswap=False):
     if not noswap:
         if w1[0] > x_frustum:
@@ -263,7 +265,7 @@ def clip_to_frustum(w1, w2, x_frustum, noswap=False):
     return clip_to_plane(w1, w2, n, d)
 
 
-@dtu.contract(w1='array[3]', w2='array[3]')
+@dtu.contract(w1="array[3]", w2="array[3]")
 def clip_to_plane(w1: np.ndarray, w2: np.ndarray, n: np.ndarray, d: float) -> Tuple[np.ndarray, np.ndarray]:
     """
         Assumes that w1 is outside. Returns w1_cut, w2
@@ -312,8 +314,7 @@ def predict_segments(sm: SegmentsMap, gpg: GroundProjectionGeometry) -> SegmentL
         p2 = segment.points[1]
 
         # If we are both in FRAME_AXLE
-        if ((sm.points[p1].id_frame != FRAME_AXLE) or
-            (sm.points[p2].id_frame != FRAME_AXLE)):
+        if (sm.points[p1].id_frame != FRAME_AXLE) or (sm.points[p2].id_frame != FRAME_AXLE):
             msg = "Cannot deal with points not in frame FRAME_AXLE"
             raise NotImplementedError(msg)
 
@@ -329,9 +330,9 @@ def predict_segments(sm: SegmentsMap, gpg: GroundProjectionGeometry) -> SegmentL
         point1 = Point(w1[0], w1[1], w1[2])
         point2 = Point(w2[0], w2[1], w2[2])
 
-        pixel1 = gpg.ground2pixel(point1)
-        pixel2 = gpg.ground2pixel(point2)
-
+        pixel1 = gpg.ground2pixel(GroundPoint(point1))
+        pixel2 = gpg.ground2pixel(GroundPoint(point2))
+        # FIXME this does not jive well
         normalized1 = gpg.pixel2vector(pixel1)
         normalized2 = gpg.pixel2vector(pixel2)
 
@@ -341,10 +342,7 @@ def predict_segments(sm: SegmentsMap, gpg: GroundProjectionGeometry) -> SegmentL
 
         #         color = segment_color_constant_from_string(segment.color)
         assert segment.color in [Segment.RED, Segment.YELLOW, Segment.WHITE]
-        s = Segment(pixels_normalized=pixels_normalized,
-                    normal=normal,
-                    points=points,
-                    color=segment.color)
+        s = Segment(pixels_normalized=pixels_normalized, normal=normal, points=points, color=segment.color)
         res.append(s)
 
     return SegmentList(segments=res)

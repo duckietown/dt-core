@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 
 __all__ = [
-    'color_segment',
-    'drawNormals',
-    'drawLines',
-    'drawNormals2',
+    "color_segment",
+    "drawNormals",
+    "drawLines",
+    "drawNormals2",
 ]
 
 
@@ -24,10 +24,10 @@ def drawLines(bgr, lines, paint, p1_color=(0, 255, 0), p2_color=(0, 0, 255)):
 def drawNormals(bgr, lines, normals):
     if len(lines) > 0:
         for x1, y1, x2, y2, dx, dy in np.hstack((lines, normals)):
-            x3 = int((x1 + x2) / 2. - 4. * dx)
-            y3 = int((y1 + y2) / 2. - 4. * dy)
-            x4 = int((x1 + x2) / 2. + 4. * dx)
-            y4 = int((y1 + y2) / 2. + 4. * dy)
+            x3 = int((x1 + x2) / 2.0 - 4.0 * dx)
+            y3 = int((y1 + y2) / 2.0 - 4.0 * dy)
+            x4 = int((x1 + x2) / 2.0 + 4.0 * dx)
+            y4 = int((y1 + y2) / 2.0 + 4.0 * dy)
             cv2.circle(bgr, (x3, y3), 2, (0, 255, 0))
             cv2.circle(bgr, (x4, y4), 2, (0, 0, 255))
 
@@ -36,10 +36,10 @@ def drawNormals(bgr, lines, normals):
 def drawNormals2(bgr, centers, normals, paint):
     if len(centers) > 0:
         for x, y, dx, dy in np.hstack((centers, normals)):
-            x3 = int(x - 2. * dx)
-            y3 = int(y - 2. * dy)
-            x4 = int(x + 2. * dx)
-            y4 = int(y + 2. * dy)
+            x3 = int(x - 2.0 * dx)
+            y3 = int(y - 2.0 * dy)
+            x4 = int(x + 2.0 * dx)
+            y4 = int(y + 2.0 * dy)
             cv2.line(bgr, (x3, y3), (x4, y4), paint, 1)
             cv2.circle(bgr, (x3, y3), 1, (0, 255, 0))
             cv2.circle(bgr, (x4, y4), 1, (0, 0, 255))

@@ -22,8 +22,9 @@ def rectify_segment(rectify: Rectify, gpg: GroundProjectionGeometry, s1: Segment
     return s2
 
 
-def rectify_segments(rectify: Rectify, gpg: GroundProjectionGeometry,
-                     segment_list: SegmentList) -> SegmentList:
+def rectify_segments(
+    rectify: Rectify, gpg: GroundProjectionGeometry, segment_list: SegmentList
+) -> SegmentList:
     res = []
 
     for segment in segment_list.segments:

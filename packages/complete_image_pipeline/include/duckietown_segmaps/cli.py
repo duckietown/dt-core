@@ -10,7 +10,7 @@ from easy_algo import get_easy_algo_db
 from image_processing.more_utils import get_robot_camera_geometry
 from .maps import _plot_map_segments, FAMILY_SEGMAPS, SegmentsMap
 
-__all__ = ['DisplayTileAndMaps', 'simulate_camera_view']
+__all__ = ["DisplayTileAndMaps", "simulate_camera_view"]
 logger = dtu.logger
 
 
@@ -18,6 +18,7 @@ class DisplayTileAndMaps(D8App):
     """
         Displays the segment maps.
     """
+
     usage = """
     
 Use as follows:
@@ -34,49 +35,49 @@ For example:
         params.accept_extra()
 
     def go(self):
-        out = 'out/maps'
+        out = "out/maps"
         extra = self.options.get_extra()
 
         if len(extra) == 0:
-            query = '*'
+            query = "*"
         else:
             query = extra
 
         db = get_easy_algo_db()
         maps = list(db.query_and_instance(FAMILY_SEGMAPS, query))
 
-        self.debug('maps: %s' % maps)
+        self.debug("maps: %s" % maps)
         for id_map in maps:
             display_map(id_map, out)
 
 
 def display_map(id_map: str, out: str):
-    logger.info(f'id_map = {id_map}')
+    logger.info(f"id_map = {id_map}")
     db = get_easy_algo_db()
     smap = db.create_instance(FAMILY_SEGMAPS, id_map)
     texture_png = get_texture(smap, dpi=600)
-    fn = os.path.join(out, id_map, f'{id_map}-texture.png')
+    fn = os.path.join(out, id_map, f"{id_map}-texture.png")
     dtu.write_data_to_file(texture_png, fn)
 
     simdata = simulate_camera_view(smap, robot_name=dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS)
 
-    fn = os.path.join(out, id_map, f'{id_map}-rectified_synthetic.jpg')
+    fn = os.path.join(out, id_map, f"{id_map}-rectified_synthetic.jpg")
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_synthetic_bgr, fn)
-    fn = os.path.join(out, id_map, f'{id_map}-rectified_segments.jpg')
+    fn = os.path.join(out, id_map, f"{id_map}-rectified_segments.jpg")
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_segments_bgr, fn)
-    fn = os.path.join(out, id_map, f'{id_map}-distorted_synthetic.jpg')
+    fn = os.path.join(out, id_map, f"{id_map}-distorted_synthetic.jpg")
     dtu.write_bgr_to_file_as_jpg(simdata.distorted_synthetic_bgr, fn)
 
 
 def get_texture(smap: SegmentsMap, dpi: int) -> bytes:
-    figure_args = dict(figsize=(2, 2), facecolor='green')
+    figure_args = dict(figsize=(2, 2), facecolor="green")
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
     frames = list(set(_.id_frame for _ in smap.points.values()))
     id_frame = frames[0]
     #     print('frames: %s choose %s' % (frames, id_frame))
     with a as pylab:
         _plot_map_segments(smap, pylab, id_frame, plot_ref_segments=False)
-        pylab.axis('equal')
+        pylab.axis("equal")
         turn_all_axes_off(pylab)
         pylab.tight_layout()
     png = a.get_png()

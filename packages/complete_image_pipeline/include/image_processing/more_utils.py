@@ -7,6 +7,7 @@ from image_processing.rectification import Rectify
 from sensor_msgs.msg import CameraInfo
 import duckietown_utils as dtu
 
+
 @dataclass
 class RobotCameraGeometry:
     rectifier: Rectify
@@ -20,6 +21,7 @@ def get_robot_camera_geometry(robot_name: str) -> RobotCameraGeometry:
     rectifier = Rectify(ci)
     gpg = GroundProjectionGeometry(ci.width, ci.height, K)
     return RobotCameraGeometry(rectifier, gpg)
+
 
 def get_robot_camera_geometry_from_log(brp: dtu.BagReadProxy) -> RobotCameraGeometry:
     robot_name = dtu.which_robot(brp)

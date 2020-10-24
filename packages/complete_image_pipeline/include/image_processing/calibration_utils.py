@@ -20,7 +20,7 @@ class InvalidHomographyInfo(dtu.DTException):
 
 def get_homography_default():
     """ Returns a nominal homography """
-    return get_homography_for_robot('default')
+    return get_homography_for_robot("default")
 
 
 def get_homography_for_robot(robot_name: str) -> np.ndarray:
@@ -46,14 +46,16 @@ def get_homography_info_config_file(robot_name: str) -> str:
     :return:
     """
     strict = False
-    roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
-             os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
+    roots = [
+        os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
+        os.path.join(dtu.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
+    ]
 
     found = []
     for df in roots:
         # Load camera information
-        fn = os.path.join(df, 'camera_extrinsic', robot_name + '.yaml')
-        fn_default = os.path.join(df, 'camera_extrinsic', 'default.yaml')
+        fn = os.path.join(df, "camera_extrinsic", robot_name + ".yaml")
+        fn_default = os.path.join(df, "camera_extrinsic", "default.yaml")
         if os.path.exists(fn):
             found.append(fn)
             msg = "Using filename %s" % fn
@@ -66,13 +68,13 @@ def get_homography_info_config_file(robot_name: str) -> str:
             dtu.logger.info(msg)
 
     if len(found) == 0:
-        msg = 'Cannot find homography file for robot %r;\n%s' % (robot_name, roots)
+        msg = "Cannot find homography file for robot %r;\n%s" % (robot_name, roots)
         print(msg)
         raise NoHomographyInfoAvailable(msg)
     elif len(found) == 1:
         return found[0]
     else:
-        msg = 'Found more than one configuration file: \n%s' % "\n".join(found)
+        msg = "Found more than one configuration file: \n%s" % "\n".join(found)
         msg += "\n Please delete one of those."
         print(msg)
         if strict:
@@ -84,28 +86,28 @@ def get_homography_info_config_file(robot_name: str) -> str:
 
 def homography_from_yaml(data: dict) -> np.array:
     try:
-        h = data['homography']
+        h = data["homography"]
         res = np.array(h).reshape((3, 3))
         return res
     except Exception as e:
-        msg = 'Could not interpret data:'
-        msg += '\n\n' + dtu.indent(yaml.dump(data), '   ')
+        msg = "Could not interpret data:"
+        msg += "\n\n" + dtu.indent(yaml.dump(data), "   ")
         dtu.logger.error(msg)
         dtu.raise_wrapped(InvalidHomographyInfo, e, msg)
         raise
 
 
 def save_homography(H: np.array, robot_name: str) -> None:
-    dtu.logger.info('Homography:\n %s' % H)
+    dtu.logger.info("Homography:\n %s" % H)
 
     # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
     # corrupted rotation matrix)
-    if (H[1][2] > 0):
+    if H[1][2] > 0:
         msg = "WARNING: Homography could be corrupt."
-        msg += '\n %s' % H
+        msg += "\n %s" % H
         raise Exception(msg)
 
-    ob = {'homography': sum(H.reshape(9, 1).tolist(), [])}
+    ob = {"homography": sum(H.reshape(9, 1).tolist(), [])}
 
     s = yaml.dump(ob)
     s += "\n# Calibrated on "
@@ -127,11 +129,13 @@ def disable_old_homography(robot_name: str):
     if os.path.exists(fn):
         fn2 = None
         for i in range(100):
-            fn2 = fn + '.disabled.%03d' % i
+            fn2 = fn + ".disabled.%03d" % i
             if not os.path.exists(fn2):
                 break
-        msg = 'Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as ' \
-              '%s' % fn2
+        msg = (
+            "Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as "
+            "%s" % fn2
+        )
         dtu.logger.warning(msg)
         shutil.move(fn, fn2)
 
@@ -146,7 +150,7 @@ class InvalidCameraInfo(dtu.DTException):
 
 def get_camera_info_default() -> CameraInfo:
     """ Returns a nominal CameraInfo """
-    return get_camera_info_for_robot('default')
+    return get_camera_info_for_robot("default")
 
 
 default_camera_info = """
@@ -200,7 +204,7 @@ def get_camera_info_for_robot(robot_name: str) -> CameraInfo:
     try:
         camera_info = camera_info_from_yaml(calib_data)
     except InvalidCameraInfo as e:
-        msg = f'Invalid data in file {fn}'
+        msg = f"Invalid data in file {fn}"
         raise InvalidCameraInfo(msg) from e
 
     check_camera_info_sane_for_DB17(camera_info)
@@ -219,54 +223,55 @@ def check_camera_info_sane_for_DB17(camera_info: CameraInfo):
 def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
     try:
         cam_info = CameraInfo()
-        cam_info.width = calib_data['image_width']
-        cam_info.height = calib_data['image_height']
+        cam_info.width = calib_data["image_width"]
+        cam_info.height = calib_data["image_height"]
         #         cam_info.K = np.matrix(calib_data['camera_matrix']['data']).reshape((3,3))
         #         cam_info.D = np.matrix(calib_data['distortion_coefficients']['data']).reshape((1,5))
         #         cam_info.R = np.matrix(calib_data['rectification_matrix']['data']).reshape((3,3))
         #         cam_info.P = np.matrix(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.K = calib_data['camera_matrix']['data']
-        cam_info.D = calib_data['distortion_coefficients']['data']
-        cam_info.R = calib_data['rectification_matrix']['data']
-        cam_info.P = calib_data['projection_matrix']['data']
+        cam_info.K = calib_data["camera_matrix"]["data"]
+        cam_info.D = calib_data["distortion_coefficients"]["data"]
+        cam_info.R = calib_data["rectification_matrix"]["data"]
+        cam_info.P = calib_data["projection_matrix"]["data"]
 
-        cam_info.distortion_model = calib_data['distortion_model']
+        cam_info.distortion_model = calib_data["distortion_model"]
         return cam_info
     except Exception as e:
-        msg = 'Could not interpret data:'
-        msg += '\n\n' + dtu.indent(yaml.dump(calib_data), '   ')
+        msg = "Could not interpret data:"
+        msg += "\n\n" + dtu.indent(yaml.dump(calib_data), "   ")
         dtu.raise_wrapped(InvalidCameraInfo, e, msg)
 
 
 def get_camera_info_config_file(robot_name: str) -> str:
-    roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
-             os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
+    roots = [
+        os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
+        os.path.join(dtu.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
+    ]
 
     for df in roots:
         # Load camera information
-        fn = os.path.join(df, 'camera_intrinsic', robot_name + '.yaml')
-        fn_default = os.path.join(df, 'camera_intrinsic', 'default.yaml')
+        fn = os.path.join(df, "camera_intrinsic", robot_name + ".yaml")
+        fn_default = os.path.join(df, "camera_intrinsic", "default.yaml")
         if os.path.exists(fn):
             return fn
         elif os.path.exists(fn_default):
             return fn_default
         else:
-            dtu.logger.debug('%s does not exist and neither does %s' % (fn, fn_default))
+            dtu.logger.debug("%s does not exist and neither does %s" % (fn, fn_default))
 
-    msg = 'Cannot find intrinsic file for robot %r;\n%s' % (robot_name, roots)
+    msg = "Cannot find intrinsic file for robot %r;\n%s" % (robot_name, roots)
     raise NoCameraInfoAvailable(msg)
 
 
 def load_camera_info_2(filename: str) -> CameraInfo:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         calib_data = yaml.load(f)
     cam_info = CameraInfo()
-    cam_info.width = calib_data['image_width']
-    cam_info.height = calib_data['image_height']
-    cam_info.K = calib_data['camera_matrix']['data']
-    cam_info.D = calib_data['distortion_coefficients']['data']
-    cam_info.R = calib_data['rectification_matrix']['data']
-    cam_info.P = calib_data['projection_matrix']['data']
-    cam_info.distortion_model = calib_data['distortion_model']
+    cam_info.width = calib_data["image_width"]
+    cam_info.height = calib_data["image_height"]
+    cam_info.K = calib_data["camera_matrix"]["data"]
+    cam_info.D = calib_data["distortion_coefficients"]["data"]
+    cam_info.R = calib_data["rectification_matrix"]["data"]
+    cam_info.P = calib_data["projection_matrix"]["data"]
+    cam_info.distortion_model = calib_data["distortion_model"]
     return cam_info
-

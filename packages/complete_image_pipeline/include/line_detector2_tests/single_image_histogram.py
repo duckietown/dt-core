@@ -9,7 +9,7 @@ import duckietown_utils as dtu
 
 @dtu.unit_test
 def single_image_histograms():
-    p = dtu.require_resource('frame0002.jpg')
+    p = dtu.require_resource("frame0002.jpg")
 
     image_cv = dtu.image_cv_from_jpg_fn(p)
 
@@ -23,10 +23,10 @@ def go(image_bgr):
 
     H, _W = image_bgr.shape[:2]
     cut = 0.3
-    image_bgr_cut = image_bgr[int(cut * H):, :, :]
+    image_bgr_cut = image_bgr[int(cut * H) :, :, :]
 
-    res['image_bgr'] = image_bgr
-    res['image_bgr_cut'] = image_bgr_cut
+    res["image_bgr"] = image_bgr
+    res["image_bgr_cut"] = image_bgr_cut
 
     hsv_map = np.zeros((180, 256, 3), np.uint8)
     hsv_map_h, hsv_map_s = np.indices(hsv_map.shape[:2])
@@ -35,7 +35,7 @@ def go(image_bgr):
     hsv_map[:, :, 2] = 255
     hsv_map = cv2.cvtColor(hsv_map, cv2.COLOR_HSV2BGR)
     #     cv2.imshow('hsv_map', hsv_map)
-    res['hsv_map'] = hsv_map
+    res["hsv_map"] = hsv_map
 
     hist_scale = 10
 
@@ -44,7 +44,7 @@ def go(image_bgr):
     #     hsv[dark] = 0
     h0 = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
 
-    res['another'] = posneg(h0)
+    res["another"] = posneg(h0)
 
     #     hf = h0.flatten()
     #     c = np.empty_like(h0)
@@ -56,12 +56,12 @@ def go(image_bgr):
     h = h0 * hist_scale
     #     h = np.clip(h*0.005*hist_scale, 0, 1)
     vis = hsv_map * h[:, :, np.newaxis] / 255.0
-    res['vis'] = vis
+    res["vis"] = vis
 
     used = h > 0
-    res['vis2'] = hsv_map * used[:, :, np.newaxis]
+    res["vis2"] = hsv_map * used[:, :, np.newaxis]
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

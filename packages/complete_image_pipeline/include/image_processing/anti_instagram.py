@@ -6,8 +6,7 @@ import cv2
 import numpy as np
 
 
-class AntiInstagram():
-
+class AntiInstagram:
     def __init__(self):
 
         self.higher_threshold = [255, 255, 255]
@@ -16,7 +15,7 @@ class AntiInstagram():
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         H = resized_image.shape[0]
-        cropped_image = resized_image[int(H * 0.3):(H - 1), :, :]
+        cropped_image = resized_image[int(H * 0.3) : (H - 1), :, :]
 
         half_percent = percentage / 2
         channels = cv2.split(cropped_image)
@@ -32,8 +31,7 @@ class AntiInstagram():
             flattened = np.sort(flattened)
 
             # calculate thresholds
-            lower_threshold.append(
-                flattened[int(math.floor(num_pixels * half_percent))])
+            lower_threshold.append(flattened[int(math.floor(num_pixels * half_percent))])
 
         return (lower_threshold, self.higher_threshold)
 

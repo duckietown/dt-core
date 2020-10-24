@@ -10,7 +10,7 @@ import cv2
 import math
 
 
-class ScaleAndShift():
+class ScaleAndShift:
     """ Represents the linear transformation """
 
     def __init__(self, scale, shift):
@@ -27,7 +27,7 @@ class ScaleAndShift():
         return ScaleAndShift([1.0, 1.0, 1.0], [0.0, 0.0, 0.0])
 
 
-class AntiInstagram():
+class AntiInstagram:
     def __init__(self):
         # scale&shift for image trafo
         self.scale = [1.0, 1.0, 1.0]
@@ -43,15 +43,12 @@ class AntiInstagram():
         self.scale = scale
         self.shift = shift
 
-
     def setupKM(self, numCenters, blurAlg, resize, blurKer):
         self.KM = kMeansClass(numCenters, blurAlg, resize, blurKer)
-
 
     def calculateColorBalanceThreshold(self, img, CBpercent):
         # calculate a trfo using the color balance method
         self.ThLow, self.ThHi = self.CB.thresholdAnalysis(img, CBpercent)
-
 
     def calculateTransform(self, img, max_it, fancyGeom=False):
         # calculate a trafo using a linear approach
@@ -63,8 +60,14 @@ class AntiInstagram():
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
 
         # get centers with red
-        trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
-                                    self.KM.trained_centers[idxYellow], self.KM.trained_centers[idxWhite]])
+        trained_centers = np.array(
+            [
+                self.KM.trained_centers[idxBlack],
+                self.KM.trained_centers[idxRed],
+                self.KM.trained_centers[idxYellow],
+                self.KM.trained_centers[idxWhite],
+            ]
+        )
 
         # TODO take true centers from global variable
         true_centers = np.vstack([[70, 50, 60], [50, 70, 240], [60, 240, 230], [250, 250, 250]])
@@ -73,10 +76,9 @@ class AntiInstagram():
 
         if averageError <= 1000:
 
-            centers_name = ['black', 'red', 'yellow', 'white']
+            centers_name = ["black", "red", "yellow", "white"]
             true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
             trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
-
 
             # calculate transform with 3 centers
             T3 = calcTransform(3, trained_centers_woOutlier, true_centers_woOutlier)
@@ -99,18 +101,23 @@ class AntiInstagram():
         idxBlack, idxRed, idxYellow, idxWhite = self.KM.determineColor(self.KM.trained_centers, True)
 
         # get centers with red
-        trained_centers = np.array([self.KM.trained_centers[idxBlack], self.KM.trained_centers[idxRed],
-                                    self.KM.trained_centers[idxYellow], self.KM.trained_centers[idxWhite]])
+        trained_centers = np.array(
+            [
+                self.KM.trained_centers[idxBlack],
+                self.KM.trained_centers[idxRed],
+                self.KM.trained_centers[idxYellow],
+                self.KM.trained_centers[idxWhite],
+            ]
+        )
 
         # TODO take true centers from global variable
         true_centers = np.vstack([[70, 50, 60], [50, 70, 240], [60, 240, 230], [250, 250, 250]])
 
         outlierIndex, outlierCenter, averageError = self.KM.detectOutlier(trained_centers, true_centers)
 
-
         if averageError <= 1000:
 
-            centers_name = ['black', 'red', 'yellow', 'white']
+            centers_name = ["black", "red", "yellow", "white"]
             true_centers_woOutlier = np.delete(true_centers, outlierIndex, 0)
             trained_centers_woOutlier = np.delete(trained_centers, outlierIndex, 0)
 
@@ -125,25 +132,21 @@ class AntiInstagram():
         else:
             return False
 
-
-
     def applyTransform(self, image):
         # apply linear trafo
         corrected_image = scaleandshift(image, self.scale, self.shift)
         # clip image to [0,255]
-        corrected_image_clipped = np.clip(
-            corrected_image, 0, 255).astype(np.uint8)
+        corrected_image_clipped = np.clip(corrected_image, 0, 255).astype(np.uint8)
         return corrected_image_clipped
 
     def applyColorBalance(self, img, ThLow, ThHi):
         # apply color balance
-#
+        #
         corrected_image = self.applyTrafo(img, ThLow, ThHi)
-#
+        #
         return corrected_image
 
-
-    def applyTrafo(self, img, ThLow = [], ThHi = []):
+    def applyTrafo(self, img, ThLow=[], ThHi=[]):
         if ThLow == [] and ThHi == []:
             ThLow = self.ThLow
             ThHi = self.ThHi
@@ -158,7 +161,7 @@ class AntiInstagram():
         return cv2.merge(out_channels)
 
     def apply_threshold(self, matrix, low_value, high_value):
-        #matrix=np.delete(matrix,list(range(0,matrix.shape[0],5)),axis=0)
+        # matrix=np.delete(matrix,list(range(0,matrix.shape[0],5)),axis=0)
         low_mask = matrix < low_value
         matrix = self.apply_mask(matrix, low_mask, low_value)
 

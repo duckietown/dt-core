@@ -1,7 +1,8 @@
 import logging
+
 logging.basicConfig()
 
-logger = logging.getLogger('anti_instagram')
+logger = logging.getLogger("anti_instagram")
 logger.setLevel(logging.DEBUG)
 
 from .anti_instagram_imp import *

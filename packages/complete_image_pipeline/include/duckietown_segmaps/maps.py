@@ -8,7 +8,7 @@ from numpy.testing.utils import assert_almost_equal
 import duckietown_utils as dtu
 from .transformations import FRAME_AXLE, FRAME_GLOBAL, FrameName, TransformationsInfo
 
-PointName = NewType('PointName', str)
+PointName = NewType("PointName", str)
 
 
 @dataclass
@@ -30,15 +30,14 @@ class SegMapFace:
 
 
 __all__ = [
-    'SegMapSegment',
-    'SegMapPoint',
-    'SegMapFace',
-
-    'FAMILY_SEGMAPS',
-    'SegmentsMap',
+    "SegMapSegment",
+    "SegMapPoint",
+    "SegMapFace",
+    "FAMILY_SEGMAPS",
+    "SegmentsMap",
 ]
 
-FAMILY_SEGMAPS = FrameName('segmap')
+FAMILY_SEGMAPS = FrameName("segmap")
 
 
 class SegmentsMap:
@@ -46,9 +45,13 @@ class SegmentsMap:
     segments: List[SegMapSegment]
     faces: List[SegMapFace]
 
-    def __init__(self, points: Dict[str, SegMapPoint], segments: List[SegMapSegment],
-                 faces: List[SegMapFace], constants: Optional[
-            Dict[str, float]] = None):
+    def __init__(
+        self,
+        points: Dict[str, SegMapPoint],
+        segments: List[SegMapSegment],
+        faces: List[SegMapFace],
+        constants: Optional[Dict[str, float]] = None,
+    ):
         if constants is None:
             constants = {}
         self.points = points
@@ -74,24 +77,24 @@ class SegmentsMap:
             dtu.check_isinstance(S, SegMapSegment)
             for p in S.points:
                 if not p in self.points:
-                    msg = 'Invalid point %r' % p
+                    msg = "Invalid point %r" % p
                     raise ValueError(msg)
-            assert (len(S.points) == 2)
+            assert len(S.points) == 2
 
             w1 = self.points[S.points[0]].coords
             w2 = self.points[S.points[1]].coords
 
             dist = np.linalg.norm(w1 - w2)
             if dist == 0:
-                msg = 'This is a degenerate segment (points: %s %s) ' % (w1, w2)
-                msg += 'names: %s' % S.points
+                msg = "This is a degenerate segment (points: %s %s) " % (w1, w2)
+                msg += "names: %s" % S.points
                 raise ValueError(msg)
 
         for F in self.faces:
             dtu.check_isinstance(F, SegMapFace)
             for p in F.points:
                 if not p in self.points:
-                    msg = 'Invalid point %r' % p
+                    msg = "Invalid point %r" % p
                     raise ValueError(msg)
 
     @staticmethod
@@ -102,21 +105,20 @@ class SegmentsMap:
         constants = {}
         for i, sm in enumerate(sms):
             # first, make sure the names are different
-            sm2 = add_prefix(sm, 'm%d_' % i)
+            sm2 = add_prefix(sm, "m%d_" % i)
             points.update(sm2.points)
             segments.extend(sm2.segments)
             faces.extend(sm2.faces)
             # XXX: what if conflict?
             constants.update(sm2.constants)
 
-        return SegmentsMap(points=points, faces=faces,
-                           segments=segments, constants=constants)
+        return SegmentsMap(points=points, faces=faces, segments=segments, constants=constants)
 
     @staticmethod
     def from_yaml(data) -> "SegmentsMap":
-        points = data['points']
-        faces = data['faces']
-        segments = data['segments']
+        points = data["points"]
+        faces = data["faces"]
+        segments = data["segments"]
 
         points2 = {}
         for k, p in points.items():
@@ -125,20 +127,25 @@ class SegmentsMap:
         segments2 = []
         for S in segments:
             if not isinstance(S, SegMapSegment):
-                S = SegMapSegment(points=S['points'], color=S['color'])
+                S = SegMapSegment(points=S["points"], color=S["color"])
             segments2.append(S)
 
         faces2 = []
         for f in faces:
-            F = SegMapFace(points=f['points'], color=f['color'])
+            F = SegMapFace(points=f["points"], color=f["color"])
             faces2.append(F)
 
         return SegmentsMap(points=points2, faces=faces2, segments=segments2)
 
 
-def plot_map_and_segments(sm: SegmentsMap, tinfo: TransformationsInfo, segments: List[SegMapSegment],
-                          dpi: int = 120, ground_truth: Optional[SE2value] = None,
-                          bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
+def plot_map_and_segments(
+    sm: SegmentsMap,
+    tinfo: TransformationsInfo,
+    segments: List[SegMapSegment],
+    dpi: int = 120,
+    ground_truth: Optional[SE2value] = None,
+    bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW,
+):
     """ Returns a BGR image """
     figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
@@ -153,16 +160,16 @@ def plot_map_and_segments(sm: SegmentsMap, tinfo: TransformationsInfo, segments:
         if ground_truth is not None:
             (x, y), _ = dtu.geo.translation_angle_from_SE2(ground_truth)
             x1, y1, _ = np.dot(ground_truth, [L, 0, 1])
-            pylab.plot(x, y, 'co', markersize=12)
-            pylab.plot([x, x1], [y, y1], 'c-', linewidth=4)
+            pylab.plot(x, y, "co", markersize=12)
+            pylab.plot([x, x1], [y, y1], "c-", linewidth=4)
 
         w1 = tinfo.transform_point(np.array([0, 0, 0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
         w2 = tinfo.transform_point(np.array([L, 0, 0]), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
 
-        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
-        pylab.plot(w1[0], w1[1], 'mo', markersize=6)
+        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], "m-")
+        pylab.plot(w1[0], w1[1], "mo", markersize=6)
 
-        pylab.axis('equal')
+        pylab.axis("equal")
 
     return a.get_bgr()
 
@@ -178,14 +185,14 @@ def _plot_detected_segments(tinfo: TransformationsInfo, segments: List[SegMapSeg
         w2 = tinfo.transform_point(f(p2), frame1=FRAME_AXLE, frame2=FRAME_GLOBAL)
 
         #         dtu.logger.debug('Plotting w1 %s w2 %s' % (w1, w2))
-        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], 'm-')
+        pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], "m-")
 
         p_hat = w1 * 0.5 + w2 * 0.5
         n_hat = get_normal_outward_for_segment(w2, w1)
         d = np.linalg.norm(w1 - w2)
         o = p_hat + d / 3 * n_hat
 
-        pylab.plot([p_hat[0], o[0]], [p_hat[1], o[1]], 'r-')
+        pylab.plot([p_hat[0], o[0]], [p_hat[1], o[1]], "r-")
 
 
 def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref_segments: bool = True):
@@ -204,7 +211,7 @@ def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref
         xs.append(xs[0])
         ys.append(ys[0])
         facecolor = face.color
-        edgecolor = 'none'
+        edgecolor = "none"
         pylab.fill(xs, ys, facecolor=facecolor, edgecolor=edgecolor)
 
     if plot_ref_segments:
@@ -213,15 +220,14 @@ def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref
             p2 = segment.points[1]
 
             # If we are both in FRAME_AXLE
-            if (not (sm.points[p1].id_frame == expect_frame) and
-                (sm.points[p2].id_frame == expect_frame)):
+            if not (sm.points[p1].id_frame == expect_frame) and (sm.points[p2].id_frame == expect_frame):
                 msg = "Cannot deal with points not in frame %r" % expect_frame
                 raise NotImplementedError(msg)
 
             w1 = np.array(sm.points[p1].coords)
             w2 = np.array(sm.points[p2].coords)
 
-            color = 'c-'
+            color = "c-"
             pylab.plot([w1[0], w2[0]], [w1[1], w2[1]], color)
 
             n = get_normal_outward_for_segment(w1, w2)
@@ -262,8 +268,8 @@ def get_normal_outward_for_segment(w1: np.ndarray, w2: np.ndarray) -> np.ndarray
     #   w1
     dn = np.hypot(d[0], d[1])
     if dn == 0:
-        msg = 'Could not compute normal for segment with two points equal:'
-        msg += ' %s %s' % (w1, w2)
+        msg = "Could not compute normal for segment with two points equal:"
+        msg += " %s %s" % (w1, w2)
         raise ValueError(msg)
     d = d / dn
 
@@ -284,8 +290,7 @@ def get_normal_outward_for_segment(w1: np.ndarray, w2: np.ndarray) -> np.ndarray
 
 
 # TODO: move away
-assert_almost_equal(np.array([0, -1, 0]),
-                    get_normal_outward_for_segment(np.array([0, 0]), np.array([2, 0])))
+assert_almost_equal(np.array([0, -1, 0]), get_normal_outward_for_segment(np.array([0, 0]), np.array([2, 0])))
 
 
 def add_prefix(sm: SegmentsMap, prefix: str) -> SegmentsMap:
@@ -301,5 +306,4 @@ def add_prefix(sm: SegmentsMap, prefix: str) -> SegmentsMap:
         points2 = list(PointName(prefix + _) for _ in segment.points)
         segments.append(replace(segment, points=points2))
 
-    return SegmentsMap(points=points, faces=faces, segments=segments,
-                       constants=sm.constants)
+    return SegmentsMap(points=points, faces=faces, segments=segments, constants=sm.constants)

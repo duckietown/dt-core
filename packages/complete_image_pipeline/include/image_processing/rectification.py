@@ -37,19 +37,19 @@ class Rectify:
     def _init_rectify_maps(self):
         W = self.pcm.width
         H = self.pcm.height
-        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
-        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
-                                                 self.pcm.P, (W, H),
-                                                 cv2.CV_32FC1, mapx, mapy)
+        mapx = np.ndarray(shape=(H, W, 1), dtype="float32")
+        mapy = np.ndarray(shape=(H, W, 1), dtype="float32")
+        mapx, mapy = cv2.initUndistortRectifyMap(
+            self.pcm.K, self.pcm.D, self.pcm.R, self.pcm.P, (W, H), cv2.CV_32FC1, mapx, mapy
+        )
         self.mapx = mapx
         self.mapy = mapy
         self._rectify_inited = True
 
     def rectify(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST):
-        ''' Undistort an image.
+        """ Undistort an image.
             To be more precise, pass interpolation= cv2.INTER_CUBIC
-        '''
+        """
         if not self._rectify_inited:
             self._init_rectify_maps()
         #
@@ -57,8 +57,7 @@ class Rectify:
         #         inter = cv2.INTER_CUBIC # 80 ms
         #         cv_image_rectified = np.zeros(np.shape(cv_image_raw))
         cv_image_rectified = np.empty_like(cv_image_raw)
-        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation,
-                        cv_image_rectified)
+        res = cv2.remap(cv_image_raw, self.mapx, self.mapy, interpolation, cv_image_rectified)
         return res
 
     def distort(self, rectified: np.ndarray) -> np.ndarray:
@@ -73,17 +72,17 @@ class Rectify:
         return res
 
     def rectify_full(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST, ratio=1):
-        '''
+        """
             Undistort an image by maintaining the proportions.
             To be more precise, pass interpolation= cv2.INTER_CUBIC
             Returns the new camera matrix as well.
-        '''
+        """
         W = int(self.pcm.width * ratio)
         H = int(self.pcm.height * ratio)
         #        mapx = np.ndarray(shape=(H, W, 1), dtype='float32')
         #        mapy = np.ndarray(shape=(H, W, 1), dtype='float32')
-        print('K: %s' % self.pcm.K)
-        print('P: %s' % self.pcm.P)
+        print("K: %s" % self.pcm.K)
+        print("P: %s" % self.pcm.P)
 
         #        alpha = 1
         #        new_camera_matrix, validPixROI = cv2.getOptimalNewCameraMatrix(self.pcm.K, self.pcm.D, (H,
@@ -94,13 +93,12 @@ class Rectify:
         new_camera_matrix = self.pcm.K.copy()
         new_camera_matrix[0, 2] = W / 2
         new_camera_matrix[1, 2] = H / 2
-        print('new_camera_matrix: %s' % new_camera_matrix)
-        mapx, mapy = cv2.initUndistortRectifyMap(self.pcm.K, self.pcm.D, self.pcm.R,
-                                                 new_camera_matrix, (W, H),
-                                                 cv2.CV_32FC1)
+        print("new_camera_matrix: %s" % new_camera_matrix)
+        mapx, mapy = cv2.initUndistortRectifyMap(
+            self.pcm.K, self.pcm.D, self.pcm.R, new_camera_matrix, (W, H), cv2.CV_32FC1
+        )
         cv_image_rectified = np.empty_like(cv_image_raw)
-        res = cv2.remap(cv_image_raw, mapx, mapy, interpolation,
-                        cv_image_rectified)
+        res = cv2.remap(cv_image_raw, mapx, mapy, interpolation, cv_image_rectified)
         return new_camera_matrix, res
 
 

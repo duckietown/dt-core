@@ -43,7 +43,7 @@ class GroundProjectionNode(DTROS):
     """
     bridge: CvBridge
     ground_projector: Optional[GroundProjectionGeometry]
-    rectifier: Optional[Rectify
+    rectifier: Optional[Rectify]
 
     def __init__(self, node_name: str):
         # Initialize the DTROS parent class

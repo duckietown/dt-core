@@ -6,7 +6,7 @@ from easy_algo import get_easy_algo_db
 from .maps import FAMILY_SEGMAPS, SegmentsMap
 from .transformations import FRAME_GLOBAL, FRAME_TILE
 
-__all__ = ['compose_maps']
+__all__ = ["compose_maps"]
 
 
 def compose_maps(grid_spacing, tiles) -> SegmentsMap:
@@ -17,9 +17,9 @@ def compose_maps(grid_spacing, tiles) -> SegmentsMap:
     partial = []
 
     for tile in tiles:
-        cell = tile['cell']
-        name = tile['name']
-        rotation = tile['rotation']
+        cell = tile["cell"]
+        name = tile["name"]
+        rotation = tile["rotation"]
         tile_map = db.create_instance(FAMILY_SEGMAPS, name)
 
         x = cell[0] * grid_spacing

@@ -10,7 +10,7 @@ from image_processing.more_utils import get_robot_camera_geometry_from_log
 from .pipeline import run_pipeline
 
 __all__ = [
-    'SingleImagePipelineLog',
+    "SingleImagePipelineLog",
 ]
 
 
@@ -19,20 +19,16 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         Runs the vision pipeline on the first image in a log.
     """
 
-    cmd = 'rosrun complete_image_pipeline single_image_pipeline_log'
+    cmd = "rosrun complete_image_pipeline single_image_pipeline_log"
 
     def define_options(self, params):
         g = "Pipeline"
-        params.add_string('anti_instagram', default='baseline',
-                          help="Which anti_instagram to use", group=g)
-        params.add_string('line_detector', default='baseline',
-                          help="Which line detector to use", group=g)
-        params.add_string('image_prep', default='baseline',
-                          help="Which image prep to use", group=g)
-        params.add_string('lane_filter', default='baseline',
-                          help="Which lane filter to use", group=g)
+        params.add_string("anti_instagram", default="baseline", help="Which anti_instagram to use", group=g)
+        params.add_string("line_detector", default="baseline", help="Which line detector to use", group=g)
+        params.add_string("image_prep", default="baseline", help="Which image prep to use", group=g)
+        params.add_string("lane_filter", default="baseline", help="Which lane filter to use", group=g)
 
-        params.add_flag('details')
+        params.add_flag("details")
 
         params.accept_extra()
 
@@ -41,7 +37,7 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
 
         extra = self.options.get_extra()
         if len(extra) == 0:
-            query = '*'
+            query = "*"
         else:
             query = extra
         logs = db.query(query)
@@ -59,26 +55,32 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         # noinspection PyUnresolvedReferences
         all_details = self.options.details
 
-        self.info('anti_instagram: %s' % anti_instagram)
-        self.info('image_prep: %s' % image_prep)
-        self.info('line_detector: %s' % line_detector)
-        self.info('lane_filter: %s' % lane_filter)
+        self.info("anti_instagram: %s" % anti_instagram)
+        self.info("image_prep: %s" % image_prep)
+        self.info("line_detector: %s" % line_detector)
+        self.info("lane_filter: %s" % lane_filter)
 
         for k, log in logs.items():
             d = os.path.join(output, k)
-            context.comp(look_at, log, d,
-                         anti_instagram, line_detector, image_prep, lane_filter, all_details)
+            context.comp(look_at, log, d, anti_instagram, line_detector, image_prep, lane_filter, all_details)
 
 
-def look_at(log, output: str, anti_instagram: str, line_detector: str, image_prep: str, lane_filter: str,
-            all_details: bool) -> None:
+def look_at(
+    log,
+    output: str,
+    anti_instagram: str,
+    line_detector: str,
+    image_prep: str,
+    lane_filter: str,
+    all_details: bool,
+) -> None:
     filename = get_local_bag_file(log)
 
     bag = rosbag.Bag(filename)
 
     vehicle_name = dtu.which_robot(bag)
 
-    dtu.logger.info('Vehicle name: %s' % vehicle_name)
+    dtu.logger.info("Vehicle name: %s" % vehicle_name)
 
     brp = dtu.BagReadProxy(bag)
     rcg = get_robot_camera_geometry_from_log(brp)
@@ -86,19 +88,23 @@ def look_at(log, output: str, anti_instagram: str, line_detector: str, image_pre
     topic = dtu.get_image_topic(bag)
     res = dtu.d8n_read_all_images_from_bag(bag, topic, max_images=1)
 
-    image_cv = res[0]['rgb']
+    image_cv = res[0]["rgb"]
 
     #     dtu.logger.debug(dtu.describe_value(image_cv))
 
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
 
     dtu.DuckietownConstants.show_timeit_benchmarks = True
-    res, _stats = run_pipeline(image_cv_bgr, gpg=rcg.gpg, rectifier=rcg.rectifier,
-                               anti_instagram_name=anti_instagram,
-                               line_detector_name=line_detector,
-                               image_prep_name=image_prep,
-                               lane_filter_name=lane_filter,
-                               all_details=all_details)
+    res, _stats = run_pipeline(
+        image_cv_bgr,
+        gpg=rcg.gpg,
+        rectifier=rcg.rectifier,
+        anti_instagram_name=anti_instagram,
+        line_detector_name=line_detector,
+        image_prep_name=image_prep,
+        lane_filter_name=lane_filter,
+        all_details=all_details,
+    )
 
     res = dtu.resize_small_images(res)
 

@@ -6,5 +6,5 @@ def f1():
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

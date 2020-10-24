@@ -7,7 +7,7 @@ from duckietown_msgs.msg import Segment, SegmentList
 AA = cv2.LINE_AA
 
 
-@dtu.contract(bgr='array', segment_list=SegmentList, width='int,>=1')
+@dtu.contract(bgr="array", segment_list=SegmentList, width="int,>=1")
 def vs_fancy_display(bgr, segment_list, width=2):
     """
          Writes on a bgr image.
@@ -27,7 +27,7 @@ def draw_segment_list_on_image(bgr, segment_list, width):
     colors2bgr = {
         Segment.WHITE: dtu.ColorConstants.BGR_WHITE,
         Segment.RED: dtu.ColorConstants.BGR_RED,
-        Segment.YELLOW: dtu.ColorConstants.BGR_YELLOW
+        Segment.YELLOW: dtu.ColorConstants.BGR_YELLOW,
     }
     shape = bgr.shape[:2]
 

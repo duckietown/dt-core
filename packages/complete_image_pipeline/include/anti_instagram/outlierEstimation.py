@@ -12,8 +12,8 @@ def detectOutlier(trainedCenters, trueCenters):  # YWRB
     # leave one trained center out and estimate transform with the rest of the centers
     for i in range(n_centers):
         # leave out i-th trained center
-        trainedCentersTemp = np.vstack([trainedCenters[0:i, :], trainedCenters[i + 1:n_centers, :]])
-        trueCenterstemp = np.vstack([trueCenters[0:i, :], trueCenters[i + 1:n_centers, :]])
+        trainedCentersTemp = np.vstack([trainedCenters[0:i, :], trainedCenters[i + 1 : n_centers, :]])
+        trueCenterstemp = np.vstack([trueCenters[0:i, :], trueCenters[i + 1 : n_centers, :]])
         # calculate transform with the other centers
         T = calcTransform(n_centers - 1, trainedCentersTemp, trueCenterstemp)
         T.calcTransform()
@@ -43,7 +43,7 @@ def transformOneCenter(center, shift, scale):
     shift = np.array(shift)
     scale = np.array(scale)
     transformedCenter = np.zeros(center.shape)
-    n_channels, = center.shape
+    (n_channels,) = center.shape
     # print n_channels
     for i in range(n_channels):
         transformedCenter[i] = center[i] * scale[i] + shift[i]

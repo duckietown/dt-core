@@ -6,14 +6,14 @@ from geometry import SE2value, SE3value
 import duckietown_utils as dtu
 
 __all__ = [
-    'TransformationsInfo',
+    "TransformationsInfo",
 ]
 
-FrameName = NewType('FrameName', str)
+FrameName = NewType("FrameName", str)
 
-FRAME_AXLE = FrameName('axle')
-FRAME_TILE = FrameName('tile')
-FRAME_GLOBAL = FrameName('global')
+FRAME_AXLE = FrameName("axle")
+FRAME_TILE = FrameName("tile")
+FRAME_GLOBAL = FrameName("global")
 
 if TYPE_CHECKING:
     from .maps import SegMapPoint, SegmentsMap
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
 class TransformationsInfo:
     """ Keeps track of transformations between poses """
+
     t: Dict[Tuple[FrameName, FrameName], SE3value]
 
     def __init__(self):
@@ -43,7 +44,7 @@ class TransformationsInfo:
         key = (frame1, frame2)
 
         if not key in self.t:
-            msg = 'Could not find transformation %s.' % str(key)
+            msg = "Could not find transformation %s." % str(key)
             raise ValueError(msg)
 
         g = self.t[key]
@@ -57,9 +58,11 @@ class TransformationsInfo:
         return _transform_map_to_frame(self, smap, frame2)
 
 
-def _transform_map_to_frame(tinfo: TransformationsInfo, smap: "SegmentsMap",
-                            frame2: FrameName) -> "SegmentsMap":
+def _transform_map_to_frame(
+    tinfo: TransformationsInfo, smap: "SegmentsMap", frame2: FrameName
+) -> "SegmentsMap":
     from .maps import SegMapPoint, SegmentsMap
+
     def transform_point(p):
         frame1 = p.id_frame
         coords = p.coords
@@ -70,5 +73,4 @@ def _transform_map_to_frame(tinfo: TransformationsInfo, smap: "SegmentsMap",
     for k, v in smap.points.items():
         points2[k] = transform_point(v)
 
-    return SegmentsMap(points=points2, segments=smap.segments, faces=smap.faces,
-                       constants=smap.constants)
+    return SegmentsMap(points=points2, segments=smap.segments, faces=smap.faces, constants=smap.constants)

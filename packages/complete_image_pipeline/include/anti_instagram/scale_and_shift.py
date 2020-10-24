@@ -1,12 +1,14 @@
 import numpy as np
 
+
 class SASParams(object):
     algorithm = 2
 
+
 def scaleandshift(img, scale, shift):
     """ Returns a float image, which might be outside of [0,255]"""
-    #logger.info('scale: %s' % scale)
-    #logger.info('shift: %s' % shift)
+    # logger.info('scale: %s' % scale)
+    # logger.info('shift: %s' % shift)
 
     assert img.shape[2] == 3
     assert len(scale) == 3, scale
@@ -21,15 +23,17 @@ def scaleandshift(img, scale, shift):
 
     return res
 
+
 def scaleandshift2(img, scale, shift):
-    img_shift = np.zeros(img.shape, dtype='float32')
+    img_shift = np.zeros(img.shape, dtype="float32")
     for i in range(3):
-        s = np.array(scale[i]).astype('float32')
-        p = np.array(shift[i]).astype('float32')
-        np.multiply(img[:,:,i], s, out=img_shift[:, :, i])
+        s = np.array(scale[i]).astype("float32")
+        p = np.array(shift[i]).astype("float32")
+        np.multiply(img[:, :, i], s, out=img_shift[:, :, i])
         img_shift[:, :, i] += p
 
     return img_shift
+
 
 def scaleandshift1(img, scale, shift):
     h = img.shape[0]

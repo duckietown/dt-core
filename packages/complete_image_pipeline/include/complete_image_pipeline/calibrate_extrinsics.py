@@ -5,13 +5,17 @@ import cv2
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
-from image_processing.calibration_utils import (disable_old_homography, get_camera_info_for_robot,
-                                                get_homography_default, save_homography)
+from image_processing.calibration_utils import (
+    disable_old_homography,
+    get_camera_info_for_robot,
+    get_homography_default,
+    save_homography,
+)
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
 
 __all__ = [
-    'CalibrateExtrinsics',
+    "CalibrateExtrinsics",
 ]
 
 
@@ -20,12 +24,12 @@ class CalibrateExtrinsics(D8App):
          Run on Duckiebot directly. By default, waits for a message published by the ROS `camera_node`.
     """
 
-    cmd = 'rosrun complete_image_pipeline calibrate_extrinsics'
+    cmd = "rosrun complete_image_pipeline calibrate_extrinsics"
 
     def define_program_options(self, params):
         g = "Input/output"
-        params.add_string('input', default=None, help='If given, use this image rather than capturing.')
-        params.add_string('output', default=None, short='-o', help='Output directory', group=g)
+        params.add_string("input", default=None, help="If given, use this image rather than capturing.")
+        params.add_string("output", default=None, short="-o", help="Output directory", group=g)
 
     def go(self):
         robot_name = dtu.get_current_robot_name()
@@ -35,8 +39,8 @@ class CalibrateExtrinsics(D8App):
         # noinspection PyUnresolvedReferences
         the_input = self.options.input
         if output is None:
-            output = 'out/calibrate-extrinsics'  # + dtu.get_md5(self.options.image)[:6]
-            self.info('No --output given, using %s' % output)
+            output = "out/calibrate-extrinsics"  # + dtu.get_md5(self.options.image)[:6]
+            self.info("No --output given, using %s" % output)
 
         if the_input is None:
 
@@ -44,34 +48,36 @@ class CalibrateExtrinsics(D8App):
             import rospy
             from sensor_msgs.msg import CompressedImage
 
-            topic_name = os.path.join('/', robot_name, 'camera_node/image/compressed')
-            print('Topic to listen to is: %s' % topic_name)
+            topic_name = os.path.join("/", robot_name, "camera_node/image/compressed")
+            print("Topic to listen to is: %s" % topic_name)
 
-            print('Let\'s wait for an image. Say cheese!')
+            print("Let's wait for an image. Say cheese!")
 
             # Dummy for getting a ROS message
-            rospy.init_node('calibrate_extrinsics')
+            rospy.init_node("calibrate_extrinsics")
             img_msg = None
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
-                print('Image captured')
+                print("Image captured")
             except rospy.ROSException as e:
-                print('\n\n\n'
-                      'Didn\'t get any message: %s\n '
-                      'MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER.'
-                      '\n\n\n' % (e,))
+                print(
+                    "\n\n\n"
+                    "Didn't get any message: %s\n "
+                    "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
+                    "\n\n\n" % (e,)
+                )
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
-            print('Picture taken: %s ' % str(bgr.shape))
+            print("Picture taken: %s " % str(bgr.shape))
 
         else:
-            print(f'Loading input image {the_input}')
+            print(f"Loading input image {the_input}")
             bgr = dtu.bgr_from_jpg_fn(the_input)
 
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
-            print('Resized to: %s ' % str(bgr.shape))
+            print("Resized to: %s " % str(bgr.shape))
         # Disable the old calibration file
         print("Disableing old homography")
         disable_old_homography(robot_name)
@@ -98,8 +104,9 @@ class CalibrateExtrinsics(D8App):
 
         print("Calculate GPG")
         try:
-            gpg = GroundProjectionGeometry(camera_info.width, camera_info.height,
-                                           homography_dummy.reshape((3, 3)))
+            gpg = GroundProjectionGeometry(
+                camera_info.width, camera_info.height, homography_dummy.reshape((3, 3))
+            )
         except Exception as e:
             msg = "Error calculating GroundProjectionGeometry."
             raise Exception(msg) from e
@@ -108,10 +115,10 @@ class CalibrateExtrinsics(D8App):
         try:
             bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
 
-            res['bgr'] = bgr
-            res['bgr_rectified'] = bgr_rectified
+            res["bgr"] = bgr
+            res["bgr_rectified"] = bgr_rectified
 
-            _new_matrix, res['rectified_full_ratio_auto'] = rect.rectify_full(bgr, ratio=1.65)
+            _new_matrix, res["rectified_full_ratio_auto"] = rect.rectify_full(bgr, ratio=1.65)
 
             (result_gpg, status) = gpg.estimate_homography(bgr_rectified)
 
@@ -119,7 +126,7 @@ class CalibrateExtrinsics(D8App):
                 raise Exception(status)
 
             save_homography(result_gpg.H, robot_name)
-            msg = '''
+            msg = """
 
 To check that this worked well, place the robot on the road, and run:
 
@@ -127,7 +134,7 @@ To check that this worked well, place the robot on the road, and run:
 
 Look at the produced jpgs.
 
-'''
+"""
             print(msg)
         except Exception as E:
             print(E)

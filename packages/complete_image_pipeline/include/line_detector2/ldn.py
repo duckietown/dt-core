@@ -11,9 +11,8 @@ from .plotting import color_segment, drawLines
 
 
 class LineDetectorNode2(EasyNode):
-
     def __init__(self):
-        EasyNode.__init__(self, 'line_detector2', 'line_detector_node2')
+        EasyNode.__init__(self, "line_detector2", "line_detector_node2")
 
         self.detector = None
         self.bridge = CvBridge()
@@ -26,12 +25,12 @@ class LineDetectorNode2(EasyNode):
 
     def on_parameters_changed(self, _first_time, updated):
 
-        if 'verbose' in updated:
-            self.info('Verbose is now %r' % self.config.verbose)
+        if "verbose" in updated:
+            self.info("Verbose is now %r" % self.config.verbose)
 
-        if 'line_detector' in updated:
+        if "line_detector" in updated:
             db = get_easy_algo_db()
-            self.detector = db.create_instance('line_detector', self.config.line_detector)
+            self.detector = db.create_instance("line_detector", self.config.line_detector)
 
     def on_received_switch(self, context, switch_msg):  # @UnusedVariable
         self.active = switch_msg.data
@@ -48,39 +47,42 @@ class LineDetectorNode2(EasyNode):
 
         self.intermittent_counter += 1
 
-        with context.phase('decoding'):
+        with context.phase("decoding"):
             # Decode from compressed image with OpenCV
             try:
                 image_cv = dtu.bgr_from_jpg(image_msg.data)
             except ValueError as e:
-                self.loginfo('Could not decode image: %s' % e)
+                self.loginfo("Could not decode image: %s" % e)
                 return
 
-        with context.phase('resizing'):
+        with context.phase("resizing"):
             # Resize and crop image
             hei_original, wid_original = image_cv.shape[0:2]
 
             if self.config.img_size[0] != hei_original or self.config.img_size[1] != wid_original:
                 # image_cv = cv2.GaussianBlur(image_cv, (5,5), 2)
-                image_cv = cv2.resize(image_cv, (self.config.img_size[1], self.config.img_size[0]),
-                                      interpolation=cv2.INTER_NEAREST)
-            image_cv = image_cv[self.config.top_cutoff:, :, :]
+                image_cv = cv2.resize(
+                    image_cv,
+                    (self.config.img_size[1], self.config.img_size[0]),
+                    interpolation=cv2.INTER_NEAREST,
+                )
+            image_cv = image_cv[self.config.top_cutoff :, :, :]
 
-        with context.phase('correcting'):
+        with context.phase("correcting"):
             # apply color correction
             image_cv_corr = self.ai.applyTransform(image_cv)
         #             image_cv_corr = cv2.convertScaleAbs(image_cv_corr)
 
-        with context.phase('detection'):
+        with context.phase("detection"):
             # Set the image to be detected
             self.detector.setImage(image_cv_corr)
 
             # Detect lines and normals
-            white = self.detector.detectLines('white')
-            yellow = self.detector.detectLines('yellow')
-            red = self.detector.detectLines('red')
+            white = self.detector.detectLines("white")
+            yellow = self.detector.detectLines("yellow")
+            red = self.detector.detectLines("red")
 
-        with context.phase('preparing-images'):
+        with context.phase("preparing-images"):
             # SegmentList constructor
             segmentList = SegmentList()
             segmentList.header.stamp = image_msg.header.stamp
@@ -90,45 +92,49 @@ class LineDetectorNode2(EasyNode):
             s0, s1 = self.config.img_size[0], self.config.img_size[1]
 
             arr_cutoff = np.array((0, top_cutoff, 0, top_cutoff))
-            arr_ratio = np.array((1. / s1, 1. / s0, 1. / s1, 1. / s0))
+            arr_ratio = np.array((1.0 / s1, 1.0 / s0, 1.0 / s1, 1.0 / s0))
             if len(white.lines) > 0:
-                lines_normalized_white = ((white.lines + arr_cutoff) * arr_ratio)
+                lines_normalized_white = (white.lines + arr_cutoff) * arr_ratio
                 segmentList.segments.extend(
-                    toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE))
+                    toSegmentMsg(lines_normalized_white, white.normals, Segment.WHITE)
+                )
             if len(yellow.lines) > 0:
-                lines_normalized_yellow = ((yellow.lines + arr_cutoff) * arr_ratio)
+                lines_normalized_yellow = (yellow.lines + arr_cutoff) * arr_ratio
                 segmentList.segments.extend(
-                    toSegmentMsg(lines_normalized_yellow, yellow.normals, Segment.YELLOW))
+                    toSegmentMsg(lines_normalized_yellow, yellow.normals, Segment.YELLOW)
+                )
             if len(red.lines) > 0:
-                lines_normalized_red = ((red.lines + arr_cutoff) * arr_ratio)
+                lines_normalized_red = (red.lines + arr_cutoff) * arr_ratio
                 segmentList.segments.extend(toSegmentMsg(lines_normalized_red, red.normals, Segment.RED))
 
-            self.intermittent_log('# segments: white %3d yellow %3d red %3d' % (len(white.lines),
-                                                                                len(yellow.lines),
-                                                                                len(red.lines)))
+            self.intermittent_log(
+                "# segments: white %3d yellow %3d red %3d"
+                % (len(white.lines), len(yellow.lines), len(red.lines))
+            )
 
         # Publish segmentList
-        with context.phase('publishing'):
+        with context.phase("publishing"):
             self.publishers.segment_list.publish(segmentList)
 
         # VISUALIZATION only below
 
         if self.config.verbose:
-            with context.phase('draw-lines'):
+            with context.phase("draw-lines"):
                 # Draw lines and normals
                 image_with_lines = np.copy(image_cv_corr)
                 drawLines(image_with_lines, white.lines, (0, 0, 0))
                 drawLines(image_with_lines, yellow.lines, (255, 0, 0))
                 drawLines(image_with_lines, red.lines, (0, 255, 0))
 
-            with context.phase('published-images'):
+            with context.phase("published-images"):
                 # Publish the frame with lines
                 out = dtu.d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
                 self.publishers.image_with_lines.publish(out)
 
-            with context.phase('pub_edge/pub_segment'):
-                out = dtu.d8n_image_msg_from_cv_image(self.detector.edges, "mono8",
-                                                      same_timestamp_as=image_msg)
+            with context.phase("pub_edge/pub_segment"):
+                out = dtu.d8n_image_msg_from_cv_image(
+                    self.detector.edges, "mono8", same_timestamp_as=image_msg
+                )
                 self.publishers.edge.publish(out)
 
                 colorSegment = color_segment(white.area, red.area, yellow.area)
@@ -136,7 +142,7 @@ class LineDetectorNode2(EasyNode):
                 self.publishers.color_segment.publish(out)
 
         if self.intermittent_log_now():
-            self.info('stats from easy_node\n' + dtu.indent(context.get_stats(), '> '))
+            self.info("stats from easy_node\n" + dtu.indent(context.get_stats(), "> "))
 
     def intermittent_log_now(self):
         return self.intermittent_counter % self.intermittent_interval == 1
@@ -144,7 +150,7 @@ class LineDetectorNode2(EasyNode):
     def intermittent_log(self, s):
         if not self.intermittent_log_now():
             return
-        self.info('%3d:%s' % (self.intermittent_counter, s))
+        self.info("%3d:%s" % (self.intermittent_counter, s))
 
 
 def toSegmentMsg(lines, normals, color):
