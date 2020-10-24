@@ -83,6 +83,7 @@ def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
 
 def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     """" Returns the path to the log. """
+    print(log)
     log = copy.deepcopy(log)
     dtu.logger.info('Get log if not exists: %s' % log.log_name)
     downloads = dtu.get_duckietown_local_log_downloads()
@@ -108,6 +109,10 @@ def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     for url in dtr.urls:
         if url.startswith('http'):
             use.append(url)
+
+    if not use:
+        msg = f"Did not find any file to download.\n dtr.urls = {dtr.urls}"
+        raise Exception(msg)
 
     def priority(x):
         if '8080' in x:
