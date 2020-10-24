@@ -57,7 +57,7 @@ class TemplateXYStopline(LocalizationTemplate):
         return res
 
     @dtu.contract(xy="array[2xN]", theta="array[N]")
-    def coords_from_position_orientation(self, xy, theta):  # @UnusedVariable
+    def coords_from_position_orientation(self, xy, theta):
         self._init_metrics()
         num = xy.shape[1]
 

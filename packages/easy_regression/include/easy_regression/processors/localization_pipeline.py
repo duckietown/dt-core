@@ -4,23 +4,20 @@ from complete_image_pipeline.pipeline import run_pipeline
 from duckietown_utils.bag_reading import MessagePlus
 
 from easy_regression import ProcessorInterface, ProcessorUtilsInterface
-# from ground_projection import GroundProjectionGeometry
-from image_processing.ground_projection_geometry import GroundProjectionGeometry
+from image_processing.more_utils import get_robot_camera_geometry_from_log
 
-from image_processing.rectification import Rectify
+from sensor_msgs.msg import CameraInfo
 
 __all__ = [
     'LocalizationPipelineProcessor',
 ]
-
-from sensor_msgs.msg import CameraInfo
 
 logger = dtu.logger
 
 
 class LocalizationPipelineProcessor(ProcessorInterface):
 
-    def __init__(self, line_detector, image_prep, lane_filter, anti_instagram):
+    def __init__(self, line_detector: str, image_prep: str, lane_filter: str, anti_instagram: str):
         self.line_detector = line_detector
         self.image_prep = image_prep
         self.lane_filter = lane_filter
@@ -28,7 +25,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.all_details = False
 
     def process_log(self, bag_in: dtu.BagReadProxy, prefix_in, bag_out, prefix_out,
-                    utils: ProcessorUtilsInterface):  # @UnusedVariable
+                    utils: ProcessorUtilsInterface):
         log_name = utils.get_log().log_name
 
         vehicle_name = dtu.which_robot(bag_in)
@@ -38,10 +35,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         # noinspection PyTypeChecker
         topic = dtu.get_image_topic(bag_in)
 
-        ci: CameraInfo = read_camera_info_from_bag(bag_in)
-        logger.info('obtained CameraInfo')
-        rectifier = Rectify(ci)
-        gpg = GroundProjectionGeometry(ci.width, ci.height, ci.K)
+        rcg = get_robot_camera_geometry_from_log(bag_in)
 
         bgcolor = dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW
 
@@ -50,7 +44,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(mp.msg))
 
-            res, stats = run_pipeline(bgr, gpg=gpg, rectifier=rectifier,
+            res, stats = run_pipeline(bgr, gpg=rcg.gpg, rectifier=rcg.rectifier,
                                       line_detector_name=self.line_detector,
                                       image_prep_name=self.image_prep,
                                       lane_filter_name=self.lane_filter,
@@ -60,7 +54,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             rect = (480, 640) if not self.all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
-            print(('abs: %s  window: %s  from log: %s' % (
+            dtu.logger.info(('abs: %s  window: %s  from log: %s' % (
                 mp.time_absolute, mp.time_window, mp.time_from_physical_log_start)))
             headers = [
                 "Robot: %s log: %s time: %.2f s" % (vehicle_name, log_name, mp.time_from_physical_log_start),
@@ -83,17 +77,8 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
             t = rospy.Time.from_sec(mp.time_absolute)
-            print(('written %r at t = %s' % (otopic, t.to_sec())))
+            dtu.logger.info(('written %r at t = %s' % (otopic, t.to_sec())))
             bag_out.write(prefix_out + '/' + otopic, omsg, t=t)
 
             for name, value in list(stats.items()):
                 utils.write_stat(prefix_out + '/' + name, value, t=t)
-
-
-def read_camera_info_from_bag(bag_in: dtu.BagReadProxy) -> CameraInfo:
-    m: MessagePlus
-    for m in bag_in.read_messages_plus():
-        if 'camera_info' in m.topic:
-            return m.msg
-    msg = 'Could not find any camera_info message.'
-    raise ValueError(msg)

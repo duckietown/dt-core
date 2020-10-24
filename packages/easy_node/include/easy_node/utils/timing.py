@@ -204,7 +204,7 @@ class FakeContext(object):
         pass
 
     @contextmanager
-    def phase(self, name):  # @UnusedVariable
+    def phase(self, name):
             yield
 
     def get_stats(self):

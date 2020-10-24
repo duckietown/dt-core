@@ -15,6 +15,7 @@ ResultDBEntry0 = namedtuple('ResultDBEntry0',
 
 class ResultDBEntry(ResultDBEntry0):
 
+
     def __str__(self):
         s = 'ResultDBEntry'
         s += '\n regression_test_name: ' + self.regression_test_name

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from easy_regression.processors.localization_pipeline import read_camera_info_from_bag
-from image_processing.calibration_utils import get_camera_info_for_robot, get_homography_for_robot
-from image_processing.ground_projection_geometry import GroundProjectionGeometry
-from image_processing.rectification import Rectify
-from sensor_msgs.msg import CameraInfo
 import duckietown_utils as dtu
+from duckietown_utils.bag_info import read_camera_info_from_bag
+from sensor_msgs.msg import CameraInfo
+from .calibration_utils import get_camera_info_for_robot, get_homography_for_robot
+from .ground_projection_geometry import GroundProjectionGeometry
+from .rectification import Rectify
 
 
 @dataclass

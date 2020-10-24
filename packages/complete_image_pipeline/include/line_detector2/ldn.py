@@ -32,10 +32,10 @@ class LineDetectorNode2(EasyNode):
             db = get_easy_algo_db()
             self.detector = db.create_instance("line_detector", self.config.line_detector)
 
-    def on_received_switch(self, context, switch_msg):  # @UnusedVariable
+    def on_received_switch(self, context, switch_msg):
         self.active = switch_msg.data
 
-    def on_received_transform(self, context, transform_msg):  # @UnusedVariable
+    def on_received_transform(self, context, transform_msg):
         self.ai.shift = transform_msg.s[0:3]
         self.ai.scale = transform_msg.s[3:6]
 
