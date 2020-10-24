@@ -59,7 +59,7 @@ class Path:
         return "Number of nodes: %d\nTotal cost: %.3f\nNodes: %s\nActions: %s" % (len(self.path),self.cost, self.path, self.actions)
 
     def edges(self):
-        return zip(self.path[0:-1], self.path[1:])
+        return list(zip(self.path[0:-1], self.path[1:]))
 
     def display(self, graph):
         dot_graph = graph._create_dot_graph()

@@ -10,10 +10,10 @@ def call_summary():
     dtu.logger.info(s)
     
     errors = []
-    for f in db.family_name2config.values():
+    for f in list(db.family_name2config.values()):
         if not f.valid:
             errors.append('Family %s: %s' % (f.family_name, f.error_if_invalid))
-        for i in f.instances.values():
+        for i in list(f.instances.values()):
             if not i.valid:
                 errors.append('Family %s / instance %r:\n\n%s' % (f.family_name, 
                                                                i.instance_name, 

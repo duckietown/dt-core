@@ -72,7 +72,7 @@ def display_map(id_map: str, out: str):
 def get_texture(smap: SegmentsMap, dpi: int) -> bytes:
     figure_args = dict(figsize=(2, 2), facecolor="green")
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
-    frames = list(set(_.id_frame for _ in smap.points.values()))
+    frames = list(set(_.id_frame for _ in list(smap.points.values())))
     id_frame = frames[0]
     #     print('frames: %s choose %s' % (frames, id_frame))
     with a as pylab:

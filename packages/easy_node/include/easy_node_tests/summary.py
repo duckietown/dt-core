@@ -6,7 +6,7 @@ from easy_node.user_config.summary import user_config_summary
 
 @dtu.unit_test
 def call_summary(): 
-    print(user_config_summary())
+    print((user_config_summary()))
     
     
 if __name__ == '__main__':

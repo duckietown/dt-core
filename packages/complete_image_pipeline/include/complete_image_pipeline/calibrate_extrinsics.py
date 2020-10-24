@@ -44,12 +44,12 @@ class CalibrateExtrinsics(D8App):
 
         if the_input is None:
 
-            print("{}\nCalibrating using the ROS image stream...\n".format("*" * 20))
+            print(("{}\nCalibrating using the ROS image stream...\n".format("*" * 20)))
             import rospy
             from sensor_msgs.msg import CompressedImage
 
             topic_name = os.path.join("/", robot_name, "camera_node/image/compressed")
-            print("Topic to listen to is: %s" % topic_name)
+            print(("Topic to listen to is: %s" % topic_name))
 
             print("Let's wait for an image. Say cheese!")
 
@@ -60,15 +60,15 @@ class CalibrateExtrinsics(D8App):
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
                 print("Image captured")
             except rospy.ROSException as e:
-                print(
+                print((
                     "\n\n\n"
                     "Didn't get any message: %s\n "
                     "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
                     "\n\n\n" % (e,)
-                )
+                ))
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
-            print("Picture taken: %s " % str(bgr.shape))
+            print(("Picture taken: %s " % str(bgr.shape)))
 
         else:
             print(f"Loading input image {the_input}")
@@ -77,7 +77,7 @@ class CalibrateExtrinsics(D8App):
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
-            print("Resized to: %s " % str(bgr.shape))
+            print(("Resized to: %s " % str(bgr.shape)))
         # Disable the old calibration file
         print("Disableing old homography")
         disable_old_homography(robot_name)

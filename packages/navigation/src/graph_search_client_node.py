@@ -11,7 +11,7 @@ def graph_search_client():
         resp = graph_search('I15', 'I26')
         return resp.actions
     except rospy.ServiceException as e:
-        print("Service call failed: %s"%e)
+        print(("Service call failed: %s"%e))
 
 if __name__ == "__main__":
-    print("%s"%(graph_search_client()))
+    print(("%s"%(graph_search_client())))

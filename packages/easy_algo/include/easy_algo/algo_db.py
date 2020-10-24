@@ -29,7 +29,7 @@ class EasyAlgoDB:
         self.all_yaml = dtu.look_everywhere_for_config_files('*.yaml', sources)
 
         self.family_name2config = load_family_config(self.all_yaml)
-        for k, v in self.family_name2config.items():
+        for k, v in list(self.family_name2config.items()):
             self.family_name2config[k] = check_validity_instances(v)
 
     def query(self, family_name, query, raise_if_no_matches=False):
@@ -158,7 +158,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
     configs = dtu.look_everywhere_for_config_files2(EasyAlgoDB.pattern, all_yaml)
     configs.update(dtu.look_everywhere_for_config_files2("*.family.yaml", all_yaml))
 
-    for filename, contents in configs.items():
+    for filename, contents in list(configs.items()):
         c: EasyAlgoFamily = dtu.interpret_yaml_file(filename, contents, interpret_easy_algo_config)
 
         if c.family_name in family_name2config:
@@ -199,7 +199,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
         instances = {}
         _ = dtu.look_everywhere_for_config_files2(c.instances_pattern, all_yaml)
         # noinspection PyAssignmentToLoopOrWithParameter
-        for filename, contents in _.items():
+        for filename, contents in list(_.items()):
             i = dtu.interpret_yaml_file(filename, contents, interpret_instance_spec, plain_yaml=True)
             if i.instance_name in instances:
                 one = instances[i.instance_name].filename
@@ -218,7 +218,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
 
 def check_validity_instances(family: EasyAlgoFamily) -> EasyAlgoFamily:
     instances = family.instances
-    for name, i in family.instances.items():
+    for name, i in list(family.instances.items()):
         i = check_validity_instance(family, i)
         instances[name] = i
     return family._replace(instances=instances)

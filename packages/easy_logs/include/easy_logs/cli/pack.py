@@ -40,7 +40,7 @@ class Pack(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs0 = db.query(query)
         logs = get_valid(logs0)
-        print('logs: %s' % len(logs))
+        print(('logs: %s' % len(logs)))
         m = MakeIPFS()
 
         create_ipfs_dag(logs, m)
@@ -64,12 +64,12 @@ class Pack(D8AppWithLogs):
 
         hashed = m0.get_ipfs_hash()
         print(hashed)
-        print ('Total size :  %.3f GB' % (m.total_size() / (1000 * 1000 * 1000.0)))
+        print(('Total size :  %.3f GB' % (m.total_size() / (1000 * 1000 * 1000.0))))
 
 
 def get_valid(logs):
     logs_valid = OrderedDict()
-    for log_name, log in logs.items():
+    for log_name, log in list(logs.items()):
         if log.valid:
             logs_valid[log_name] = log
     return logs_valid
@@ -123,8 +123,8 @@ def get_index():
 
 def create_ipfs_dag(logs, m):
 
-    for id_log, log in logs.items():
-        for rname, res in log.resources.items():
+    for id_log, log in list(logs.items()):
+        for rname, res in list(log.resources.items()):
             dtr = DTR.from_yaml(res)
             ipfs = dtr.hash['ipfs']
 

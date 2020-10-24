@@ -70,7 +70,7 @@ For example:
 
         self.info('Found %d logs.' % len(logs))
         logs_valid = OrderedDict()
-        for log_name, log in logs.items():
+        for log_name, log in list(logs.items()):
             if log.valid:
                 logs_valid[log_name] = log
 
@@ -78,7 +78,7 @@ For example:
         self.info(s)
 
 
-        for log_name, log in logs_valid.items():
+        for log_name, log in list(logs_valid.items()):
             out = os.path.join(outdir, log_name)
 
             job_id = 'download-%s' % log.log_name

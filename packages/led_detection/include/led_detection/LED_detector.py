@@ -30,9 +30,9 @@ class LEDDetector:
         bd_param_tl = cv2.SimpleBlobDetector_Params()
 
         # Assign values to object variables
-        for key, val in self.parameters['~blob_detector_db'].items():
+        for key, val in list(self.parameters['~blob_detector_db'].items()):
             setattr(bd_param_db, key, val)
-        for key, val in self.parameters['~blob_detector_tl'].items():
+        for key, val in list(self.parameters['~blob_detector_tl'].items()):
             setattr(bd_param_tl, key, val)
 
         # Create a detector with the parameters
@@ -118,7 +118,7 @@ class LEDDetector:
             # Take decision
             detected_signal = None
             if detected:
-                for signal_name, signal_value in self.parameters['~LED_protocol']['signals'].items():
+                for signal_name, signal_value in list(self.parameters['~LED_protocol']['signals'].items()):
                     if signal_value['frequency'] == freq_identified:
                         detected_signal = signal_name
                         break
@@ -162,7 +162,7 @@ class LEDDetector:
         freq_identified = None
         # Take decision
         detected = False
-        freq_to_identify = self.parameters['~LED_protocol']['frequencies'].values()
+        freq_to_identify = list(self.parameters['~LED_protocol']['frequencies'].values())
         for freq in freq_to_identify:
             if abs(fft_peak_freq - freq) < 0.35:
                 # Decision

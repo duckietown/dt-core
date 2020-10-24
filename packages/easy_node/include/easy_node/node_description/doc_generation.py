@@ -18,7 +18,7 @@ def generate_easy_node_docs():
         md += generate_from_package_info(package_info, package_dir)
 
         configs = load_configuration_for_nodes_in_package(package_name)
-        for node_name, config in configs.items():
+        for node_name, config in list(configs.items()):
             if node_name in skip:
                 continue
             md += generate_from_node_config(config)
@@ -145,8 +145,8 @@ def generate_configuration(config):
     md = ""
     COMMON_PREFIX = 'en_'
 
-    choose = [_ for _ in config.parameters.values(
-    ) if not _.name.startswith(COMMON_PREFIX)]
+    choose = [_ for _ in list(config.parameters.values(
+    )) if not _.name.startswith(COMMON_PREFIX)]
 
     md += '### Parameters {nonumber="1"}' + S
 
@@ -171,7 +171,7 @@ def generate_configuration(config):
     if not config.subscriptions:
         md += 'No subscriptions defined.\n\n'
 
-    for subscription in config.subscriptions.values():
+    for subscription in list(config.subscriptions.values()):
         md += "**Subscription `%s`**: " % subscription.name
         md += 'topic `%s` (%s)\n\n' % (subscription.topic,
                                        describe_type(subscription.type))
@@ -191,7 +191,7 @@ def generate_configuration(config):
     if not config.publishers:
         md += 'No publishers defined.\n\n'
 
-    for publisher in config.publishers.values():
+    for publisher in list(config.publishers.values()):
         md += "**Publisher `%s`**: " % publisher.name
         md += 'topic `%s` (%s)\n\n' % (publisher.topic,
                                        describe_type(publisher.type))

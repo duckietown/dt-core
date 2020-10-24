@@ -56,7 +56,7 @@ def main():
     if not nfailed:
         logger.info('All tests passed')
     else:
-        which = [k for k, v in test_results.items() if not v]
+        which = [k for k, v in list(test_results.items()) if not v]
         logger.error('These tests failed: %s ' % which)
         sys.exit(3)
 
@@ -66,7 +66,7 @@ def is_match(detection, expected):
     # else doesn't, it warns about what it is
     global W, H
 
-    print('shape is %s, %s'% (W, H) )
+    print(('shape is %s, %s'% (W, H) ))
     predicates = dict({
     'position': abs(1.0*detection.pixels_normalized.x*W-expected['image_coordinates'][0])<expected['image_coordinates_margin']
     and abs(1.0*detection.pixels_normalized.y*H-expected['image_coordinates'][1])<expected['image_coordinates_margin'],
@@ -86,8 +86,8 @@ def find_match(detection, expected_set):
     # return index (in expected) of the first match to detection
     # or -1 if there is no match
     try:
-        return (n for n in range(len(expected_set)) if \
-        (is_match(detection, expected_set[n]))).next()
+        return next((n for n in range(len(expected_set)) if \
+        (is_match(detection, expected_set[n]))))
     except StopIteration:
         return -1
 
@@ -99,9 +99,9 @@ def run_test(id_test, test, id_estimator, estimator):
     from led_detection.unit_tests import LEDDetectionUnitTest
     assert isinstance(test, LEDDetectionUnitTest)
     query = test.get_query()
-    print( query['images']['rgb'][0].shape)
+    print(( query['images']['rgb'][0].shape))
     H, W, _ = query['images']['rgb'][0].shape
-    print('shape is %s, %s'%(W, H))
+    print(('shape is %s, %s'%(W, H)))
     result = estimator.detect_led(**query)
 
     # We are testing whether the expected detections are a subset of

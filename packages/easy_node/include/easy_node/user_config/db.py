@@ -108,7 +108,7 @@ class ConfigDB():
             if config_name == 'defaults':
                 using.append(config_name)
 
-                for p in node_config.parameters.values():
+                for p in list(node_config.parameters.values()):
 
                     if p.has_default:
                         values[p.name] = p.default
@@ -120,7 +120,7 @@ class ConfigDB():
                 if c is not None:
                     using.append(config_name)
 
-                    for k, v in c.values.items():
+                    for k, v in list(c.values.items()):
                         if k in values:
                             overridden[k].append(origin[k])
                         values[k] = v

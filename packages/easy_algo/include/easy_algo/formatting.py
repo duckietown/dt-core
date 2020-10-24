@@ -32,7 +32,7 @@ def format_families(families, colorize=True, verbose=True):
             if not family.instances:
                 row.append('\n(none)')
             else:
-                n_valid = len([_ for _ in family.instances.values() if _.valid])
+                n_valid = len([_ for _ in list(family.instances.values()) if _.valid])
                 n_invalid = len(family.instances) - n_valid
                 ss = '%s' % len(family.instances)
                 if n_invalid:
@@ -72,7 +72,7 @@ def format_instances(family, colorize, verbose=False):
         table = []
         table.append(['Instance name', 'constructor',
                       'parameters', 'description', 'filename'])
-        for _ in family.instances.values():
+        for _ in list(family.instances.values()):
             row = []
             name = _.instance_name
             if (not _.valid) and colorize:
@@ -93,7 +93,7 @@ def format_instances(family, colorize, verbose=False):
             dtu.remove_table_field(table, 'description')
         s += dtu.indent(dtu.format_table_plus(table, colspacing=4), '| ')
 
-        for _ in family.instances.values():
+        for _ in list(family.instances.values()):
             if not _.valid:
                 msg = _.error_if_invalid
                 s += dtu.make_red('\n' + dtu.indent(msg, '', _.instance_name + ': '))

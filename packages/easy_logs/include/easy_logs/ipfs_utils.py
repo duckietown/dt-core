@@ -25,7 +25,7 @@ class MakeIPFS:
         self.add_file(filename, hashed, len(s))
 
     def get_dag(self):
-        result = {'Data': u"\u0008\u0001", 'Links': self.links}
+        result = {'Data': "\u0008\u0001", 'Links': self.links}
         return result
 
     def total_size(self):
@@ -41,7 +41,7 @@ class MakeIPFS:
                                     write_stdin=dag_json)
         hashed = res.stdout.split()[1]
         assert 'Qm' in hashed, hashed
-        print('Directory of %d links: %s' % (len(self.links), hashed))
+        print(('Directory of %d links: %s' % (len(self.links), hashed)))
         return hashed
 
 

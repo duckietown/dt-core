@@ -22,8 +22,8 @@ def format_logs(logs):
         s += dtu.indent(dtu.format_table_plus(table, colspacing=4), '| ')
 
         counts = defaultdict(lambda: set())
-        for l in logs.values():
-            for rname, dtr_yaml in l.resources.items():
+        for l in list(logs.values()):
+            for rname, dtr_yaml in list(l.resources.items()):
                 counts[rname].add(dtr_yaml['name'])
 
         s += '\n\nCount of resources: '

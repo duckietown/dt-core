@@ -55,8 +55,8 @@ class ColorRange:
         elif len(dictionary) % 2 == 0:
 
             # make the keys tuples with `low` or `high` and the id of the entry
-            dictionary = {tuple(k.split('_')): v for k, v in dictionary.items()}
-            entry_indices = set([k[1] for k, _ in dictionary.items()])
+            dictionary = {tuple(k.split('_')): v for k, v in list(dictionary.items())}
+            entry_indices = set([k[1] for k, _ in list(dictionary.items())])
 
             assert len(entry_indices) == len(dictionary) / 2, "The multi-entry definition doesn't " \
                                                               "follow the requirements"

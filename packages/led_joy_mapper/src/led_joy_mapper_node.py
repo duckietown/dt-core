@@ -45,7 +45,7 @@ class LEDJoyMapper:
 
     def publishControl(self):
 
-        for b, pattern in self.button2patterns.items():
+        for b, pattern in list(self.button2patterns.items()):
             if self.joy.buttons[b] == 1:
                 self.pub_pattern.publish(pattern)
                 rospy.loginfo("Publishing pattern %s" % (pattern))

@@ -60,7 +60,7 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         self.info("line_detector: %s" % line_detector)
         self.info("lane_filter: %s" % lane_filter)
 
-        for k, log in logs.items():
+        for k, log in list(logs.items()):
             d = os.path.join(output, k)
             context.comp(look_at, log, d, anti_instagram, line_detector, image_prep, lane_filter, all_details)
 

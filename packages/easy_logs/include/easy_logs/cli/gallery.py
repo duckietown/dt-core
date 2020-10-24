@@ -49,7 +49,7 @@ class Gallery(D8AppWithLogs):
         logs_valid = OrderedDict()
         ninvalid = 0
         length_invalid = 0.0
-        for log_name, log in logs.items():
+        for log_name, log in list(logs.items()):
             if log.valid:
                 logs_valid[log_name] = log
             else:
@@ -74,7 +74,7 @@ class Gallery(D8AppWithLogs):
 def get_report(logs, url_to_resource, initial_screens: bool = True) -> str:
     length = 0
     vehicles = set()
-    for _, log in logs.items():
+    for _, log in list(logs.items()):
         length += log.length
         vehicles.add(log.vehicle)
 

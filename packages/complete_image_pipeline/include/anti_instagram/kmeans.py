@@ -81,7 +81,7 @@ def identifyColors(trained, true):
 def checkMapping(mymap):
     maplist = []
     clearmap = {}
-    for color, mapping in mymap.items():
+    for color, mapping in list(mymap.items()):
         if mapping not in maplist:
             clearmap[color] = mapping
             maplist += mapping

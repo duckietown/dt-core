@@ -30,10 +30,10 @@ class LogicGateNode:
         self.event_msg_dict = dict()
         self.event_trigger_dict = dict()
         self.last_published_msg = None
-        for gate_name, gate_dict in self.gates_dict.items():
+        for gate_name, gate_dict in list(self.gates_dict.items()):
             output_topic_name = gate_dict["output_topic"]
             self.pub_dict[gate_name] = rospy.Publisher(output_topic_name, BoolStamped, queue_size=1)
-        for event_name, event_dict in self.events_dict.items():
+        for event_name, event_dict in list(self.events_dict.items()):
             topic_name = event_dict["topic"]
             self.event_trigger_dict[event_name] = event_dict["trigger"]
             # Initialize local copy as None
@@ -43,7 +43,7 @@ class LogicGateNode:
 
     def _validateEvents(self):
         valid_flag = True
-        for event_name, event_dict in self.events_dict.items():
+        for event_name, event_dict in list(self.events_dict.items()):
             if "topic" not in event_dict:
                 rospy.logfatal("[%s] topic not defined for event %s" % (self.node_name, event_name))
                 valid_flag = False
@@ -51,7 +51,7 @@ class LogicGateNode:
 
     def _validateGates(self, gates_dict):
         valid_gate_types = ["AND", "OR"]
-        for gate_name, gate_dict in gates_dict.items():
+        for gate_name, gate_dict in list(gates_dict.items()):
             gate_type = gate_dict["gate_type"]
             if gate_type not in valid_gate_types:
                 rospy.logfatal("[%s] gate_type %s is not valid." % (self.node_name, gate_type))
@@ -71,12 +71,12 @@ class LogicGateNode:
         bool_list = list()
         latest_time_stamp = rospy.Time(0)
 
-        for event_name, event_msg in self.event_msg_dict.items():
+        for event_name, event_msg in list(self.event_msg_dict.items()):
             if event_name in inputs:    # one of the inputs to gate
 
 
                 if self.debugging:
-                    print("sub-event: " + event_name)
+                    print(("sub-event: " + event_name))
 
 
 
@@ -113,7 +113,7 @@ class LogicGateNode:
 
 
         if self.debugging:
-            print(bool_list, "->", msg.data)
+            print((bool_list, "->", msg.data))
 
 
         # print bool_list, msg.data
@@ -125,7 +125,7 @@ class LogicGateNode:
         self.event_msg_dict[event_name] = msg
 
         #print "got something"
-        for gate_name, gate_dict in self.gates_dict.items():
+        for gate_name, gate_dict in list(self.gates_dict.items()):
             inputs = gate_dict.get("inputs")
             if event_name in inputs:
                 #print "in the inputs"

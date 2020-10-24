@@ -27,7 +27,7 @@ class LocalizationTemplate:
             db = get_easy_algo_db()
             self._map = db.create_instance(FAMILY_SEGMAPS, self.tile_name)
 
-            frames = set(_.id_frame for _ in self._map.points.values())
+            frames = set(_.id_frame for _ in list(self._map.points.values()))
             if frames != set([FRAME_GLOBAL]):
                 msg = "Expected that all points in the map %r are in the frame %r." % (
                     self.tile_name,

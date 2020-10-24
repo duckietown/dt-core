@@ -38,7 +38,7 @@ def simulate_image(
 
     tinfo = TransformationsInfo()
 
-    frames = list(set(_.id_frame for _ in sm_orig.points.values()))
+    frames = list(set(_.id_frame for _ in list(sm_orig.points.values())))
     id_frame = frames[0]
     dtu.logger.debug("frames: %s choose %s" % (frames, id_frame))
 

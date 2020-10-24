@@ -65,7 +65,7 @@ class SegmentsMap:
         return SegmentsMap(points={}, segments=[], faces=[], constants={})
 
     def validate(self):
-        for k, p in self.points.items():
+        for k, p in list(self.points.items()):
             dtu.check_isinstance(p, SegMapPoint)
             dtu.check_isinstance(k, str)
 
@@ -121,7 +121,7 @@ class SegmentsMap:
         segments = data["segments"]
 
         points2 = {}
-        for k, p in points.items():
+        for k, p in list(points.items()):
             points2[k] = SegMapPoint(id_frame=p[0], coords=np.array(p[1]))
 
         segments2 = []
@@ -297,7 +297,7 @@ def add_prefix(sm: SegmentsMap, prefix: str) -> SegmentsMap:
     points = {}
     faces = []
     segments = []
-    for k, v in sm.points.items():
+    for k, v in list(sm.points.items()):
         points[prefix + k] = v
     for face in sm.faces:
         points2 = list(PointName(prefix + _) for _ in face.points)

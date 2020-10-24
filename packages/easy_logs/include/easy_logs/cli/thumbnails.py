@@ -69,7 +69,7 @@ Use like this:
 
         self.info('Found %d logs.' % len(logs))
         logs_valid = OrderedDict()
-        for log_name, log in logs.items():
+        for log_name, log in list(logs.items()):
             if log.valid:
                 logs_valid[log_name] = log
 
@@ -82,7 +82,7 @@ Use like this:
 
         od = self.options.output
 
-        for log_name, log in logs_valid.items():
+        for log_name, log in list(logs_valid.items()):
             out = os.path.join(od, log_name)
 
             log_downloaded = download_if_necessary(log)

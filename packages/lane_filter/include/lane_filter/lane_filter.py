@@ -8,7 +8,7 @@ from scipy.stats import entropy, multivariate_normal
 # from duckietown_utils.parameters import Configurable
 # from .lane_filter_interface import LaneFilterInterface
 # from .visualization import plot_phi_d_diagram_bgr
-from lane_filter.visualization import plot_phi_d_diagram_bgr
+from .lane_filter.visualization import plot_phi_d_diagram_bgr
 from lane_filter_interface import LaneFilterInterface
 
 

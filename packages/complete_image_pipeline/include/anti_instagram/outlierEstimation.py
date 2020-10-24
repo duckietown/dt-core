@@ -17,7 +17,7 @@ def detectOutlier(trainedCenters, trueCenters):  # YWRB
         # calculate transform with the other centers
         T = calcTransform(n_centers - 1, trainedCentersTemp, trueCenterstemp)
         T.calcTransform()
-        print("the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale))
+        print(("the transform is: shift - " + str(T.shift) + ", scale - " + str(T.scale)))
         # print "left out " + str(leaveOut) + ", new centers: " + str(tempArray)
         # transformedCenters = np.zeros((tempArray.shape))
 
@@ -28,7 +28,7 @@ def detectOutlier(trainedCenters, trueCenters):  # YWRB
             tempTrueCenter = trueCenters[j]
             errorArray[j] = estimateError(tempTrafoCenter, tempTrueCenter)
         errorArrayTotal[i] = np.sum(errorArray)
-        print("error of trafo: " + str(errorArrayTotal[i]))
+        print(("error of trafo: " + str(errorArrayTotal[i])))
     errorArraySortedIdx = np.argsort(errorArrayTotal)
     return errorArraySortedIdx[0], trainedCenters[errorArraySortedIdx[0]]  # return first element.
     # this set of centers leads to the lowest error and the left out center is therefore the outlier.

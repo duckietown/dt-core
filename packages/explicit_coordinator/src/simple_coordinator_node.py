@@ -159,7 +159,7 @@ class VehicleCoordinator():
             elif self.time_at_current_state() > 2 * self.T_SENSE:
                 if self.opposite_veh == SignalsDetection.SIGNAL_B:
                     self.random_delay = random() * self.T_MAX_RANDOM
-                    print ("Other vehicle reserving as well. Will wait for %.2f s" % self.random_delay)
+                    print(("Other vehicle reserving as well. Will wait for %.2f s" % self.random_delay))
                     self.set_state(State.CONFLICT)
                 else:
                     self.set_state(State.GO)

@@ -16,8 +16,8 @@ def mouse_cb(event, x, y, flags, param):
         normalized_uv.x = float(x) / float(w)
         normalized_uv.y = float(y) / float(h)
 
-        print("image coordinate: (%d, %d)" % (x, y))
-        print("normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y))
+        print(("image coordinate: (%d, %d)" % (x, y)))
+        print(("normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y)))
 
 
 def get_image_topic_name(veh):
@@ -33,19 +33,19 @@ def get_image_topic_name(veh):
         rospy.wait_for_message(image_topic_name, Image, timeout=5)
         return image_topic_name
     except rospy.ROSException as e:
-        print("%s" % e)
+        print(("%s" % e))
 
     return None
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("usage: " + sys.argv[0] + " vehicle name")
+        print(("usage: " + sys.argv[0] + " vehicle name"))
         sys.exit(1)
 
     param = sys.argv[1]
     param = param.replace('veh:=', '')
-    print('Using vehicle name %r.' % param)
+    print(('Using vehicle name %r.' % param))
     veh = "/" + param
 
     bridge = CvBridge()
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     key = 0
 
     image_topic_name = get_image_topic_name(veh)
-    print("image topic name: " + image_topic_name)
+    print(("image topic name: " + image_topic_name))
 
     if image_topic_name is not None:
         while (key is not 27):

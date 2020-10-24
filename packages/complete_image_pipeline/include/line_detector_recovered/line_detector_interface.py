@@ -6,9 +6,7 @@ FAMILY_LINE_DETECTOR = "line_detector"
 Detections = namedtuple("Detections", ["lines", "normals", "area", "centers"])
 
 
-class LineDetectorInterface:
-    __metaclass__ = ABCMeta
-
+class LineDetectorInterface(metaclass=ABCMeta):
     @abstractmethod
     def setImage(self, bgr):
         pass

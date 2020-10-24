@@ -57,13 +57,13 @@ def compare_faster():
     
     D = val_fast - val_slow
     diff = np.max(np.abs(D))
-    print('diff: %r' % diff)
+    print(('diff: %r' % diff))
     if diff > 1e-8:
-        print(dtu.indent(array_as_string_sign(val_fast), 'val_fast '))
-        print(dtu.indent(array_as_string_sign(val_slow), 'val_slow '))
-        print(dtu.indent(array_as_string_sign(D), 'Diff '))
-        print('non zero val_fast: %s' %  val_fast[val_fast > 0])
-        print('non zero val_slow: %s' %  val_slow[val_slow > 0])
+        print((dtu.indent(array_as_string_sign(val_fast), 'val_fast ')))
+        print((dtu.indent(array_as_string_sign(val_slow), 'val_slow ')))
+        print((dtu.indent(array_as_string_sign(D), 'Diff ')))
+        print(('non zero val_fast: %s' %  val_fast[val_fast > 0]))
+        print(('non zero val_slow: %s' %  val_slow[val_slow > 0]))
         
     assert_almost_equal(val_fast, val_slow)
 
@@ -102,8 +102,8 @@ def compare_faster2():
     weights[0]= w0
     gh.add_vote_faster(val_fast, values, weights, F)
     
-    print('sum slow: %s' % np.sum(val_slow))
-    print('sum fast: %s' % np.sum(val_fast))
+    print(('sum slow: %s' % np.sum(val_slow)))
+    print(('sum fast: %s' % np.sum(val_fast)))
     d = grid_helper_plot(gh, val_slow)
     fn = os.path.join(od, 'compare_faster_slow.jpg')
     dtu.write_data_to_file(d.get_png(), fn)
@@ -113,8 +113,8 @@ def compare_faster2():
     dtu.write_data_to_file(d.get_png(), fn)
     
     f = lambda x: ' %5f' % x if x else '    '
-    print(dtu.indent(array_as_string(val_fast, f), 'val_fast '))
-    print(dtu.indent(array_as_string(val_slow, f), 'val_slow '))
+    print((dtu.indent(array_as_string(val_fast, f), 'val_fast ')))
+    print((dtu.indent(array_as_string(val_slow, f), 'val_slow ')))
     
     assert_almost_equal(val_fast, val_slow)
 
