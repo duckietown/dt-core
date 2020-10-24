@@ -1,11 +1,12 @@
 import copy
 import os
+from typing import List
 
 import duckietown_utils as dtu
 from duckietown_utils.cli import D8App
 from .logs_db import (get_all_resources, get_easy_logs_db2, invalidate_log_cache_because_downloaded,
                       write_candidate_cloud)
-from .logs_structure import PhysicalLog
+from .logs_structure import PhysicalLog, PhysicalLogResource
 from .resource_desc import _create_file_uri, DTR
 
 __all__ = ['D8AppWithLogs', 'download_if_necessary', 'get_log_if_not_exists']
@@ -76,7 +77,9 @@ def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
     filename = get_log_if_not_exists(log, resource_name=resource_name)
 
     local_uri = _create_file_uri(filename)
-    log.resources[resource_name]['urls'].append(local_uri)
+    resource: PhysicalLogResource = log.resources[resource_name]
+    urls: List[str] = resource['urls']
+    urls.append(local_uri)
 
     return log
 

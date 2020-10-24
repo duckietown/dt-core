@@ -2,6 +2,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List, Optional, TypedDict
 
+
 # PhysicalLog0 = namedtuple('PhysicalLog',
 #                           ['log_name',
 #                            'filename',
@@ -45,23 +46,23 @@ class PhysicalLogResource(TypedDict):
     urls: List[str]
     desc: str
 
+
 @dataclass
 class PhysicalLog:
     log_name: str
     filename: Optional[str]
     resources: Dict[str, Dict[str, PhysicalLogResource]]
-    description: str
-    vehicle: str
-    date: datetime
-    length: float
-    t0: float
-    t1: float
+    description: dict  # not sure what was supposed to be. Maybe "text", "md", etc.?
+    vehicle: Optional[str]
+    date: Optional[datetime]
+    length: Optional[float]
+    t0: Optional[float]
+    t1: Optional[float]
     size: int
-    bag_info: dict
-    has_camera: bool
+    bag_info: Optional[dict]
+    has_camera: Optional[bool]
     valid: bool
     error_if_invalid: Optional[str]
-
 
 
 def yaml_from_physical_log(log: PhysicalLog) -> dict:
@@ -69,5 +70,4 @@ def yaml_from_physical_log(log: PhysicalLog) -> dict:
 
 
 def physical_log_from_yaml(data: dict) -> PhysicalLog:
-    # values = (data[_] for _ in keys)
     return PhysicalLog(**data)

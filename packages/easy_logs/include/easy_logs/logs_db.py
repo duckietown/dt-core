@@ -1,16 +1,17 @@
 import os
-from collections import OrderedDict, namedtuple, defaultdict
+from collections import defaultdict, namedtuple
+from dataclasses import replace
+from typing import Dict, List, Union
 
 import duckietown_utils as dtu
 from duckietown_utils.yaml_pretty import yaml_dump_pretty
 from .constants import EasyLogsConstants
-from .logs_structure import PhysicalLog, yaml_from_physical_log, physical_log_from_yaml
+from .logs_structure import physical_log_from_yaml, PhysicalLog, yaml_from_physical_log
 from .resource_desc import create_dtr_version_1, DTR, get_local_filepath, NotLocalPath
 from .time_slice import filters_slice
 
 
-
-def get_easy_logs_db2(do_not_use_cloud, do_not_use_local, ignore_cache):
+def get_easy_logs_db2(do_not_use_cloud: bool, do_not_use_local: bool, ignore_cache: bool):
     if ignore_cache:
         delete_easy_logs_cache()
 
@@ -18,7 +19,7 @@ def get_easy_logs_db2(do_not_use_cloud, do_not_use_local, ignore_cache):
 
     if not do_not_use_cloud:
         logs_cloud = dtu.get_cached(EasyLogsConstants.CACHE_CLOUD, get_logs_cloud, just_delete=False)
-        assert isinstance(logs_cloud, OrderedDict)
+        assert isinstance(logs_cloud, dict)
         db.update_logs(logs_cloud)
 
     if not do_not_use_local:
@@ -51,23 +52,23 @@ def write_candidate_cloud(logs):
     dtu.write_str_to_file(s, fn)
 
     # try reading
-    print('reading back logs')
+    dtu.logger.info('reading back logs')
     logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
-    print('read back %s' % len(logs2))
+    dtu.logger.info('read back %s' % len(logs2))
 
 
-def logs_from_yaml(data):
+def logs_from_yaml(data: dict) -> Dict[str, PhysicalLog]:
     dtu.check_isinstance(data, dict)
 
-    res = OrderedDict()
+    res = {}
     for k, d in data.items():
         res[k] = physical_log_from_yaml(d)
     return res
 
 
-def yaml_representation_of_phy_logs(logs):
+def yaml_representation_of_phy_logs(logs: Dict[str, PhysicalLog]) -> str:
     dtu.check_isinstance(logs, dict)
-    res = OrderedDict()
+    res = {}
     for k, l in logs.items():
         res[k] = yaml_from_physical_log(l)
     s = yaml_dump_pretty(res)
@@ -89,39 +90,38 @@ def get_logs_cloud():
         dtu.logger.debug('Conversion')
         logs = logs_from_yaml(data)
 
-    logs = OrderedDict(logs)
+    logs = dict(logs)
     dtu.logger.info('Loaded cloud DB with %d entries.' % len(logs))
 
     return logs
 
+QueryType= Union[str, List[str]]
 
-class EasyLogsDB(object):
-    _singleton = None
+class EasyLogsDB:
+    _singleton: "EasyLogsDB" = None
 
     def __init__(self):
         # ordereddict str -> PhysicalLog
-        self.logs = OrderedDict()
+        self.logs ={}
 
     def update_logs(self, logs2):
         self.logs.update(logs2)
 
-    @dtu.contract(returns=OrderedDict, query='str|list(str)')
-    def query(self, query, raise_if_no_matches=True):
+    def query(self, query: QueryType, raise_if_no_matches: bool=True) -> Dict[str, PhysicalLog]:
         return query_logs(logs=self.logs, query=query, raise_if_no_matches=raise_if_no_matches)
 
 
-@dtu.contract(returns=OrderedDict, query='str|list(str)')
-def query_logs(logs, query, raise_if_no_matches=True):
+def query_logs(logs: Dict[str, PhysicalLog], query: QueryType, raise_if_no_matches=True)-> Dict[str, PhysicalLog]:
     """
         query: a string or a list of strings
 
-        Returns an OrderedDict str -> PhysicalLog.
+        Returns a dict str -> PhysicalLog.
 
         The query can also be a filename.
 
     """
     if isinstance(query, list):
-        res = OrderedDict()
+        res = {}
         for q in query:
             res.update(query_logs(logs, q, raise_if_no_matches=False))
         if raise_if_no_matches and not res:
@@ -133,10 +133,10 @@ def query_logs(logs, query, raise_if_no_matches=True):
     else:
         dtu.check_isinstance(query, str)
 
-        filters = OrderedDict()
+        filters ={}
         filters.update(filters_slice)
         filters.update(dtu.filters0)
-        aliases = OrderedDict()
+        aliases ={}
         aliases.update(logs)
         # adding aliases unless we are asking for everything
         if query != '*':
@@ -166,7 +166,7 @@ def query_logs(logs, query, raise_if_no_matches=True):
                 options = sorted(options, key=len)
                 return options[0]
 
-        c = OrderedDict()
+        c ={}
         for k, v in result.items():
             chosen = choose(present[id(v)])
             if k == chosen:
@@ -180,28 +180,28 @@ def _read_stats(pl, use_filename):
 
     info = dtu.rosbag_info_cached(use_filename)
     if info is None:
-        return pl._replace(valid=False, error_if_invalid='Not indexed')
+        return replace(pl, valid=False, error_if_invalid='Not indexed')
 
     # print yaml.dump(info)
     length = info['duration']
     if length is None:
-        return pl._replace(valid=False, error_if_invalid='Empty bag.')
+        return replace(pl, valid=False, error_if_invalid='Empty bag.')
 
-    pl = pl._replace(length=length, t0=0, t1=length, bag_info=info)
+    pl = replace(pl, length=length, t0=0, t1=length, bag_info=info)
 
     try:
         vehicle = which_robot_from_bag_info(info)
-        pl = pl._replace(vehicle=vehicle, has_camera=True)
+        pl = replace(pl, vehicle=vehicle, has_camera=True)
     except ValueError:
         vehicle = None
-        pl = pl._replace(valid=False, error_if_invalid='No camera data.')
+        pl = replace(pl, valid=False, error_if_invalid='No camera data.')
 
     date_ms = info['start']
     if date_ms < 156600713:
-        pl = pl._replace(valid=False, error_if_invalid='Date not set.')
+        pl = replace(pl, valid=False, error_if_invalid='Date not set.')
     else:
         date = dtu.format_time_as_YYYY_MM_DD(date_ms)
-        pl = pl._replace(date=date)
+        pl = replace(pl, date=date)
 
     return pl
 
@@ -266,7 +266,7 @@ def get_logs_local():
     raise_if_duplicated = False
     all_resources = get_all_resources()
 
-    logs = OrderedDict()
+    logs = {}
     ignored = []
     for basename, filename in all_resources.basename2filename.items():
         if not basename.endswith('.bag'):
@@ -357,9 +357,9 @@ def physical_log_from_filename(filename, base2basename2filename):
 
         return False
 
-    description = OrderedDict()
+    description = {}
 
-    resources = OrderedDict()
+    resources = {}
 
     l = PhysicalLog(log_name=base,  # might be replaced later
                     resources=resources,
@@ -390,7 +390,7 @@ def physical_log_from_filename(filename, base2basename2filename):
             s = 'unknown'
         canonical = canonical + '_' + s
         # print('canonical: %s' % canonical)
-        l = l._replace(log_name=canonical)
+        l = replace(l, log_name=canonical)
 
     possible_bases = set()
     possible_bases.add(base)
