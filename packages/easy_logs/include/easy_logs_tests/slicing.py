@@ -1,6 +1,6 @@
 import duckietown_utils as dtu
 from easy_logs import filters_slice, get_easy_logs_db2
-
+from duckietown_utils import logger
 
 def get_test_db():
     return get_easy_logs_db2(do_not_use_cloud=False, do_not_use_local=True, ignore_cache=False)
@@ -70,7 +70,7 @@ def parse_expressions4():
     one = list(logs.keys())[0]
     query = one + '/{1:}'
     res = dtu.fuzzy_match(query, logs, filters=filters_slice, raise_if_no_matches=True)
-    print(res)
+    logger.info(res)
     assert len(res) == 1
     l1 = res[list(res)[0]]
     assert l1.t0 == 1

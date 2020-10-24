@@ -8,7 +8,7 @@ from std_msgs.msg import Bool #Imports msg
 #from duckietown_msgs.msg import messages to command the wheels
 from duckietown_msgs.msg import WheelsCmdStamped
 
-class IndefNavigationNode(object):
+class IndefNavigationNode:
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()

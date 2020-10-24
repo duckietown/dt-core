@@ -12,7 +12,7 @@ import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import Header
-class AprilPostPros(object):
+class AprilPostPros:
     """ """
     def __init__(self):
         """ """

@@ -2,7 +2,7 @@
 import rospy
 from duckietown_msgs.msg import BoolStamped, Twist2DStamped, FSMState
 
-class FakeCoordinatorNode(object):
+class FakeCoordinatorNode:
     def __init__(self):
         rospy.Subscriber('~mode',FSMState, self.cbMode)
         self.pub_intersection_go = rospy.Publisher('simple_coordinator_node/intersection_go', BoolStamped, queue_size=1)
@@ -16,7 +16,7 @@ class FakeCoordinatorNode(object):
         if msg.state == "COORDINATION":
             self.pub_intersection_go.publish(BoolStamped(header=msg.header,data=True))
 
-    def publish_car_cmd(self,event):  
+    def publish_car_cmd(self,event):
         self.pub_coord_cmd.publish(Twist2DStamped(v=0,omega=0))
 
     def onShutdown(self):

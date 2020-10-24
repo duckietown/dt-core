@@ -280,7 +280,7 @@ class LEDWindow(QWidget):
 app = QApplication(sys.argv)
 win = LEDWindow(None)
 
-class LEDVisualizerNode(object):
+class LEDVisualizerNode:
     def __init__(self):
         self.first_timestamp = None
         self.data = []

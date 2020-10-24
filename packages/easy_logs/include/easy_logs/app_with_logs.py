@@ -40,12 +40,12 @@ class D8AppWithLogs(D8App):
         if self._db is not None:
             return self._db
 
-        do_not_use_cloud = self.options.no_cloud
-        do_not_use_local = self.options.no_local
+        do_not_use_cloud = self.options['no_cloud']
+        do_not_use_local = self.options['no_local']
 
-        do_write_candidate_cloud = self.options.write_candidate_cloud
+        do_write_candidate_cloud = self.options['write_candidate_cloud']
 
-        ignore_cache = self.options.cache_reset
+        ignore_cache = self.options['cache_reset']
 
         db = get_easy_logs_db2(do_not_use_cloud=do_not_use_cloud,
                                do_not_use_local=do_not_use_local, ignore_cache=ignore_cache)
@@ -86,7 +86,6 @@ def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
 
 def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     """" Returns the path to the log. """
-    print(log)
     log = copy.deepcopy(log)
     dtu.logger.info('Get log if not exists: %s' % log.log_name)
     downloads = dtu.get_duckietown_local_log_downloads()

@@ -6,7 +6,7 @@ from std_msgs.msg import Float32, UInt8
 
 classes = {"BoolStamped": BoolStamped, "Twist2DStamped": Twist2DStamped, "AprilTagsWithInfos": AprilTagsWithInfos, "Float32": Float32, "UInt8": UInt8}
 
-class LogicGateNode(object):
+class LogicGateNode:
     def __init__(self):
 
         # Enable this for printing all logic gate operations

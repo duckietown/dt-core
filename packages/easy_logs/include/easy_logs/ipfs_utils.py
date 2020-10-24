@@ -9,7 +9,7 @@ import duckietown_utils as dtu
 base = ['ipfs', '--api', '/ip4/127.0.0.1/tcp/5001']
 
 
-class MakeIPFS(object):
+class MakeIPFS:
 
     def __init__(self):
         self.links = []

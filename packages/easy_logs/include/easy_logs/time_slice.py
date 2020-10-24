@@ -1,6 +1,9 @@
 from collections import OrderedDict
+from dataclasses import replace
+from typing import Tuple
 
 import duckietown_utils as dtu
+from .logs_structure import PhysicalLog
 
 __all__ = [
     'filters_slice',
@@ -31,7 +34,7 @@ class MakeTimeSlice(dtu.Spec):
             matches[k2] = v2
         return matches
 
-    def transform(self, id_log, log):
+    def transform(self, id_log: str, log: PhysicalLog) -> Tuple[str, PhysicalLog]:
         #        if not log.valid:
         #            # Not sure this is the right thing to do
         #            print('log not valid')
@@ -58,8 +61,8 @@ class MakeTimeSlice(dtu.Spec):
         B = '%d' % (new_end * 100)
 
         id_log2 = id_log + '_from%sto%s' % (A, B)
-
-        return id_log2, log._replace(t0=new_start, t1=new_end, length=length)
+        log2 = replace(log, t0=new_start, t1=new_end, length=length)
+        return id_log2, log2
 
 
 def slice_time(m, spec):

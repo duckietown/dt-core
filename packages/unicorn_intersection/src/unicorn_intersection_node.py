@@ -9,7 +9,7 @@ import time
 import math
 import json
 
-class UnicornIntersectionNode(object):
+class UnicornIntersectionNode:
     def __init__(self):
         self.node_name = "Unicorn Intersection Node"
 

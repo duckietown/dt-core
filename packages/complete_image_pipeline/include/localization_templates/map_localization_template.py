@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 
-class LocalizationTemplate(object):
+class LocalizationTemplate:
     """ Represents a template on which we can localize. """
 
     def __init__(self, tile_name, dt):

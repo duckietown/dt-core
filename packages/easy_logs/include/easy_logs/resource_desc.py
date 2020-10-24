@@ -26,7 +26,7 @@ from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 has_ipfs = detect_ipfs()
 
 
-class DTR(object):
+class DTR:
 
     def __init__(self, dtrv, size, name, mime, hashes, urls, desc):
         self.dtrv = dtrv

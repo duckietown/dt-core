@@ -8,7 +8,7 @@ __all__ = [
     'ProcessingTimingStats',
 ]
 
-class ProcessingTimingStats(object):
+class ProcessingTimingStats:
     """
         This is the model:
 
@@ -153,7 +153,7 @@ class ProcessingTimingStats(object):
 #               pub_image | total latency 49737091909.8ms | delta wall    0.1ms clock    0.1ms
 #    pub_edge/pub_segment | total latency 49737091910.8ms | delta wall    1.1ms clock    1.1ms
 
-class SingleStat(object):
+class SingleStat:
 
     def __init__(self):
         self.times = []
@@ -199,7 +199,7 @@ def get_percentage(i, n):
 
 
 
-class FakeContext(object):
+class FakeContext:
     def __init__(self):
         pass
 

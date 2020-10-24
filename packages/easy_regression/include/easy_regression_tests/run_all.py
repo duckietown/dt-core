@@ -7,6 +7,9 @@ from easy_regression.conditions.interface import RTCheck
 
 def run(which, expect):
     v = False
+
+    cur_dir = os.getcwd()
+    dest = os.path.join(cur_dir, f'out/regression-output/{which}')
     cwd = dtu.get_output_dir_for_test()
     if not os.path.exists(cwd):
         dtu.mkdirs_thread_safe(cwd)
@@ -15,8 +18,9 @@ def run(which, expect):
         cmd = ['rosrun', 'easy_regression', 'run',
                '--expect', expect,
                '--test', which,
-               '-o', '.',
+               '-o', dest,
                '-c', 'rmake']
+
         dtu.system_cmd_result(cwd, cmd,
                               display_stdout=v,
                               display_stderr=v,

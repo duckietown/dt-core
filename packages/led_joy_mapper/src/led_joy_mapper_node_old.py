@@ -8,17 +8,17 @@ import time
 
 # Button List index of joy.buttons array:
 # a = 0, b=1, x=2. y=3, lb=4, rb=5, back = 6, start =7, logitek = 8, left joy = 9, right joy = 10
-class LEDJoyMapper(object):
+class LEDJoyMapper:
     def __init__(self):
         self.node_name = rospy.get_name()
         rospy.loginfo("[%s] Initializing " %(self.node_name))
-        
+
         self.joy = None
         self.last_pub_msg = None
         self.last_pub_time = rospy.Time.now()
 
         self.pub_pattern= rospy.Publisher("~change_color_pattern", String, queue_size=1)
-        
+
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
 
         self.button2patterns = {

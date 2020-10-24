@@ -8,7 +8,7 @@ class NodeNotInGraph(Exception):
         return "Node %s not in graph." % self.node
 
 
-class Edge(object):
+class Edge:
     def __init__(self, source, target, weight=1.0, action=None):
         self.source = source
         self.target = target
@@ -25,7 +25,7 @@ class Edge(object):
         return "Edge(%r,%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
 
 
-class Graph(object):
+class Graph:
     def __init__(self, node_label_fn=None):
         self._nodes = set()
         self._edges = dict()

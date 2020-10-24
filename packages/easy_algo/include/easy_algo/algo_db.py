@@ -15,7 +15,7 @@ __all__ = [
 NoneType = type(None)
 
 
-class EasyAlgoDB(object):
+class EasyAlgoDB:
     _singleton = None
 
     pattern = '*.easy_algo_family.yaml'

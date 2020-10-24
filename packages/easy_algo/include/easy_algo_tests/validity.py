@@ -20,13 +20,13 @@ def test_validity1():
     family = db.get_family('F')
     assert family.valid == False
 
-class MyAdderInterface(object):
+class MyAdderInterface:
     pass
 
 class One(MyAdderInterface):
     pass
 
-class Two(object):
+class Two:
     pass
 
 @dtu.unit_test

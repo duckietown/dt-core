@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class SASParams(object):
+class SASParams:
     algorithm = 2
 
 

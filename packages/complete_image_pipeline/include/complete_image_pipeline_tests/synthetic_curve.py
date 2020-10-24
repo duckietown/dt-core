@@ -3,6 +3,7 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
 from complete_image_pipeline_tests.synthetic import dirn, test_synthetic
+from duckietown_utils import logger
 from easy_algo import get_easy_algo_db
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateBeforeCurve
 from localization_templates.template_lane_straight import phi_d_friendly
@@ -158,10 +159,10 @@ def check_coords(localization_template, pose):
     pose_norm = localization_template.pose_from_coords(location)
     location2 = localization_template.coords_from_pose(pose_norm)
 
-    print("pose: %s" % dtu.geo.SE2.friendly(pose))
-    print("location: %s" % phi_d_friendly(location))
-    print("pose_norm: %s" % dtu.geo.SE2.friendly(pose_norm))
-    print("location2: %s" % phi_d_friendly(location2))
+    logger.info("pose: %s" % dtu.geo.SE2.friendly(pose))
+    logger.info("location: %s" % phi_d_friendly(location))
+    logger.info("pose_norm: %s" % dtu.geo.SE2.friendly(pose_norm))
+    logger.info("location2: %s" % phi_d_friendly(location2))
     for k in location.dtype.fields:
         assert_almost_equal(location[k], location2[k])
 

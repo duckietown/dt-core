@@ -6,7 +6,7 @@ from duckietown_msgs.msg import LanePose
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker, MarkerArray
 
-class LanePoseVisualzer(object):
+class LanePoseVisualzer:
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
@@ -39,7 +39,7 @@ class LanePoseVisualzer(object):
         marker.action = Marker.ADD
         marker.lifetime = rospy.Duration.from_sec(0.5)
         marker.type = Marker.ARROW
-        
+
         # Get rotation in quaternion
         yaw_quat = tf.transformations.quaternion_about_axis(-lane_pose_msg.phi,[0,0,1])
         # rospy.loginfo("[%s] quat: %s "%(self.node_name,yaw_quat))
@@ -47,7 +47,7 @@ class LanePoseVisualzer(object):
         marker.pose.orientation.y = yaw_quat[1]
         marker.pose.orientation.z = yaw_quat[2]
         marker.pose.orientation.w = yaw_quat[3]
-        
+
         marker.pose.position.x = 0.0
         marker.pose.position.y = -lane_pose_msg.d
         marker.pose.position.z = 0.0
@@ -77,8 +77,8 @@ if __name__ == '__main__':
     # Create the NodeName object
     node = LanePoseVisualzer()
 
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
-    
+
     # Keep it spinning to keep the node alive
     rospy.spin()

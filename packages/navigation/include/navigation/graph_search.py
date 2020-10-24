@@ -6,7 +6,7 @@ from graph import Graph, Edge
 from utils import *
 
 # Complete the definition of expand_node below
-class GraphSearchProblem(object):
+class GraphSearchProblem:
 	def __init__(self, graph, start, goal):
 		self.graph = graph
 		self.start = start

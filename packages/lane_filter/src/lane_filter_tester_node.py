@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import rospy 
+import rospy
 from duckietown_msgs.msg import SegmentList, Segment
 
-class LaneFilterTesterNode(object):
+class LaneFilterTesterNode:
     def __init__(self):
         #node_name = "Lane Filter Tester"
         pub_fake_segment_list = rospy.Publisher("~segment_list", SegmentList, queue_size=1)

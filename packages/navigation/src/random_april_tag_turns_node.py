@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import String, Int16 #Imports msg
 import math
 
-class RandomAprilTagTurnsNode(object):
+class RandomAprilTagTurnsNode:
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()

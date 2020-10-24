@@ -15,7 +15,7 @@ __all__ = [
 VotingGridVarSpec = collections.namedtuple('VotingGridVarSpec',
                         'min max resolution description units units_display')
 
-class GridHelper(object):
+class GridHelper:
     """
         This class abstracts the task of creating a grid that
         is used for voting.

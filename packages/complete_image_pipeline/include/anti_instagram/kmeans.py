@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import sys
 import time
-
+from duckietown_utils import logger
 # milansc:
 # colors in bgr
 # [60,60,60] is dark grey
@@ -35,7 +35,7 @@ def runKMeans(cv_img, num_colors, init):
     t1 = time.time()
     kmc.fit_predict(imgdata)
     t2 = time.time()
-    print(("fit time: %f" % (t2 - t1)))
+    logger.info(("fit time: %f" % (t2 - t1)))
     trained_centers = kmc.cluster_centers_
     # print trained_centers
     labels = kmc.labels_
@@ -48,7 +48,7 @@ def runKMeans(cv_img, num_colors, init):
         labelcount[i] = np.sum(labels == i)
 
     t2 = time.time()
-    print(("counting labels time: %f" % (t2 - t1)))
+    logger.info(("counting labels time: %f" % (t2 - t1)))
     # print labelcount
     # IPython.embed()
     score = kmc.score(imgdata)
@@ -280,13 +280,13 @@ if __name__ == "__main__":
     img_filename = "test2.jpg"
     if len(sys.argv) > 1:
         img_filename = sys.argv[1]
-        print(img_filename)
+        logger.info(img_filename)
     cv_img = cv2.imread(img_filename)
     t1 = time.process_time()
     testdata = getimgdatapts(cv_img)
     t2 = time.process_time()
-    print("Time taken:")
-    print((t2 - t1))
+    logger.info("Time taken:")
+    logger.info((t2 - t1))
 
     trained = runKMeans(testdata)
     mapping = identifyColors(trained[0], CENTERS)

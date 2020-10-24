@@ -16,7 +16,7 @@ ChecksWithComment = namedtuple('ChecksWithComment', ['checks', 'comment'])
 ProcessorEntry = namedtuple('ProcessorEntry', ['processor', 'prefix_in', 'prefix_out'])
 
 
-class RegressionTest(object):
+class RegressionTest:
 
     def __init__(self, logs, processors=[], analyzers=[], checks=[], topic_videos=[],
                  topic_images=[]):

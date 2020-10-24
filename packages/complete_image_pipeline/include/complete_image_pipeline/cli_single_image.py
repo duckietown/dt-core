@@ -39,25 +39,26 @@ class SingleImagePipeline(D8App):
 
             bgr = dtu.bgr_from_jpg_fn(image_filename)
         else:
-            print("Validating using the ROS image stream...")
+            self.info("Validating using the ROS image stream...")
             import rospy
             from sensor_msgs.msg import CompressedImage
 
             topic_name = os.path.join("/", vehicle_name, "camera_node/image/compressed")
 
-            print("Let's wait for an image. Say cheese!")
+            self.info("Let's wait for an image. Say cheese!")
 
             # Dummy to get ROS message
             rospy.init_node("single_image")
             img_msg = None
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
-                print("Image captured")
+                self.info("Image captured")
             except rospy.ROSException as e:
-                print(
+                self.info(
                     "\n\n\nDidn't get any message: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION "
                     "4.1.9 OR HIGHER!\n\n\n" % (e,)
                 )
+                raise
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info("Picture taken: %s " % str(bgr.shape))

@@ -5,7 +5,7 @@ from std_msgs.msg import String
 
 from duckietown_msgs.srv import ChangePattern
 
-class LEDPatternSwitchNode(object):
+class LEDPatternSwitchNode:
     def __init__(self):
         self.node_name = rospy.get_name()
         # rospy.loginfo("[%s] Initializing " %(self.node_name))
@@ -19,7 +19,7 @@ class LEDPatternSwitchNode(object):
         self.changePattern = rospy.ServiceProxy("~set_pattern",
                                                 ChangePattern)
 
-        
+
         # Construct subscribers
         self.sub_fsm_state = rospy.Subscriber(rospy.get_param("~mode_topic"),FSMState,self.cbFSMState)
 
@@ -33,7 +33,7 @@ class LEDPatternSwitchNode(object):
         self.current_src_name = self.mappings.get(fsm_state_msg.state)
         if self.current_src_name is None:
             rospy.logwarn("[%s] FSMState %s not handled. No msg pass through the switch." %(self.node_name,fsm_state_msg.state))
-        else: 
+        else:
             rospy.loginfo("[%s] Led pattern switched to %s in state %s." %(self.node_name,self.current_src_name,fsm_state_msg.state))
 
     def msgincb(self,msg,src_name):
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     rospy.init_node('LED_pattern_switch_node', anonymous=False)
     # Create the DaguCar object
     node = LEDPatternSwitchNode()
-    # Setup proper shutdown behavior 
+    # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()

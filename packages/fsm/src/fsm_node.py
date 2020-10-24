@@ -4,7 +4,7 @@ import copy
 from duckietown_msgs.msg import FSMState, BoolStamped
 from duckietown_msgs.srv import SetFSMState, SetFSMStateRequest, SetFSMStateResponse
 
-class FSMNode(object):
+class FSMNode:
     def __init__(self):
         self.node_name = rospy.get_name()
 

@@ -12,9 +12,9 @@ logger = dtu.logger
 def calculate_transform(image):
     """
         Returns tuple (bool, float, parameters)
-        
+
         success, health, parameters
-        
+
         parameters['scale']
         parameters['shift']
     """
@@ -38,15 +38,15 @@ def calculate_transform(image):
         centers = centers4
 
     # milansc: for debug reasons
-    print(("Score for 3 colors: " + str(score3)))
-    print(("Score for 4 colors: " + str(score4)))
+    logger.info(("Score for 3 colors: " + str(score3)))
+    logger.info(("Score for 4 colors: " + str(score4)))
 
-    print("...in calculate_transform: found centers:")
-    print(centers)
-    print("...in calculate_transform: found counter:")
-    print(counter)
-    print("...in calculate_transform: found trained centers:")
-    print(trained)
+    logger.info("...in calculate_transform: found centers:")
+    logger.info(centers)
+    logger.info("...in calculate_transform: found counter:")
+    logger.info(counter)
+    logger.info("...in calculate_transform: found trained centers:")
+    logger.info(trained)
 
     mapping = identifyColors(trained, centers)
     r, g, b, cost = getparameters2(mapping, trained, counter, centers)
@@ -81,7 +81,7 @@ def calculate_transform(image):
 #         self.shift = (self.shift+deltashift*IIR_weight)/(1+IIR_weight)
 
 
-class ScaleAndShift(object):
+class ScaleAndShift:
 
     """ Represents the transformation """
 

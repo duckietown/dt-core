@@ -8,7 +8,7 @@ from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import BoolStamped
 
 
-class DecoderNode(object):
+class DecoderNode:
 
     def __init__(self):
         rospy.init_node('image_decoder')
