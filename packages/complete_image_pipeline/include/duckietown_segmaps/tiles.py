@@ -1,10 +1,13 @@
+from typing import cast, List
+
 import numpy as np
 from geometry import SO2_from_angle
 from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment
-from .maps import FRAME_TILE, SegMapFace, SegMapPoint, SegMapSegment, SegmentsMap
+from .maps import PointName, SegMapFace, SegMapPoint, SegMapSegment, SegmentsMap
+from .transformations import FRAME_TILE
 
 YELLOW = dtu.ColorConstants.STR_YELLOW
 WHITE = dtu.ColorConstants.STR_WHITE
@@ -295,7 +298,9 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing,
         points[pre + 't2'] = SegMapPoint(id_frame=FRAME, coords=[x + length, y4, 0])
         points[pre + 't3'] = SegMapPoint(id_frame=FRAME, coords=[x + length, y3, 0])
         faces.append(SegMapFace(color=YELLOW,
-                                points=[pre + 't0', pre + 't1', pre + 't2', pre + 't3']))
+                                points=[PointName(pre + 't0'),
+                                        PointName(pre + 't1'),
+                                        PointName(pre + 't2'), PointName(pre + 't3')]))
 
     ngaps = (tile_size) / (gap_len + dash_len) + 1
     if width_red is not None:
@@ -310,15 +315,17 @@ def get_map_straight_lane(tile_size, width_yellow, width_white, tile_spacing,
         if length > 0:
             add_dash(x, length)
 
-    segments.append(SegMapSegment(color=Segment.WHITE, points=['q1', 'p1']))
-    segments.append(SegMapSegment(color=Segment.WHITE, points=['p2', 'q2']))
-    segments.append(SegMapSegment(color=Segment.YELLOW, points=['q3', 'p3']))
-    segments.append(SegMapSegment(color=Segment.YELLOW, points=['p4', 'q4']))
-    segments.append(SegMapSegment(color=Segment.WHITE, points=['q5', 'p5']))
-    segments.append(SegMapSegment(color=Segment.WHITE, points=['p6', 'q6']))
+    segments.append(SegMapSegment(color=Segment.WHITE, points=[PointName('q1'), PointName('p1')]))
+    segments.append(SegMapSegment(color=Segment.WHITE, points=[PointName('p2'), PointName('q2')]))
+    segments.append(SegMapSegment(color=Segment.YELLOW, points=[PointName('q3'), PointName('p3')]))
+    segments.append(SegMapSegment(color=Segment.YELLOW, points=[PointName('p4'), PointName('q4')]))
+    segments.append(SegMapSegment(color=Segment.WHITE, points=[PointName('q5'), PointName('p5')]))
+    segments.append(SegMapSegment(color=Segment.WHITE, points=[PointName('p6'), PointName('q6')]))
 
-    faces.append(SegMapFace(color=WHITE, points=['p1', 'q1', 'q2', 'p2']))
-    faces.append(SegMapFace(color=WHITE, points=['p5', 'q5', 'q6', 'p6']))
+    faces.append(
+        SegMapFace(color=WHITE, points=[PointName('p1'), PointName('q1'), PointName('q2'), PointName('p2')]))
+    faces.append(
+        SegMapFace(color=WHITE, points=[PointName('p5'), PointName('q5'), PointName('q6'), PointName('p6')]))
 
     if width_red is not None:
         x1 = tile_size / 2 - width_red
@@ -344,7 +351,7 @@ def _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame, color,
     s = len(points)
 
     pre = '%s_' % s
-    names = [pre + 't0', pre + 't1', pre + 't2', pre + 't3']
+    names = cast(List[PointName], [pre + 't0', pre + 't1', pre + 't2', pre + 't3'])
     points[names[0]] = SegMapPoint(id_frame=id_frame, coords=[x1, y1, 0])
     points[names[1]] = SegMapPoint(id_frame=id_frame, coords=[x1, y2, 0])
     points[names[2]] = SegMapPoint(id_frame=id_frame, coords=[x2, y2, 0])
@@ -382,9 +389,9 @@ def __add_rect_by_coords(points, faces, segments,
     s = len(points)
 
     pre = '%s_' % s
-    names = []
+    names: List[PointName] = []
     for i, coord in enumerate(coords):
-        name = '%s%s' % (pre, i)
+        name = PointName('%s%s' % (pre, i))
         names.append(name)
         points[name] = SegMapPoint(id_frame=id_frame,
                                    coords=[coord[0], coord[1], 0])

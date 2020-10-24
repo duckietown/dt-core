@@ -4,7 +4,7 @@ import numpy as np
 import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 
-AA = cv2.LINE_AA  # @UndefinedVariable
+AA = cv2.LINE_AA
 
 
 @dtu.contract(bgr='array', segment_list=SegmentList, width='int,>=1')

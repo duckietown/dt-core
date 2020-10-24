@@ -23,17 +23,19 @@ from line_detector2.image_prep import ImagePrep
 from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector_recovered.visual_state_fancy_display import normalized_to_image, vs_fancy_display
 from localization_templates import FAMILY_LOC_TEMPLATES
-logger =dtu.logger
+
+logger = dtu.logger
+
 
 @dtu.contract(ground_truth='SE2|None', image='array[HxWx3](uint8)')
-def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
+def run_pipeline(image: dtu.NPImageBGR, gpg: GroundProjectionGeometry,
                  rectifier: Rectify,
                  line_detector_name: str,
                  image_prep_name: str,
                  lane_filter_name: str, anti_instagram_name: str,
                  all_details: bool = False,
                  ground_truth=None,
-                 actual_map=None) -> Tuple[Dict[str, np.ndarray], Dict[str, float]]:
+                 actual_map=None) -> Tuple[Dict[str, dtu.NPImageBGR], Dict[str, float]]:
     """
         Image: numpy (H,W,3) == BGR
         Returns a dictionary, res with the following fields:
@@ -196,9 +198,9 @@ def run_pipeline(image: np.ndarray, gpg: GroundProjectionGeometry,
     return res, stats
 
 
-def judge_quality(image, observed_segment_list, predicted_segment_list):
-    res = OrderedDict()
-    stats = OrderedDict()
+def judge_quality(image: dtu.NPImageBGR, observed_segment_list, predicted_segment_list):
+    res = {}
+    stats = {}
 
     #     mask2gray = lambda x: (x * 255).clip(0, 255).astype('uint8')
     H, W, _ = image.shape
@@ -267,8 +269,10 @@ def only_one_color(segment_list, color):
     return SegmentList(segments=segments)
 
 
-def get_grid(shape, L=32, col={0: (255, 0, 0), 1: (0, 255, 0)}):
+def get_grid(shape, L=32, col=None):
     """ Creates a grid of given shape """
+    if col is None:
+        col = {0: (255, 0, 0), 1: (0, 255, 0)}
     H, W = shape
     res = np.zeros((H, W, 3), 'uint8')
     for i in range(H):

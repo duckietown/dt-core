@@ -125,8 +125,10 @@ shell-mount:
 		-v ${DT_ENV_DEVELOPER}/src/dt-ros-commons/packages:/code/catkin_ws/src/dt-ros-commons/packages \
 		-v $(PWD)/Makefile:/code/catkin_ws/src/dt-core/Makefile \
 		-v $(PWD)/packages:/code/catkin_ws/src/dt-core/packages \
+		-v $(PWD)/out:/code/catkin_ws/src/dt-core/out \
+		-v $(PWD)/regression_tests:/code/catkin_ws/src/dt-core/regression_tests \
 		$(tag) \
-		bash -c "source /opt/ros/noetic/setup.bash; source /code/catkin_ws/devel/local_setup.bash; bash"
+		bash -c "source /opt/ros/noetic/setup.bash; source /code/catkin_ws/devel/setup.bash;  bash"
 
 	# source /opt/ros/noetic/setup.bash
 	# catkin build; source /code/catkin_ws/devel/local_setup.bash

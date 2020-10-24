@@ -1,5 +1,5 @@
 import os
-from collections import OrderedDict
+from typing import List
 
 import numpy as np
 
@@ -7,10 +7,10 @@ import duckietown_utils as dtu
 from duckietown_segmaps import FAMILY_SEGMAPS
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-from ground_projection import GroundProjection
-from image_processing.calibration_utils import NoCameraInfoAvailable, NoHomographyInfoAvailable
+from image_processing.more_utils import get_robot_camera_geometry
 from .image_simulation import simulate_image
 
+logger = dtu.logger
 __all__ = [
     'ValidateCalibration',
 ]
@@ -39,20 +39,19 @@ Example:
 
     def define_program_options(self, params):
         params.add_string('output', short='o', help='Output dir',
-                          default='out-validate_calibration')
+                          default='out/validate_calibration')
         params.accept_extra()
 
     def go(self):
         extra = self.options.get_extra()
-        db = get_easy_algo_db()
 
         if len(extra) == 0:
-            query = dtu.get_current_robot_name()
+            robots = [dtu.get_current_robot_name()]
         else:
-            query = extra
+            robots = extra
 
-        robots = db.query('robot', query, raise_if_no_matches=True)
-        self.debug('robots: %s' % sorted(robots))
+        # robots = db.query('robot', query, raise_if_no_matches=True)
+        # self.debug('robots: %s' % sorted(robots))
 
         actual_map_name = 'DT17_scenario_four_way'
 
@@ -64,7 +63,7 @@ Example:
             try_simulated_localization(robot_name)
 
 
-def try_simulated_localization(robot_name):
+def try_simulated_localization(robot_name: str):
     actual_map_name = 'DT17_scenario_straight_straight'
     template = 'DT17_template_straight_straight'
 
@@ -76,7 +75,7 @@ def try_simulated_localization(robot_name):
     phi = np.deg2rad(5)
     max_phi_err = np.deg2rad(5)
     max_d_err = 0.03
-    outd = 'out-try_simulated_localization-%s' % robot_name
+    outd = 'out/try_simulated_localization-%s' % robot_name
 
     from complete_image_pipeline_tests.synthetic import test_synthetic_phi
     # XXX: should not include the _tests module
@@ -87,23 +86,19 @@ def try_simulated_localization(robot_name):
                        max_d_err=max_d_err)
 
 
-def create_visuals(robots, actual_map_name, out):
+def create_visuals(robots: List[str], actual_map_name: str, out: str):
     db = get_easy_algo_db()
     actual_map = db.create_instance(FAMILY_SEGMAPS, actual_map_name)
-    res = OrderedDict()
-    res2 = OrderedDict()
+    res = {}
+    res2 = {}
 
     for i, robot_name in enumerate(sorted(robots)):
-        dtu.logger.info('%d/%d: %s' % (i, len(robots), robot_name))
-        try:
-            gp = GroundProjection(robot_name)
-        except (NoCameraInfoAvailable, NoHomographyInfoAvailable) as e:
-            dtu.logger.warning('skipping %r: %s' % (robot_name, e))
-            continue
-        gpg = gp.get_ground_projection_geometry()
+        logger.info('%d/%d: %s' % (i, len(robots), robot_name))
+        rcg = get_robot_camera_geometry(robot_name)
+
         pose = np.eye(3)
         simulated_data = \
-            simulate_image(actual_map, pose, gpg, blur_sigma=1)
+            simulate_image(actual_map, pose, gpg=rcg.gpg, rectifier=rcg.rectifier, blur_sigma=1)
         res[robot_name] = simulated_data.rectified_synthetic_bgr
         res2[robot_name] = simulated_data.distorted_synthetic_bgr
     if not res:

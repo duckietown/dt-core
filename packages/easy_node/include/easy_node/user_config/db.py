@@ -5,12 +5,11 @@ import yaml
 
 import duckietown_utils as dtu
 from easy_node.node_description.configuration import EasyNodeConfig, load_configuration_for_nodes_in_package
-from easy_node.user_config.get_configuration_files import get_all_configuration_files
+from .get_configuration_files import get_all_configuration_files
 
 
 class ValidationError(Exception):
     pass
-
 
 
 class ConfigDB():
@@ -26,7 +25,7 @@ class ConfigDB():
 
         packages = dtu.get_list_of_packages_in_catkin_ws()
 
-        dtu.logger.debug('Reading %d packages configuration...' % len(packages))
+        dtu.logger.debug(f'Reading packages configuration for {packages}')
         for p in packages:
             self.package2nodes[p] = load_configuration_for_nodes_in_package(p)
 
@@ -137,7 +136,7 @@ class ConfigDB():
                            values, origin, origin_filename, overridden)
 
 
-def get_config_db()->ConfigDB:
+def get_config_db() -> ConfigDB:
     if ConfigDB._singleton is None:
         ConfigDB._singleton = dtu.get_cached('ConfigDB', ConfigDB)
     return ConfigDB._singleton

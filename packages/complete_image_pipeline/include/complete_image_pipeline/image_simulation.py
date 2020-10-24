@@ -1,4 +1,4 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
@@ -6,24 +6,29 @@ from geometry import SE2value
 
 import duckietown_utils as dtu
 from duckietown_segmaps.draw_map_on_images import plot_map
-from duckietown_segmaps.maps import FRAME_AXLE
+from duckietown_segmaps.maps import FRAME_AXLE, SegmentsMap
 from duckietown_segmaps.transformations import TransformationsInfo
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
+
+from image_processing.rectification import Rectify
+
 
 __all__ = [
     'simulate_image',
 ]
 
-SimulationData = namedtuple('SimulationData',
-                            'rectified_synthetic_bgr distorted_synthetic_bgr rectified_segments_bgr')
+
+@dataclass
+class SimulationData:
+    rectified_synthetic_bgr: np.ndarray
+    distorted_synthetic_bgr: np.ndarray
+    rectified_segments_bgr: np.ndarray
 
 
-# @dtu.contract(gpg=GroundProjectionGeometry, pose='SE2', returns=SimulationData)
-def simulate_image(sm_orig, pose: SE2value, gpg: GroundProjectionGeometry,
+def simulate_image(sm_orig: SegmentsMap, pose: SE2value, gpg: GroundProjectionGeometry,
+                   rectifier: Rectify,
                    blur_sigma: float) -> SimulationData:
-    camera_info = gpg.get_camera_info()
-    H = camera_info.height
-    W = camera_info.width
+    H, W = gpg.get_shape()
     #     H_pad = int(0.3*H)
     #     W_pad = int(0.3*W)
     #     H_padded = H + H_pad
@@ -46,7 +51,7 @@ def simulate_image(sm_orig, pose: SE2value, gpg: GroundProjectionGeometry,
                                   do_ground=True, do_faces=False,
                                   do_horizon=False)
 
-    distorted_synthetic = gpg.distort(rectified_synthetic)
+    distorted_synthetic = rectifier.distort(rectified_synthetic)
 
     distorted_synthetic = add_noise(distorted_synthetic)
     #     distorted_synthetic = cv2.medianBlur(distorted_synthetic, 3)

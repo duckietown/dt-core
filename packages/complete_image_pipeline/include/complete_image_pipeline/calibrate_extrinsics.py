@@ -35,7 +35,7 @@ class CalibrateExtrinsics(D8App):
         # noinspection PyUnresolvedReferences
         the_input = self.options.input
         if output is None:
-            output = 'out-calibrate-extrinsics'  # + dtu.get_md5(self.options.image)[:6]
+            output = 'out/calibrate-extrinsics'  # + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
 
         if the_input is None:

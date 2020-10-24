@@ -27,7 +27,7 @@ class SingleImagePipeline(D8App):
         # noinspection PyUnresolvedReferences
         output = self.options.output
         if output is None:
-            output = 'out-pipeline'  # + dtu.get_md5(self.options.image)[:6]
+            output = 'out/pipeline'  # + dtu.get_md5(self.options.image)[:6]
             self.info('No --output given, using %s' % output)
 
         # noinspection PyUnresolvedReferences

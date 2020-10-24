@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-import duckietown_utils as dtu
+from typing import Optional
 
 __all__ = [
     'ProcessorInterface',
@@ -11,7 +11,7 @@ __all__ = [
 class ProcessorUtilsInterface(object, metaclass=ABCMeta):
 
     @abstractmethod
-    def write_stat(self, t, name, value):
+    def write_stat(self, name: str, value, t: Optional[float] = None, prefix=()):
         pass
 
     @abstractmethod
@@ -20,11 +20,9 @@ class ProcessorUtilsInterface(object, metaclass=ABCMeta):
 
 
 class ProcessorInterface(object, metaclass=ABCMeta):
-
     FAMILY = 'processor'
 
     @abstractmethod
-    @dtu.contract(utils=ProcessorUtilsInterface)
-    def process_log(self, bag_in, prefix, bag_out, utils):
-        pass
-
+    def process_log(self, bag_in, prefix: str, bag_out, prefix_out: str,
+                    utils: ProcessorUtilsInterface):
+        ...

@@ -1,16 +1,18 @@
 import numpy as np
 from geometry import SE2_from_xytheta
 
-from duckietown_segmaps.maps import FAMILY_SEGMAPS, FRAME_TILE, SegmentsMap
 from duckietown_segmaps.transformations import TransformationsInfo
 from easy_algo import get_easy_algo_db
+from .maps import FAMILY_SEGMAPS, SegmentsMap
+from .transformations import FRAME_GLOBAL, FRAME_TILE
+
+__all__ = ['compose_maps']
 
 
-def compose_maps(grid_spacing, tiles):
+def compose_maps(grid_spacing, tiles) -> SegmentsMap:
     db = get_easy_algo_db()
 
     tinfo = TransformationsInfo()
-    FRAME_GLOBAL = 'global'
 
     partial = []
 

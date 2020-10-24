@@ -1,37 +1,54 @@
-from collections import namedtuple
-from typing import Dict, Optional
+from dataclasses import dataclass, replace
+from typing import Dict, List, NewType, Optional
 
 import numpy as np
+from geometry import SE2value
 from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
+from .transformations import FRAME_AXLE, FRAME_GLOBAL, FrameName, TransformationsInfo
 
-SegMapPoint = namedtuple('SegMapPoint', 'id_frame coords')
-SegMapSegment = namedtuple('SegMapSegment', 'points color')
-SegMapFace = namedtuple('SegMapFace', 'points color')
+PointName = NewType('PointName', str)
 
-FAMILY_SEGMAPS = 'segmap'
-FRAME_AXLE = 'axle'
-FRAME_TILE = 'tile'
-FRAME_GLOBAL = 'global'
+
+@dataclass
+class SegMapPoint:
+    id_frame: FrameName
+    coords: List[float]
+
+
+@dataclass
+class SegMapSegment:
+    points: List[PointName]
+    color: object
+
+
+@dataclass
+class SegMapFace:
+    points: List[PointName]
+    color: object
+
 
 __all__ = [
     'SegMapSegment',
     'SegMapPoint',
     'SegMapFace',
-    'FRAME_AXLE',
-    'FRAME_TILE',
-    'FRAME_GLOBAL',
+
     'FAMILY_SEGMAPS',
     'SegmentsMap',
 ]
 
+FAMILY_SEGMAPS = FrameName('segmap')
+
 
 class SegmentsMap:
+    points: Dict[str, SegMapPoint]
+    segments: List[SegMapSegment]
+    faces: List[SegMapFace]
 
-    @dtu.contract(points=dict, segments=list, faces=list, constants='None|dict(str:float)')
-    def __init__(self, points: dict, segments: list, faces: list, constants: Optional[
-        Dict[str, float]] = None):
+    def __init__(self, points: Dict[str, SegMapPoint], segments: List[SegMapSegment],
+                 faces: List[SegMapFace], constants: Optional[
+            Dict[str, float]] = None):
         if constants is None:
             constants = {}
         self.points = points
@@ -51,7 +68,7 @@ class SegmentsMap:
 
             coords = p.coords
             if not isinstance(coords, np.ndarray):
-                self.points[k] = p._replace(coords=np.array(coords))
+                self.points[k] = replace(p, coords=np.array(coords))
 
         for S in self.segments:
             dtu.check_isinstance(S, SegMapSegment)
@@ -78,7 +95,7 @@ class SegmentsMap:
                     raise ValueError(msg)
 
     @staticmethod
-    def merge(sms):
+    def merge(sms: "List[SegmentsMap]") -> "SegmentsMap":
         points = {}
         segments = []
         faces = []
@@ -96,7 +113,7 @@ class SegmentsMap:
                            segments=segments, constants=constants)
 
     @staticmethod
-    def from_yaml(data):
+    def from_yaml(data) -> "SegmentsMap":
         points = data['points']
         faces = data['faces']
         segments = data['segments']
@@ -119,8 +136,8 @@ class SegmentsMap:
         return SegmentsMap(points=points2, faces=faces2, segments=segments2)
 
 
-@dtu.contract(sm=SegmentsMap, ground_truth='SE2|None')
-def plot_map_and_segments(sm: SegmentsMap, tinfo, segments, dpi=120, ground_truth=None,
+def plot_map_and_segments(sm: SegmentsMap, tinfo: TransformationsInfo, segments: List[SegMapSegment],
+                          dpi: int = 120, ground_truth: Optional[SE2value] = None,
                           bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
     """ Returns a BGR image """
     figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
@@ -150,7 +167,7 @@ def plot_map_and_segments(sm: SegmentsMap, tinfo, segments, dpi=120, ground_trut
     return a.get_bgr()
 
 
-def _plot_detected_segments(tinfo, segments, pylab):
+def _plot_detected_segments(tinfo: TransformationsInfo, segments: List[SegMapSegment], pylab):
     for segment in segments:
         p1 = segment.points[0]
         p2 = segment.points[1]
@@ -171,8 +188,7 @@ def _plot_detected_segments(tinfo, segments, pylab):
         pylab.plot([p_hat[0], o[0]], [p_hat[1], o[1]], 'r-')
 
 
-@dtu.contract(sm=SegmentsMap)
-def _plot_map_segments(sm, pylab, expect_frame, plot_ref_segments=True):
+def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref_segments: bool = True):
     for face in sm.faces:
         xs = []
         ys = []
@@ -217,27 +233,28 @@ def _plot_map_segments(sm, pylab, expect_frame, plot_ref_segments=True):
             pylab.plot([center[0], center2[0]], [center[1], center2[1]], color)
 
 
-def get_normal_outward_for_segment_old(w1, w2):
-    """ Outward points towards black """
-    d = w2 - w1
-    #   w2
-    #   |  --->
-    #   w1
-    dn = np.linalg.norm(d)
-    if dn == 0:
-        msg = 'Could not compute normal for segment with two points equal:'
-        msg += ' %s %s' % (w1, w2)
-        raise ValueError(msg)
-    d = d / dn
+#
+# def get_normal_outward_for_segment_old(w1: np.ndarray, w2: np.ndarray) -> np.ndarray:
+#     """ Outward points towards black """
+#     d = w2 - w1
+#     #   w2
+#     #   |  --->
+#     #   w1
+#     dn = np.linalg.norm(d)
+#     if dn == 0:
+#         msg = 'Could not compute normal for segment with two points equal:'
+#         msg += ' %s %s' % (w1, w2)
+#         raise ValueError(msg)
+#     d = d / dn
+#
+#     z = np.array([0, 0, 1])
+#     c = np.cross(d, z)
+#     if False:
+#         assert_almost_equal(np.linalg.norm(c), 1.0)
+#     return c
 
-    z = np.array([0, 0, 1])
-    c = np.cross(d, z)
-    if False:
-        assert_almost_equal(np.linalg.norm(c), 1.0)
-    return c
 
-
-def get_normal_outward_for_segment(w1, w2):
+def get_normal_outward_for_segment(w1: np.ndarray, w2: np.ndarray) -> np.ndarray:
     """ Outward points towards black. """
     d = w2 - w1
     #   w2
@@ -271,18 +288,18 @@ assert_almost_equal(np.array([0, -1, 0]),
                     get_normal_outward_for_segment(np.array([0, 0]), np.array([2, 0])))
 
 
-def add_prefix(sm, prefix):
+def add_prefix(sm: SegmentsMap, prefix: str) -> SegmentsMap:
     points = {}
     faces = []
     segments = []
     for k, v in sm.points.items():
         points[prefix + k] = v
     for face in sm.faces:
-        points2 = tuple(prefix + _ for _ in face.points)
-        faces.append(face._replace(points=points2))
+        points2 = list(PointName(prefix + _) for _ in face.points)
+        faces.append(replace(face, points=points2))
     for segment in sm.segments:
-        points2 = tuple(prefix + _ for _ in segment.points)
-        segments.append(segment._replace(points=points2))
+        points2 = list(PointName(prefix + _) for _ in segment.points)
+        segments.append(replace(segment, points=points2))
 
     return SegmentsMap(points=points, faces=faces, segments=segments,
                        constants=sm.constants)

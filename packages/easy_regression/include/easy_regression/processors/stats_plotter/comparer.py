@@ -1,25 +1,27 @@
-from collections import defaultdict, namedtuple
 import itertools
+from collections import defaultdict
+from typing import List
+
+import numpy as np
 
 import duckietown_utils as dtu
+import rospy
 from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface
-from easy_regression.processors.stats_plotter.stats_plotter import PlotSignalSpec_from_yaml, \
-    PlotSignalSpec
+from easy_regression.processors.stats_plotter.stats_plotter import PlotSignalSpec, PlotSignalSpec_from_yaml
 from grid_helper.grid_helper_visualization import convert_unit
-import numpy as np
-import rospy
 
 
 class Comparer(ProcessorInterface):
+    signals: List[PlotSignalSpec]
+    plot_name: str
 
     @staticmethod
     def from_yaml(signals, **kwargs):
         signals = list(map(PlotSignalSpec_from_yaml, signals))
         return Comparer(signals=signals, **kwargs)
 
-    @dtu.contract(signals='list($PlotSignalSpec)')
-    def __init__(self, signals, plot_name):
+    def __init__(self, signals: List[PlotSignalSpec], plot_name: str):
         self.signals = signals
         self.plot_name = plot_name
 
@@ -54,7 +56,6 @@ def read_data_for_signals(bag_in, prefix_in, signals):
 
 
 def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
-
     topic2messages = read_data_for_signals(bag_in, prefix_in, signals)
 
     n = len(topic2messages)
@@ -72,7 +73,7 @@ def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name)
 
         bgr = _do_plot(s1, d1, s2, d2)
 
-        t_inf = rospy.Time.from_sec(bag_in.get_end_time())  # @UndefinedVariable
+        t_inf = rospy.Time.from_sec(bag_in.get_end_time())
         omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
         otopic = prefix_out + '/' + plot_name + '_%s_%s' % (i, j)
         bag_out.write(otopic, omsg, t=t_inf)
@@ -100,4 +101,3 @@ def _do_plot(s1, d1, s2, d2):
 
     bgr = a.get_bgr()
     return bgr
-

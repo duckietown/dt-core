@@ -94,7 +94,7 @@ class ProcessingTimingStats(object):
                 msg = 'Did not call decided_to_process() before?'
                 raise ValueError(msg)
 
-    #         t1 = rospy.get_time()   # @UndefinedVariable
+    #         t1 = rospy.get_time()
             t1 = time.time()
             c1 = time.process_time()
 
@@ -102,7 +102,7 @@ class ProcessingTimingStats(object):
                 yield
             finally:
                 c2 = time.process_time()
-    #             t2 = rospy.get_time()   # @UndefinedVariable
+    #             t2 = rospy.get_time()
                 t2 = time.time()
                 delta_clock = c2 - c1
                 delta_wall = t2 - t1
@@ -160,7 +160,7 @@ class SingleStat(object):
         self.values = []
 
     def sample(self, v=None):
-#         t = rospy.get_time()  # @UndefinedVariable
+#         t = rospy.get_time()
         t = time.time()
         self.times.append(t)
         self.values.append(v)

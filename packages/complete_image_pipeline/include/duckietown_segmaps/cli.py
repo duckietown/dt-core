@@ -7,8 +7,11 @@ import duckietown_utils as dtu
 from complete_image_pipeline.image_simulation import simulate_image, SimulationData
 from duckietown_utils.cli import D8App
 from easy_algo import get_easy_algo_db
-from ground_projection.ground_projection_interface import get_ground_projection
-from .maps import _plot_map_segments, FAMILY_SEGMAPS
+from image_processing.more_utils import get_robot_camera_geometry
+from .maps import _plot_map_segments, FAMILY_SEGMAPS, SegmentsMap
+
+__all__ = ['DisplayTileAndMaps', 'simulate_camera_view']
+logger = dtu.logger
 
 
 class DisplayTileAndMaps(D8App):
@@ -31,7 +34,7 @@ For example:
         params.accept_extra()
 
     def go(self):
-        out = 'out-maps'
+        out = 'out/maps'
         extra = self.options.get_extra()
 
         if len(extra) == 0:
@@ -47,24 +50,25 @@ For example:
             display_map(id_map, out)
 
 
-def display_map(id_map, out):
-    dtu.logger.info('id_map == %s' % id_map)
+def display_map(id_map: str, out: str):
+    logger.info(f'id_map = {id_map}')
     db = get_easy_algo_db()
     smap = db.create_instance(FAMILY_SEGMAPS, id_map)
     texture_png = get_texture(smap, dpi=600)
-    fn = os.path.join(out, '%s-texture.png' % (id_map))
+    fn = os.path.join(out, id_map, f'{id_map}-texture.png')
     dtu.write_data_to_file(texture_png, fn)
 
-    simdata = simulate_camera_view(smap)
+    simdata = simulate_camera_view(smap, robot_name=dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS)
 
-    fn = os.path.join(out, '%s-view.jpg' % (id_map))
+    fn = os.path.join(out, id_map, f'{id_map}-rectified_synthetic.jpg')
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_synthetic_bgr, fn)
-    fn = os.path.join(out, '%s-segments.jpg' % (id_map))
+    fn = os.path.join(out, id_map, f'{id_map}-rectified_segments.jpg')
     dtu.write_bgr_to_file_as_jpg(simdata.rectified_segments_bgr, fn)
+    fn = os.path.join(out, id_map, f'{id_map}-distorted_synthetic.jpg')
+    dtu.write_bgr_to_file_as_jpg(simdata.distorted_synthetic_bgr, fn)
 
 
-@dtu.contract(returns='str', dpi=int)
-def get_texture(smap, dpi):
+def get_texture(smap: SegmentsMap, dpi: int) -> bytes:
     figure_args = dict(figsize=(2, 2), facecolor='green')
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
     frames = list(set(_.id_frame for _ in smap.points.values()))
@@ -79,12 +83,9 @@ def get_texture(smap, dpi):
     return png
 
 
-@dtu.contract(returns=SimulationData)
-def simulate_camera_view(sm, robot_name='shamrock'):
-    gp = get_ground_projection(robot_name)
-    # GroundProjectionGeometry
-    gpg = gp.get_ground_projection_geometry()
+def simulate_camera_view(sm: SegmentsMap, robot_name: str) -> SimulationData:
+    rcg = get_robot_camera_geometry(robot_name)
 
     pose = dtu.geo.SE2_from_translation_angle([0, -0.05], -np.deg2rad(-5))
-    res = simulate_image(sm, pose, gpg, blur_sigma=0.3)
+    res = simulate_image(sm, pose, gpg=rcg.gpg, rectifier=rcg.rectifier, blur_sigma=0.3)
     return res

@@ -1,6 +1,6 @@
 import cv2
 import duckietown_utils as dtu
-    
+
 import numpy as np
 
 # candidates to be part of "duckietown_utils"
@@ -25,12 +25,12 @@ def read_file(filename):
         raise ValueError(msg)
     return img
 
-def wrap_test_main(f): 
+def wrap_test_main(f):
     import traceback, sys
     try:
         f()
     except (AssertionError, Exception) as e:
-        dtu.logger.error(traceback.format_exc(e))
+        dtu.logger.error(traceback.format_exc())
         dtu.logger.error('Exiting with error code 1')
         sys.exit(1)
     except:  # another weird exception

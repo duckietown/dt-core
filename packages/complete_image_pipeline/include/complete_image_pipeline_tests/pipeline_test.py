@@ -1,6 +1,6 @@
 import duckietown_utils as dtu
 from complete_image_pipeline.pipeline import run_pipeline
-from ground_projection import GroundProjection
+from image_processing.more_utils import get_robot_camera_geometry
 
 
 @dtu.unit_test
@@ -13,9 +13,9 @@ def single_image1():
     lane_filter_name = 'baseline'
     anti_instagram_name = 'baseline'
     robot_name = dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS
-    gp = GroundProjection(robot_name)
+    rcg = get_robot_camera_geometry(robot_name)
 
-    res, _stats = run_pipeline(image_cv, gp,
+    res, _stats = run_pipeline(image_cv, gpg=rcg.gpg, rectifier=rcg.rectifier,
                                line_detector_name=line_detector_name,
                                image_prep_name=image_prep_name,
                                lane_filter_name=lane_filter_name,

@@ -23,22 +23,22 @@ class EasyNode:
     def __init__(self, package_name, node_type_name):
         self.package_name = package_name
         self.node_type_name = node_type_name
-        rospy.init_node(node_type_name, anonymous=False)  # @UndefinedVariable
+        rospy.init_node(node_type_name, anonymous=False)
 
     def _msg(self, msg):
         return '%s | %s' % (self.node_type_name, msg)
 
     def info(self, msg):
         msg = self._msg(msg)
-        rospy.loginfo(msg)  # @UndefinedVariable
+        rospy.loginfo(msg)
 
     def debug(self, msg):
         msg = self._msg(msg)
-        rospy.logdebug(msg)  # @UndefinedVariable
+        rospy.logdebug(msg)
 
     def error(self, msg):
         msg = self._msg(msg)
-        rospy.logerror(msg)  # @UndefinedVariable
+        rospy.logerror(msg)
 
     def on_init(self):
         self.info('on_init (default)')
@@ -87,8 +87,8 @@ class EasyNode:
 
         for s in subscriptions.values():
             callback = Callback(node=self, subscription=s)
-            S = rospy.Subscriber(s.topic, s.type, callback, # @UndefinedVariable
-                                 queue_size=s.queue_size)  # @UndefinedVariable
+            S = rospy.Subscriber(s.topic, s.type, callback,
+                                 queue_size=s.queue_size)
             sp = SubscriberProxy(S)
             setattr(self.subscribers, s.name, sp)
 
@@ -162,7 +162,7 @@ class EasyNode:
             pass
         self.publishers = Publishers()
         for s in publishers.values():
-            # @UndefinedVariable
+
             P = rospy.Publisher(
                 s.topic, s.type, queue_size=s.queue_size, latch=s.latch)
             setattr(self.publishers, s.name, P)
@@ -197,14 +197,14 @@ class EasyNode:
 
         for p in parameters.values():
             try:
-                val = qr.values.get(p.name)  # @UndefinedVariable
+                val = qr.values.get(p.name)
             except KeyError:
                 msg = 'Could not load required parameter %r.' % p.name
                 raise  dtu.DTConfigException(msg)
 
             # write to parameter server, for transparency
             if val is not None:  # we cannot set None parameters
-                rospy.set_param('~' + p.name, val)  # @UndefinedVariable
+                rospy.set_param('~' + p.name, val)
 
             setattr(self.config, p.name, val)
             values[p.name] = val
@@ -212,8 +212,8 @@ class EasyNode:
         self. _on_parameters_changed(first_time=True, values=values)
 
         duration = self.config.en_update_params_interval
-        duration = rospy.Duration.from_sec(duration)  # @UndefinedVariable
-        rospy.Timer(duration, self._update_parameters)  # @UndefinedVariable
+        duration = rospy.Duration.from_sec(duration)
+        rospy.Timer(duration, self._update_parameters)
 
     def _on_parameters_changed(self, first_time, values):
         try:
@@ -245,7 +245,7 @@ class EasyNode:
         parameters = self._configuration.parameters
         changed = {}
         for p in parameters.values():
-            val = rospy.get_param('~' + p.name)  # @UndefinedVariable
+            val = rospy.get_param('~' + p.name)
             current = getattr(self.config, p.name)
             s1 = current.__repr__()
             s2 = val.__repr__()
@@ -255,10 +255,10 @@ class EasyNode:
         return changed
 
     def spin(self):
-        rospy.on_shutdown(self.on_shutdown)  # @UndefinedVariable
+        rospy.on_shutdown(self.on_shutdown)
         self._init()
         self.on_init()
-        rospy.spin()  # @UndefinedVariable
+        rospy.spin()
 
 
 class UpdatedParameters(UserDict):

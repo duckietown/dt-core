@@ -1,7 +1,7 @@
 import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext
-from easy_regression import ProcessorInterface
+from easy_regression import ProcessorInterface, ProcessorUtilsInterface
 from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
 from line_detector_recovered.visual_state_fancy_display import vs_fancy_display
 
@@ -13,7 +13,8 @@ class LineDetectorProcessor(ProcessorInterface):
         self.image_prep = image_prep
         self.line_detector = line_detector
 
-    def process_log(self, bag_in, bag_out):
+    def process_log(self,  bag_in, prefix: str, bag_out, prefix_out: str,
+                    utils: ProcessorUtilsInterface):
         algo_db = get_easy_algo_db()
         line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, self.line_detector)
         image_prep = algo_db.create_instance('image_prep', self.image_prep)

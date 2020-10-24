@@ -6,3 +6,5 @@ comptests-z6
 # ATags3 Python bindings
 dt_apriltags
 
+procgraph-z6
+ros_node_utils>=2.0.0

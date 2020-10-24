@@ -136,7 +136,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
     # output_filename = os.path.join('tmp', plot_name +'.png')
     # dtu.write_bgr_as_jpg(bgr, output_filename)
 
-    t_inf = rospy.Time.from_sec(bag_in.get_end_time())  # @UndefinedVariable
+    t_inf = rospy.Time.from_sec(bag_in.get_end_time())
     omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
     otopic = prefix_out + '/' + plot_name
     bag_out.write(otopic, omsg, t=t_inf)

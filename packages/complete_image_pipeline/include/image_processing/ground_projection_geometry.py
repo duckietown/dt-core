@@ -1,19 +1,29 @@
+from typing import NewType, Optional, Tuple
+
 import cv2
 import numpy as np
 
+from duckietown_utils import NPImageBGR
+from sensor_msgs.msg import CameraInfo
 from .constants import BOARD_HEIGHT, BOARD_WIDTH, SQUARE_SIZE, X_OFFSET, Y_OFFSET
-
+import duckietown_utils as dtu
 
 class Point:
     """
     Point class. Convenience class for storing ROS-independent 3D points.
 
     """
+    x: float
+    y: float
+    z: Optional[float]
 
     def __init__(self, x=None, y=None, z=None):
         self.x = x  #: x-coordinate
         self.y = y  #: y-coordinate
         self.z = z  #: z-coordinate
+
+    def __repr__(self):
+        return f'P({self.x}, {self.y}, {self.z})'
 
     @staticmethod
     def from_message(msg) -> "Point":
@@ -39,6 +49,11 @@ class Point:
         return Point(x, y, z)
 
 
+ImageSpaceResdepPoint = NewType('ImageSpaceResdepPoint', Point)
+ImageSpaceNormalizedPoint = NewType('ImageSpaceNormalizedPoint', Point)
+GroundPoint = NewType('GroundPoint', Point)
+
+
 class GroundProjectionGeometry:
     """
     Handles the Ground Projection operations.
@@ -57,15 +72,27 @@ class GroundProjectionGeometry:
     """
     im_width: int
     im_height: int
-    homography: np.ndarray
+    H: np.ndarray
 
     def __init__(self, im_width: int, im_height: int, homography: np.ndarray):
+
         self.im_width = im_width
         self.im_height = im_height
-        self.H = np.array(homography).reshape((3, 3))
+        H = np.array(homography)
+        if H.shape != (3,3):
+            H0 = H
+            H = H0.reshape((3, 3))
+            dtu.logger.warning(f'reshaping your homography matrix:\nfrom\n{H0}\nto\n{H}')
+
+
+        self.H = H
         self.Hinv = np.linalg.inv(self.H)
 
-    def vector2pixel(self, vec: Point) -> Point:
+    def get_shape(self) -> Tuple[int, int]:
+        """ returns height, width of image """
+        return self.im_height, self.im_width
+
+    def vector2pixel(self, vec: ImageSpaceNormalizedPoint) -> ImageSpaceResdepPoint:
         """
         Converts a ``[0,1] X [0,1]`` representation to ``[0, W] X [0, H]`` (from normalized to image
         coordinates).
@@ -81,12 +108,12 @@ class GroundProjectionGeometry:
         """
         x = self.im_width * vec.x
         y = self.im_height * vec.y
-        return Point(x, y)
+        return ImageSpaceResdepPoint(Point(x, y))
 
-    def pixel2vector(self, pixel: Point) -> Point:
+    def pixel2vector(self, pixel: ImageSpaceResdepPoint) -> ImageSpaceNormalizedPoint:
         """
-        Converts a ``[0,W] X [0,H]`` representation to ``[0, 1] X [0, 1]`` (from image to normalized
-        coordinates).
+        Converts a ``[0,W] X [0,H]`` representation to ``[0, 1] X [0, 1]``
+        (from image to normalized coordinates).
 
         Args:
             pixel (:py:class:`Point`): A :py:class:`Point` object in image coordinates. Only the ``x`` and
@@ -99,38 +126,37 @@ class GroundProjectionGeometry:
         """
         x = pixel.x / self.im_width
         y = pixel.y / self.im_height
-        return Point(x, y)
+        return ImageSpaceNormalizedPoint(Point(x, y))
 
-    def pixel2ground(self, pixel: Point) -> Point:
+    def pixel2ground(self, pixel: ImageSpaceResdepPoint) -> GroundPoint:
         """
-        Projects a normalized pixel (``[0, 1] X [0, 1]``) to the ground plane using the homography matrix.
+        Projects a normalized pixel (``[0, 1] X [0, 1]``) to the ground
+        plane using the homography matrix.
 
         Args:
-            pixel (:py:class:`Point`): A :py:class:`Point` object in normalized coordinates. Only the ``x``
-            and ``y`` values are used.
+            pixel (:py:class:`Point`): A :py:class:`Point` object in
+            normalized coordinates. Only the ``x``and ``y`` values are used.
 
         Returns:
-            :py:class:`Point` : A :py:class:`Point` object on the ground plane. Only the ``x`` and ``y``
-            values are used.
+            :py:class:`Point` : A :py:class:`Point` object on the ground plane.
+            Only the ``x`` and ``y`` values are used.
 
         """
+
         uv_raw = np.array([pixel.x, pixel.y, 1.0])
         ground_point = np.dot(self.H, uv_raw)
-        point = Point()
         x = ground_point[0]
         y = ground_point[1]
         z = ground_point[2]
-        point.x = x / z
-        point.y = y / z
-        point.z = 0.0
-        return point
+        a = x / z
+        b = y / z
+        return GroundPoint(Point(a, b, 0.0))
 
-    def vector2ground(self, vec: Point) -> Point:
-        pixel = self.vector2pixel(vec)
+    def vector2ground(self, vec: ImageSpaceNormalizedPoint) -> GroundPoint:
+        pixel: ImageSpaceResdepPoint = self.vector2pixel(vec)
         return self.pixel2ground(pixel)
 
-
-    def ground2pixel(self, point: Point) -> Point:
+    def ground2pixel(self, point: GroundPoint) -> ImageSpaceNormalizedPoint:
         """
         Projects a point on the ground plane to a normalized pixel (``[0, 1] X [0, 1]``) using the
         homography matrix.
@@ -157,19 +183,18 @@ class GroundProjectionGeometry:
         image_point = np.dot(self.Hinv, ground_point)
         image_point = image_point / image_point[2]
 
-        pixel = Point()
-        pixel.x = image_point[0]
-        pixel.y = image_point[1]
+        x = image_point[0]
+        y = image_point[1]
 
-        return pixel
+        return ImageSpaceNormalizedPoint(Point(x, y))
 
     @staticmethod
-    def estimate_homography(cv_image_rectified,
-                            board_w=BOARD_WIDTH,
-                            board_h=BOARD_HEIGHT,
+    def estimate_homography(cv_image_rectified: NPImageBGR,
+                            board_w: int = BOARD_WIDTH,
+                            board_h: int = BOARD_HEIGHT,
                             square_size: float = SQUARE_SIZE,
-                            x_offset=X_OFFSET,
-                            y_offset=Y_OFFSET):
+                            x_offset: float = X_OFFSET,
+                            y_offset: float = Y_OFFSET) -> Tuple["GroundProjectionGeometry", str]:
         """
         Estimates the homography matrix from an image with a calibration board.
 
@@ -257,3 +282,4 @@ class GroundProjectionGeometry:
                                      im_width=cv_image_rectified.shape[0],
                                      homography=H)
         return e, status
+

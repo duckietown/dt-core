@@ -1,6 +1,7 @@
 import os
 import shutil
 import time
+from dataclasses import dataclass
 
 import numpy as np
 import yaml
@@ -218,18 +219,18 @@ def check_camera_info_sane_for_DB17(camera_info: CameraInfo):
 def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
     try:
         cam_info = CameraInfo()
-        cam_info.width = calib_data[b'image_width']
-        cam_info.height = calib_data[b'image_height']
+        cam_info.width = calib_data['image_width']
+        cam_info.height = calib_data['image_height']
         #         cam_info.K = np.matrix(calib_data['camera_matrix']['data']).reshape((3,3))
         #         cam_info.D = np.matrix(calib_data['distortion_coefficients']['data']).reshape((1,5))
         #         cam_info.R = np.matrix(calib_data['rectification_matrix']['data']).reshape((3,3))
         #         cam_info.P = np.matrix(calib_data['projection_matrix']['data']).reshape((3,4))
-        cam_info.K = calib_data[b'camera_matrix'][b'data']
-        cam_info.D = calib_data[b'distortion_coefficients'][b'data']
-        cam_info.R = calib_data[b'rectification_matrix'][b'data']
-        cam_info.P = calib_data[b'projection_matrix'][b'data']
+        cam_info.K = calib_data['camera_matrix']['data']
+        cam_info.D = calib_data['distortion_coefficients']['data']
+        cam_info.R = calib_data['rectification_matrix']['data']
+        cam_info.P = calib_data['projection_matrix']['data']
 
-        cam_info.distortion_model = calib_data[b'distortion_model']
+        cam_info.distortion_model = calib_data['distortion_model']
         return cam_info
     except Exception as e:
         msg = 'Could not interpret data:'
@@ -237,7 +238,7 @@ def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
         dtu.raise_wrapped(InvalidCameraInfo, e, msg)
 
 
-def get_camera_info_config_file(robot_name: str):
+def get_camera_info_config_file(robot_name: str) -> str:
     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 
@@ -250,13 +251,12 @@ def get_camera_info_config_file(robot_name: str):
         elif os.path.exists(fn_default):
             return fn_default
         else:
-            print('%s does not exist and neither does %s' % (fn, fn_default))
+            dtu.logger.debug('%s does not exist and neither does %s' % (fn, fn_default))
 
     msg = 'Cannot find intrinsic file for robot %r;\n%s' % (robot_name, roots)
     raise NoCameraInfoAvailable(msg)
 
 
-# from cam_info_reader_node
 def load_camera_info_2(filename: str) -> CameraInfo:
     with open(filename, 'r') as f:
         calib_data = yaml.load(f)
@@ -270,25 +270,3 @@ def load_camera_info_2(filename: str) -> CameraInfo:
     cam_info.distortion_model = calib_data['distortion_model']
     return cam_info
 
-
-# This one is used by the controllers...
-def load_camera_info_3(robot: str):
-    # Load camera information
-    filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/" + robot + ".yaml")
-    if not os.path.isfile(filename):
-        dtu.logger.warn("no intrinsic calibration parameters for {}, trying default".format(robot))
-        filename = (os.environ['DUCKIEFLEET_ROOT'] + "/calibrations/camera_intrinsic/default.yaml")
-        if not os.path.isfile(filename):
-            dtu.logger.error("can't find default either, something's wrong")
-    calib_data = dtu.yaml_wrap.yaml_load_file(filename)
-    cam_info = CameraInfo()
-    cam_info.width = calib_data['image_width']
-    cam_info.height = calib_data['image_height']
-    cam_info.K = calib_data['camera_matrix']['data']
-    cam_info.D = calib_data['distortion_coefficients']['data']
-    cam_info.R = calib_data['rectification_matrix']['data']
-    cam_info.P = calib_data['projection_matrix']['data']
-    cam_info.distortion_model = calib_data['distortion_model']
-    dtu.logger.info(
-        "Loaded camera calibration parameters for {} from {}".format(robot, os.path.basename(filename)))
-    return cam_info

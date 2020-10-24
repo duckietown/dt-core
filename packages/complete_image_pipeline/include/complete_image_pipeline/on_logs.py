@@ -1,13 +1,12 @@
 import os
 
-# from ground_projection import GroundProjection
 from quickapp import QuickApp
 
 import duckietown_utils as dtu
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs
-from ground_projection import GroundProjection
+from image_processing.more_utils import get_robot_camera_geometry_from_log
 from .pipeline import run_pipeline
 
 __all__ = [
@@ -60,10 +59,10 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         # noinspection PyUnresolvedReferences
         all_details = self.options.details
 
-        print('anti_instagram: %s' % anti_instagram)
-        print('image_prep: %s' % image_prep)
-        print('line_detector: %s' % line_detector)
-        print('lane_filter: %s' % lane_filter)
+        self.info('anti_instagram: %s' % anti_instagram)
+        self.info('image_prep: %s' % image_prep)
+        self.info('line_detector: %s' % line_detector)
+        self.info('lane_filter: %s' % lane_filter)
 
         for k, log in logs.items():
             d = os.path.join(output, k)
@@ -71,7 +70,8 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
                          anti_instagram, line_detector, image_prep, lane_filter, all_details)
 
 
-def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter, all_details):
+def look_at(log, output: str, anti_instagram: str, line_detector: str, image_prep: str, lane_filter: str,
+            all_details: bool) -> None:
     filename = get_local_bag_file(log)
 
     bag = rosbag.Bag(filename)
@@ -80,7 +80,8 @@ def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter,
 
     dtu.logger.info('Vehicle name: %s' % vehicle_name)
 
-    gp = GroundProjection(vehicle_name)
+    brp = dtu.BagReadProxy(bag)
+    rcg = get_robot_camera_geometry_from_log(brp)
 
     topic = dtu.get_image_topic(bag)
     res = dtu.d8n_read_all_images_from_bag(bag, topic, max_images=1)
@@ -92,7 +93,7 @@ def look_at(log, output, anti_instagram, line_detector, image_prep, lane_filter,
     image_cv_bgr = dtu.bgr_from_rgb(image_cv)
 
     dtu.DuckietownConstants.show_timeit_benchmarks = True
-    res, _stats = run_pipeline(image_cv_bgr, gp=gp,
+    res, _stats = run_pipeline(image_cv_bgr, gpg=rcg.gpg, rectifier=rcg.rectifier,
                                anti_instagram_name=anti_instagram,
                                line_detector_name=line_detector,
                                image_prep_name=image_prep,

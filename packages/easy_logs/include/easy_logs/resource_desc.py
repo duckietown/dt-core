@@ -1,5 +1,3 @@
-
-
 '''
     dtrv: [v1]
     size: <size in bytes>
@@ -82,6 +80,7 @@ def create_dtr_version_1(filename):
 
     # noinspection PyUnboundLocalVariable
     if 'ipfs' in hashes:
+        Qm = hashes['ipfs']
         url = 'file:///ipfs/%s' % Qm
         urls.append(url)
 
@@ -130,7 +129,8 @@ def _create_file_uri(filename):
         filename = os.path.join(os.getcwd(), filename)
     uri_prefix = _file_uri_prefix()
     uri = uri_prefix + filename
-    return  uri
+    return uri
+
 
 def _file_uri_prefix():
     import socket
@@ -142,6 +142,7 @@ def _file_uri_prefix():
 class NotLocalPath(Exception):
     pass
 
+
 def get_local_filepath(uri):
     ''' For a path file://hostPATH it returns PATH if it starts with this host name
         otherwise raise ValueError()'''
@@ -150,4 +151,3 @@ def get_local_filepath(uri):
         return uri[len(uri_prefix):]
     else:
         raise NotLocalPath('Not current host: %s' % uri)
-

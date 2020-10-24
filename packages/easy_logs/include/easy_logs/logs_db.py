@@ -432,7 +432,7 @@ def get_local_file(dtr):
     raise NotAvailableLocally(msg)
 
 
-def get_local_bag_file(log):
+def get_local_bag_file(log) -> str:
     """
     Raise NotAvailableLocally.
     :param log:

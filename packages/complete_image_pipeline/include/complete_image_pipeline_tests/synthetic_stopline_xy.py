@@ -13,10 +13,11 @@ image_prep_name = 'baseline'
 lane_filter_names = []
 lane_filter_names += ['moregeneric_xy_stopline']
 
-raise_if_error_too_large = True
 
-max_phi_err = np.deg2rad(5)
-max_d_err = 0.021
+# raise_if_error_too_large = True
+#
+# MAX_PHI_ERR = np.deg2rad(5)
+# MAX_D_ERR = 0.021
 
 
 @dtu.unit_test

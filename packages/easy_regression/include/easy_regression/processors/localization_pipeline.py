@@ -35,6 +35,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
         logger.info('Vehicle name: %s' % vehicle_name)
 
+        # noinspection PyTypeChecker
         topic = dtu.get_image_topic(bag_in)
 
         ci: CameraInfo = read_camera_info_from_bag(bag_in)
@@ -81,7 +82,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             otopic = "all"
 
             omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
-            t = rospy.Time.from_sec(mp.time_absolute)  # @UndefinedVariable
+            t = rospy.Time.from_sec(mp.time_absolute)
             print(('written %r at t = %s' % (otopic, t.to_sec())))
             bag_out.write(prefix_out + '/' + otopic, omsg, t=t)
 

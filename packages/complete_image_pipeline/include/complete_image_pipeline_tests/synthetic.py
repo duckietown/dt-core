@@ -3,12 +3,11 @@ import os
 import numpy as np
 
 import duckietown_utils as dtu
-# from complete_image_pipeline import run_pipeline, simulate_image
 from complete_image_pipeline.image_simulation import simulate_image
 from complete_image_pipeline.pipeline import run_pipeline
 from duckietown_segmaps import FAMILY_SEGMAPS
 from easy_algo import get_easy_algo_db
-from ground_projection import GroundProjection
+from image_processing.more_utils import get_robot_camera_geometry
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateStraight
 
 actual_map_name = 'DT17_scenario_straight_straight'
@@ -23,13 +22,15 @@ lane_filter_names += ['moregeneric_straight']
 # lane_filter_names += ['baseline']
 raise_if_error_too_large = True
 
-max_phi_err = np.deg2rad(5)
-max_d_err = 0.021
+MAX_PHI_ERR = np.deg2rad(5)
+MAX_D_ERR = 0.021
 
 ntries = 2
 
+logger = dtu.logger
 
-def dirn(misc):
+
+def dirn(misc: str) -> str:
     outd = dtu.get_output_dir_for_test()
     return os.path.join(outd, misc)
 
@@ -113,13 +114,13 @@ def test_synthetic_zero_bigposphi():
                                image_prep_name, lane_filter_name, d, phi, outd)
 
 
-def test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name,
-                       image_prep_name, lane_filter_name, d, phi, outd,
-                       max_phi_err=max_phi_err,
-                       max_d_err=max_d_err):
+def test_synthetic_phi(actual_map_name: str, template: str, robot_name: str, line_detector_name: str,
+                       image_prep_name: str, lane_filter_name: str, d, phi, outd,
+                       max_phi_err=MAX_PHI_ERR,
+                       max_d_err=MAX_D_ERR, seed: int = 42):
     # important to have deterministic results
     # The randomness is in the line extraction
-    np.random.seed(42)
+    np.random.seed(seed)
     location = np.zeros((), dtype=TemplateStraight.DATATYPE_COORDS)
     location['phi'] = phi
     location['d'] = d
@@ -146,10 +147,10 @@ def test_synthetic_phi(actual_map_name, template, robot_name, line_detector_name
     return not fail
 
 
-@dtu.contract(actual_map_name='str')
-def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
-                   image_prep_name, lane_filter_name, pose_or_location, outd):
-    np.random.seed(42)
+def test_synthetic(actual_map_name: str, template, robot_name: str, line_detector_name: str,
+                   image_prep_name: str, lane_filter_name: str, pose_or_location, outd: str,
+                   seed: int = 42):
+    np.random.seed(seed)
     db = get_easy_algo_db()
     actual_map = db.create_instance(FAMILY_SEGMAPS, actual_map_name)
 
@@ -158,9 +159,13 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
     dtu.logger.debug('looking for localization template %r' % template)
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
 
-    gp = GroundProjection(robot_name)
-    # GroundProjectionGeometry
-    gpg = gp.get_ground_projection_geometry()
+    rcg = get_robot_camera_geometry(robot_name)
+    # ci: CameraInfo = get_camera_info_for_robot(robot_name)
+    # K = get_homography_for_robot(robot_name)
+    # print('K', K)
+    # logger.info('obtained CameraInfo')
+    # rectifier = Rectify(ci)
+    # gpg = GroundProjectionGeometry(ci.width, ci.height, K)
 
     if pose_or_location.shape == (3, 3):  # SE(2)
         pose = pose_or_location
@@ -169,7 +174,7 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
         location = pose_or_location
         pose = localization_template.pose_from_coords(location)
 
-    simulation_data = simulate_image(actual_map, pose, gpg, blur_sigma=0.3)
+    simulation_data = simulate_image(actual_map, pose, gpg=rcg.gpg, rectifier=rcg.rectifier, blur_sigma=0.3)
 
     image = simulation_data.distorted_synthetic_bgr
 
@@ -177,7 +182,7 @@ def test_synthetic(actual_map_name, template, robot_name, line_detector_name,
     anti_instagram_name = 'baseline'
 
     all_details = False
-    res, stats = run_pipeline(image, gp,
+    res, stats = run_pipeline(image, gpg=gpg, rectifier=rectifier,
                               line_detector_name=line_detector_name,
                               image_prep_name=image_prep_name,
                               lane_filter_name=lane_filter_name,

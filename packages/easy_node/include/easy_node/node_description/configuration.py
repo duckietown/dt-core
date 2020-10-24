@@ -310,7 +310,7 @@ def load_configuration_contracts(data):
     return {}
 
 
-def load_configuration_for_nodes_in_package(package_name):
+def load_configuration_for_nodes_in_package(package_name: str):
     """
         returns dict node_name -> config
     """
