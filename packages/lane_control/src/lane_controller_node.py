@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import numpy as np
+
 import rospy
-
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
-
+from duckietown.dtros import DTParam, DTROS, NodeType, ParamType, TopicType
+from duckietown_msgs.msg import LanePose, StopLineReading, Twist2DStamped, WheelsCmdStamped
 from lane_controller.controller import LaneController
 
 

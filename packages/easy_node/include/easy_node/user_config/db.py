@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union
+from typing import Dict, Sequence, Union
 
 import yaml
 
@@ -12,7 +12,7 @@ class ValidationError(Exception):
     pass
 
 
-class ConfigDB():
+class ConfigDB:
     _singleton = None
 
     def __init__(self):
@@ -44,16 +44,16 @@ class ConfigDB():
     def validate_file(self, c):
         # first, check that indeed we have a package by that name
         if not c.package_name in self.package2nodes:
-            msg = 'Invalid package "%s".' % c.package_name
+            msg = f'Invalid package "{c.package_name}".'
             raise ValidationError(msg)
         # check that there is a node by that name
         if not c.node_name in self.package2nodes[c.package_name]:
-            msg = 'No node "%s" in package "%s". ' % (c.node_name, c.package_name)
+            msg = f'No node "{c.node_name}" in package "{c.package_name}". '
             raise ValidationError(msg)
         # check that all the extends exist
         for cn in c.extends:
-            if not self.config_exists(c.package_name, c.node_name, cn):
-                msg = 'Referenced config %s/%s/%s does not exist. ' % (c.package_name, c.node_name, cn)
+            if not self.config_exists(c.package_name, c.node_name, cn):  # FIXME - doesn't exist
+                msg = f'Referenced config {c.package_name}/{c.node_name}/{cn} does not exist. '
                 raise ValidationError(msg)
         # Finally, check that the values correspond to values that we have
         # in the node configuration
@@ -142,7 +142,7 @@ def get_config_db() -> ConfigDB:
     return ConfigDB._singleton
 
 
-class QueryResult():
+class QueryResult:
     def __init__(self, package_name, node_name, config_sequence, all_keys,
                  values, origin, origin_filename, overridden):
         self.all_keys = all_keys
@@ -166,10 +166,9 @@ class QueryResult():
         return s
 
 
-@dtu.contract(all_keys='seq(str)', values='dict', origin='dict(str:str)')
-def config_summary(all_keys, values, origin):
+# @dtu.contract(all_keys='seq(str)', values='dict', origin='dict(str:str)')
+def config_summary(all_keys: Sequence[str], values: dict, origin: Dict[str, str]) -> str:
     table = []
-    table.append(['parameter', 'value', 'origin'])
     table.append(['-' * len(_) for _ in table[0]])
     for k in all_keys:
         if k in values:

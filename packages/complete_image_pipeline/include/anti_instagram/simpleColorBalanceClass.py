@@ -1,10 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+import math
+
 import cv2
 import numpy as np
-import math
-import rospy
-import time
-
 
 """
 This class represents a basic color balance algorithm. The routine 'thresholdAnalysis' finds the two thresholds

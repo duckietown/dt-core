@@ -2,6 +2,8 @@ import duckietown_utils as dtu
 from .db import get_config_db
 from .get_configuration_files import ConfigInfo
 
+__all__ = ['user_config_summary']
+
 
 def user_config_summary() -> str:
     db = get_config_db()

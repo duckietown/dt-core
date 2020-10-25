@@ -22,4 +22,5 @@ def _parse_regression_test_check(line):
     except RTParseError as e:
         msg = 'Cannot parse string "%s".' % line
         dtu.raise_wrapped(RTParseError, e, msg, compact=True)
+        raise
     return Wrapper(evaluable)

@@ -1,12 +1,9 @@
 import duckietown_utils as dtu
 import rospy
 from complete_image_pipeline.pipeline import run_pipeline
-from duckietown_utils.bag_reading import MessagePlus
 
 from easy_regression import ProcessorInterface, ProcessorUtilsInterface
 from image_processing.more_utils import get_robot_camera_geometry_from_log
-
-from sensor_msgs.msg import CameraInfo
 
 __all__ = [
     'LocalizationPipelineProcessor',

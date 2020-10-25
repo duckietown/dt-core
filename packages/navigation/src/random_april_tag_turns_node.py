@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import rospy
-import numpy
-from duckietown_msgs.msg import FSMState, AprilTagsWithInfos, BoolStamped, TurnIDandType
-from geometry_msgs.msg import PoseStamped, Pose
-from std_msgs.msg import String, Int16 #Imports msg
 import math
+
+import numpy
+
+import rospy
+from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TurnIDandType
+from std_msgs.msg import Int16  # Imports msg
+
 
 class RandomAprilTagTurnsNode:
     def __init__(self):

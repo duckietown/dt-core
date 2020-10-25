@@ -63,8 +63,6 @@ class SingleImagePipeline(D8App):
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
             self.info("Picture taken: %s " % str(bgr.shape))
 
-        # gp = GroundProjection(vehicle_name)
-
         dtu.DuckietownConstants.show_timeit_benchmarks = True
         res, _stats = run_pipeline(bgr)
 

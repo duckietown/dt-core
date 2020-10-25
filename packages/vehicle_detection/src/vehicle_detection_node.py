@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import cv2
+
 import rospy
 from cv_bridge import CvBridge
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from sensor_msgs.msg import CompressedImage, Image
-
+from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
+from sensor_msgs.msg import CompressedImage
 
 
 class VehicleDetectionNode(DTROS):
@@ -95,7 +95,7 @@ class VehicleDetectionNode(DTROS):
             return
         else:
             self.last_stamp = now
-        
+
         vehicle_centers_msg_out = VehicleCorners()
         detection_flag_msg_out = BoolStamped()
         image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")

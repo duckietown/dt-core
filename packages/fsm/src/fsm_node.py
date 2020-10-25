@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import rospy
 import copy
-from duckietown_msgs.msg import FSMState, BoolStamped
-from duckietown_msgs.srv import SetFSMState, SetFSMStateRequest, SetFSMStateResponse
+
+import rospy
+from duckietown_msgs.msg import BoolStamped, FSMState
+from duckietown_msgs.srv import SetFSMState, SetFSMStateResponse
+
 
 class FSMNode:
     def __init__(self):

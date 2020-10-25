@@ -2,8 +2,7 @@
 import rospy
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import Segment, SegmentList
-from geometry_msgs.msg import Point
-from std_msgs.msg import String, ColorRGBA  # Imports msg
+from std_msgs.msg import ColorRGBA  # Imports msg
 from visualization_msgs.msg import Marker, MarkerArray
 
 
@@ -44,7 +43,7 @@ class LineSegmentVisualizer(DTROS):
         self.sub_filtered_seg_list = rospy.Subscriber(
             "~segment_list_filtered", SegmentList, self.cbSegListFiltered)
 
-        rospy.loginfo("[%s] Initialzed." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzed.")
 
     def cbSegList(self, seg_list_msg):
         marker_array = MarkerArray()

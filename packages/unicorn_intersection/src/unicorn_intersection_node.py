@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-import rospy
-import numpy as np
-from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped, TurnIDandType
-from std_msgs.msg import Float32, Int16, Bool, String
-from geometry_msgs.msg import Point, PoseStamped, Pose, PointStamped
-from nav_msgs.msg import Path
-import time
-import math
 import json
+
+import rospy
+from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, TurnIDandType
+from std_msgs.msg import String
+
 
 class UnicornIntersectionNode:
     def __init__(self):

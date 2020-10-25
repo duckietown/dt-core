@@ -2,14 +2,13 @@ import os
 from collections import OrderedDict
 
 import numpy as np
-
-from easy_logs.easy_logs_summary_imp import format_logs
 from quickapp import QuickApp
 
 import duckietown_utils as dtu
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
+from easy_logs.easy_logs_summary_imp import format_logs
 
 __all__ = ['MakeThumbnails']
 
@@ -48,15 +47,15 @@ Use like this:
         super(MakeThumbnails, self).go()
 
     def define_jobs_context(self, context):
-        outdir = self.options.outdir
+        outdir = self.options['outdir']
         if outdir is None:
             outdir = '.'
             msg = 'Option "--outdir" not passed. Will copy to current directory.'
             self.warn(msg)
 
-        max_images = self.options.max_images
-        only_camera = not self.options.all_topics
-        write_frames = self.options.write_frames
+        max_images = self.options['max_images']
+        only_camera = not self.options['all_topics']
+        write_frames = self.options['write_frames']
         extra = self.options.get_extra()
 
         if not extra:
@@ -80,7 +79,7 @@ Use like this:
         s = format_logs(logs_valid)
         self.info(s)
 
-        od = self.options.output
+        od = self.options['output']
 
         for log_name, log in list(logs_valid.items()):
             out = os.path.join(od, log_name)

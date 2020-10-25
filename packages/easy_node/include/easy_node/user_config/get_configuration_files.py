@@ -15,6 +15,8 @@ ConfigInfo = namedtuple('ConfigInfo',
                         'values '
                         'valid error_if_invalid ')
 
+__all__ = ['get_all_configuration_files', 'search_all_configuration_files', 'interpret_config_file']
+
 
 def get_all_configuration_files():
     """
@@ -37,11 +39,9 @@ def get_all_configuration_files():
 
 
 def search_all_configuration_files():
-    sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
-    sources.append(dtu.get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
-    sources.append(dtu.get_duckiefleet_root())
+    sources = [dtu.get_catkin_ws_src(), dtu.get_duckiefleet_root()]
 
     configs = []
     pattern = '*' + SUFFIX
@@ -56,7 +56,7 @@ def search_all_configuration_files():
     return configs
 
 
-def interpret_config_file(filename):
+def interpret_config_file(filename: str) -> ConfigInfo:
     """
         Returns a ConfigInfo.
     """
@@ -85,6 +85,8 @@ def interpret_config_file(filename):
             i = package_node.index('-')
             package_name = package_node[:i]
             node_name = package_node[i + 1:]
+        else:
+            package_name = node_name = None  # FIXME: should we bail?
 
         config_name = tokens[1]
 

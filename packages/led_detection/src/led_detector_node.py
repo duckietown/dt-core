@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
-import rospy
 
+import rospy
+from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType
-from duckietown_utils.bag_logs import numpy_from_ros_compressed
-from duckietown_msgs.msg import Vector2D, LEDDetection, LEDDetectionArray,\
-                                BoolStamped, SignalsDetection
+from duckietown_msgs.msg import SignalsDetection
+from duckietown_utils import numpy_from_ros_compressed
 from led_detection.LED_detector import LEDDetector
 from sensor_msgs.msg import CompressedImage
 
@@ -28,9 +27,12 @@ class LEDDetectorNode(DTROS):
 
     Publishers:
         ~signals_detection (:obj:`duckietown_msgs.msg.SignalsDetection`): The signals detected.
-        ~image_detection_right/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections on the right.
-        ~image_detection_front/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections in front.
-        ~image_detection_TL (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections of traffic lights.
+        ~image_detection_right/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize
+        detections on the right.
+        ~image_detection_front/compressed (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize
+        detections in front.
+        ~image_detection_TL (:obj:`std_msgs.msg.CompressedImage`): Debug topic to visualize detections of
+        traffic lights.
     """
 
     def __init__(self, node_name, node_type):
@@ -57,7 +59,8 @@ class LEDDetectorNode(DTROS):
         # Initialize detector
         self.detector = LEDDetector(self.params, self.log)
 
-        #self.updateParameters()  TODO: This needs be replaced by the new DTROS callback when it is implemented
+        # self.updateParameters()  TODO: This needs be replaced by the new DTROS callback when it is
+        #  implemented
 
         self.first_timestamp = 0
         self.capture_finished = True
@@ -65,7 +68,8 @@ class LEDDetectorNode(DTROS):
         self.trigger = True
         self.node_state = 0
         self.data = []
-        self.misdetection = 0 # use to store how many times traffic light signal happend elsewhere to check calibration.
+        self.misdetection = 0  # use to store how many times traffic light signal happend elsewhere to
+        # check calibration.
 
         # Initialize detection
         self.right = None
@@ -78,8 +82,10 @@ class LEDDetectorNode(DTROS):
         self.pub_detections = rospy.Publisher("~signals_detection", SignalsDetection, queue_size=1)
 
         # Publishers for debug images
-        self.pub_image_right = rospy.Publisher("~image_detection_right/compressed", CompressedImage, queue_size=1)
-        self.pub_image_front = rospy.Publisher("~image_detection_front/compressed", CompressedImage, queue_size=1)
+        self.pub_image_right = rospy.Publisher("~image_detection_right/compressed", CompressedImage,
+                                               queue_size=1)
+        self.pub_image_front = rospy.Publisher("~image_detection_front/compressed", CompressedImage,
+                                               queue_size=1)
         self.pub_image_TL = rospy.Publisher("~image_detection_TL/compressed", CompressedImage, queue_size=1)
 
         # Subscribers
@@ -190,7 +196,7 @@ class LEDDetectorNode(DTROS):
         # Get blobs right
         blobs_tl, frame_tl = self.detector.find_blobs(img_tl, 'tl')
 
-        radius = self.params['~DTOL']/2.0
+        radius = self.params['~DTOL'] / 2.0
 
         if self.params['~verbose'] > 0:
             # Extract blobs for visualization
@@ -199,9 +205,11 @@ class LEDDetectorNode(DTROS):
             keypoint_blob_tl = self.detector.get_keypoints(blobs_tl, radius)
 
             # Images
-            img_pub_right = cv2.drawKeypoints(img_right[:, :, -1], keypoint_blob_right, np.array([]), (0, 0, 255),
+            img_pub_right = cv2.drawKeypoints(img_right[:, :, -1], keypoint_blob_right, np.array([]),
+                                              (0, 0, 255),
                                               cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            img_pub_front = cv2.drawKeypoints(img_front[:, :, -1], keypoint_blob_front, np.array([]), (0, 0, 255),
+            img_pub_front = cv2.drawKeypoints(img_front[:, :, -1], keypoint_blob_front, np.array([]),
+                                              (0, 0, 255),
                                               cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             img_pub_tl = cv2.drawKeypoints(img_tl[:, :, -1], keypoint_blob_tl, np.array([]), (0, 0, 255),
                                            cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -216,7 +224,7 @@ class LEDDetectorNode(DTROS):
         self.traffic_light = None
 
         # Sampling time
-        t_s = (1.0*self.params['~capture_time'])/(1.0*num_img)
+        t_s = (1.0 * self.params['~capture_time']) / (1.0 * num_img)
 
         # Decide whether LED or not
         self.right = self.detector.interpret_signal(blobs_right, t_s, num_img)
@@ -224,18 +232,20 @@ class LEDDetectorNode(DTROS):
         self.traffic_light = self.detector.interpret_signal(blobs_tl, t_s, num_img)
 
         if self.traffic_light != "traffic_light_go":
-            rospy.logwarn("[%s] Traffic light detected a non-traffic light signal. Suppressed!",self.node_name)
+            rospy.logwarn("[%s] Traffic light detected a non-traffic light signal. Suppressed!",
+                          self.node_name)
             self.traffic_light = None
         else:
-            rospy.loginfo("[%s] Traffic Light is green! GO!",self.node_name)
+            rospy.loginfo("[%s] Traffic Light is green! GO!", self.node_name)
 
         if self.right == "traffic_light_go":
             rospy.logwarn("[%s] Detected Vehicle with a traffic light signal. Suppressed! ", self.node_name)
             self.right = None
             self.misdetection += 1
             if self.misdetection >= 5:
-                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong! Go "
-                           "with traffic light", self.node_name)
+                rospy.logwarn(
+                    "[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong! Go "
+                    "with traffic light", self.node_name)
                 self.misdetection = 0
                 self.traffic_light = "traffic_light_go"
 
@@ -244,8 +254,9 @@ class LEDDetectorNode(DTROS):
             self.front = None
             self.misdetection += 1
             if self.misdetection >= 5:
-                rospy.logwarn("[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong. Go "
-                           "with traffic light", self.node_name)
+                rospy.logwarn(
+                    "[%s] Noticed traffic light signal elsewhere more than 5 times. Calibration is wrong. Go "
+                    "with traffic light", self.node_name)
                 self.misdetection = 0
                 self.traffic_light = "traffic_light_go"
 
@@ -280,9 +291,9 @@ class LEDDetectorNode(DTROS):
         """
         #  Publish image with circles if verbose is > 0
         if self.params['~verbose'] > 0:
-            img_right_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_right) # , encoding="bgr8")
-            img_front_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_front) # , encoding="bgr8")
-            img_tl_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_tl) # , encoding="bgr8")
+            img_right_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_right)  # , encoding="bgr8")
+            img_front_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_front)  # , encoding="bgr8")
+            img_tl_circle_msg = self.bridge.cv2_to_compressed_imgmsg(img_tl)  # , encoding="bgr8")
 
             # Publish image
             self.pub_image_right.publish(img_right_circle_msg)
@@ -291,7 +302,7 @@ class LEDDetectorNode(DTROS):
 
         # Log results to the terminal
         rospy.loginfo("[%s] The observed LEDs are: Front = [%s] Right = [%s] Traffic light state = [%s]"
-                                ,self.node_name,self.front, self.right, self.traffic_light)
+                      , self.node_name, self.front, self.right, self.traffic_light)
 
         # Publish detections
         detections_msg = SignalsDetection(front=self.front,
@@ -303,7 +314,6 @@ class LEDDetectorNode(DTROS):
     def cbParametersChanged(self):
         """Updates parameters."""
         self.detector.update_parameters(self.params)
-
 
 
 if __name__ == '__main__':

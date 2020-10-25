@@ -1,12 +1,11 @@
 import duckietown_utils as dtu
-import duckietown_utils as dtu
 from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 
 
 @dtu.unit_test
 def test_validity1():
-    data="""
+    data = """
 "F.easy_algo_family.yaml": | 
     description: desc
     interface: does.not_exist
@@ -20,18 +19,22 @@ def test_validity1():
     family = db.get_family('F')
     assert family.valid == False
 
+
 class MyAdderInterface:
     pass
+
 
 class One(MyAdderInterface):
     pass
 
+
 class Two:
     pass
 
+
 @dtu.unit_test
 def test_instance():
-    data="""
+    data = """
 "adder.easy_algo_family.yaml": | 
     description: desc
     interface: easy_algo_tests.validity.MyAdderInterface

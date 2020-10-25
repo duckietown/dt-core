@@ -1,9 +1,12 @@
 import os
+from typing import Tuple
 
 import duckietown_utils as dtu
 
+__all__ = ['get_user_configuration', 'get_config_sequence']
 
-def get_config_sequence():
+
+def get_config_sequence() -> Tuple[str, ...]:
     """ Reads the variable EasyNode.ENV
 
         it is taken as a colon-separated list of names.

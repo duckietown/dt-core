@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import rospy
-from duckietown_msgs.msg import Twist2DStamped, FSMState
+from duckietown_msgs.msg import FSMState
+from duckietown_msgs.srv import ChangePattern
 from std_msgs.msg import String
 
-from duckietown_msgs.srv import ChangePattern
 
 class LEDPatternSwitchNode:
     def __init__(self):

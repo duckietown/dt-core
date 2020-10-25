@@ -1,13 +1,8 @@
-#!/usr/bin/env python
-from anti_instagram.kmeans_rebuild import *
-from anti_instagram.calcLstsqTransform import *
-from anti_instagram.simpleColorBalanceClass import *
+
+
+from .kmeans_rebuild import *
 from .scale_and_shift import scaleandshift
-import numpy as np
-import rospy
-import time
-import cv2
-import math
+from .simpleColorBalanceClass import *
 
 
 class ScaleAndShift:

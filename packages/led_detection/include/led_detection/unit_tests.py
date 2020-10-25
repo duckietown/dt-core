@@ -1,13 +1,13 @@
-import numpy as np
 import duckietown_utils as dtu
-from . import logger
+from duckietown_utils import logger
 
 __all__ = [
     'LEDDetectionUnitTest',
     'load_tests',
 ]
 
-class LEDDetectionUnitTest():
+
+class LEDDetectionUnitTest:
 
     def __init__(self, data, query, expected):
         self.data = data
@@ -17,12 +17,11 @@ class LEDDetectionUnitTest():
         query['frequencies_to_detect']
         query['min_distance_between_LEDs_pixels']
 
-
     def _get_images(self):
         filename = self.data['bag']
         interval = self.data['interval']
         t0, t1 = interval[0], interval[1]
-        print(('t0:%s, t1:%s'%(t0, t1)))
+        print(('t0:%s, t1:%s' % (t0, t1)))
         data = dtu.d8n_read_images_interval(filename, t0, t1)
         return data
 
@@ -38,11 +37,12 @@ class LEDDetectionUnitTest():
         """
 
         images = self._get_images()
-        #mask = np.ones(dtype='bool', shape=images[0]['rgb'].shape)
+        # mask = np.ones(dtype='bool', shape=images[0]['rgb'].shape)
         d = dict(images=images,
                  frequencies_to_detect=self.query['frequencies_to_detect'],
                  min_distance_between_LEDs_pixels=self.query['min_distance_between_LEDs_pixels'])
         return d
+
 
 def LEDDetectionUnitTest_from_yaml(s):
     """
@@ -62,11 +62,12 @@ def LEDDetectionUnitTest_from_yaml(s):
         e['image_coordinates'] = tuple(e['image_coordinates'])
         e['image_coordinates_margin']
         e['frequency']
-        #e['color']
-        #e['color_tolerance']
-        #e['confidence_min']
+        # e['color']
+        # e['color_tolerance']
+        # e['confidence_min']
 
     return LEDDetectionUnitTest(data=data, query=query, expected=expected)
+
 
 def load_tests(filename):
     """

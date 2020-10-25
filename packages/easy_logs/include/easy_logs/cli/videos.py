@@ -1,13 +1,14 @@
 import os
 from collections import OrderedDict
 
+from quickapp import QuickApp
+
 import duckietown_utils as dtu
 import rosbag
 from duckietown_utils.bag_visualization import count_messages_in_slice
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
 from easy_logs.easy_logs_summary_imp import format_logs
-from quickapp import QuickApp
 
 __all__ = [
     'MakeVideos',
@@ -50,13 +51,13 @@ For example:
         super(MakeVideos, self).go()
 
     def define_jobs_context(self, context):
-        outdir = self.options.outdir
+        outdir = self.options['outdir']
         if outdir is None:
             outdir = '.'
             msg = 'Option "--outdir" not passed. Will copy to current directory.'
             self.warn(msg)
 
-        only_camera = not self.options.all_topics
+        only_camera = not self.options['all_topics']
 
         extra = self.options.get_extra()
 
@@ -76,7 +77,6 @@ For example:
 
         s = format_logs(logs_valid)
         self.info(s)
-
 
         for log_name, log in list(logs_valid.items()):
             out = os.path.join(outdir, log_name)
@@ -98,7 +98,6 @@ def jobs_videos(context, log, name, outd, only_camera):
     topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag, min_messages=min_messages)]
     bag.close()
 
-
     only_camera_fn = outd + '-video.mp4'
 
     for topic in topics:
@@ -108,7 +107,8 @@ def jobs_videos(context, log, name, outd, only_camera):
 
         assert count >= min_messages
         if actual_count < min_messages:
-            msg = 'There are only %d (out of %d) in the slice [%s, %s]' % (actual_count, count, log.t0, log.t1)
+            msg = 'There are only %d (out of %d) in the slice [%s, %s]' % (
+            actual_count, count, log.t0, log.t1)
             msg += '\n topic: %s' % topic
             continue
 

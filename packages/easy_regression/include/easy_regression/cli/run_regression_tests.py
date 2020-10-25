@@ -42,16 +42,16 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
     def define_jobs_context(self, context):
         easy_algo_db = get_easy_algo_db()
 
-        expect = self.options.expect
-        write_to_db = self.options.write
+        expect = self.options['expect']
+        write_to_db = self.options['write']
 
-        delete = not self.options.debug_no_delete
+        delete = not self.options['debug_no_delete']
 
         if not expect in RTCheck.CHECK_RESULTS:
             msg = 'Invalid expect status %s; must be one of %s.' % (expect, RTCheck.CHECK_RESULTS)
             raise dtu.DTUserError(msg)
 
-        query = self.options.tests
+        query = self.options['tests']
         regression_tests = easy_algo_db.query('regression_test', query, raise_if_no_matches=True)
 
         for rt_name in regression_tests:
@@ -60,12 +60,10 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
             easy_logs_db = self.get_easy_logs_db()
             c = context.child(rt_name)
 
-            outd = os.path.join(self.options.output, 'regression_tests', rt_name)
+            outd = os.path.join(self.options['output'], 'regression_tests', rt_name)
             jobs_rt(c, rt_name, rt, easy_logs_db, outd, expect, write_data_to_db=write_to_db, delete=delete)
 
-
-@dtu.contract(rt=RegressionTest)
-def jobs_rt(context, rt_name, rt, easy_logs_db, out, expect, write_data_to_db, delete):
+def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect, write_data_to_db, delete):
     logs = rt.get_logs(easy_logs_db)
 
     processors = rt.get_processors()

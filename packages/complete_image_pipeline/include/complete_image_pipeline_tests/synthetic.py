@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 
 import numpy as np
 
@@ -238,7 +239,7 @@ def test_synthetic(
     pose_or_location,
     outd: str,
     seed: int = 42,
-):
+) -> Tuple[object, object]:
     np.random.seed(seed)
     db = get_easy_algo_db()
     actual_map = db.create_instance(FAMILY_SEGMAPS, actual_map_name)

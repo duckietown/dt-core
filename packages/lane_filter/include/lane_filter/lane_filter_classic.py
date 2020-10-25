@@ -22,6 +22,24 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
 
 
     '''
+    mean_d_0: float
+    mean_phi_0: float
+    sigma_d_0: float
+    sigma_phi_0: float
+    delta_d: float
+    delta_phi: float
+    d_max: float
+    d_min: float
+    phi_max: float
+    phi_min: float
+    cov_v: float
+    linewidth_white: float
+    linewidth_yellow: float
+    lanewidth: float
+    min_max: float
+    sigma_d_mask: float
+    sigma_phi_mask: float
+
 
     def __init__(self, configuration):
         param_names = [
@@ -210,15 +228,15 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         d2 = np.inner(n_hat, p2)
         l1 = np.inner(t_hat, p1)
         l2 = np.inner(t_hat, p2)
-        if (l1 < 0):
+        if l1 < 0:
             l1 = -l1;
-        if (l2 < 0):
+        if l2 < 0:
             l2 = -l2;
         l_i = (l1 + l2) / 2
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
-            if(p1[0] > p2[0]):  # right edge of white lane
+            if p1[0] > p2[0]:  # right edge of white lane
                 d_i = d_i - self.linewidth_white
             else:  # left edge of white lane
                 d_i = -d_i
@@ -226,7 +244,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
             d_i = d_i - self.lanewidth / 2
 
         elif segment.color == segment.YELLOW:  # left lane is yellow
-            if (p2[0] > p1[0]):  # left edge of yellow lane
+            if p2[0] > p1[0]:  # left edge of yellow lane
                 d_i = d_i - self.linewidth_yellow
                 phi_i = -phi_i
             else:  # right edge of white lane

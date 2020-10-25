@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
+
+from line_detector_interface import LineDetectorInterface
 from .detections import Detections
 
 
-class LineDetector:
+class LineDetector(LineDetectorInterface):
     """
     The Line Detector can be used to extract line segments from a particular color range in an image. It combines
     edge detection, color filtering, and line segment extraction.
@@ -81,8 +83,6 @@ class LineDetector:
         """
         Applies `Canny edge detection <https://en.wikipedia.org/wiki/Canny_edge_detector>`_ to a ``BGR`` image.
 
-        Args:
-            bgr (:obj:`numpy array`): the input image
 
         Returns:
             :obj:`numpy array`: a binary image with the edges

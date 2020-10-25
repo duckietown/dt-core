@@ -5,11 +5,10 @@ import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import entropy, multivariate_normal
 
-# from duckietown_utils.parameters import Configurable
-# from .lane_filter_interface import LaneFilterInterface
-# from .visualization import plot_phi_d_diagram_bgr
-from .lane_filter.visualization import plot_phi_d_diagram_bgr
 from lane_filter_interface import LaneFilterInterface
+from .visualization import plot_phi_d_diagram_bgr
+
+__all__ = ['LaneFilterHistogram']
 
 
 class LaneFilterHistogram(LaneFilterInterface):
@@ -31,6 +30,26 @@ class LaneFilterHistogram(LaneFilterInterface):
         configuration (:obj:`List`): A list of the parameters for the filter
 
     """
+    mean_d_0: float
+    mean_phi_0: float
+    sigma_d_0: float
+    sigma_phi_0: float
+    delta_d: float
+    delta_phi: float
+    d_max: float
+    d_min: float
+    phi_max: float
+    phi_min: float
+    cov_v: float
+    linewidth_white: float
+    linewidth_yellow: float
+    lanewidth: float
+    min_max: float
+    sigma_d_mask: float
+    sigma_phi_mask: float
+    range_min: float
+    range_est: float
+    range_max: float
 
     def __init__(self, **kwargs):
         param_names = [
@@ -173,7 +192,7 @@ class LaneFilterHistogram(LaneFilterInterface):
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
-                self.belief = self.belief / np.sum(self.belief)
+                self.belief /= np.sum(self.belief)
 
     def generate_measurement_likelihood(self, segments):
 
@@ -189,12 +208,11 @@ class LaneFilterHistogram(LaneFilterInterface):
 
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i, j] = measurement_likelihood[i, j] + 1
+            measurement_likelihood[i, j] += 1
 
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
-        measurement_likelihood = measurement_likelihood / \
-                                 np.sum(measurement_likelihood)
+        measurement_likelihood /= np.sum(measurement_likelihood)
         return measurement_likelihood
 
     def getEstimate(self):
@@ -226,27 +244,27 @@ class LaneFilterHistogram(LaneFilterInterface):
         d2 = np.inner(n_hat, p2)
         l1 = np.inner(t_hat, p1)
         l2 = np.inner(t_hat, p2)
-        if (l1 < 0):
+        if l1 < 0:
             l1 = -l1
-        if (l2 < 0):
+        if l2 < 0:
             l2 = -l2
 
         l_i = (l1 + l2) / 2
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
-            if (p1[0] > p2[0]):  # right edge of white lane
-                d_i = d_i - self.linewidth_white
+            if p1[0] > p2[0]:  # right edge of white lane
+                d_i -= self.linewidth_white
             else:  # left edge of white lane
 
                 d_i = - d_i
 
                 phi_i = -phi_i
-            d_i = d_i - self.lanewidth / 2
+            d_i -= self.lanewidth / 2
 
         elif segment.color == segment.YELLOW:  # left lane is yellow
-            if (p2[0] > p1[0]):  # left edge of yellow lane
-                d_i = d_i - self.linewidth_yellow
+            if p2[0] > p1[0]:  # left edge of yellow lane
+                d_i -= self.linewidth_yellow
                 phi_i = -phi_i
             else:  # right edge of white lane
                 d_i = -d_i

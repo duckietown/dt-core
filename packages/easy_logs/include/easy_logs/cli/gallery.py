@@ -36,7 +36,7 @@ class Gallery(D8AppWithLogs):
     def go(self):
         extra = self.options.get_extra()
 
-        Gallery.deploy_ipfs = self.options.ipfs
+        Gallery.deploy_ipfs = self.options['ipfs']
 
         if not extra:
             query = '*'
@@ -65,7 +65,7 @@ class Gallery(D8AppWithLogs):
 
         res = get_report(logs)
 
-        out = self.options.destination
+        out = self.options['destination']
         fn_html = os.path.join(out, 'index.html')
 
         dtu.write_str_to_file(res, fn_html)
@@ -144,7 +144,7 @@ def html_table_from_table(logs, url_to_resource):
         trh, tr = get_row(i, log, url_to_resource)
         tbody.append(tr)
         tbody.append('\n')
-    thead.append(trh)
+    thead.append(trh) # FIXME
     return res
 
 
@@ -169,16 +169,13 @@ def make_section(_i, id_log, log, url_to_resource):
     rel = get_small_video2(log, url_to_resource)
     if rel:
         video = video_for_source(rel)
-        d.append((video))
+        d.append(video)
     else:
         pass
 
     c = Tag(name='pre')
 
-    s = []
-    s.append('Vehicle: %s' % log.vehicle)
-    s.append('Date: %s' % log.date)
-    s.append('Length: %.1f s' % log.length)
+    s = ['Vehicle: %s' % log.vehicle, 'Date: %s' % log.date, 'Length: %.1f s' % log.length]
 
     c.append("\n".join(s))
     d.append(c)
@@ -193,7 +190,7 @@ def make_section(_i, id_log, log, url_to_resource):
 
         d.append(a)
     else:
-        msg = ('No video found for this log.')
+        msg = 'No video found for this log.'
         p = Tag(name='p')
         p.append(msg)
         d.append(p)
@@ -203,7 +200,7 @@ def make_section(_i, id_log, log, url_to_resource):
     n = append_urls(id_log, log, p, url_to_resource)
 
     if n == 0:
-        msg = ('No URL found for this log.')
+        msg = 'No URL found for this log.'
         p = Tag(name='p')
         p.append(msg)
 
@@ -216,7 +213,7 @@ def make_section(_i, id_log, log, url_to_resource):
         img.attrs['src'] = rel
         d.append(img)
     else:
-        msg = ('No thumbnail found for this log.')
+        msg = 'No thumbnail found for this log.'
         p = Tag(name='p')
         p.append(msg)
         d.append(p)

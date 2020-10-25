@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import cv2
 import numpy as np
 
@@ -6,9 +8,10 @@ from duckietown_msgs.msg import Segment, SegmentList
 
 AA = cv2.LINE_AA
 
+__all__ =['vs_fancy_display']
 
-@dtu.contract(bgr="array", segment_list=SegmentList, width="int,>=1")
-def vs_fancy_display(bgr, segment_list, width=2):
+@dtu.contract( width="int,>=1")
+def vs_fancy_display(bgr: dtu.NPImageBGR, segment_list: SegmentList, width: int = 2) -> dtu.NPImageBGR:
     """
          Writes on a bgr image.
 
@@ -23,7 +26,7 @@ def vs_fancy_display(bgr, segment_list, width=2):
     return ground
 
 
-def draw_segment_list_on_image(bgr, segment_list, width):
+def draw_segment_list_on_image(bgr: dtu.NPImageBGR, segment_list: SegmentList, width: int):
     colors2bgr = {
         Segment.WHITE: dtu.ColorConstants.BGR_WHITE,
         Segment.RED: dtu.ColorConstants.BGR_RED,
@@ -43,7 +46,7 @@ def draw_segment_list_on_image(bgr, segment_list, width):
         cv2.line(bgr, P1, P2, paint, width, lineType=AA)
 
 
-def normalized_to_image(p, shape):
+def normalized_to_image(p, shape: Tuple[int, int]) -> Tuple[int, int]:
     x, y = p.x, p.y
     H, W = shape
     X = x * W

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-import rospy
 import numpy as np
 
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState
-from std_msgs.msg import Float32
+import rospy
+from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
+from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, SegmentList, StopLineReading
 from geometry_msgs.msg import Point
-import time
 
 
 # import math

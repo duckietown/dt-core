@@ -3,6 +3,7 @@ import numpy as np
 import numpy.ma as ma
 from reprep.graphics.filter_scale import scale
 
+__all__ = ['plot_phi_d_diagram_bgr']
 
 def plot_phi_d_diagram_bgr(lane_filter, belief, phi, d, dpi=120,
                            bgcolor=(0, 204, 255),

@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -18,12 +18,12 @@ def single_image_histograms():
     dtu.write_bgr_images_as_jpgs(res, outd)
 
 
-def go(image_bgr):
-    res = OrderedDict()
+def go(image_bgr: dtu.NPImageBGR) -> Dict[str, dtu.NPImageBGR]:
+    res = {}
 
     H, _W = image_bgr.shape[:2]
     cut = 0.3
-    image_bgr_cut = image_bgr[int(cut * H) :, :, :]
+    image_bgr_cut = image_bgr[int(cut * H):, :, :]
 
     res["image_bgr"] = image_bgr
     res["image_bgr_cut"] = image_bgr_cut

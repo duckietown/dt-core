@@ -52,7 +52,7 @@ class LineDetectorNode2(EasyNode):
             try:
                 image_cv = dtu.bgr_from_jpg(image_msg.data)
             except ValueError as e:
-                self.loginfo("Could not decode image: %s" % e)
+                self.error("Could not decode image: %s" % e)
                 return
 
         with context.phase("resizing"):

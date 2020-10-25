@@ -3,10 +3,13 @@ from collections import namedtuple, OrderedDict
 
 import duckietown_utils as dtu
 
+from sensor_msgs.msg import CompressedImage
+
 __all__ = [
     'EasyNodeConfig',
     'load_configuration',
 ]
+
 
 EasyNodeConfig = namedtuple('EasyNodeConfig',
                             'filename package_name node_type_name description parameters subscriptions '
@@ -99,7 +102,7 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
             description = data.pop('description')
         except KeyError as e:
             key = e.args[0]
-            msg = 'Invalid configuration: missing field %r.' % (key)
+            msg = f'Invalid configuration: missing field {key!r}.'
             raise dtu.DTConfigException(msg)
 
         if not isinstance(description, (str, NoneType)):
@@ -324,8 +327,7 @@ def load_configuration_for_nodes_in_package(package_name: str):
     return res
 
 
-@dtu.contract(enc=EasyNodeConfig, returns=str)
-def format_enc(enc, descriptions=False):
+def format_enc(enc: EasyNodeConfig, descriptions:bool=False) -> str:
     s = 'Configuration for node "%s" in package "%s"' % (enc.node_type_name, enc.package_name)
     s += '\n' + '=' * len(s)
 
@@ -339,10 +341,8 @@ def format_enc(enc, descriptions=False):
     return s
 
 
-@dtu.contract(enc=EasyNodeConfig, returns=str)
-def format_enc_parameters(enc, descriptions):
-    table = []
-    table.append(['name', 'type', 'default', 'description', ])
+def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
+    table = [['name', 'type', 'default', 'description', ]]
 
     for p in list(enc.parameters.values()):
         if p.desc:
@@ -363,10 +363,8 @@ def format_enc_parameters(enc, descriptions):
     return dtu.format_table_plus(table, 2)
 
 
-@dtu.contract(enc=EasyNodeConfig, returns=str)
-def format_enc_subscriptions(enc, descriptions):
-    table = []
-    table.append(['name', 'type', 'topic', 'options', 'process', 'description', ])
+def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
+    table = [['name', 'type', 'topic', 'options', 'process', 'description', ]]
 
     for p in list(enc.subscriptions.values()):
         if p.desc:
@@ -375,11 +373,11 @@ def format_enc_subscriptions(enc, descriptions):
             desc = '(none)'
         options = []
         if p.queue_size is not None:
-            options.append('queue_size = %s' % p.queue_size)
+            options.append(f'queue_size = {p.queue_size}')
         if p.latch is not None:
-            options.append('latch = %s ' % p.latch)
+            options.append(f'latch = {p.latch} ')
         if p.timeout is not None:
-            options.append('timeout = %s ' % p.timeout)
+            options.append(f'timeout = {p.timeout} ')
 
         options = '\n'.join(options)
         table.append([p.name, p.type.__name__, p.topic, options, p.process, desc])
@@ -390,8 +388,7 @@ def format_enc_subscriptions(enc, descriptions):
 
 @dtu.contract(enc=EasyNodeConfig, returns=str)
 def format_enc_publishers(enc, descriptions):
-    table = []
-    table.append(['name', 'type', 'topic', 'options', 'description', ])
+    table = [['name', 'type', 'topic', 'options', 'description', ]]
 
     for p in list(enc.publishers.values()):
         if p.desc:
@@ -400,9 +397,9 @@ def format_enc_publishers(enc, descriptions):
             desc = '(none)'
         options = []
         if p.queue_size is not None:
-            options.append('queue_size = %s ' % p.queue_size)
+            options.append(f'queue_size = {p.queue_size} ')
         if p.latch is not None:
-            options.append('latch = %s' % p.latch)
+            options.append(f'latch = {p.latch}')
 
         options = '\n'.join(options)
         table.append([p.name, p.type.__name__, p.topic, options, desc])

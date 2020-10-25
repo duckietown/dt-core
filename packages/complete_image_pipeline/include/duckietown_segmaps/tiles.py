@@ -59,7 +59,7 @@ def three_way_intersection(tile_size, tile_spacing, width_white):
 
 
 @dtu.contract(returns=SegmentsMap)
-def get_map_empty_tile(tile_size, tile_spacing, buffer_black)  -> SegmentsMap:
+def get_map_empty_tile(tile_size, tile_spacing, buffer_black) -> SegmentsMap:
     constants = {}
     constants["tile_size"] = tile_size
     constants["tile_spacing"] = tile_spacing
@@ -82,8 +82,7 @@ def get_map_empty_tile(tile_size, tile_spacing, buffer_black)  -> SegmentsMap:
     return SegmentsMap(**data)
 
 
-
-def empty_tile(tile_size: float, tile_spacing: float, width_white: float)->SegmentsMap:
+def empty_tile(tile_size: float, tile_spacing: float, width_white: float) -> SegmentsMap:
     """ DT16 Old intersection center """
     constants = {}
     constants["tile_size"] = tile_size
@@ -105,7 +104,8 @@ def empty_tile(tile_size: float, tile_spacing: float, width_white: float)->Segme
     return SegmentsMap(**data)
 
 
-def get_map_intersection_center(tile_size: float, tile_spacing: float, width_white: float, width_red: float, width_yellow: float, num_roads: int) -> SegmentsMap:
+def get_map_intersection_center(tile_size: float, tile_spacing: float, width_white: float, width_red: float,
+                                width_yellow: float, num_roads: int) -> SegmentsMap:
     lane_width = (tile_size - 2 * width_white - width_yellow) / 2
     extra = (tile_spacing - tile_size) / 2
 
@@ -248,7 +248,8 @@ def get_map_intersection_center(tile_size: float, tile_spacing: float, width_whi
     return SegmentsMap(**data)
 
 
-def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: float, tile_spacing: float, gap_len: float, dash_len: float, width_red: float)->SegmentsMap:
+def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: float, tile_spacing: float,
+                          gap_len: float, dash_len: float, width_red: float) -> SegmentsMap:
     # from inner yellow to inner white
     constants = {}
     constants["tile_size"] = tile_size
@@ -280,28 +281,28 @@ def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: fl
     segments = []
     faces = []
 
-    points["p1"] = SegMapPoint(id_frame=FRAME, coords=[S, y1, 0])
-    points["q1"] = SegMapPoint(id_frame=FRAME, coords=[D, y1, 0])
-    points["p2"] = SegMapPoint(id_frame=FRAME, coords=[S, y2, 0])
-    points["q2"] = SegMapPoint(id_frame=FRAME, coords=[D, y2, 0])
-    points["p3"] = SegMapPoint(id_frame=FRAME, coords=[S, y3, 0])
-    points["q3"] = SegMapPoint(id_frame=FRAME, coords=[D, y3, 0])
-    points["p4"] = SegMapPoint(id_frame=FRAME, coords=[S, y4, 0])
-    points["q4"] = SegMapPoint(id_frame=FRAME, coords=[D, y4, 0])
-    points["p5"] = SegMapPoint(id_frame=FRAME, coords=[S, y5, 0])
-    points["q5"] = SegMapPoint(id_frame=FRAME, coords=[D, y5, 0])
-    points["p6"] = SegMapPoint(id_frame=FRAME, coords=[S, y6, 0])
-    points["q6"] = SegMapPoint(id_frame=FRAME, coords=[D, y6, 0])
+    points["p1"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y1, 0]))
+    points["q1"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y1, 0]))
+    points["p2"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y2, 0]))
+    points["q2"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y2, 0]))
+    points["p3"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y3, 0]))
+    points["q3"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y3, 0]))
+    points["p4"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y4, 0]))
+    points["q4"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y4, 0]))
+    points["p5"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y5, 0]))
+    points["q5"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y5, 0]))
+    points["p6"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y6, 0]))
+    points["q6"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y6, 0]))
 
     add_tile(points, faces, segments, tile_size, tile_spacing)
 
     def add_dash(x, length):
         s = len(points)
         pre = "dash%s_" % s
-        points[pre + "t0"] = SegMapPoint(id_frame=FRAME, coords=[x, y3, 0])
-        points[pre + "t1"] = SegMapPoint(id_frame=FRAME, coords=[x, y4, 0])
-        points[pre + "t2"] = SegMapPoint(id_frame=FRAME, coords=[x + length, y4, 0])
-        points[pre + "t3"] = SegMapPoint(id_frame=FRAME, coords=[x + length, y3, 0])
+        points[pre + "t0"] = SegMapPoint(id_frame=FRAME, coords=np.array([x, y3, 0]))
+        points[pre + "t1"] = SegMapPoint(id_frame=FRAME, coords=np.array([x, y4, 0]))
+        points[pre + "t2"] = SegMapPoint(id_frame=FRAME, coords=np.array([x + length, y4, 0]))
+        points[pre + "t3"] = SegMapPoint(id_frame=FRAME, coords=np.array([x + length, y3, 0]))
         faces.append(
             SegMapFace(
                 color=YELLOW,
@@ -367,17 +368,18 @@ def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: fl
 
 
 @dtu.contract(points="dict", faces="list", id_frame="str", color="str", use_sides_for_loc="list[4](None|int)")
-def _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame: FrameName, color: str, use_sides_for_loc: List[Optional[int]]):
+def _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame: FrameName, color: str,
+              use_sides_for_loc: List[Optional[int]]):
     assert x2 > x1
     assert y2 > y1
     s = len(points)
 
     pre = "%s_" % s
     names = cast(List[PointName], [pre + "t0", pre + "t1", pre + "t2", pre + "t3"])
-    points[names[0]] = SegMapPoint(id_frame=id_frame, coords=[x1, y1, 0])
-    points[names[1]] = SegMapPoint(id_frame=id_frame, coords=[x1, y2, 0])
-    points[names[2]] = SegMapPoint(id_frame=id_frame, coords=[x2, y2, 0])
-    points[names[3]] = SegMapPoint(id_frame=id_frame, coords=[x2, y1, 0])
+    points[names[0]] = SegMapPoint(id_frame=id_frame, coords=np.array([x1, y1, 0]))
+    points[names[1]] = SegMapPoint(id_frame=id_frame, coords=np.array([x1, y2, 0]))
+    points[names[2]] = SegMapPoint(id_frame=id_frame, coords=np.array([x2, y2, 0]))
+    points[names[3]] = SegMapPoint(id_frame=id_frame, coords=np.array([x2, y1, 0]))
     faces.append(SegMapFace(color=color, points=names))
 
     for i, c in enumerate(use_sides_for_loc):
@@ -409,7 +411,7 @@ def __add_rect_by_coords(points, faces, segments, coords, id_frame, color, use_s
     for i, coord in enumerate(coords):
         name = PointName("%s%s" % (pre, i))
         names.append(name)
-        points[name] = SegMapPoint(id_frame=id_frame, coords=[coord[0], coord[1], 0])
+        points[name] = SegMapPoint(id_frame=id_frame, coords=np.array([coord[0], coord[1], 0]))
 
     faces.append(SegMapFace(color=color, points=names))
 

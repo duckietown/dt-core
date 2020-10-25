@@ -2,13 +2,13 @@ import duckietown_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext
 from easy_regression import ProcessorInterface, ProcessorUtilsInterface
-from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
-from line_detector_recovered.visual_state_fancy_display import vs_fancy_display
+from line_detector_interface import FAMILY_LINE_DETECTOR
+from line_detector_interface.visual_state_fancy_display import vs_fancy_display
 
 
 class LineDetectorProcessor(ProcessorInterface):
-    @dtu.contract(image_prep="str", line_detector="str")
-    def __init__(self, image_prep, line_detector):
+
+    def __init__(self, image_prep: str, line_detector: str):
         self.image_prep = image_prep
         self.line_detector = line_detector
 

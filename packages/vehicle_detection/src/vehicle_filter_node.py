@@ -1,41 +1,47 @@
 #!/usr/bin/env python3
 
 import cv2
-import rospy
 import numpy as np
-import os
+
+import rospy
 from cv_bridge import CvBridge
-
-from image_geometry import PinholeCameraModel
-
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from duckietown_msgs.msg import BoolStamped, VehicleCorners, StopLineReading, FSMState
-from sensor_msgs.msg import CompressedImage, Image, CameraInfo
-from visualization_msgs.msg import Marker
+from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
+from duckietown_msgs.msg import BoolStamped, FSMState, StopLineReading, VehicleCorners
 from duckietown_msgs.srv import ChangePattern
+from image_geometry import PinholeCameraModel
+from sensor_msgs.msg import CameraInfo
 from std_msgs.msg import String
+from visualization_msgs.msg import Marker
+
 
 class VehicleFilterNode(DTROS):
     """
-    The vehicle filter node is responsible for estimating the relative pose to a detected back pattern of a robot and
-    for publishing a stop line message if the other vehicle is too close. We model the vehicle in front as a stop line
+    The vehicle filter node is responsible for estimating the relative pose to a detected back pattern of a
+    robot and
+    for publishing a stop line message if the other vehicle is too close. We model the vehicle in front as
+    a stop line
     and leave the velocity control to the lane control node.
 
     Args:
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
 
     Configuration:
-        ~distance_between_centers (:obj:`float`): Distance between the centers of the circles on the back pattern, in meters.
-        ~max_reproj_pixelerror_pose_estimation (:obj:`float`): Maximum tolerable reprojection error. If a reprojection error higher than that is observed. A stop message will be published.
-        ~virtual_stop_line_offset (:obj:`int`): Desired distance from the back pattern of the robot in front, in meters.
+        ~distance_between_centers (:obj:`float`): Distance between the centers of the circles on the back
+        pattern, in meters.
+        ~max_reproj_pixelerror_pose_estimation (:obj:`float`): Maximum tolerable reprojection error. If a
+        reprojection error higher than that is observed. A stop message will be published.
+        ~virtual_stop_line_offset (:obj:`int`): Desired distance from the back pattern of the robot in
+        front, in meters.
 
     Subscriber:
         ~centers (:obj:`duckietown_msgs.msg.VehicleCorners`): Detected pattern (if any)
-        ~camera_info (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera. Needed for rectifying the segments.
+        ~camera_info (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera. Needed for
+        rectifying the segments.
 
     Publishers:
         ~virtual_stop_line (:obj:`duckietown_msgs.msg.StopLineReading`): Message to the lane controller
-        ~debug/visualization_marker (:obj:`visualization_msgs.msg.Marker`): Debug topic that publishes an rViz marker
+        ~debug/visualization_marker (:obj:`visualization_msgs.msg.Marker`): Debug topic that publishes an
+        rViz marker
         ~stopped (:obj:`BoolStamped`): Message to FSM state machine to identify that vehicle is stopped
     """
 
@@ -66,19 +72,20 @@ class VehicleFilterNode(DTROS):
         self.state = None
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
-        self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1)
+        self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info,
+                                         queue_size=1)
         """ TODO: REMOVE AFTER ROAD_ANOMALY NODE CONSTRUCTION"""
-        self.sub_state = rospy.Subscriber("~mode",FSMState,self.cbFSMState)
+        self.sub_state = rospy.Subscriber("~mode", FSMState, self.cbFSMState)
         # publishers
         self.pub_virtual_stop_line = rospy.Publisher("~virtual_stop_line", StopLineReading, queue_size=1)
         self.pub_visualize = rospy.Publisher("~debug/visualization_marker", Marker, queue_size=1)
-        self.pub_stopped_flag = rospy.Publisher("~stopped",BoolStamped, queue_size=1)
+        self.pub_stopped_flag = rospy.Publisher("~stopped", BoolStamped, queue_size=1)
         self.pcm = PinholeCameraModel()
-        self.changePattern = rospy.ServiceProxy("~set_pattern",ChangePattern)
+        self.changePattern = rospy.ServiceProxy("~set_pattern", ChangePattern)
         self.log("Initialization completed")
         self.last_led_state = None
 
-    def cbFSMState(self,msg):
+    def cbFSMState(self, msg):
         self.state = msg.state
 
     def cb_process_camera_info(self, msg):
@@ -94,7 +101,8 @@ class VehicleFilterNode(DTROS):
 
     def cb_process_centers(self, vehicle_centers_msg):
         """
-        Callback that processes a back pattern detection. If no detection was made, publishes a dummy stop line message.
+        Callback that processes a back pattern detection. If no detection was made, publishes a dummy stop
+        line message.
 
         Args:
             vehicle_centers_msg (:obj:`duckietown_msgs.msg.VehicleCorners`): Detected pattern (if any)
@@ -121,7 +129,8 @@ class VehicleFilterNode(DTROS):
                                                      cameraMatrix=self.pcm.intrinsicMatrix(),
                                                      distCoeffs=self.pcm.distortionCoeffs())
 
-                mean_reproj_error = np.mean(np.sqrt(np.sum((np.squeeze(points_reproj)-points)**2, axis=1)))
+                mean_reproj_error = np.mean(
+                    np.sqrt(np.sum((np.squeeze(points_reproj) - points) ** 2, axis=1)))
 
                 if mean_reproj_error < self.max_reproj_pixelerror_pose_estimation.value:
                     (R, jac) = cv2.Rodrigues(rotation_vector)
@@ -187,10 +196,10 @@ class VehicleFilterNode(DTROS):
                 marker_msg.action = Marker.DELETE
                 self.pub_visualize.publish(marker_msg)
         try:
-            self.trigger_led_hazard_light(detection,(distance_to_vehicle <= self.virtual_stop_line_offset.value))
+            self.trigger_led_hazard_light(detection,
+                                          (distance_to_vehicle <= self.virtual_stop_line_offset.value))
         except Exception:
-            self.trigger_led_hazard_light(detection,False)
-
+            self.trigger_led_hazard_light(detection, False)
 
     def calc_circle_pattern(self, height, width):
         """
@@ -213,12 +222,12 @@ class VehicleFilterNode(DTROS):
                     self.circlepattern[i + j * width, 1] = self.circlepattern_dist * j - \
                                                            self.circlepattern_dist * (height - 1) / 2
 
-    def trigger_led_hazard_light(self,detection,stopped):
+    def trigger_led_hazard_light(self, detection, stopped):
         """
         Publish a service message to trigger the hazard light at the back of the robot
         """
         msg = String()
-        
+
         if stopped:
             msg.data = "OBSTACLE_STOPPED"
             if msg.data != self.last_led_state:
@@ -268,6 +277,7 @@ class VehicleFilterNode(DTROS):
         stopped_flag.header = header
         stopped_flag.data = bool(at)
         self.pub_stopped_flag.publish(stopped_flag)
+
 
 if __name__ == '__main__':
     vehicle_filter_node = VehicleFilterNode(node_name='vehicle_filter_node')

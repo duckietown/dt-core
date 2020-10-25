@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-import numpy as np
-from duckietown_msgs.msg import BoolStamped, Twist2DStamped, AprilTagsWithInfos
+from duckietown_msgs.msg import AprilTagsWithInfos, BoolStamped, Twist2DStamped
 from std_msgs.msg import Float32, UInt8
 
 classes = {"BoolStamped": BoolStamped, "Twist2DStamped": Twist2DStamped, "AprilTagsWithInfos": AprilTagsWithInfos, "Float32": Float32, "UInt8": UInt8}

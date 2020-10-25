@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import rospy
 import numpy
-from duckietown_msgs.msg import FSMState, BoolStamped
-from std_msgs.msg import String, Int16 #Imports msg
+
+import rospy
+from duckietown_msgs.msg import FSMState
+from std_msgs.msg import Int16  # Imports msg
+
 
 class SRTurnsNode:
     def __init__(self):

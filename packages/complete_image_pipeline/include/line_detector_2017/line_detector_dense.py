@@ -1,11 +1,25 @@
+from typing import List
+
 import cv2
 import numpy as np
 
 import duckietown_utils as dtu
-from .line_detector_interface import Detections, LineDetectorInterface
+from line_detector_interface import Detections, LineDetectorInterface
 
 
 class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
+    hsv_white1: float
+    hsv_white2: float
+    hsv_yellow1: float
+    hsv_yellow2: float
+    hsv_red1: float
+    hsv_red2: float
+    hsv_red3: float
+    hsv_red4: float
+    dilation_kernel_size: float
+    canny_thresholds: List[float]
+    sobel_threshold: float
+
     def __init__(self, configuration):
         # Images to be processed
         self.bgr = np.empty(0)

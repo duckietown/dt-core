@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+__all__ = ['EasyAlgoInstance', 'EasyAlgoFamily']
 EasyAlgoFamily = namedtuple('EasyAlgoFamily',
                             ['filename',
                              'family_name',
@@ -8,7 +9,6 @@ EasyAlgoFamily = namedtuple('EasyAlgoFamily',
                              'locations',
                              'default_constructor',
                              'instances_pattern', 'instances',
-                             #                        'tests', 'tests_pattern',
                              'valid', 'error_if_invalid'])
 #
 #

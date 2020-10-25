@@ -1,8 +1,9 @@
 import numpy as np
+from geometry import SE2value
 from numpy.ma.testutils import assert_almost_equal
 
 import duckietown_utils as dtu
-from localization_templates.map_localization_template import LocalizationTemplate
+from localization_templates import LocalizationTemplate
 
 __all__ = [
     "TemplateXYStopline",
@@ -43,8 +44,7 @@ class TemplateXYStopline(LocalizationTemplate):
         stop_line_starts_at = tile_size / 2 - width_red
         self.offset_dstop = stop_line_starts_at
 
-    @dtu.contract(returns="array", pose="SE2")
-    def coords_from_pose(self, pose):
+    def coords_from_pose(self, pose:SE2value) -> np.ndarray:
         """ Returns an array with datatype DATATYPE_COORDS """
         self._init_metrics()
         xy, _ = dtu.geo.translation_angle_from_SE2(pose)

@@ -1,6 +1,6 @@
 import math
-from collections import defaultdict, namedtuple, OrderedDict
-from typing import Iterator
+from collections import defaultdict, namedtuple
+from typing import Iterator, List
 
 import numpy as np
 from geometry import SE2_from_translation_angle, SO2_from_angle
@@ -8,35 +8,40 @@ from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
 import duckietown_utils as dtu
-from duckietown_segmaps.maps import get_normal_outward_for_segment, SegmentsMap
+from duckietown_segmaps.maps import get_normal_outward_for_segment, SegMapSegment, SegmentsMap
 from duckietown_utils.matplotlib_utils import CreateImageFromPylab
 from easy_algo import get_easy_algo_db
 from grid_helper import (convert_unit, grid_helper_annotate_axes, grid_helper_mark_point,
                          grid_helper_plot_field, grid_helper_set_axes, GridHelper)
 from grid_helper.voting_grid import array_as_string_sign, check_no_nans
-from lane_filter_interface.lane_filter_interface import LaneFilterInterface
-from localization_templates import FAMILY_LOC_TEMPLATES
+from lane_filter_interface import LaneFilterInterface
+from localization_templates import FAMILY_LOC_TEMPLATES, LocalizationTemplate
 
-logger = dtu.logger
 __all__ = [
     'LaneFilterMoreGeneric',
 ]
+
+logger = dtu.logger
 
 
 class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
     """ """
     localization_template: str
-    variables: object
+    _localization_template: LocalizationTemplate
+
+    variables: dict
     precision: float
     belief: np.ndarray
     optimize: bool
-    bounds_theta_deg: float
+    bounds_theta_deg: List[float]
+    F: object
+    rep_map: "PNRep"
+
 
     def __init__(self, configuration):
         param_names = [
             'localization_template',
             'delta_segment',
-
             'variables',
             'F',
             'optimize',
@@ -46,7 +51,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         dtu.Configurable.__init__(self, param_names, configuration)
 
-        self.grid_helper = GridHelper(OrderedDict(self.variables), precision=self.precision)
+        self.grid_helper = GridHelper(dict(self.variables), precision=self.precision)
 
         self.initialize_belief()
         self.last_segments_used = None
@@ -105,8 +110,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                         logger.warning('flat belief, just use likelihood')
                         self.belief = measurement_likelihood
 
-
-                    alpha = 1.0 /s
+                    alpha = 1.0 / s
                     self.belief = self.belief * alpha
 
         return measurement_likelihood
@@ -337,7 +341,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
 
 @dtu.contract(sm=SegmentsMap, delta='float,>0')
-def iterate_segment_sections(sm: SegmentsMap, map_segment, delta: float) -> Iterator:
+def iterate_segment_sections(sm: SegmentsMap, map_segment: SegMapSegment, delta: float) -> Iterator:
     """ Yields point, normal """
     w1 = np.array(sm.points[map_segment.points[0]].coords)
     w2 = np.array(sm.points[map_segment.points[1]].coords)
@@ -408,7 +412,7 @@ def get_estimate_2(t, n, t_est, n_est):
 PNRep = namedtuple('PNRep', 't n color weight')
 
 
-def get_compat_representation_map(sm, delta_segment):
+def get_compat_representation_map(sm: SegmentsMap, delta_segment) -> PNRep:
     sections = []
 
     for map_segment in sm.segments:

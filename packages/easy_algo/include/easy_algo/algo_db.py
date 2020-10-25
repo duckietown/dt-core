@@ -1,8 +1,8 @@
 import copy
 import os
 import traceback
-from collections import namedtuple, OrderedDict
-from typing import Dict, Tuple, Union
+from dataclasses import dataclass
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import duckietown_utils as dtu
 from .algo_structures import EasyAlgoFamily, EasyAlgoInstance
@@ -16,12 +16,11 @@ NoneType = type(None)
 
 
 class EasyAlgoDB:
-    _singleton = None
+    _singleton: "EasyAlgoDB" = None
 
     pattern = '*.easy_algo_family.yaml'
 
-    @dtu.contract(sources='None|seq(str)')
-    def __init__(self, sources=None, use_as_singleton=False):
+    def __init__(self, sources: Optional[Sequence[str]] = None, use_as_singleton: bool = False):
         if use_as_singleton:
             EasyAlgoDB._singleton = self
         if sources is None:
@@ -34,7 +33,7 @@ class EasyAlgoDB:
 
     def query(self, family_name, query, raise_if_no_matches=False):
         if isinstance(query, list):
-            res = OrderedDict()
+            res = {}
             for q in query:
                 res.update(self.query(family_name, q, raise_if_no_matches=False))
             if raise_if_no_matches and not res:
@@ -55,8 +54,8 @@ class EasyAlgoDB:
 
     def query_and_instance(self, family_name: str, query, raise_if_no_matches=False):
         results = self.query(family_name, query, raise_if_no_matches=raise_if_no_matches)
-        stuff = OrderedDict((k, self.create_instance(family_name, k))
-                            for k in results)
+        stuff = dict((k, self.create_instance(family_name, k))
+                     for k in results)
         return stuff
 
     def create_instance(self, family_name: str, instance_name_or_spec: Union[dict, str]):
@@ -101,10 +100,15 @@ def get_easy_algo_db() -> EasyAlgoDB:
     return EasyAlgoDB._singleton
 
 
-SpecValues = namedtuple('SpecValues', 'description constructor parameters')
+# SpecValues = namedtuple('SpecValues', 'description constructor parameters')
+@dataclass
+class SpecValues:
+    description: str
+    constructor: str
+    parameters: Dict[str, object]
 
 
-def _parse_inline_spec(x: dict) -> Tuple[str, ...]:
+def _parse_inline_spec(x: dict) -> Tuple[str, SpecValues]:
     dtu.check_isinstance(x, dict)
     if len(x) != 1:
         msg = 'Invalid spec: length is %d' % len(x)
@@ -176,7 +180,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
             if c.default_constructor is not None and not 'constructor' in data:
                 description = '(not given)'
                 constructor = c.default_constructor
-                parameters = OrderedDict(data)
+                parameters = dict(data)
             else:
                 description = data.pop('description')
                 dtu.dt_check_isinstance('description', description, str)
@@ -246,13 +250,12 @@ def check_validity_instance(f, i):
     return i
 
 
-@dtu.contract(f=EasyAlgoFamily, t=EasyAlgoInstance, returns=EasyAlgoInstance)
-def check_validity_test(f, t):
+def check_validity_test(f: EasyAlgoFamily, t: EasyAlgoInstance) -> EasyAlgoInstance:
     return t
 
 
 @dtu.contract(f=EasyAlgoFamily, returns=EasyAlgoFamily)
-def check_validity_family(f):
+def check_validity_family(f: EasyAlgoFamily) -> EasyAlgoFamily:
     f = check_validity_family_interface(f)
     return f
 

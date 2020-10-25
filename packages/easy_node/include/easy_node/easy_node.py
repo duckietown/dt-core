@@ -38,7 +38,7 @@ class EasyNode:
 
     def error(self, msg):
         msg = self._msg(msg)
-        rospy.logerror(msg)
+        rospy.logerr(msg)
 
     def on_init(self):
         self.info('on_init (default)')

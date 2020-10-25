@@ -1,5 +1,7 @@
+from typing import List
+
 import duckietown_utils as dtu
-from .algo_db import EasyAlgoFamily
+from .algo_structures import EasyAlgoFamily
 
 
 def format_db(db, colorize=True, verbose=False):
@@ -8,27 +10,23 @@ def format_db(db, colorize=True, verbose=False):
     return s
 
 
-def format_families(families, colorize=True, verbose=True):
+def format_families(families: List[EasyAlgoFamily], colorize: bool=True, verbose: bool=True):
     if not families:
         s = "No algorithm families found."
         return s
     else:
 
-        table = []
-        table.append(['Family name',
-                      'interface',
-                      'pattern',
-                      '# found',
-                      'valid',
-                      'filename',
-                      'description',
-                      ])
+        table = [['Family name',
+                  'interface',
+                  'pattern',
+                  '# found',
+                  'valid',
+                  'filename',
+                  'description',
+                  ]]
         for family in families:
             assert isinstance(family, EasyAlgoFamily)
-            row = []
-            row.append(family.family_name)
-            row.append(family.interface)
-            row.append(family.instances_pattern)
+            row = [family.family_name, family.interface, family.instances_pattern]
             if not family.instances:
                 row.append('\n(none)')
             else:

@@ -41,7 +41,7 @@ def interpret_ros(msg):
     return np.array(msg.data)
 
 
-def ros_from_misc(name, value, t):  #@UnusedVariable
+def ros_from_misc(name, value, t):
     if isinstance(value, float):
         return Float64(value)
     elif isinstance(value, int):

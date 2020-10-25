@@ -1,12 +1,29 @@
+from typing import List
+
 import cv2
 import numpy as np
 
 import duckietown_utils as dtu
-from .line_detector_interface import Detections, LineDetectorInterface
+from line_detector_interface import Detections, LineDetectorInterface
+
+__all__ = ['LineDetectorHSV']
 
 
 class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
     """ LineDetectorHSV """
+    hsv_white1: float
+    hsv_white2: float
+    hsv_yellow1: float
+    hsv_yellow2: float
+    hsv_red1: float
+    hsv_red2: float
+    hsv_red3: float
+    hsv_red4: float
+    dilation_kernel_size: float
+    canny_thresholds: List[float]
+    hough_threshold: float
+    hough_min_line_length: float
+    hough_max_line_gap: float
 
     def __init__(self, configuration):
         # Images to be processed

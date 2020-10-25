@@ -3,10 +3,9 @@ from typing import NewType, Optional, Tuple
 import cv2
 import numpy as np
 
-from duckietown_utils import NPImageBGR
-from sensor_msgs.msg import CameraInfo
-from .constants import BOARD_HEIGHT, BOARD_WIDTH, SQUARE_SIZE, X_OFFSET, Y_OFFSET
 import duckietown_utils as dtu
+from duckietown_utils import NPImageBGR
+from .constants import BOARD_HEIGHT, BOARD_WIDTH, SQUARE_SIZE, X_OFFSET, Y_OFFSET
 
 
 class Point:
@@ -76,6 +75,7 @@ class GroundProjectionGeometry:
     im_width: int
     im_height: int
     H: np.ndarray
+    Hinv: np.ndarray
 
     def __init__(self, im_width: int, im_height: int, homography: np.ndarray):
 
@@ -158,7 +158,7 @@ class GroundProjectionGeometry:
         pixel: ImageSpaceResdepPoint = self.vector2pixel(vec)
         return self.pixel2ground(pixel)
 
-    def ground2pixel(self, point: GroundPoint) -> ImageSpaceNormalizedPoint:
+    def ground2pixel(self, point: GroundPoint) -> ImageSpaceResdepPoint:
         """
         Projects a point on the ground plane to a normalized pixel (``[0, 1] X [0, 1]``) using the
         homography matrix.

@@ -99,7 +99,7 @@ class GroundProjectionNode(DTROS):
                                                                  (3, 3)))
         self.camera_info_received = True
 
-    def pixel_msg_to_ground_msg(self, point_msg)->PointMsg:
+    def pixel_msg_to_ground_msg(self, point_msg) -> PointMsg:
         """
         Creates a :py:class:`ground_projection.Point` object from a normalized point message from an
         unrectified

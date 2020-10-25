@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import rospy, sys, os, cv2, pickle
-from navigation.graph import Graph
+from navigation.srv import *
+
+import cv2
+import os
+import rospy
+from cv_bridge import CvBridge
+from navigation.generate_duckietown_map import graph_creator
 from navigation.graph_search import GraphSearchProblem
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
-from navigation.srv import *
-from navigation.generate_duckietown_map import graph_creator
-import numpy as np
+
 
 class graph_search_server():
     def __init__(self):

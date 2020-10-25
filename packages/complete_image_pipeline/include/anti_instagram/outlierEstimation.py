@@ -1,5 +1,3 @@
-import numpy as np
-
 from anti_instagram.calcLstsqTransform import *
 
 

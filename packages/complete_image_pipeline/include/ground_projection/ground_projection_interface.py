@@ -9,36 +9,8 @@ from duckietown_msgs.msg import Segment, SegmentList
 from image_processing.calibration_utils import get_extrinsics_filename
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
-__all__ = []
-
-
-# @dtu.memoize_simple
-# def get_ground_projection(robot_name):
-#     return GroundProjection(robot_name)
-#
-#
-# @dtu.contract(returns=GroundProjectionGeometry, robot_name=str)
-# def get_ground_projection_geometry_for_robot(robot_name: str) -> GroundProjectionGeometry:
-#     gp = get_ground_projection(robot_name)
-#     return gp.get_ground_projection_geometry()
-#
-#
-# class GroundProjection:
-#     robot_name: str
-#
-#     def __init__(self, robot_name: str):
-#         camera_info = get_camera_info_for_robot(robot_name)
-#         homography = get_homography_for_robot(robot_name)
-#         self._gpg = GroundProjectionGeometry(camera_info, homography)
-#
-#         self.robot_name = robot_name
-#
-#     @dtu.contract(returns=GroundProjectionGeometry)
-#     def get_ground_projection_geometry(self) -> GroundProjectionGeometry:
-#         return self._gpg
-#
-#     def get_camera_info(self):
-#         return self._gpg.ci
+__all__ = ['find_ground_coordinates', 'save_homography',
+           'load_board_info', 'estimate_homography', 'HomographyEstimationResult']
 
 
 class CouldNotCalibrate(Exception):
@@ -157,10 +129,7 @@ def save_homography(H: np.ndarray, robot_name: str) -> None:
     dtu.write_data_to_file(s, fn)
 
 
-#    dtu.yaml_write_to_file(ob, extrinsics_filename)
 
-
-@dtu.contract(sl=SegmentList, gpg=GroundProjectionGeometry, returns=SegmentList)
 def find_ground_coordinates(
     gpg: GroundProjectionGeometry, sl: SegmentList, skip_not_on_ground: bool = True
 ) -> SegmentList:

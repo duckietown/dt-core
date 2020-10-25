@@ -1,14 +1,14 @@
 from collections import defaultdict, namedtuple
 
+import numpy as np
+
 import duckietown_utils as dtu
+import rospy
 from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface
 from grid_helper.grid_helper_visualization import convert_unit
-import numpy as np
-import rospy
 
 PlotSignalSpec = namedtuple('PlotSignalSpec', 'topic units units_display label color min max')
-# PlotSpec = namedtuple('PlotSpec', 'signals')
 
 
 def PlotSignalSpec_from_yaml(x):
@@ -16,22 +16,8 @@ def PlotSignalSpec_from_yaml(x):
 
 
 def StatsPlotterFromYaml(signals, **kwargs):
-#     signals = OrderedDict((k, PlotSpec_from_yaml(v)) for k,v in signals.items())
-
     signals = list(map(PlotSignalSpec_from_yaml, signals))
     return StatsPlotter(signals=signals, **kwargs)
-
-    # XXX
-
-#     > NotImplementedError: Type: <class 'tmpZg0QwQ._std_msgs__Float64'>
-# > value: Instance of <class 'tmpZg0QwQ._std_msgs__Float64'>: data: 0.0564317833039
-
-#     if isinstance(msg, Float64):
-#         return msg.data
-#     else:
-#         m = 'Type: %s ' % dtu.describe_type(msg)
-#         m += '\nvalue: %s' % dtu.describe_value(msg)
-#         raise NotImplementedError(m)
 
 
 class StatsPlotter(ProcessorInterface):
@@ -42,13 +28,12 @@ class StatsPlotter(ProcessorInterface):
         self.plot_name = plot_name
 
     def process_log(self, bag_in, prefix_in, bag_out, prefix_out, utils):
-#         log_name = utils.get_log().log_name
+        #         log_name = utils.get_log().log_name
 
         do_plot(bag_in, prefix_in, bag_out, prefix_out, self.signals, self.plot_name)
 
 
 def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
-
     topic2messages = defaultdict(lambda: dict(timestamp=[], data=[]))
 
     topics = []
@@ -103,7 +88,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             data_converted = convert_unit(data, signal_spec.units, signal_spec.units_display)
 
             ax.plot(t, data_converted, 'o', color=color, label=signal_spec.label,
-                        markersize=markersize, clip_on=False)
+                    markersize=markersize, clip_on=False)
 
             if not use_legend:
                 label = '%s [%s]' % (signal_spec.label, signal_spec.units_display)
@@ -126,7 +111,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             ax.xaxis.set_ticks_position('bottom')
 
         if use_legend:
-            label = '[%s]' % (signal_spec.units_display)
+            label = f'[{signal_spec.units_display}]'
             ax.set_ylabel(label)
 
             pylab.legend()

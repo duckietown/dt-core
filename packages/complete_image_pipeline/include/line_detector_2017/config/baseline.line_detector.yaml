@@ -1,4 +1,4 @@
-description: This is the baseline line detector.
+description: This is the baseline line detector (2018).
 constructor: line_detector_recovered.LineDetectorHSV
 parameters:
   configuration:

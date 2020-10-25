@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict
 
 import cv2
 
@@ -13,6 +12,8 @@ from image_processing.calibration_utils import (
 )
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
+
+logger = dtu.logger
 
 __all__ = [
     "CalibrateExtrinsics",
@@ -28,8 +29,14 @@ class CalibrateExtrinsics(D8App):
 
     def define_program_options(self, params):
         g = "Input/output"
-        params.add_string("input", default=None, help="If given, use this image rather than capturing.")
-        params.add_string("output", default=None, short="-o", help="Output directory", group=g)
+        params.add_string(
+            "input",
+            default=None,
+            help="If given, use this image rather than capturing.",
+        )
+        params.add_string(
+            "output", default=None, short="-o", help="Output directory", group=g
+        )
 
     def go(self):
         robot_name = dtu.get_current_robot_name()
@@ -44,65 +51,69 @@ class CalibrateExtrinsics(D8App):
 
         if the_input is None:
 
-            print(("{}\nCalibrating using the ROS image stream...\n".format("*" * 20)))
+            self.info(("{}\nCalibrating using the ROS image stream...\n".format("*" * 20)))
             import rospy
             from sensor_msgs.msg import CompressedImage
 
             topic_name = os.path.join("/", robot_name, "camera_node/image/compressed")
-            print(("Topic to listen to is: %s" % topic_name))
+            logger.info(f"Topic to listen to is: {topic_name}")
 
-            print("Let's wait for an image. Say cheese!")
+            self.info("Let's wait for an image. Say cheese!")
 
             # Dummy for getting a ROS message
             rospy.init_node("calibrate_extrinsics")
             img_msg = None
             try:
-                img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
-                print("Image captured")
+                img_msg = rospy.wait_for_message(
+                    topic_name, CompressedImage, timeout=10
+                )
+                self.info("Image captured")
             except rospy.ROSException as e:
-                print((
-                    "\n\n\n"
-                    "Didn't get any message: %s\n "
-                    "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
-                    "\n\n\n" % (e,)
-                ))
+                print(
+                    (
+                        "\n\n\n"
+                        "Didn't get any message: %s\n "
+                        "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
+                        "\n\n\n" % (e,)
+                    )
+                )
 
             bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
-            print(("Picture taken: %s " % str(bgr.shape)))
+            self.info(("Picture taken: %s " % str(bgr.shape)))
 
         else:
-            print(f"Loading input image {the_input}")
+            self.info(f"Loading input image {the_input}")
             bgr = dtu.bgr_from_jpg_fn(the_input)
 
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
-            print(("Resized to: %s " % str(bgr.shape)))
+            self.info(("Resized to: %s " % str(bgr.shape)))
         # Disable the old calibration file
-        print("Disableing old homography")
+        self.info("Disableing old homography")
         disable_old_homography(robot_name)
-        print("Obtaining camera info")
+        self.info("Obtaining camera info")
         try:
             camera_info = get_camera_info_for_robot(robot_name)
         except Exception as e:
             msg = "Error on obtaining camera info."
             raise Exception(msg) from e
 
-        print("Get default homography")
+        self.info("Get default homography")
         try:
             homography_dummy = get_homography_default()
         except Exception as e:
             msg = "Error on getting homography."
             raise Exception(msg) from e
 
-        print("Rectify image")
+        self.info("Rectify image")
         try:
             rect = Rectify(camera_info)
         except Exception as e:
             msg = "Error rectifying image."
             raise Exception(msg) from e
 
-        print("Calculate GPG")
+        self.info("Calculate GPG")
         try:
             gpg = GroundProjectionGeometry(
                 camera_info.width, camera_info.height, homography_dummy.reshape((3, 3))
@@ -110,15 +121,17 @@ class CalibrateExtrinsics(D8App):
         except Exception as e:
             msg = "Error calculating GroundProjectionGeometry."
             raise Exception(msg) from e
-        print("Ordered Dict")
-        res = OrderedDict()
+        self.info("Ordered Dict")
+        res = {}
         try:
             bgr_rectified = rect.rectify(bgr, interpolation=cv2.INTER_CUBIC)
 
             res["bgr"] = bgr
             res["bgr_rectified"] = bgr_rectified
 
-            _new_matrix, res["rectified_full_ratio_auto"] = rect.rectify_full(bgr, ratio=1.65)
+            _new_matrix, res["rectified_full_ratio_auto"] = rect.rectify_full(
+                bgr, ratio=1.65
+            )
 
             (result_gpg, status) = gpg.estimate_homography(bgr_rectified)
 
@@ -135,8 +148,8 @@ To check that this worked well, place the robot on the road, and run:
 Look at the produced jpgs.
 
 """
-            print(msg)
+            self.info(msg)
         except Exception as E:
-            print(E)
+            self.error(E)
         finally:
             dtu.write_bgr_images_as_jpgs(res, output)

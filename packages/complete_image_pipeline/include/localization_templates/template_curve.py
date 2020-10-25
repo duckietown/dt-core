@@ -52,7 +52,7 @@ class TemplateBeforeCurve(LocalizationTemplate):
         return res
 
     @dtu.contract(xy="array[2xN]", theta="array[N]")
-    def coords_from_position_orientation(self, xy, theta):
+    def coords_from_position_orientation(self, xy: np.ndarray, theta: np.ndarray):
         self._init_metrics()
         num = xy.shape[1]
         assert xy.shape == (2, num)

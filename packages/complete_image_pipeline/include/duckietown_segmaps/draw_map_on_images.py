@@ -6,8 +6,6 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
-
-# from geometry_msgs.msg import Point
 from ground_projection import GroundProjectionGeometry
 from image_processing.ground_projection_geometry import GroundPoint, Point
 from .maps import FRAME_AXLE, SegmentsMap
@@ -135,8 +133,6 @@ def get_horizon_points(gpg: GroundProjectionGeometry, shift: int):
     x = +1000
     y = x * 3  # enough for field of view
 
-
-
     p_left = gpg.ground2pixel(GroundPoint(Point(x, y, 0)))
 
     p_right = gpg.ground2pixel(GroundPoint(Point(x, -y, 0)))
@@ -235,8 +231,8 @@ def plot_map(
             w1 = coords_inside[0]
             w2 = coords_inside[1]
             # XXX: more generated
-            uv1 = gpg.ground2pixel(Point(w1[0], w1[1], w1[2]))
-            uv2 = gpg.ground2pixel(Point(w2[0], w2[1], w2[2]))
+            uv1 = gpg.ground2pixel(GroundPoint(Point(w1[0], w1[1], w1[2])))
+            uv2 = gpg.ground2pixel(GroundPoint(Point(w2[0], w2[1], w2[2])))
             uv1 = gpg.vector2pixel(uv1)  # FIXME
             uv2 = gpg.vector2pixel(uv2)  # FIXME
             shift = 8
@@ -332,7 +328,6 @@ def predict_segments(sm: SegmentsMap, gpg: GroundProjectionGeometry) -> SegmentL
 
         pixel1 = gpg.ground2pixel(GroundPoint(point1))
         pixel2 = gpg.ground2pixel(GroundPoint(point2))
-        # FIXME this does not jive well
         normalized1 = gpg.pixel2vector(pixel1)
         normalized2 = gpg.pixel2vector(pixel2)
 

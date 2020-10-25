@@ -132,9 +132,9 @@ def voting_kernel1():
         xe = np.array([_['x'] for _ in estimated])
         xew = np.array([_['x'] for _ in estimated_weighted])
 
-        xe = xe - x
-        xew = xew - x
-        x = x * 0
+        xe -= x
+        xew -= x
+        x = x * 0 # XXX?
 
         pylab.plot(x, '.', label='x')
         pylab.plot(xe, '.', label='x estimated')

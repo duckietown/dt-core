@@ -8,13 +8,23 @@ from numpy.testing.utils import assert_almost_equal
 import duckietown_utils as dtu
 from .transformations import FRAME_AXLE, FRAME_GLOBAL, FrameName, TransformationsInfo
 
+__all__ = [
+    "SegMapSegment",
+    "SegMapPoint",
+    "SegMapFace",
+    "FAMILY_SEGMAPS",
+    "SegmentsMap",
+    'PointName',
+    'plot_map_and_segments'
+]
+
 PointName = NewType("PointName", str)
 
 
 @dataclass
 class SegMapPoint:
     id_frame: FrameName
-    coords: List[float]
+    coords: np.ndarray
 
 
 @dataclass
@@ -28,14 +38,6 @@ class SegMapFace:
     points: List[PointName]
     color: object
 
-
-__all__ = [
-    "SegMapSegment",
-    "SegMapPoint",
-    "SegMapFace",
-    "FAMILY_SEGMAPS",
-    "SegmentsMap",
-]
 
 FAMILY_SEGMAPS = FrameName("segmap")
 

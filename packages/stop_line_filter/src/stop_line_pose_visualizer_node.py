@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 import tf
-import numpy as np
 from duckietown_msgs.msg import LanePose
-from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker, MarkerArray
 
 class LanePoseVisualzer:

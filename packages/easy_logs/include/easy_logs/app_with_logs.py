@@ -1,5 +1,6 @@
 import copy
 import os
+from abc import ABC
 from typing import List
 
 import duckietown_utils as dtu
@@ -12,7 +13,7 @@ from .resource_desc import _create_file_uri, DTR
 __all__ = ['D8AppWithLogs', 'download_if_necessary', 'get_log_if_not_exists']
 
 
-class D8AppWithLogs(D8App):
+class D8AppWithLogs(D8App, ABC):
     """
         An app that works with a log database.
 

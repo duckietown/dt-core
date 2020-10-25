@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import numpy as np
 import rospy
 import tf
 from duckietown.dtros import DTROS, NodeType, TopicType

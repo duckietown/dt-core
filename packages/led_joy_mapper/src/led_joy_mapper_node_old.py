@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import rospy
-import numpy as np
 from sensor_msgs.msg import Joy
-from std_msgs.msg import Float32, Int8, String
-import time
+from std_msgs.msg import String
 
 
 # Button List index of joy.buttons array:

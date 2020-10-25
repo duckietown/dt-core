@@ -75,4 +75,4 @@ class Path:
             if (e.get_source(), e.get_destination()) in edges:
                 e.set_color('red')
         dot_graph.set_concentrate(False)
-        display_svg(dot_graph.create_svg(), raw=True)
+        display_svg(dot_graph.create_svg(), raw=True) # FIXME

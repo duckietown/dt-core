@@ -8,20 +8,21 @@ import numpy as np
 import duckietown_utils as dtu
 from anti_instagram import AntiInstagramInterface
 from duckietown_msgs.msg import Segment, SegmentList
+from duckietown_segmaps import FRAME_AXLE, FRAME_GLOBAL
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
-from duckietown_segmaps.maps import FRAME_AXLE, FRAME_GLOBAL, plot_map_and_segments
+from duckietown_segmaps.maps import plot_map_and_segments
 from duckietown_segmaps.transformations import TransformationsInfo
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext, ProcessingTimingStats
-from ground_projection import GroundProjectionGeometry
 from ground_projection.ground_projection_interface import find_ground_coordinates
 from ground_projection.segment import rectify_segments
+from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
 from lane_filter import FAMILY_LANE_FILTER
 from lane_filter_generic import LaneFilterMoreGeneric
 from line_detector2.image_prep import ImagePrep
-from line_detector_recovered.line_detector_interface import FAMILY_LINE_DETECTOR
-from line_detector_recovered.visual_state_fancy_display import normalized_to_image, vs_fancy_display
+from line_detector_interface import FAMILY_LINE_DETECTOR
+from line_detector_interface.visual_state_fancy_display import normalized_to_image, vs_fancy_display
 from localization_templates import FAMILY_LOC_TEMPLATES
 
 logger = dtu.logger
