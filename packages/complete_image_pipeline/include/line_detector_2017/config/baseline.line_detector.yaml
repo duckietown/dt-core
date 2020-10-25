@@ -1,5 +1,5 @@
 description: This is the baseline line detector (2018).
-constructor: line_detector_recovered.LineDetectorHSV
+constructor: line_detector_2017.LineDetectorHSV
 parameters:
   configuration:
     dilation_kernel_size: 3

@@ -1,5 +1,5 @@
 description: This is the baseline line detector (2018).
-constructor: line_detector.LineDetector2Dense
+constructor: line_detector_2017.LineDetector2Dense
 parameters:
 
   configuration:

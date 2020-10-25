@@ -41,6 +41,6 @@ include_directories(
 
 
 install(PROGRAMS
-  scripts/rqt_navigation
+  src/rqt_navigation
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

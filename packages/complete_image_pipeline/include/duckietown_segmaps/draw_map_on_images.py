@@ -6,8 +6,8 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
-from ground_projection import GroundProjectionGeometry
-from image_processing.ground_projection_geometry import GroundPoint, Point
+
+from image_processing.ground_projection_geometry import GroundPoint, GroundProjectionGeometry, Point
 from .maps import FRAME_AXLE, SegmentsMap
 
 

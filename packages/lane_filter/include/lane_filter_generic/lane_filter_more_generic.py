@@ -349,7 +349,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return a.get_bgr()
 
 
-@dtu.contract(sm=SegmentsMap, delta="float,>0")
+@dtu.contract(delta="float,>0")
 def iterate_segment_sections(sm: SegmentsMap, map_segment: SegMapSegment, delta: float) -> Iterator:
     """ Yields point, normal """
     w1 = np.array(sm.points[map_segment.points[0]].coords)

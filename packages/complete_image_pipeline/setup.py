@@ -16,7 +16,7 @@ setup_args = generate_distutils_setup(
         "image_processing",
         "line_detector2",
         "line_detector2_tests",
-        "line_detector_recovered",
+        "line_detector_2017",
         "anti_instagram",
         "line_detector_interface",
     ],

@@ -7,8 +7,6 @@ import rospy
 from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import FSMState, LanePose, SegmentList, Twist2DStamped
-
-# from duckietown_utils.instantiate_utils import instantiate
 from lane_filter import LaneFilterHistogram
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
