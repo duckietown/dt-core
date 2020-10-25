@@ -44,8 +44,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     param = sys.argv[1]
-    param = param.replace('veh:=', '')
-    print(('Using vehicle name %r.' % param))
+    param = param.replace("veh:=", "")
+    print(("Using vehicle name %r." % param))
     veh = "/" + param
 
     bridge = CvBridge()
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     print(("image topic name: " + image_topic_name))
 
     if image_topic_name is not None:
-        while (key is not 27):
+        while key is not 27:
             img = rospy.wait_for_message(image_topic_name, Image)
             cv2image = bridge.imgmsg_to_cv2(img, "rgb8")
             cv2.imshow("image", cv2image)

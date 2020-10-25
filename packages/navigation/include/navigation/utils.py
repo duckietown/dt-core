@@ -23,9 +23,13 @@ import bisect
 def test_ok():
     try:
         from IPython.display import display_html
-        display_html("""<div class="alert alert-success">
+
+        display_html(
+            """<div class="alert alert-success">
         <strong>Test passed!!</strong>
-        </div>""", raw=True)
+        </div>""",
+            raw=True,
+        )
     except:
         print("test ok.")
 
@@ -43,6 +47,7 @@ def update(x, **entries):
         x.__dict__.update(entries)
     return x
 
+
 def some(predicate, seq):
     """If some element x of seq satisfies predicate(x), return predicate(x).
     >>> some(callable, [min, 3])
@@ -52,8 +57,10 @@ def some(predicate, seq):
     """
     for x in seq:
         px = predicate(x)
-        if px: return px
+        if px:
+            return px
     return False
+
 
 class Queue:
     """Queue is an abstract class/interface. There are three types:
@@ -73,33 +80,41 @@ class Queue:
         pass
 
     def extend(self, items):
-        for item in items: self.append(item)
+        for item in items:
+            self.append(item)
+
 
 class PriorityQueue(Queue):
     """A queue in which the minimum (or maximum) element (as determined by f and
     order) is returned first. If order is min, the item with minimum f(x) is
     returned first; if order is max, then it is the item with maximum f(x).
     Also supports dict-like lookup."""
+
     def __init__(self, order=min, f=lambda x: x):
         update(self, A=[], order=order, f=f)
+
     def append(self, item):
         bisect.insort(self.A, (self.f(item), item))
+
     def __len__(self):
         return len(self.A)
+
     def pop(self):
         if self.order == min:
             return self.A.pop(0)[1]
         else:
             return self.A.pop()[1]
+
     def __contains__(self, item):
         return some(lambda _, x: x == item, self.A)
+
     def __getitem__(self, key):
         for _, item in self.A:
             if item == key:
                 return item
+
     def __delitem__(self, key):
         for i, (value, item) in enumerate(self.A):
             if item == key:
                 self.A.pop(i)
                 return
-

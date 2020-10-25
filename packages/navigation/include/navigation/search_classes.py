@@ -6,8 +6,12 @@ class SearchNode:
         self._cost = cost
 
     def __repr__(self):
-        return "<SearchNode (id: %s)| state: %s, cost: %s, parent_id: %s>" % (id(self), self.state,
-                                                                              self.cost,id(self.parent))
+        return "<SearchNode (id: %s)| state: %s, cost: %s, parent_id: %s>" % (
+            id(self),
+            self.state,
+            self.cost,
+            id(self.parent),
+        )
 
     def expand(self, graph):
         """Returns new search nodes pointing to each children state of the state represented by this node."""
@@ -39,9 +43,11 @@ class SearchNode:
     def __hash__(self):
         return hash(self._state)
 
+
 class Path:
     """This class computes the path from the starting state until the state specified by the search_node
     parameter by iterating backwards."""
+
     def __init__(self, search_node):
         self.path = []
         self.actions = []
@@ -56,7 +62,12 @@ class Path:
         self.cost = search_node.cost
 
     def __repr__(self):
-        return "Number of nodes: %d\nTotal cost: %.3f\nNodes: %s\nActions: %s" % (len(self.path),self.cost, self.path, self.actions)
+        return "Number of nodes: %d\nTotal cost: %.3f\nNodes: %s\nActions: %s" % (
+            len(self.path),
+            self.cost,
+            self.path,
+            self.actions,
+        )
 
     def edges(self):
         return list(zip(self.path[0:-1], self.path[1:]))
@@ -65,14 +76,14 @@ class Path:
         dot_graph = graph._create_dot_graph()
         for n in dot_graph.get_nodes():
             if n.get_name() == self.path[0]:
-                n.set_color('blue')
+                n.set_color("blue")
             elif n.get_name() == self.path[-1]:
-                n.set_color('green')
+                n.set_color("green")
             elif n.get_name() in self.path:
-                n.set_color('red')
+                n.set_color("red")
         edges = self.edges()
         for e in dot_graph.get_edges():
             if (e.get_source(), e.get_destination()) in edges:
-                e.set_color('red')
+                e.set_color("red")
         dot_graph.set_concentrate(False)
-        display_svg(dot_graph.create_svg(), raw=True) # FIXME
+        display_svg(dot_graph.create_svg(), raw=True)  # FIXME

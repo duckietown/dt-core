@@ -30,17 +30,17 @@ def parse_binary(s):
 
     if s in Cmp.known:
         return Cmp(s)
-#
+    #
     try:
-        inside = dtu.remove_prefix_suffix(s, '==[', ']')
+        inside = dtu.remove_prefix_suffix(s, "==[", "]")
     except ValueError:
         pass
     else:
-        if inside.endswith('%'):
-            val = dtu.remove_suffix(inside, '%')
+        if inside.endswith("%"):
+            val = dtu.remove_suffix(inside, "%")
             percentage = parse_float(val)
             if percentage < 0:
-                msg = 'Invalid percentage %s' % percentage
+                msg = "Invalid percentage %s" % percentage
                 raise RTParseError(msg)
             ratio = percentage / 100.0
             return CompareApproxRelative(ratio)
@@ -76,14 +76,14 @@ def neq(a, b):
     return a != b
 
 
-class Cmp():
+class Cmp:
     known = {
-        '>': gt,
-        '>=': geq,
-        '<=': leq,
-        '<': lt,
-        '==': eq,
-        '!=': neq,
+        ">": gt,
+        ">=": geq,
+        "<=": leq,
+        "<": lt,
+        "==": eq,
+        "!=": neq,
     }
 
     def __init__(self, which):
@@ -96,10 +96,10 @@ class Cmp():
             expect_float(a)
             expect_float(b)
             val = self.f(a, b)
-            desc = '%s %s %s' % (a, self.which, b)
+            desc = "%s %s %s" % (a, self.which, b)
             return ResultWithDescription(val, desc)
         except EvaluationError as e:
-            msg = 'While evaluating %s(%s, %s)' % (self.f.__name__, a, b)
+            msg = "While evaluating %s(%s, %s)" % (self.f.__name__, a, b)
             dtu.raise_wrapped(EvaluationError, e, msg, compact=True)
 
     def __repr__(self):
@@ -111,12 +111,11 @@ class Cmp():
 #     return b in a
 def expect_float(x):
     if not isinstance(x, (float, int)):
-        msg = 'Expected a number, got %s.' % x.__repr__()
+        msg = "Expected a number, got %s." % x.__repr__()
         raise EvaluationError(msg)
 
 
-class CompareApproxRelative():
-
+class CompareApproxRelative:
     def __init__(self, rel_error):
         check_isinstance(rel_error, float)
         self.rel_error = rel_error
@@ -126,9 +125,8 @@ class CompareApproxRelative():
         lb = a - delta
         ub = a + delta
         res = lb <= b <= ub
-        desc = 'Condition checked:\n   %s <= %s <= %s.' % (lb, b, ub)
+        desc = "Condition checked:\n   %s <= %s <= %s." % (lb, b, ub)
         return ResultWithDescription(res, desc)
 
     def __str__(self):
-        return 'EqualUpTo(%g%%)' % (100 * self.rel_error)
-
+        return "EqualUpTo(%g%%)" % (100 * self.rel_error)

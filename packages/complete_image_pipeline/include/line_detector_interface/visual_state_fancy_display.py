@@ -8,9 +8,10 @@ from duckietown_msgs.msg import Segment, SegmentList
 
 AA = cv2.LINE_AA
 
-__all__ =['vs_fancy_display']
+__all__ = ["vs_fancy_display"]
 
-@dtu.contract( width="int,>=1")
+
+@dtu.contract(width="int,>=1")
 def vs_fancy_display(bgr: dtu.NPImageBGR, segment_list: SegmentList, width: int = 2) -> dtu.NPImageBGR:
     """
          Writes on a bgr image.

@@ -17,6 +17,7 @@ __all__ = [
 
 class LocalizationTemplate:
     """ Represents a template on which we can localize. """
+
     tile_name: str
     _map: Optional[SegmentsMap]
 

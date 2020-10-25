@@ -8,7 +8,7 @@ from scipy.stats import entropy, multivariate_normal
 from lane_filter_interface import LaneFilterInterface
 from .visualization import plot_phi_d_diagram_bgr
 
-__all__ = ['LaneFilterHistogram']
+__all__ = ["LaneFilterHistogram"]
 
 
 class LaneFilterHistogram(LaneFilterInterface):
@@ -30,6 +30,7 @@ class LaneFilterHistogram(LaneFilterInterface):
         configuration (:obj:`List`): A list of the parameters for the filter
 
     """
+
     mean_d_0: float
     mean_phi_0: float
     sigma_d_0: float
@@ -53,37 +54,40 @@ class LaneFilterHistogram(LaneFilterInterface):
 
     def __init__(self, **kwargs):
         param_names = [
-            'mean_d_0',
-            'mean_phi_0',
-            'sigma_d_0',
-            'sigma_phi_0',
-            'delta_d',
-            'delta_phi',
-            'd_max',
-            'd_min',
-            'phi_max',
-            'phi_min',
-            'cov_v',
-            'linewidth_white',
-            'linewidth_yellow',
-            'lanewidth',
-            'min_max',
-            'sigma_d_mask',
-            'sigma_phi_mask',
-            'range_min',
-            'range_est',
-            'range_max',
+            "mean_d_0",
+            "mean_phi_0",
+            "sigma_d_0",
+            "sigma_phi_0",
+            "delta_d",
+            "delta_phi",
+            "d_max",
+            "d_min",
+            "phi_max",
+            "phi_min",
+            "cov_v",
+            "linewidth_white",
+            "linewidth_yellow",
+            "lanewidth",
+            "min_max",
+            "sigma_d_mask",
+            "sigma_phi_mask",
+            "range_min",
+            "range_est",
+            "range_max",
         ]
 
         for p_name in param_names:
             assert p_name in kwargs, (p_name, param_names, kwargs)
             setattr(self, p_name, kwargs[p_name])
 
-        self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
-                           self.phi_min:self.phi_max:self.delta_phi]
+        self.d, self.phi = np.mgrid[
+            self.d_min : self.d_max : self.delta_d, self.phi_min : self.phi_max : self.delta_phi
+        ]
 
-        self.d_pcolor, self.phi_pcolor = np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
-                                         self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
+        self.d_pcolor, self.phi_pcolor = np.mgrid[
+            self.d_min : (self.d_max + self.delta_d) : self.delta_d,
+            self.phi_min : (self.phi_max + self.delta_phi) : self.delta_phi,
+        ]
 
         self.belief = np.empty(self.d.shape)
 
@@ -127,20 +131,21 @@ class LaneFilterHistogram(LaneFilterInterface):
         for i in range(self.belief.shape[0]):
             for j in range(self.belief.shape[1]):
                 if self.belief[i, j] > 0:
-                    if d_t[i, j] > self.d_max or d_t[i, j] < self.d_min or phi_t[i, j] < self.phi_min or \
-                        phi_t[i, j] > self.phi_max:
+                    if (
+                        d_t[i, j] > self.d_max
+                        or d_t[i, j] < self.d_min
+                        or phi_t[i, j] < self.phi_min
+                        or phi_t[i, j] > self.phi_max
+                    ):
                         continue
 
-                    i_new = int(
-                        floor((d_t[i, j] - self.d_min) / self.delta_d))
-                    j_new = int(
-                        floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
+                    i_new = int(floor((d_t[i, j] - self.d_min) / self.delta_d))
+                    j_new = int(floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
 
                     p_belief[i_new, j_new] += self.belief[i, j]
 
         s_belief = np.zeros(self.belief.shape)
-        gaussian_filter(p_belief, self.cov_mask,
-                        output=s_belief, mode='constant')
+        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode="constant")
 
         if np.sum(s_belief) == 0:
             return
@@ -184,8 +189,7 @@ class LaneFilterHistogram(LaneFilterInterface):
         segmentsArray = self.prepareSegments(segments)
         # generate all belief arrays
 
-        measurement_likelihood = self.generate_measurement_likelihood(
-            segmentsArray)
+        measurement_likelihood = self.generate_measurement_likelihood(segmentsArray)
 
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief, measurement_likelihood)
@@ -216,8 +220,7 @@ class LaneFilterHistogram(LaneFilterInterface):
         return measurement_likelihood
 
     def getEstimate(self):
-        maxids = np.unravel_index(
-            self.belief.argmax(), self.belief.shape)
+        maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
         d_max = self.d_min + (maxids[0] + 0.5) * self.delta_d
         phi_max = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
 
@@ -226,8 +229,8 @@ class LaneFilterHistogram(LaneFilterInterface):
     def get_estimate(self):
         d, phi = self.getEstimate()
         res = OrderedDict()
-        res['d'] = d
-        res['phi'] = phi
+        res["d"] = d
+        res["phi"] = phi
         return res
 
     def getMax(self):
@@ -257,7 +260,7 @@ class LaneFilterHistogram(LaneFilterInterface):
                 d_i -= self.linewidth_white
             else:  # left edge of white lane
 
-                d_i = - d_i
+                d_i = -d_i
 
                 phi_i = -phi_i
             d_i -= self.lanewidth / 2

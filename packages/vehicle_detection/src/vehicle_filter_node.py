@@ -48,20 +48,16 @@ class VehicleFilterNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(VehicleFilterNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(VehicleFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Add the node parameters to the parameters dictionary and load their default values
-        self.distance_between_centers = DTParam('~distance_between_centers',
-                                                param_type=ParamType.FLOAT)
+        self.distance_between_centers = DTParam("~distance_between_centers", param_type=ParamType.FLOAT)
 
-        self.max_reproj_pixelerror_pose_estimation = DTParam('~max_reproj_pixelerror_pose_estimation',
-                                                             param_type=ParamType.FLOAT)
+        self.max_reproj_pixelerror_pose_estimation = DTParam(
+            "~max_reproj_pixelerror_pose_estimation", param_type=ParamType.FLOAT
+        )
 
-        self.virtual_stop_line_offset = DTParam('~virtual_stop_line_offset',
-                                                param_type=ParamType.FLOAT)
+        self.virtual_stop_line_offset = DTParam("~virtual_stop_line_offset", param_type=ParamType.FLOAT)
 
         self.bridge = CvBridge()
 
@@ -72,8 +68,9 @@ class VehicleFilterNode(DTROS):
         self.state = None
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
-        self.sub_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_process_camera_info,
-                                         queue_size=1)
+        self.sub_info = rospy.Subscriber(
+            "~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1
+        )
         """ TODO: REMOVE AFTER ROAD_ANOMALY NODE CONSTRUCTION"""
         self.sub_state = rospy.Subscriber("~mode", FSMState, self.cbFSMState)
         # publishers
@@ -117,20 +114,25 @@ class VehicleFilterNode(DTROS):
             for i in range(len(points)):
                 points[i] = np.array([vehicle_centers_msg.corners[i].x, vehicle_centers_msg.corners[i].y])
 
-            success, rotation_vector, translation_vector = cv2.solvePnP(objectPoints=self.circlepattern,
-                                                                        imagePoints=points,
-                                                                        cameraMatrix=self.pcm.intrinsicMatrix(),
-                                                                        distCoeffs=self.pcm.distortionCoeffs())
+            success, rotation_vector, translation_vector = cv2.solvePnP(
+                objectPoints=self.circlepattern,
+                imagePoints=points,
+                cameraMatrix=self.pcm.intrinsicMatrix(),
+                distCoeffs=self.pcm.distortionCoeffs(),
+            )
 
             if success:
-                points_reproj, _ = cv2.projectPoints(objectPoints=self.circlepattern,
-                                                     rvec=rotation_vector,
-                                                     tvec=translation_vector,
-                                                     cameraMatrix=self.pcm.intrinsicMatrix(),
-                                                     distCoeffs=self.pcm.distortionCoeffs())
+                points_reproj, _ = cv2.projectPoints(
+                    objectPoints=self.circlepattern,
+                    rvec=rotation_vector,
+                    tvec=translation_vector,
+                    cameraMatrix=self.pcm.intrinsicMatrix(),
+                    distCoeffs=self.pcm.distortionCoeffs(),
+                )
 
                 mean_reproj_error = np.mean(
-                    np.sqrt(np.sum((np.squeeze(points_reproj) - points) ** 2, axis=1)))
+                    np.sqrt(np.sum((np.squeeze(points_reproj) - points) ** 2, axis=1))
+                )
 
                 if mean_reproj_error < self.max_reproj_pixelerror_pose_estimation.value:
                     (R, jac) = cv2.Rodrigues(rotation_vector)
@@ -139,16 +141,18 @@ class VehicleFilterNode(DTROS):
                     distance_to_vehicle = -translation_vector[2]
 
                     # make the message and publish
-                    self.publish_stop_line_msg(header=vehicle_centers_msg.header,
-                                               detected=True,
-                                               at=distance_to_vehicle <= self.virtual_stop_line_offset.value,
-                                               x=distance_to_vehicle)
+                    self.publish_stop_line_msg(
+                        header=vehicle_centers_msg.header,
+                        detected=True,
+                        at=distance_to_vehicle <= self.virtual_stop_line_offset.value,
+                        x=distance_to_vehicle,
+                    )
 
                     if self.pub_visualize.get_num_connections() > 0:
                         marker_msg = Marker()
                         marker_msg.header = vehicle_centers_msg.header
-                        marker_msg.header.frame_id = 'donald'
-                        marker_msg.ns = 'my_namespace'
+                        marker_msg.header.frame_id = "donald"
+                        marker_msg.ns = "my_namespace"
                         marker_msg.id = 0
                         marker_msg.type = Marker.CUBE
                         marker_msg.action = Marker.ADD
@@ -170,18 +174,15 @@ class VehicleFilterNode(DTROS):
                         self.pub_visualize.publish(marker_msg)
 
                 else:
-                    self.log("Pose estimation failed, too high reprojection error. "
-                             "Reporting detection at 0cm for safety.")
-                    self.publish_stop_line_msg(header=vehicle_centers_msg.header,
-                                               detected=True,
-                                               at=True)
+                    self.log(
+                        "Pose estimation failed, too high reprojection error. "
+                        "Reporting detection at 0cm for safety."
+                    )
+                    self.publish_stop_line_msg(header=vehicle_centers_msg.header, detected=True, at=True)
 
             else:
-                self.log("Pose estimation failed. "
-                         "Reporting detection at 0cm for safety.")
-                self.publish_stop_line_msg(header=vehicle_centers_msg.header,
-                                           detected=True,
-                                           at=True)
+                self.log("Pose estimation failed. " "Reporting detection at 0cm for safety.")
+                self.publish_stop_line_msg(header=vehicle_centers_msg.header, detected=True, at=True)
 
         else:
             # publish empty messages
@@ -190,14 +191,15 @@ class VehicleFilterNode(DTROS):
             if self.pub_visualize.get_num_connections() > 0:
                 marker_msg = Marker()
                 marker_msg.header = vehicle_centers_msg.header
-                marker_msg.header.frame_id = 'donald'
-                marker_msg.ns = 'my_namespace'
+                marker_msg.header.frame_id = "donald"
+                marker_msg.ns = "my_namespace"
                 marker_msg.id = 0
                 marker_msg.action = Marker.DELETE
                 self.pub_visualize.publish(marker_msg)
         try:
-            self.trigger_led_hazard_light(detection,
-                                          (distance_to_vehicle <= self.virtual_stop_line_offset.value))
+            self.trigger_led_hazard_light(
+                detection, (distance_to_vehicle <= self.virtual_stop_line_offset.value)
+            )
         except Exception:
             self.trigger_led_hazard_light(detection, False)
 
@@ -217,10 +219,12 @@ class VehicleFilterNode(DTROS):
             self.circlepattern = np.zeros([height * width, 3])
             for i in range(0, width):
                 for j in range(0, height):
-                    self.circlepattern[i + j * width, 0] = self.circlepattern_dist * i - \
-                                                           self.circlepattern_dist * (width - 1) / 2
-                    self.circlepattern[i + j * width, 1] = self.circlepattern_dist * j - \
-                                                           self.circlepattern_dist * (height - 1) / 2
+                    self.circlepattern[i + j * width, 0] = (
+                        self.circlepattern_dist * i - self.circlepattern_dist * (width - 1) / 2
+                    )
+                    self.circlepattern[i + j * width, 1] = (
+                        self.circlepattern_dist * j - self.circlepattern_dist * (height - 1) / 2
+                    )
 
     def trigger_led_hazard_light(self, detection, stopped):
         """
@@ -279,6 +283,6 @@ class VehicleFilterNode(DTROS):
         self.pub_stopped_flag.publish(stopped_flag)
 
 
-if __name__ == '__main__':
-    vehicle_filter_node = VehicleFilterNode(node_name='vehicle_filter_node')
+if __name__ == "__main__":
+    vehicle_filter_node = VehicleFilterNode(node_name="vehicle_filter_node")
     rospy.spin()

@@ -6,11 +6,12 @@ import numpy as np
 import duckietown_utils as dtu
 from line_detector_interface import Detections, LineDetectorInterface
 
-__all__ = ['LineDetectorHSV']
+__all__ = ["LineDetectorHSV"]
 
 
 class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
     """ LineDetectorHSV """
+
     hsv_white1: float
     hsv_white2: float
     hsv_yellow1: float

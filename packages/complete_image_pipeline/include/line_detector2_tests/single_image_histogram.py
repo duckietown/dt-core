@@ -23,7 +23,7 @@ def go(image_bgr: dtu.NPImageBGR) -> Dict[str, dtu.NPImageBGR]:
 
     H, _W = image_bgr.shape[:2]
     cut = 0.3
-    image_bgr_cut = image_bgr[int(cut * H):, :, :]
+    image_bgr_cut = image_bgr[int(cut * H) :, :, :]
 
     res["image_bgr"] = image_bgr
     res["image_bgr_cut"] = image_bgr_cut

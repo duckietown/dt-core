@@ -45,11 +45,11 @@ class IndefNavigationNode:
 
             # spin right unless servoing or centered
             wheels_cmd_msg.header.stamp = rospy.Time.now()
-            wheels_cmd_msg.vel_left = .2
-            wheels_cmd_msg.vel_right = -.2
+            wheels_cmd_msg.vel_left = 0.2
+            wheels_cmd_msg.vel_right = -0.2
 
-            angle_direction = (self.ibvs_data - 0.5)
-            gain = .1
+            angle_direction = self.ibvs_data - 0.5
+            gain = 0.1
             if self.ibvs_data == -1:
                 rospy.loginfo("No Line Detected. Continuing turn.")
                 self.pub_servo_status.publish(String(data="None"))
@@ -81,16 +81,16 @@ class IndefNavigationNode:
                 #  while not rospy.is_shutdown():
                 wheels_cmd_msg = WheelsCmdStamped()
                 wheels_cmd_msg.header.stamp = rospy.Time.now()
-                wheels_cmd_msg.vel_left = .3
-                wheels_cmd_msg.vel_right = -.3
+                wheels_cmd_msg.vel_left = 0.3
+                wheels_cmd_msg.vel_right = -0.3
                 self.pub_wheels_cmd.publish(wheels_cmd_msg)
                 rospy.sleep(rospy.Duration(1))
                 centered = False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node('indef_navigation_node', anonymous=False)
+    rospy.init_node("indef_navigation_node", anonymous=False)
 
     # Create the NodeName object
     node = IndefNavigationNode()

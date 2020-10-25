@@ -5,9 +5,8 @@ from easy_logs.app_with_logs import D8AppWithLogs
 
 
 class GenericLogDisplay(D8AppWithLogs):
-
     def define_options(self, params):
-        params.accept_extra(description='Log query string')
+        params.accept_extra(description="Log query string")
 
     @abstractmethod
     def show_info(self, logs):
@@ -16,10 +15,10 @@ class GenericLogDisplay(D8AppWithLogs):
     def go(self):
         extra = self.options.get_extra()
         if not extra:
-            query = '*'
+            query = "*"
         else:
             if len(extra) > 1:
-                msg = 'Expected only one extra argument.'
+                msg = "Expected only one extra argument."
                 raise dtu.DTUserError(msg)
             query = extra[0]
 
@@ -28,5 +27,5 @@ class GenericLogDisplay(D8AppWithLogs):
 
         # for k in logs.values():
         #     print yaml.dump(k)
-        self.info('Found %d logs.' % len(logs))
+        self.info("Found %d logs." % len(logs))
         self.show_info(logs)

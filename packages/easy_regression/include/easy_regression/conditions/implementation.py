@@ -7,7 +7,7 @@ from easy_regression.conditions.references import parse_reference
 
 def _parse_regression_test_check(line):
     line = line.strip()
-    delim = ' '
+    delim = " "
     tokens = line.split(delim)
 
     if len(tokens) != 3:

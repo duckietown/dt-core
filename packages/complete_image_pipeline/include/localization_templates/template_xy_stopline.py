@@ -44,7 +44,7 @@ class TemplateXYStopline(LocalizationTemplate):
         stop_line_starts_at = tile_size / 2 - width_red
         self.offset_dstop = stop_line_starts_at
 
-    def coords_from_pose(self, pose:SE2value) -> np.ndarray:
+    def coords_from_pose(self, pose: SE2value) -> np.ndarray:
         """ Returns an array with datatype DATATYPE_COORDS """
         self._init_metrics()
         xy, _ = dtu.geo.translation_angle_from_SE2(pose)

@@ -7,10 +7,10 @@ from easy_logs.logs_db import yaml_representation_of_phy_logs
 from easy_logs.resource_desc import DTR
 
 __all__ = [
-    'Pack',
+    "Pack",
 ]
 
-#def show_url(x):
+# def show_url(x):
 #    return x.startswith('http')
 
 
@@ -20,51 +20,48 @@ class Pack(D8AppWithLogs):
 
     """
 
-    cmd = 'dt-logs-ipfs-pack'
+    cmd = "dt-logs-ipfs-pack"
 
     deploy_ipfs = False
 
     def define_options(self, params):
-#        params.add_string('destination', help='Destination directory')
-#        params.add_flag('ipfs', help='Deploy on IPFS')
+        #        params.add_string('destination', help='Destination directory')
+        #        params.add_flag('ipfs', help='Deploy on IPFS')
         params.accept_extra()
 
     def go(self):
         extra = self.options.get_extra()
 
         if not extra:
-            query = '*'
+            query = "*"
         else:
             query = extra
 
         db = self.get_easy_logs_db()
         logs0 = db.query(query)
         logs = get_valid(logs0)
-        print(('logs: %s' % len(logs)))
+        print(("logs: %s" % len(logs)))
         m = MakeIPFS()
 
         create_ipfs_dag(logs, m)
 
         def url_to_resource(log, rname):
-            return log.log_name + '.' + rname
+            return log.log_name + "." + rname
 
-        m.add_file_content('gallery_fancy.html',
-                           get_report(logs, url_to_resource))
-        m.add_file_content('gallery.html',
-                           get_report(logs, url_to_resource, initial_screens=False))
+        m.add_file_content("gallery_fancy.html", get_report(logs, url_to_resource))
+        m.add_file_content("gallery.html", get_report(logs, url_to_resource, initial_screens=False))
         if True:
-            print('adding cloud.yaml')
-            m.add_file_content('cloud.yaml',
-                               yaml_representation_of_phy_logs(logs))
-        m.add_file_content('style.css', get_gallery_style())
+            print("adding cloud.yaml")
+            m.add_file_content("cloud.yaml", yaml_representation_of_phy_logs(logs))
+        m.add_file_content("style.css", get_gallery_style())
         m0 = MakeIPFS()
 
-        m0.add_file('logs', m.get_ipfs_hash(), size=m.total_size())
-        m0.add_file_content('index.html', get_index())
+        m0.add_file("logs", m.get_ipfs_hash(), size=m.total_size())
+        m0.add_file_content("index.html", get_index())
 
         hashed = m0.get_ipfs_hash()
         print(hashed)
-        print(('Total size :  %.3f GB' % (m.total_size() / (1000 * 1000 * 1000.0))))
+        print(("Total size :  %.3f GB" % (m.total_size() / (1000 * 1000 * 1000.0))))
 
 
 def get_valid(logs):
@@ -76,7 +73,7 @@ def get_valid(logs):
 
 
 def get_index():
-    index = '''
+    index = """
 
 <html>
 <head>
@@ -117,7 +114,7 @@ def get_index():
 </html>
 
 
-'''
+"""
     return index
 
 
@@ -126,9 +123,8 @@ def create_ipfs_dag(logs, m):
     for id_log, log in list(logs.items()):
         for rname, res in list(log.resources.items()):
             dtr = DTR.from_yaml(res)
-            ipfs = dtr.hash['ipfs']
+            ipfs = dtr.hash["ipfs"]
 
-            filename = id_log + '.' + rname
-            #print ipfs, filename
+            filename = id_log + "." + rname
+            # print ipfs, filename
             m.add_file(filename, ipfs, dtr.size)
-

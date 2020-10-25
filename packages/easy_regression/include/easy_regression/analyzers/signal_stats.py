@@ -6,11 +6,10 @@ import duckietown_utils as dtu
 from easy_regression.analyzer_interface import AnalyzerInterface
 from easy_regression.cli.processing import interpret_ros
 
-__all__ = ['SignalStats']
+__all__ = ["SignalStats"]
 
 
 class SignalStats(AnalyzerInterface):
-
     def analyze_log(self, bag_in, dict_out):
         topic2type = look_for_topics(bag_in)
 
@@ -36,7 +35,7 @@ class SignalStats(AnalyzerInterface):
 
             /a/b/c -> a_b_c
         """
-        tokens = topic.split('/')
+        tokens = topic.split("/")
         tokens = [t for t in tokens if t]
         sane = "_".join(tokens)
         return sane
@@ -45,7 +44,7 @@ class SignalStats(AnalyzerInterface):
         topics = set(a)  # (a) + list(b))
         for topic in topics:
             a_plus_b[topic] = OrderedDict()
-            print((topic + ' ----------- '))
+            print((topic + " ----------- "))
             reduce_stats(a[topic], b[topic], a_plus_b[topic])
 
     def summarize_as_text(self, res):
@@ -60,34 +59,34 @@ class SignalStats(AnalyzerInterface):
 
 def compute_stats(timestamps, values):
     res = OrderedDict()
-    res['num_log_segments'] = 1
-    res['length'] = float(timestamps[-1] - timestamps[0])
-    res['nsamples'] = len(timestamps)
-    res['mean'] = float(np.mean(values))
-    res['min'] = float(np.min(values))
-    res['max'] = float(np.max(values))
-    res['median'] = float(np.max(values))
+    res["num_log_segments"] = 1
+    res["length"] = float(timestamps[-1] - timestamps[0])
+    res["nsamples"] = len(timestamps)
+    res["mean"] = float(np.mean(values))
+    res["min"] = float(np.min(values))
+    res["max"] = float(np.max(values))
+    res["median"] = float(np.max(values))
     return res
 
 
 def reduce_stats(a, b, a_plus_b):
-    a_plus_b['num_log_segments'] = a['num_log_segments'] + b['num_log_segments']
-    a_plus_b['length'] = a['length'] + b['length']
-    a_plus_b['nsamples'] = a['nsamples'] + b['nsamples']
-    a_plus_b['mean'] = (a['mean'] * a['nsamples'] + b['mean'] * b['nsamples']) / a_plus_b['nsamples']
-    a_plus_b['min'] = min(a['min'], b['min'])
-    a_plus_b['max'] = max(a['max'], b['max'])
+    a_plus_b["num_log_segments"] = a["num_log_segments"] + b["num_log_segments"]
+    a_plus_b["length"] = a["length"] + b["length"]
+    a_plus_b["nsamples"] = a["nsamples"] + b["nsamples"]
+    a_plus_b["mean"] = (a["mean"] * a["nsamples"] + b["mean"] * b["nsamples"]) / a_plus_b["nsamples"]
+    a_plus_b["min"] = min(a["min"], b["min"])
+    a_plus_b["max"] = max(a["max"], b["max"])
     # Note: it is not possible to compute the median in an efficient manner
-    a_plus_b['median'] = (a['median'] + b['median']) / 2.0
-    print((dtu.indent(a, 'a: ')))
-    print((dtu.indent(b, 'b: ')))
-    print((dtu.indent(a_plus_b, 'a_plus_b: ')))
+    a_plus_b["median"] = (a["median"] + b["median"]) / 2.0
+    print((dtu.indent(a, "a: ")))
+    print((dtu.indent(b, "b: ")))
+    print((dtu.indent(a_plus_b, "a_plus_b: ")))
 
 
 def look_for_topics(bag):
     stat = bag.get_type_and_topic_info()
     #     ok = ['std_msgs/Float64', 'std_msgs/Float64MultiArray']
-    ok = ['std_msgs/Float64']
+    ok = ["std_msgs/Float64"]
 
     found = OrderedDict()
     for t, v in list(stat.topics.items()):

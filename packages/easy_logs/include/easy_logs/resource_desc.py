@@ -1,4 +1,4 @@
-'''
+"""
     dtrv: [v1]
     size: <size in bytes>
     name: <friendly filename>
@@ -14,7 +14,7 @@
     desc: ''
 
 
-'''
+"""
 import os
 from collections import OrderedDict
 from copy import deepcopy
@@ -27,7 +27,6 @@ has_ipfs = detect_ipfs()
 
 
 class DTR:
-
     def __init__(self, dtrv, size, name, mime, hashes, urls, desc):
         self.dtrv = dtrv
         self.size = size
@@ -42,17 +41,17 @@ class DTR:
 
         data = deepcopy(data0)
         try:
-            urls = data.pop('urls')
-            mime = data.pop('mime')
-            desc = data.pop('desc')
-            size = data.pop('size')
-            name = data.pop('name')
-            dtrv = data.pop('dtrv')
-            hashes = data.pop('hash')
+            urls = data.pop("urls")
+            mime = data.pop("mime")
+            desc = data.pop("desc")
+            size = data.pop("size")
+            name = data.pop("name")
+            dtrv = data.pop("dtrv")
+            hashes = data.pop("hash")
         except KeyError as e:
-            msg = 'Could not interpret:'
-            msg += '\n\n' + dtu.indent(dtu.yaml_dump(data0), ' >')
-            msg += '\n\n' + dtu.indent(str(e), '  ')
+            msg = "Could not interpret:"
+            msg += "\n\n" + dtu.indent(dtu.yaml_dump(data0), " >")
+            msg += "\n\n" + dtu.indent(str(e), "  ")
             raise Exception(msg)
 
         return DTR(dtrv, size, name, mime, hashes, urls, desc)
@@ -65,10 +64,10 @@ def create_dtr_version_1(filename):
 
     if has_ipfs:
         Qm = get_ipfs_hash_cached(filename)
-        hashes['ipfs'] = Qm
+        hashes["ipfs"] = Qm
 
     with dtu.timeit_wall("hashing %s" % filename, minimum=500):
-        hashes['sha1'] = sha1_for_file_cached(filename)
+        hashes["sha1"] = sha1_for_file_cached(filename)
 
     urls = []
 
@@ -79,15 +78,15 @@ def create_dtr_version_1(filename):
     urls.append(url)
 
     # noinspection PyUnboundLocalVariable
-    if 'ipfs' in hashes:
-        Qm = hashes['ipfs']
-        url = 'file:///ipfs/%s' % Qm
+    if "ipfs" in hashes:
+        Qm = hashes["ipfs"]
+        url = "file:///ipfs/%s" % Qm
         urls.append(url)
 
-        url = 'http://gateway.ipfs.io/ipfs/%s' % Qm
+        url = "http://gateway.ipfs.io/ipfs/%s" % Qm
         urls.append(url)
 
-        url = 'http://ipfs.duckietown.org:8080/ipfs/%s' % Qm
+        url = "http://ipfs.duckietown.org:8080/ipfs/%s" % Qm
         urls.append(url)
 
     name = os.path.basename(filename)
@@ -95,26 +94,26 @@ def create_dtr_version_1(filename):
     mime = _mime_for_filename(filename)
     comments = ""
 
-    res['dtrv'] = '1'
-    res['size'] = size
-    res['name'] = name
-    res['mime'] = mime
-    res['hash'] = hashes
-    res['urls'] = urls
-    res['desc'] = comments
+    res["dtrv"] = "1"
+    res["size"] = size
+    res["name"] = name
+    res["mime"] = mime
+    res["hash"] = hashes
+    res["urls"] = urls
+    res["desc"] = comments
 
     # dtu.logger.debug(dtu.yaml_dump(res))
     return res
 
 
 mimes = {
-    '.bag': 'application/x-bag',
-    '.mp4': 'video/mp4',
-    '.mov': 'video/mov',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.webm': 'video/webm',
+    ".bag": "application/x-bag",
+    ".mp4": "video/mp4",
+    ".mov": "video/mov",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webm": "video/webm",
 }
 
 
@@ -125,7 +124,7 @@ def _mime_for_filename(filename):
 
 
 def _create_file_uri(filename):
-    if not filename.startswith('/'):
+    if not filename.startswith("/"):
         filename = os.path.join(os.getcwd(), filename)
     uri_prefix = _file_uri_prefix()
     uri = uri_prefix + filename
@@ -134,8 +133,9 @@ def _create_file_uri(filename):
 
 def _file_uri_prefix():
     import socket
+
     hostname = socket.gethostname()
-    uri = 'file://%s' % (hostname)
+    uri = "file://%s" % (hostname)
     return uri
 
 
@@ -144,10 +144,10 @@ class NotLocalPath(Exception):
 
 
 def get_local_filepath(uri):
-    ''' For a path file://hostPATH it returns PATH if it starts with this host name
-        otherwise raise ValueError()'''
+    """ For a path file://hostPATH it returns PATH if it starts with this host name
+        otherwise raise ValueError()"""
     uri_prefix = _file_uri_prefix()
     if uri.startswith(uri_prefix):
-        return uri[len(uri_prefix):]
+        return uri[len(uri_prefix) :]
     else:
-        raise NotLocalPath('Not current host: %s' % uri)
+        raise NotLocalPath("Not current host: %s" % uri)

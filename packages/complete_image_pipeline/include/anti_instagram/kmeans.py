@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import time
 from duckietown_utils import logger
+
 # milansc:
 # colors in bgr
 # [60,60,60] is dark grey

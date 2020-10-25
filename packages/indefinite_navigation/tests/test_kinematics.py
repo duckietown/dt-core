@@ -13,7 +13,7 @@ class KinematicsTestNode(unittest.TestCase):
 
     def setup(self):
 
-        rospy.init_node('kinematics_test_node', anonymous=False)
+        rospy.init_node("kinematics_test_node", anonymous=False)
 
         veh_name = rospy.get_param("~veh", "")
         wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
@@ -36,9 +36,11 @@ class KinematicsTestNode(unittest.TestCase):
         self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop)
 
         timeout = time.time() + 10.0  # was 10
-        while not (
-            self.lane_message_received or self.stop_message_received) and not rospy.is_shutdown() and \
-            time.time() < timeout:
+        while (
+            not (self.lane_message_received or self.stop_message_received)
+            and not rospy.is_shutdown()
+            and time.time() < timeout
+        ):
             rospy.sleep(0.1)
 
         self.assertTrue(self.lane_message_received)
@@ -67,7 +69,9 @@ class KinematicsTestNode(unittest.TestCase):
         self.init = self.lane, -1.54
         forward_for_time = self.forward_time
         starting_time = rospy.Time.now()
-        while (rospy.Time.now() - starting_time) < rospy.Duration(forward_for_time): # FIXME: this is an int. Will be interpreted as 4 or 5 -> precision problem!
+        while (rospy.Time.now() - starting_time) < rospy.Duration(
+            forward_for_time
+        ):  # FIXME: this is an int. Will be interpreted as 4 or 5 -> precision problem!
             wheels_cmd_msg = Twist2DStamped()
             wheels_cmd_msg.header.stamp = rospy.Time.now()
             wheels_cmd_msg.v = 0.5
@@ -125,13 +129,23 @@ class KinematicsTestNode(unittest.TestCase):
         velocity diff from expected: %.4f
         VELOCITY TEST: %s
 
-        """ % (init_d, init_phi, final_d, final_phi, \
-               off_d, off_phi, result_trim, \
-               init_stop_y, final_stop_y, velocity, vel_diff, result_vel
-               )
+        """ % (
+            init_d,
+            init_phi,
+            final_d,
+            final_phi,
+            off_d,
+            off_phi,
+            result_trim,
+            init_stop_y,
+            final_stop_y,
+            velocity,
+            vel_diff,
+            result_vel,
+        )
         print(info)
         self.assertEqual(result_trim, "PASSED", info)
 
 
-if __name__ == '__main__':
-    rostest.rosrun('rostest_kinematics_calibration', 'kinematics_test_node', KinematicsTestNode)
+if __name__ == "__main__":
+    rostest.rosrun("rostest_kinematics_calibration", "kinematics_test_node", KinematicsTestNode)

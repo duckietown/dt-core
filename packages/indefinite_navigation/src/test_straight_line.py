@@ -99,16 +99,26 @@ class IndefNavigationNode:
         velocity diff from expected: %.4f
         VELOCITY TEST: %s
 
-        """ % (init_d, init_phi, final_d, final_phi, \
-               off_d, off_phi, result_trim, \
-               init_stop_y, final_stop_y, velocity, vel_diff, result_vel
-               )
+        """ % (
+            init_d,
+            init_phi,
+            final_d,
+            final_phi,
+            off_d,
+            off_phi,
+            result_trim,
+            init_stop_y,
+            final_stop_y,
+            velocity,
+            vel_diff,
+            result_vel,
+        )
         print(info)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node('indef_navigation_node', anonymous=False)
+    rospy.init_node("indef_navigation_node", anonymous=False)
 
     # Create the NodeName object
     node = IndefNavigationNode()

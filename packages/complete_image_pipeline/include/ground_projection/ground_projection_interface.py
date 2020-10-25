@@ -9,8 +9,13 @@ from duckietown_msgs.msg import Segment, SegmentList
 from image_processing.calibration_utils import get_extrinsics_filename
 from image_processing.ground_projection_geometry import GroundProjectionGeometry
 
-__all__ = ['find_ground_coordinates', 'save_homography',
-           'load_board_info', 'estimate_homography', 'HomographyEstimationResult']
+__all__ = [
+    "find_ground_coordinates",
+    "save_homography",
+    "load_board_info",
+    "estimate_homography",
+    "HomographyEstimationResult",
+]
 
 
 class CouldNotCalibrate(Exception):
@@ -127,7 +132,6 @@ def save_homography(H: np.ndarray, robot_name: str) -> None:
     fn = get_extrinsics_filename(robot_name)
 
     dtu.write_data_to_file(s, fn)
-
 
 
 def find_ground_coordinates(

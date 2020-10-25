@@ -11,27 +11,27 @@ class FSMNode:
         self.node_name = rospy.get_name()
 
         # Build transition dictionray
-        self.states_dict = rospy.get_param("~states",{})
+        self.states_dict = rospy.get_param("~states", {})
         # Validate state and global transitions
         if not self._validateStates(self.states_dict):
-            rospy.signal_shutdown("[%s] Incoherent definition." %self.node_name)
+            rospy.signal_shutdown("[%s] Incoherent definition." % self.node_name)
             return
 
         # Load global transitions
         self.global_transitions_dict = rospy.get_param("~global_transitions", {})
-        if not self._validateGlobalTransitions(self.global_transitions_dict,list(self.states_dict.keys())):
-            rospy.signal_shutdown("[%s] Incoherent definition." %self.node_name)
+        if not self._validateGlobalTransitions(self.global_transitions_dict, list(self.states_dict.keys())):
+            rospy.signal_shutdown("[%s] Incoherent definition." % self.node_name)
             return
 
         # Setup initial state
         self.state_msg = FSMState()
-        self.state_msg.state = rospy.get_param("~initial_state","")
+        self.state_msg.state = rospy.get_param("~initial_state", "")
         self.state_msg.header.stamp = rospy.Time.now()
         # Setup publisher and publish initial state
-        self.pub_state = rospy.Publisher("~mode",FSMState,queue_size=1,latch=True)
+        self.pub_state = rospy.Publisher("~mode", FSMState, queue_size=1, latch=True)
 
         # Provide service
-        self.srv_state = rospy.Service("~set_state",SetFSMState,self.cbSrvSetState)
+        self.srv_state = rospy.Service("~set_state", SetFSMState, self.cbSrvSetState)
 
         # Construct publishers
         self.pub_dict = dict()
@@ -43,12 +43,11 @@ class FSMNode:
 
         # print self.pub_dict
         # Process events definition
-        param_events_dict = rospy.get_param("~events",{})
+        param_events_dict = rospy.get_param("~events", {})
         # Validate events definition
         if not self._validateEvents(param_events_dict):
-            rospy.signal_shutdown("[%s] Invalid event definition." %self.node_name)
+            rospy.signal_shutdown("[%s] Invalid event definition." % self.node_name)
             return
-
 
         self.sub_list = list()
         self.event_trigger_dict = dict()
@@ -56,38 +55,42 @@ class FSMNode:
             topic_name = event_dict["topic"]
             msg_type = event_dict["msg_type"]
             self.event_trigger_dict[event_name] = event_dict["trigger"]
-        # TODO so far I can't figure out how to put msg_type instead of BoolStamped.
-        # importlib might help. But it might get too complicated since different type
-            self.sub_list.append(rospy.Subscriber("%s"%(topic_name), BoolStamped, self.cbEvent, callback_args=event_name))
+            # TODO so far I can't figure out how to put msg_type instead of BoolStamped.
+            # importlib might help. But it might get too complicated since different type
+            self.sub_list.append(
+                rospy.Subscriber("%s" % (topic_name), BoolStamped, self.cbEvent, callback_args=event_name)
+            )
 
-        rospy.loginfo("[%s] Initialized." %self.node_name)
+        rospy.loginfo("[%s] Initialized." % self.node_name)
         # Publish initial state
         self.publish()
 
-
-    def _validateGlobalTransitions(self,global_transitions, valid_states):
+    def _validateGlobalTransitions(self, global_transitions, valid_states):
         pass_flag = True
         for event_name, state_name in list(global_transitions.items()):
             if state_name not in valid_states:
-                rospy.logerr("[%s] State %s is not valid. (From global_transitions of %s)" %(self.node_name,state_name, event_name))
+                rospy.logerr(
+                    "[%s] State %s is not valid. (From global_transitions of %s)"
+                    % (self.node_name, state_name, event_name)
+                )
                 pass_flag = False
         return pass_flag
 
-    def _validateEvents(self,events_dict):
+    def _validateEvents(self, events_dict):
         pass_flag = True
         for event_name, event_dict in list(events_dict.items()):
             if "topic" not in event_dict:
-                rospy.logerr("[%s] Event %s missing topic definition." %(self.node_name,event_name))
+                rospy.logerr("[%s] Event %s missing topic definition." % (self.node_name, event_name))
                 pass_flag = False
             if "msg_type" not in event_dict:
-                rospy.logerr("[%s] Event %s missing msg_type definition." %(self.node_name,event_name))
+                rospy.logerr("[%s] Event %s missing msg_type definition." % (self.node_name, event_name))
                 pass_flag = False
             if "trigger" not in event_dict:
-                rospy.logerr("[%s] Event %s missing trigger definition." %(self.node_name,event_name))
+                rospy.logerr("[%s] Event %s missing trigger definition." % (self.node_name, event_name))
                 pass_flag = False
         return pass_flag
 
-    def _validateStates(self,states_dict):
+    def _validateStates(self, states_dict):
         pass_flag = True
         valid_states = list(states_dict.keys())
         for state, state_dict in list(states_dict.items()):
@@ -98,13 +101,16 @@ class FSMNode:
             else:
                 for transition, next_state in list(transitions_dict.items()):
                     if next_state not in valid_states:
-                        rospy.logerr("[%s] %s not a valide state. (From %s with event %s)" %(self.node_name,next_state,state,transition))
+                        rospy.logerr(
+                            "[%s] %s not a valide state. (From %s with event %s)"
+                            % (self.node_name, next_state, state, transition)
+                        )
                         pass_flag = False
         return pass_flag
 
     def _getNextState(self, state_name, event_name):
         if not self.isValidState(state_name):
-            rospy.logwarn("[%s] %s not defined. Treat as terminal. "%(self.node_name,state_name))
+            rospy.logwarn("[%s] %s not defined. Treat as terminal. " % (self.node_name, state_name))
             return None
 
         # state transitions overwrites global transition
@@ -117,14 +123,16 @@ class FSMNode:
         # state transitions overwrites global transitions
         if next_state is None:
             # No state transition defined, look up global transition
-            next_state = self.global_transitions_dict.get(event_name) #None when no global transitions
+            next_state = self.global_transitions_dict.get(event_name)  # None when no global transitions
         return next_state
 
-    def _getActiveNodesOfState(self,state_name):
+    def _getActiveNodesOfState(self, state_name):
         state_dict = self.states_dict[state_name]
         active_nodes = state_dict.get("active_nodes")
         if active_nodes is None:
-            rospy.logwarn("[%s] No active nodes defined for %s. Deactive all nodes."%(self.node_name,state_name))
+            rospy.logwarn(
+                "[%s] No active nodes defined for %s. Deactive all nodes." % (self.node_name, state_name)
+            )
             active_nodes = []
         return active_nodes
 
@@ -132,21 +140,21 @@ class FSMNode:
         self.publishBools()
         self.publishState()
 
-    def isValidState(self,state):
+    def isValidState(self, state):
         return state in list(self.states_dict.keys())
 
-    def cbSrvSetState(self,req):
+    def cbSrvSetState(self, req):
         if self.isValidState(req.state):
             self.state_msg.header.stamp = rospy.Time.now()
             self.state_msg.state = req.state
             self.publish()
         else:
-            rospy.logwarn("[%s] %s is not a valid state." %(self.node_name,req.state))
+            rospy.logwarn("[%s] %s is not a valid state." % (self.node_name, req.state))
         return SetFSMStateResponse()
 
     def publishState(self):
         self.pub_state.publish(self.state_msg)
-        rospy.loginfo("[%s] FSMState: %s" %(self.node_name, self.state_msg.state))
+        rospy.loginfo("[%s] FSMState: %s" % (self.node_name, self.state_msg.state))
 
     def publishBools(self):
         active_nodes = self._getActiveNodesOfState(self.state_msg.state)
@@ -155,34 +163,35 @@ class FSMNode:
             msg.header.stamp = self.state_msg.header.stamp
             msg.data = bool(node_name in active_nodes)
             node_state = "ON" if msg.data else "OFF"
-            #rospy.loginfo("[%s] Node %s is %s in %s" %(self.node_name, node_name, node_state, self.state_msg.state))
+            # rospy.loginfo("[%s] Node %s is %s in %s" %(self.node_name, node_name, node_state, self.state_msg.state))
             if self.active_nodes is not None:
                 if (node_name in active_nodes) == (node_name in self.active_nodes):
                     continue
             # else:
             #     rospy.logwarn("[%s] self.active_nodes is None!" %(self.node_name))
-                # continue
+            # continue
             node_pub.publish(msg)
             # rospy.loginfo("[%s] node %s msg %s" %(self.node_name, node_name, msg))
             # rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
         self.active_nodes = copy.deepcopy(active_nodes)
 
-    def cbEvent(self,msg,event_name):
-        if (msg.data == self.event_trigger_dict[event_name]):
+    def cbEvent(self, msg, event_name):
+        if msg.data == self.event_trigger_dict[event_name]:
             # Update timestamp
             self.state_msg.header.stamp = msg.header.stamp
-            next_state = self._getNextState(self.state_msg.state,event_name)
+            next_state = self._getNextState(self.state_msg.state, event_name)
             if next_state is not None:
                 # Has a defined transition
                 self.state_msg.state = next_state
                 self.publish()
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." %(self.node_name))
+        rospy.loginfo("[%s] Shutting down." % (self.node_name))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node('fsm_node', anonymous=False)
+    rospy.init_node("fsm_node", anonymous=False)
 
     # Create the NodeName object
     node = FSMNode()

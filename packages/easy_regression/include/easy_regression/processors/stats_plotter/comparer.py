@@ -39,17 +39,17 @@ def read_data_for_signals(bag_in, prefix_in, signals):
 
     for _j, mp in enumerate(bag_in.read_messages_plus(topics=topics)):
         data = interpret_ros(mp.msg)
-        topic2messages[mp.topic]['data'].append(data)
-        topic2messages[mp.topic]['timestamp'].append(mp.time_from_physical_log_start)
+        topic2messages[mp.topic]["data"].append(data)
+        topic2messages[mp.topic]["timestamp"].append(mp.time_from_physical_log_start)
 
     for v in list(topic2messages.values()):
-        v['data'] = np.array(v['data'])
-        v['timestamp'] = np.array(v['timestamp'])
+        v["data"] = np.array(v["data"])
+        v["timestamp"] = np.array(v["timestamp"])
 
     for signal_spec in signals:
         topic_fqn = prefix_in + signal_spec.topic
         if not topic_fqn in topic2messages:
-            msg = 'Could not found any value for topic %r.' % topic_fqn
+            msg = "Could not found any value for topic %r." % topic_fqn
             raise ValueError(msg)
 
     return topic2messages
@@ -61,11 +61,12 @@ def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name)
     n = len(topic2messages)
 
     if n < 2:
-        msg = 'Not enough topics'
+        msg = "Not enough topics"
         raise ValueError(msg)
 
     for i, j in itertools.product(list(range(n)), list(range(n))):
-        if i == j: continue
+        if i == j:
+            continue
         s1 = signals[i]
         d1 = topic2messages[prefix_in + s1.topic]
         s2 = signals[j]
@@ -75,7 +76,7 @@ def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name)
 
         t_inf = rospy.Time.from_sec(bag_in.get_end_time())
         omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
-        otopic = prefix_out + '/' + plot_name + '_%s_%s' % (i, j)
+        otopic = prefix_out + "/" + plot_name + "_%s_%s" % (i, j)
         bag_out.write(otopic, omsg, t=t_inf)
 
 
@@ -86,16 +87,16 @@ def _do_plot(s1, d1, s2, d2):
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
     with a as pylab:
-        data_x = convert_unit(d1['data'], s1.units, s1.units_display)
-        data_y = convert_unit(d2['data'], s2.units, s2.units_display)
+        data_x = convert_unit(d1["data"], s1.units, s1.units_display)
+        data_y = convert_unit(d2["data"], s2.units, s2.units_display)
 
-        pylab.plot(data_x, data_y, '.')
+        pylab.plot(data_x, data_y, ".")
 
-        ylabel = '%s [%s]' % (s2.label, s2.units_display)
+        ylabel = "%s [%s]" % (s2.label, s2.units_display)
         pylab.ylabel(ylabel, color=s2.color)
-        xlabel = '%s [%s]' % (s1.label, s1.units_display)
+        xlabel = "%s [%s]" % (s1.label, s1.units_display)
         pylab.xlabel(xlabel, color=s1.color)
-        pylab.tick_params('y', colors=s2.color)
+        pylab.tick_params("y", colors=s2.color)
         pylab.ylim(s2.min, s2.max)
         pylab.xlim(s1.min, s1.max)
 

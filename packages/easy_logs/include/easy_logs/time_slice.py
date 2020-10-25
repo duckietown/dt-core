@@ -6,21 +6,20 @@ import duckietown_utils as dtu
 from .logs_structure import PhysicalLog
 
 __all__ = [
-    'filters_slice',
-    'MakeTimeSlice',
+    "filters_slice",
+    "MakeTimeSlice",
 ]
 
 
 class MakeTimeSlice(dtu.Spec):
-
     def __init__(self, spec, t0, t1):
         dtu.Spec.__init__(self, [spec])
         self.t0 = t0
         self.t1 = t1
 
     def __str__(self):
-        s = 'MakeTimeSlice  { %s : %s }' % (self.t0, self.t1)
-        s += '\n' + dtu.indent(str(self.children[0]), '  ')
+        s = "MakeTimeSlice  { %s : %s }" % (self.t0, self.t1)
+        s += "\n" + dtu.indent(str(self.children[0]), "  ")
         return s
 
     def match(self, x):
@@ -57,22 +56,22 @@ class MakeTimeSlice(dtu.Spec):
         #         B = '%d'%self.t1*100 if self.t1 is not None else "END"
         #
         #         id_log2 = id_log + '_from%sto%s' % (A,B)
-        A = '%d' % (new_start * 100)
-        B = '%d' % (new_end * 100)
+        A = "%d" % (new_start * 100)
+        B = "%d" % (new_end * 100)
 
-        id_log2 = id_log + '_from%sto%s' % (A, B)
+        id_log2 = id_log + "_from%sto%s" % (A, B)
         log2 = replace(log, t0=new_start, t1=new_end, length=length)
         return id_log2, log2
 
 
 def slice_time(m, spec):
-    if m.group('t0') is not None:
-        t0 = float(m.group('t0'))
+    if m.group("t0") is not None:
+        t0 = float(m.group("t0"))
     else:
         t0 = None
 
-    if m.group('t1') is not None:
-        t1 = float(m.group('t1'))
+    if m.group("t1") is not None:
+        t1 = float(m.group("t1"))
     else:
         t1 = None
     return MakeTimeSlice(spec, t0, t1)
@@ -80,5 +79,5 @@ def slice_time(m, spec):
 
 # float = "[-+]?[0-9]*\.?[0-9]+"
 filters_slice = {
-    r'{(?P<t0>[-+]?[0-9]*\.?[0-9]+)?:(?P<t1>[-+]?[0-9]*\.?[0-9]+)?}': slice_time,
+    r"{(?P<t0>[-+]?[0-9]*\.?[0-9]+)?:(?P<t1>[-+]?[0-9]*\.?[0-9]+)?}": slice_time,
 }

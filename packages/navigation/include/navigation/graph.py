@@ -1,5 +1,6 @@
 import graphviz
 
+
 class NodeNotInGraph(Exception):
     def __init__(self, node):
         self.node = node
@@ -19,8 +20,13 @@ class Edge:
         return hash("%s_%s_%f_%s" % (self.source, self.target, self.weight, self.action))
 
     def __eq__(self, other):
-        return self.source == other.source and self.target == other.target \
-            and self.weight == other.weight and self.action == other.action
+        return (
+            self.source == other.source
+            and self.target == other.target
+            and self.weight == other.weight
+            and self.action == other.action
+        )
+
     def __repr__(self):
         return "Edge(%r,%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
 
@@ -39,7 +45,7 @@ class Graph:
         """Adds a node to the graph."""
         self._nodes.add(node)
 
-    def add_edge(self, node1, node2, weight=1.0,action=None, bidirectional=False):
+    def add_edge(self, node1, node2, weight=1.0, action=None, bidirectional=False):
         """Adds an edge between node1 and node2. Adds the nodes to the graph first
         if they don't exist."""
         self.add_node(node1)
@@ -48,9 +54,9 @@ class Graph:
         node1_edges.add(Edge(node1, node2, weight, action))
         self._edges[node1] = node1_edges
         if bidirectional:
-                node2_edges = self._edges.get(node2, set())
-                node2_edges.add(Edge(node2, node1, weight, action))
-                self._edges[node2] = node2_edges
+            node2_edges = self._edges.get(node2, set())
+            node2_edges.add(Edge(node2, node1, weight, action))
+            self._edges[node2] = node2_edges
 
     def set_node_positions(self, positions):
         self.node_positions = positions
@@ -71,7 +77,9 @@ class Graph:
             raise NodeNotInGraph(node)
         return self._edges.get(node, set())
 
-    def draw(self, script_dir, highlight_edges=None, show_weights=None, map_name = 'duckietown', highlight_nodes = None):
+    def draw(
+        self, script_dir, highlight_edges=None, show_weights=None, map_name="duckietown", highlight_nodes=None
+    ):
         if highlight_nodes:
             start_node = highlight_nodes[0]
             target_node = highlight_nodes[1]
@@ -79,24 +87,40 @@ class Graph:
             start_node = target_node = None
 
         g = graphviz.Digraph(name="duckietown", engine="neato")
-        g.edge_attr.update(fontsize = '8', arrowsize = '0.5', arrowhead = 'open')
-        g.node_attr.update(shape="circle", fontsize='14',margin="0", height='0')
-        #g.graph_attr.update(ratio = '0.7', inputscale = '1.3')
+        g.edge_attr.update(fontsize="8", arrowsize="0.5", arrowhead="open")
+        g.node_attr.update(shape="circle", fontsize="14", margin="0", height="0")
+        # g.graph_attr.update(ratio = '0.7', inputscale = '1.3')
 
         g.body.append(r'label = "\nduckiegraph"')
-        g.body.append('fontsize=16')
+        g.body.append("fontsize=16")
 
         for node in self._nodes:
             node_name = self.node_label_fn(node)
             node_pos = "%f,%f!" % (self.node_positions[node][0], self.node_positions[node][1])
             if highlight_nodes and node == target_node:
-                g.node(name=node_name, pos=node_pos, color='magenta', shape='circle') #green
+                g.node(name=node_name, pos=node_pos, color="magenta", shape="circle")  # green
             elif highlight_nodes and node == start_node:
-                g.node(name=node_name, pos=node_pos, color='red', shape='circle') #blue
-            elif node_name[0:4] == 'turn':
-                g.node(name=node_name, pos=node_pos, fixedsize='true', width='0', height='0', style='invis', label="")
+                g.node(name=node_name, pos=node_pos, color="red", shape="circle")  # blue
+            elif node_name[0:4] == "turn":
+                g.node(
+                    name=node_name,
+                    pos=node_pos,
+                    fixedsize="true",
+                    width="0",
+                    height="0",
+                    style="invis",
+                    label="",
+                )
             elif (int(node_name) % 2) == 0:
-                g.node(name=node_name, pos=node_pos, fixedsize='true', width='0', height='0', style='invis', label="")
+                g.node(
+                    name=node_name,
+                    pos=node_pos,
+                    fixedsize="true",
+                    width="0",
+                    height="0",
+                    style="invis",
+                    label="",
+                )
             else:
                 g.node(name=node_name, pos=node_pos)
         for src_node, edges in list(self._edges.items()):
@@ -106,18 +130,25 @@ class Graph:
                 else:
                     t = ""
 
-                if highlight_edges and (self.node_label_fn(src_node), self.node_label_fn(e.target)) in highlight_edges:
-                    c = 'cyan' #red
-                    p = '3.0'
+                if (
+                    highlight_edges
+                    and (self.node_label_fn(src_node), self.node_label_fn(e.target)) in highlight_edges
+                ):
+                    c = "cyan"  # red
+                    p = "3.0"
                 else:
-                    c  = 'black'
-                    p = '1.5'
+                    c = "black"
+                    p = "1.5"
 
-                g.edge(self.node_label_fn(src_node), self.node_label_fn(e.target), taillabel=t , color = c, penwidth = p)
+                g.edge(
+                    self.node_label_fn(src_node),
+                    self.node_label_fn(e.target),
+                    taillabel=t,
+                    color=c,
+                    penwidth=p,
+                )
 
-        #script_dir = os.path.dirname(__file__)
-        map_path = script_dir + '/maps/'
-        g.format = 'png'
+        # script_dir = os.path.dirname(__file__)
+        map_path = script_dir + "/maps/"
+        g.format = "png"
         g.render(filename=map_name, directory=map_path, view=False, cleanup=True)
-
-

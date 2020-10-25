@@ -6,10 +6,10 @@ from easy_regression.conditions.references import parse_reference
 @dtu.unit_test
 def parse_references_check_good():
     good = [
-        'v:analyzer/test/statistic',
-        'v:analyzer/test/statistic@2016-12-01',
-        'v:analyzer/log/statistic~master@2016-12-01',
-        'v:analyzer/log/statistic~master',
+        "v:analyzer/test/statistic",
+        "v:analyzer/test/statistic@2016-12-01",
+        "v:analyzer/log/statistic~master@2016-12-01",
+        "v:analyzer/log/statistic~master",
     ]
     for g in good:
         parse_reference(g)
@@ -17,22 +17,22 @@ def parse_references_check_good():
 
 @dtu.unit_test
 def parse_one():
-    s = 'v:analyzer/log/statistic?hash'
+    s = "v:analyzer/log/statistic?hash"
     a = parse_reference(s)
-    assert a.commit == 'hash', a
+    assert a.commit == "hash", a
     print(a)
 
 
 @dtu.unit_test
 def parse_references_check_bad():
     bad = [
-        'v:analyzer/test',
-        'v:analyzer/test/statistic@2016-12-0a',
-        'v:analyzer/test/statistic@',
-        'v:analyzer/test/statistic~',
-        'v:analyzer/test/statistic~@2016-12-01',
+        "v:analyzer/test",
+        "v:analyzer/test/statistic@2016-12-0a",
+        "v:analyzer/test/statistic@",
+        "v:analyzer/test/statistic~",
+        "v:analyzer/test/statistic~@2016-12-01",
         #         'v:analyzer/log/statistic~master?hash',
-        'v:analyzer/log/statistic@2016-12-01?hash',
+        "v:analyzer/log/statistic@2016-12-01?hash",
     ]
     for b in bad:
         try:
@@ -40,11 +40,11 @@ def parse_references_check_bad():
         except RTParseError:
             pass
         else:
-            msg = 'Expected DTParseError.'
-            msg += '\nString: %r' % b
-            msg += '\nReturns: %s' % res
+            msg = "Expected DTParseError."
+            msg += "\nString: %r" % b
+            msg += "\nReturns: %s" % res
             raise Exception(msg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

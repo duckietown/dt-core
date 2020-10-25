@@ -30,13 +30,9 @@ class CalibrateExtrinsics(D8App):
     def define_program_options(self, params):
         g = "Input/output"
         params.add_string(
-            "input",
-            default=None,
-            help="If given, use this image rather than capturing.",
+            "input", default=None, help="If given, use this image rather than capturing.",
         )
-        params.add_string(
-            "output", default=None, short="-o", help="Output directory", group=g
-        )
+        params.add_string("output", default=None, short="-o", help="Output directory", group=g)
 
     def go(self):
         robot_name = dtu.get_current_robot_name()
@@ -64,9 +60,7 @@ class CalibrateExtrinsics(D8App):
             rospy.init_node("calibrate_extrinsics")
             img_msg = None
             try:
-                img_msg = rospy.wait_for_message(
-                    topic_name, CompressedImage, timeout=10
-                )
+                img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
                 self.info("Image captured")
             except rospy.ROSException as e:
                 print(
@@ -129,9 +123,7 @@ class CalibrateExtrinsics(D8App):
             res["bgr"] = bgr
             res["bgr_rectified"] = bgr_rectified
 
-            _new_matrix, res["rectified_full_ratio_auto"] = rect.rectify_full(
-                bgr, ratio=1.65
-            )
+            _new_matrix, res["rectified_full_ratio_auto"] = rect.rectify_full(bgr, ratio=1.65)
 
             (result_gpg, status) = gpg.estimate_homography(bgr_rectified)
 

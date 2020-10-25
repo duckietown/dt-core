@@ -15,13 +15,13 @@ class IndefNavigationTurnNode(unittest.TestCase):
     def setup(self):
         # give lane_filter some time to start before beginning
         rospy.sleep(8)
-        rospy.init_node('indef_navigation_turn_node', anonymous=False)
+        rospy.init_node("indef_navigation_turn_node", anonymous=False)
         # Save the name of the node
         self.node_name = rospy.get_name()
 
         rospy.loginfo(f"[{self.node_name}] Initialzing.")
         veh_name = self.setupParam("~veh", "")
-        self.type = self.setupParam("~type", 'right')
+        self.type = self.setupParam("~type", "right")
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"
         done_topic = "/" + veh_name + "/open_loop_intersection_control_node/intersection_done"
         mode_topic = "/" + veh_name + "/open_loop_intersection_control_node/mode"
@@ -71,9 +71,9 @@ class IndefNavigationTurnNode(unittest.TestCase):
             self.publish_mode.publish(mode)
         # need to wait 1 second before publishing new turn type
         rospy.sleep(1)
-        if self.type.lower() == 'left':
+        if self.type.lower() == "left":
             self.turn_left_serv()
-        elif self.type.lower() == 'right':
+        elif self.type.lower() == "right":
             self.turn_right_serv()
         else:
             self.turn_forward_serv()
@@ -122,14 +122,21 @@ class IndefNavigationTurnNode(unittest.TestCase):
         distance offset = %.4f
         distance angle offset = %.4f
         TURN TEST % s
-        """ % (init_d, init_phi, final_d, final_phi, \
-               off_d, off_phi, result_trim)
+        """ % (
+            init_d,
+            init_phi,
+            final_d,
+            final_phi,
+            off_d,
+            off_phi,
+            result_trim,
+        )
         print(info)
         self.assertEqual(result_trim, "PASSED", info)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node('indef_navigation_turn_node', anonymous=False)
+    rospy.init_node("indef_navigation_turn_node", anonymous=False)
 
-    rostest.rosrun('rostest_turn_calibration', 'indef_navigation_turn_node', IndefNavigationTurnNode)
+    rostest.rosrun("rostest_turn_calibration", "indef_navigation_turn_node", IndefNavigationTurnNode)

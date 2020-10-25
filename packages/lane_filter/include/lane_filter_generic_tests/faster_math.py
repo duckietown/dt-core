@@ -2,8 +2,7 @@ import numpy as np
 from numpy.testing.utils import assert_almost_equal
 
 import duckietown_utils as dtu
-from lane_filter_generic.lane_filter_more_generic import (get_estimate,
-                                                          get_estimate_2)
+from lane_filter_generic.lane_filter_more_generic import get_estimate, get_estimate_2
 
 
 @dtu.unit_test
@@ -24,5 +23,5 @@ def test_faster_math():
         assert_almost_equal(theta1, theta2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

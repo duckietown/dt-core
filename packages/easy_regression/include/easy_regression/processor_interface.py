@@ -3,13 +3,12 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 __all__ = [
-    'ProcessorInterface',
-    'ProcessorUtilsInterface',
+    "ProcessorInterface",
+    "ProcessorUtilsInterface",
 ]
 
 
 class ProcessorUtilsInterface(object, metaclass=ABCMeta):
-
     @abstractmethod
     def write_stat(self, name: str, value, t: Optional[float] = None, prefix=()):
         pass
@@ -20,9 +19,8 @@ class ProcessorUtilsInterface(object, metaclass=ABCMeta):
 
 
 class ProcessorInterface(object, metaclass=ABCMeta):
-    FAMILY = 'processor'
+    FAMILY = "processor"
 
     @abstractmethod
-    def process_log(self, bag_in, prefix: str, bag_out, prefix_out: str,
-                    utils: ProcessorUtilsInterface):
+    def process_log(self, bag_in, prefix: str, bag_out, prefix_out: str, utils: ProcessorUtilsInterface):
         ...

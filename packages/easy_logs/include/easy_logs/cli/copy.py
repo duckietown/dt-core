@@ -11,30 +11,30 @@ from easy_logs.app_with_logs import download_if_necessary
 class Copy(D8AppWithLogs):
     """ Downloads the bag files for the logs """
 
-    cmd = 'dt-logs-copy'
+    cmd = "dt-logs-copy"
 
     def define_options(self, params):
-        params.add_string('outdir', help='Output directory', default=None)
+        params.add_string("outdir", help="Output directory", default=None)
         params.accept_extra()
 
     def go(self):
         extra = self.options.get_extra()
         if not extra:
-            query = '*'
+            query = "*"
         else:
             if len(extra) > 1:
-                msg = 'Expected only one extra argument.'
+                msg = "Expected only one extra argument."
                 raise dtu.DTUserError(msg)
             query = extra[0]
 
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info('Found %d logs.' % len(logs))
+        self.info("Found %d logs." % len(logs))
         outdir = self.options.outdir
 
         if outdir is None:
-            outdir = '.'
+            outdir = "."
             msg = 'Option "--outdir" not passed. Will copy to current directory.'
             self.warn(msg)
 
@@ -43,7 +43,7 @@ class Copy(D8AppWithLogs):
 
         for id_log, log in list(logs.items()):
             log = download_if_necessary(log)
-            out = os.path.join(outdir, id_log + '.bag')
+            out = os.path.join(outdir, id_log + ".bag")
             if os.path.exists(out):
                 print(out)
                 continue
@@ -53,6 +53,4 @@ class Copy(D8AppWithLogs):
                 shutil.copy(filename, out)
                 print(out)
             except NotAvailableLocally:
-                dtu.logger.error('No local file for %s' % id_log)
-
-
+                dtu.logger.error("No local file for %s" % id_log)

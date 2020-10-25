@@ -6,25 +6,27 @@ import duckietown_utils as dtu
 from sensor_msgs.msg import CompressedImage
 
 __all__ = [
-    'EasyNodeConfig',
-    'load_configuration',
+    "EasyNodeConfig",
+    "load_configuration",
 ]
 
 
-EasyNodeConfig = namedtuple('EasyNodeConfig',
-                            'filename package_name node_type_name description parameters subscriptions '
-                            'contracts publishers')
-EasyNodeParameter = namedtuple('EasyNodeParameter', 'name desc type has_default default')
-EasyNodeSubscription = namedtuple('EasyNodeSubscription',
-                                  'name desc type topic queue_size process latch timeout')
-EasyNodePublisher = namedtuple('EasyNodePublisher', 'name desc type topic queue_size latch')
+EasyNodeConfig = namedtuple(
+    "EasyNodeConfig",
+    "filename package_name node_type_name description parameters subscriptions " "contracts publishers",
+)
+EasyNodeParameter = namedtuple("EasyNodeParameter", "name desc type has_default default")
+EasyNodeSubscription = namedtuple(
+    "EasyNodeSubscription", "name desc type topic queue_size process latch timeout"
+)
+EasyNodePublisher = namedtuple("EasyNodePublisher", "name desc type topic queue_size latch")
 
-PROCESS_THREADED = 'threaded'
-PROCESS_SYNCHRONOUS = 'synchronous'
+PROCESS_THREADED = "threaded"
+PROCESS_SYNCHRONOUS = "synchronous"
 PROCESS_VALUES = [PROCESS_THREADED, PROCESS_SYNCHRONOUS]
 
 # type = int, bool, float, or None (anything)
-DEFAULT_NOT_GIVEN = 'default-not-given'
+DEFAULT_NOT_GIVEN = "default-not-given"
 
 NoneType = type(None)
 
@@ -45,7 +47,6 @@ def merge_configuration(c1: EasyNodeConfig, c2: EasyNodeConfig) -> EasyNodeConfi
         package_name=c2.package_name,
         node_type_name=c2.node_type_name,
         description=c2.description,
-
         parameters=parameters,
         subscriptions=subscriptions,
         contracts=contracts,
@@ -56,16 +57,16 @@ def merge_configuration(c1: EasyNodeConfig, c2: EasyNodeConfig) -> EasyNodeConfi
 
 def load_configuration_baseline():
     """ Get the baseline configuration. """
-    c1 = load_configuration_package_node('easy_node', 'easy_node')
+    c1 = load_configuration_package_node("easy_node", "easy_node")
     return c1
 
 
 def load_configuration_package_node(package_name: str, node_type_name: str) -> EasyNodeConfig:
     path = dtu.get_ros_package_path(package_name)
-    look_for = '%s.easy_node.yaml' % node_type_name
+    look_for = "%s.easy_node.yaml" % node_type_name
     found = dtu.locate_files(path, look_for)
     if not found:
-        msg = 'Could not find EasyNode configuration %r.' % look_for
+        msg = "Could not find EasyNode configuration %r." % look_for
         raise dtu.DTConfigException(msg)  # XXX
 
     fn = found[0]
@@ -75,7 +76,7 @@ def load_configuration_package_node(package_name: str, node_type_name: str) -> E
     c = c._replace(node_type_name=node_type_name)
 
     # Add the common parameters
-    if node_type_name != 'easy_node':
+    if node_type_name != "easy_node":
         c0 = load_configuration_baseline()
         c = merge_configuration(c0, c)
 
@@ -88,29 +89,29 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
         try:
             data = dtu.yaml_load(contents)
         except Exception as e:
-            msg = 'Could not parse YAML file properly:'
+            msg = "Could not parse YAML file properly:"
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
             raise  # ide not smart
         if not isinstance(data, dict):
-            msg = 'Expected a dict, got %s.' % type(data).__name__
+            msg = "Expected a dict, got %s." % type(data).__name__
             raise dtu.DTConfigException(msg)
         try:
-            parameters = data.pop('parameters')
-            subscriptions = data.pop('subscriptions')
-            publishers = data.pop('publishers')
-            contracts = data.pop('contracts')
-            description = data.pop('description')
+            parameters = data.pop("parameters")
+            subscriptions = data.pop("subscriptions")
+            publishers = data.pop("publishers")
+            contracts = data.pop("contracts")
+            description = data.pop("description")
         except KeyError as e:
             key = e.args[0]
-            msg = f'Invalid configuration: missing field {key!r}.'
+            msg = f"Invalid configuration: missing field {key!r}."
             raise dtu.DTConfigException(msg)
 
         if not isinstance(description, (str, NoneType)):
-            msg = 'Description should be a string, not %s.' % type(description).__name__
+            msg = "Description should be a string, not %s." % type(description).__name__
             raise dtu.DTConfigException(msg)
 
         if data:
-            msg = 'Spurious fields found: %s' % sorted(data)
+            msg = "Spurious fields found: %s" % sorted(data)
             raise dtu.DTConfigException(msg)
 
         parameters = load_configuration_parameters(parameters)
@@ -118,12 +119,18 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
         contracts = load_configuration_contracts(contracts)
         publishers = load_configuration_publishers(publishers)
 
-        return EasyNodeConfig(filename=realpath, parameters=parameters, contracts=contracts,
-                              subscriptions=subscriptions, publishers=publishers,
-                              package_name=None, description=description,
-                              node_type_name=None)
+        return EasyNodeConfig(
+            filename=realpath,
+            parameters=parameters,
+            contracts=contracts,
+            subscriptions=subscriptions,
+            publishers=publishers,
+            package_name=None,
+            description=description,
+            node_type_name=None,
+        )
     except dtu.DTConfigException as e:
-        msg = 'Invalid configuration at %s: ' % realpath
+        msg = "Invalid configuration at %s: " % realpath
         dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
 
 
@@ -134,7 +141,7 @@ def load_configuration_parameters(data: dict) -> OrderedDict:
             check_good_name(k)
             res[k] = load_configuration_parameter(k, v)
         except dtu.DTConfigException as e:
-            msg = 'Invalid parameter entry %r:' % k
+            msg = "Invalid parameter entry %r:" % k
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -146,7 +153,7 @@ def load_configuration_subscriptions(data: dict) -> OrderedDict:
             check_good_name(k)
             res[k] = load_configuration_subscription(k, v)
         except dtu.DTConfigException as e:
-            msg = 'Invalid subscription entry %r:' % k
+            msg = "Invalid subscription entry %r:" % k
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -158,7 +165,7 @@ def load_configuration_publishers(data: dict) -> OrderedDict:
             check_good_name(k)
             res[k] = load_configuration_publisher(k, v)
         except dtu.DTConfigException as e:
-            msg = 'Invalid publisher entry %r:' % k
+            msg = "Invalid publisher entry %r:" % k
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -175,37 +182,37 @@ def load_configuration_parameter(name, data):
     #         default: true
     #
     try:
-        desc = data.pop('desc', None)
+        desc = data.pop("desc", None)
         desc = preprocess_desc(desc)
-        type_ = data.pop('type')
+        type_ = data.pop("type")
 
-        if 'default' in data:
-            default = data.pop('default')
+        if "default" in data:
+            default = data.pop("default")
             has_default = True
         else:
             default = DEFAULT_NOT_GIVEN
             has_default = False
 
     except KeyError as e:
-        msg = 'Could not find field %r.' % e.args[0]
+        msg = "Could not find field %r." % e.args[0]
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = 'Extra keys: %r' % data
+        msg = "Extra keys: %r" % data
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        msg = "Description should be a string, not %s." % type(desc).__name__
         raise dtu.DTConfigException(msg)
 
     type2T = {
-        'bool': bool,
-        'str': str,
-        'int': int,
-        'float': float,
-        'any': None,
+        "bool": bool,
+        "str": str,
+        "int": int,
+        "float": float,
+        "any": None,
         None: None,
-        'dict': dict,
+        "dict": dict,
     }
 
     if not type_ in type2T:
@@ -215,8 +222,7 @@ def load_configuration_parameter(name, data):
     if has_default and default is not None and T is not None:
         default = T(default)
 
-    return EasyNodeParameter(name=name, desc=desc, type=T,
-                             has_default=has_default, default=default)
+    return EasyNodeParameter(name=name, desc=desc, type=T, has_default=has_default, default=default)
 
 
 def check_good_name(k):
@@ -225,18 +231,18 @@ def check_good_name(k):
 
 
 def message_class_from_string(s):
-    if not '/' in s:
-        msg = ''
+    if not "/" in s:
+        msg = ""
         msg += 'Invalid message name "%s".\n' % s
         msg += 'I expected that the name of the message is in the format "PACKAGE/MSG".\n '
         msg += 'E.g. "sensor_msgs/Joy" or "duckietown_msgs/BoolStamped".'
         raise dtu.DTConfigException(msg)
 
     # e.g. "std_msgs/Header"
-    i = s.index('/')
+    i = s.index("/")
     package = s[:i]
-    name = s[i + 1:]
-    symbol = '%s.msg.%s' % (package, name)
+    name = s[i + 1 :]
+    symbol = "%s.msg.%s" % (package, name)
     try:
         msgclass = dtu.import_name(symbol)
         return msgclass
@@ -252,60 +258,67 @@ def load_configuration_subscription(name, data):
     #         type: CompressedImage
     #         queue_size: 1
     try:
-        desc = data.pop('desc', None)
+        desc = data.pop("desc", None)
         desc = preprocess_desc(desc)
-        latch = data.pop('latch', None)
-        timeout = data.pop('timeout', None)
-        topic = data.pop('topic')
-        type_ = data.pop('type')
-        queue_size = data.pop('queue_size', None)
-        process = data.pop('process', PROCESS_SYNCHRONOUS)
+        latch = data.pop("latch", None)
+        timeout = data.pop("timeout", None)
+        topic = data.pop("topic")
+        type_ = data.pop("type")
+        queue_size = data.pop("queue_size", None)
+        process = data.pop("process", PROCESS_SYNCHRONOUS)
         if not process in PROCESS_VALUES:
-            msg = 'Invalid value of process %r not in %r.' % (process, PROCESS_VALUES)
+            msg = "Invalid value of process %r not in %r." % (process, PROCESS_VALUES)
             raise dtu.DTConfigException(msg)
 
     except KeyError as e:
-        msg = 'Could not find field %r.' % e
+        msg = "Could not find field %r." % e
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        msg = "Description should be a string, not %s." % type(desc).__name__
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = 'Extra keys: %r' % data
+        msg = "Extra keys: %r" % data
         raise dtu.DTConfigException(msg)
     T = message_class_from_string(type_)
 
-    return EasyNodeSubscription(name=name, desc=desc, topic=topic, timeout=timeout,
-                                type=T, queue_size=queue_size, latch=latch, process=process)
+    return EasyNodeSubscription(
+        name=name,
+        desc=desc,
+        topic=topic,
+        timeout=timeout,
+        type=T,
+        queue_size=queue_size,
+        latch=latch,
+        process=process,
+    )
 
 
 def load_configuration_publisher(name, data):
     try:
-        desc = data.pop('desc', None)
+        desc = data.pop("desc", None)
         desc = preprocess_desc(desc)
-        latch = data.pop('latch', None)
-        topic = data.pop('topic')
-        type_ = data.pop('type')
-        queue_size = data.pop('queue_size', None)
+        latch = data.pop("latch", None)
+        topic = data.pop("topic")
+        type_ = data.pop("type")
+        queue_size = data.pop("queue_size", None)
 
     except KeyError as e:
-        msg = 'Could not find field %r.' % e
+        msg = "Could not find field %r." % e
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = 'Description should be a string, not %s.' % type(desc).__name__
+        msg = "Description should be a string, not %s." % type(desc).__name__
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = 'Extra keys: %r' % data
+        msg = "Extra keys: %r" % data
         raise dtu.DTConfigException(msg)
 
     T = message_class_from_string(type_)
 
-    return EasyNodePublisher(name=name, desc=desc, topic=topic,
-                             type=T, queue_size=queue_size, latch=latch)
+    return EasyNodePublisher(name=name, desc=desc, topic=topic, type=T, queue_size=queue_size, latch=latch)
 
 
 def load_configuration_contracts(data):
@@ -317,92 +330,92 @@ def load_configuration_for_nodes_in_package(package_name: str):
     """
         returns dict node_name -> config
     """
-    suffix = '.easy_node.yaml'
+    suffix = ".easy_node.yaml"
     package_dir = dtu.get_ros_package_path(package_name)
-    configs = dtu.locate_files(package_dir, '*' + suffix)
+    configs = dtu.locate_files(package_dir, "*" + suffix)
     res = {}
     for c in configs:
-        node_name = os.path.basename(c).replace(suffix, '')
+        node_name = os.path.basename(c).replace(suffix, "")
         res[node_name] = load_configuration_package_node(package_name, node_name)
     return res
 
 
-def format_enc(enc: EasyNodeConfig, descriptions:bool=False) -> str:
+def format_enc(enc: EasyNodeConfig, descriptions: bool = False) -> str:
     s = 'Configuration for node "%s" in package "%s"' % (enc.node_type_name, enc.package_name)
-    s += '\n' + '=' * len(s)
+    s += "\n" + "=" * len(s)
 
-    S = ' ' * 4
-    s += '\n\n Parameters\n\n'
+    S = " " * 4
+    s += "\n\n Parameters\n\n"
     s += dtu.indent(format_enc_parameters(enc, descriptions), S)
-    s += '\n\n Subcriptions\n\n'
+    s += "\n\n Subcriptions\n\n"
     s += dtu.indent(format_enc_subscriptions(enc, descriptions), S)
-    s += '\n\n Publishers\n\n'
+    s += "\n\n Publishers\n\n"
     s += dtu.indent(format_enc_publishers(enc, descriptions), S)
     return s
 
 
 def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [['name', 'type', 'default', 'description', ]]
+    table = [["name", "type", "default", "description",]]
 
     for p in list(enc.parameters.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:
-            desc = '(none)'
+            desc = "(none)"
         if p.has_default:
             default = p.default
         else:
-            default = '(none)'
+            default = "(none)"
         if p.type is None:
-            t = '(n/a)'
+            t = "(n/a)"
         else:
             t = p.type.__name__
         table.append([p.name, t, default, desc])
     if not descriptions:
-        dtu.remove_table_field(table, 'description')
+        dtu.remove_table_field(table, "description")
     return dtu.format_table_plus(table, 2)
 
 
 def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [['name', 'type', 'topic', 'options', 'process', 'description', ]]
+    table = [["name", "type", "topic", "options", "process", "description",]]
 
     for p in list(enc.subscriptions.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:
-            desc = '(none)'
+            desc = "(none)"
         options = []
         if p.queue_size is not None:
-            options.append(f'queue_size = {p.queue_size}')
+            options.append(f"queue_size = {p.queue_size}")
         if p.latch is not None:
-            options.append(f'latch = {p.latch} ')
+            options.append(f"latch = {p.latch} ")
         if p.timeout is not None:
-            options.append(f'timeout = {p.timeout} ')
+            options.append(f"timeout = {p.timeout} ")
 
-        options = '\n'.join(options)
+        options = "\n".join(options)
         table.append([p.name, p.type.__name__, p.topic, options, p.process, desc])
     if not descriptions:
-        dtu.remove_table_field(table, 'description')
+        dtu.remove_table_field(table, "description")
     return dtu.format_table_plus(table, 2)
 
 
 @dtu.contract(enc=EasyNodeConfig, returns=str)
 def format_enc_publishers(enc, descriptions):
-    table = [['name', 'type', 'topic', 'options', 'description', ]]
+    table = [["name", "type", "topic", "options", "description",]]
 
     for p in list(enc.publishers.values()):
         if p.desc:
             desc = dtu.wrap_line_length(p.desc, 80)
         else:
-            desc = '(none)'
+            desc = "(none)"
         options = []
         if p.queue_size is not None:
-            options.append(f'queue_size = {p.queue_size} ')
+            options.append(f"queue_size = {p.queue_size} ")
         if p.latch is not None:
-            options.append(f'latch = {p.latch}')
+            options.append(f"latch = {p.latch}")
 
-        options = '\n'.join(options)
+        options = "\n".join(options)
         table.append([p.name, p.type.__name__, p.topic, options, desc])
     if not descriptions:
-        dtu.remove_table_field(table, 'description')
+        dtu.remove_table_field(table, "description")
     return dtu.format_table_plus(table, 2)

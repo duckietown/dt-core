@@ -5,8 +5,12 @@ import numpy as np
 from numpy.testing.utils import assert_almost_equal, assert_equal
 
 import duckietown_utils as dtu
-from grid_helper.grid_helper_visualization import (grid_helper_annotate_axes, grid_helper_mark_point,
-                                                   grid_helper_plot, grid_helper_plot_field)
+from grid_helper.grid_helper_visualization import (
+    grid_helper_annotate_axes,
+    grid_helper_mark_point,
+    grid_helper_plot,
+    grid_helper_plot_field,
+)
 from grid_helper.voting_grid import GridHelper
 
 
@@ -14,10 +18,12 @@ from grid_helper.voting_grid import GridHelper
 def grid1():
     resolutions = [0.1, 0.2]
     variables = collections.OrderedDict()
-    variables['x'] = dict(min=1, max=2, description="X variable", resolution=resolutions[0],
-                          units='m', units_display='cm')
-    variables['y'] = dict(min=3, max=5, description="Y variable", resolution=resolutions[1],
-                          units='m', units_display='cm')
+    variables["x"] = dict(
+        min=1, max=2, description="X variable", resolution=resolutions[0], units="m", units_display="cm"
+    )
+    variables["y"] = dict(
+        min=3, max=5, description="Y variable", resolution=resolutions[1], units="m", units_display="cm"
+    )
     gh = GridHelper(variables)
     shape = gh.get_shape()
 
@@ -37,11 +43,15 @@ def grid1():
 @dtu.unit_test
 def grid_visualization():
     variables = collections.OrderedDict()
-    variables['alpha'] = dict(min=-np.pi / 2, max=np.pi / 2, description="angle",
-                              resolution=np.deg2rad(10),
-                              units='rad', units_display='deg')
-    variables['r'] = dict(min=3, max=5, description="distance", resolution=0.1,
-                          units='m', units_display='cm')
+    variables["alpha"] = dict(
+        min=-np.pi / 2,
+        max=np.pi / 2,
+        description="angle",
+        resolution=np.deg2rad(10),
+        units="rad",
+        units_display="deg",
+    )
+    variables["r"] = dict(min=3, max=5, description="distance", resolution=0.1, units="m", units_display="cm")
     gh = GridHelper(variables)
     val = gh.create_new()
     val.fill(0)
@@ -50,7 +60,7 @@ def grid_visualization():
     val[1, 2] = 0
     d = grid_helper_plot(gh, val)
     od = dtu.get_output_dir_for_test()
-    fn = os.path.join(od, 'grid_visualization.jpg')
+    fn = os.path.join(od, "grid_visualization.jpg")
     dtu.write_data_to_file(d.get_png(), fn)
 
 
@@ -58,11 +68,12 @@ def grid_visualization():
 def voting_kernel1():
     resolution = 10.0
     variables = collections.OrderedDict()
-    variables['x'] = dict(min=100, max=500, description="x",
-                          resolution=resolution,
-                          units='cm', units_display='cm')
-    variables['y'] = dict(min=100, max=500, description="y", resolution=resolution,
-                          units='cm', units_display='cm')
+    variables["x"] = dict(
+        min=100, max=500, description="x", resolution=resolution, units="cm", units_display="cm"
+    )
+    variables["y"] = dict(
+        min=100, max=500, description="y", resolution=resolution, units="cm", units_display="cm"
+    )
     gh = GridHelper(variables)
     votes = gh.create_new()
     votes.fill(0)
@@ -80,7 +91,7 @@ def voting_kernel1():
         dx = resolution / N
         Dy = 70
         Dx = 70
-        u = (i / 5)
+        u = i / 5
         v = i % 5
 
         x = 125 + dx * i + Dx * u
@@ -100,53 +111,53 @@ def voting_kernel1():
         estimate_weigthed = gh.get_max_weighted(tmp, F=F)
         estimated_weighted.append(estimate_weigthed)
 
-        errors_x.append(p['x'] - estimate['x'])
-        errors_x_w.append(p['x'] - estimate_weigthed['x'])
+        errors_x.append(p["x"] - estimate["x"])
+        errors_x_w.append(p["x"] - estimate_weigthed["x"])
 
     errors_x = np.array(errors_x)
     errors_x_w = np.array(errors_x_w)
-    dtu.logger.debug('errors_x: %s' % errors_x)
-    dtu.logger.debug('mean: %s' % np.abs(errors_x).mean())
-    dtu.logger.debug('errors_x_w: %s' % errors_x_w)
-    dtu.logger.debug('mean: %s' % np.abs(errors_x_w).mean())
+    dtu.logger.debug("errors_x: %s" % errors_x)
+    dtu.logger.debug("mean: %s" % np.abs(errors_x).mean())
+    dtu.logger.debug("errors_x_w: %s" % errors_x_w)
+    dtu.logger.debug("mean: %s" % np.abs(errors_x_w).mean())
 
-    assert (errors_x.max() <= +resolution / 2)
-    assert (errors_x.min() >= -resolution / 2)
-    assert (np.abs(errors_x_w).max() <= resolution / 10)
+    assert errors_x.max() <= +resolution / 2
+    assert errors_x.min() >= -resolution / 2
+    assert np.abs(errors_x_w).max() <= resolution / 10
 
     a = dtu.CreateImageFromPylab(dpi=1000)
     with a as pylab:
         grid_helper_plot_field(gh, votes, pylab)
-        pylab.axis('equal')
+        pylab.axis("equal")
         grid_helper_annotate_axes(gh, pylab)
         for p in points:
-            grid_helper_mark_point(gh, pylab, p, color='blue', markersize=4)
+            grid_helper_mark_point(gh, pylab, p, color="blue", markersize=4)
         for e in estimated:
-            grid_helper_mark_point(gh, pylab, e, color='red', markersize=3)
+            grid_helper_mark_point(gh, pylab, e, color="red", markersize=3)
         for e in estimated_weighted:
-            grid_helper_mark_point(gh, pylab, e, color='green', markersize=3)
+            grid_helper_mark_point(gh, pylab, e, color="green", markersize=3)
 
     b = dtu.CreateImageFromPylab(dpi=1000)
     with b as pylab:
-        x = np.array([_['x'] for _ in points])
-        xe = np.array([_['x'] for _ in estimated])
-        xew = np.array([_['x'] for _ in estimated_weighted])
+        x = np.array([_["x"] for _ in points])
+        xe = np.array([_["x"] for _ in estimated])
+        xew = np.array([_["x"] for _ in estimated_weighted])
 
         xe -= x
         xew -= x
-        x = x * 0 # XXX?
+        x = x * 0  # XXX?
 
-        pylab.plot(x, '.', label='x')
-        pylab.plot(xe, '.', label='x estimated')
-        pylab.plot(xew, '.', label='x estimated weighted')
+        pylab.plot(x, ".", label="x")
+        pylab.plot(xe, ".", label="x estimated")
+        pylab.plot(xew, ".", label="x estimated weighted")
         pylab.legend()
 
     od = dtu.get_output_dir_for_test()
-    fn = os.path.join(od, 'voting_kernel1.jpg')
+    fn = os.path.join(od, "voting_kernel1.jpg")
     dtu.write_data_to_file(a.get_png(), fn)
-    fn = os.path.join(od, 'errors.jpg')
+    fn = os.path.join(od, "errors.jpg")
     dtu.write_data_to_file(b.get_png(), fn)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

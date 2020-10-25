@@ -104,8 +104,14 @@ def empty_tile(tile_size: float, tile_spacing: float, width_white: float) -> Seg
     return SegmentsMap(**data)
 
 
-def get_map_intersection_center(tile_size: float, tile_spacing: float, width_white: float, width_red: float,
-                                width_yellow: float, num_roads: int) -> SegmentsMap:
+def get_map_intersection_center(
+    tile_size: float,
+    tile_spacing: float,
+    width_white: float,
+    width_red: float,
+    width_yellow: float,
+    num_roads: int,
+) -> SegmentsMap:
     lane_width = (tile_size - 2 * width_white - width_yellow) / 2
     extra = (tile_spacing - tile_size) / 2
 
@@ -248,8 +254,15 @@ def get_map_intersection_center(tile_size: float, tile_spacing: float, width_whi
     return SegmentsMap(**data)
 
 
-def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: float, tile_spacing: float,
-                          gap_len: float, dash_len: float, width_red: float) -> SegmentsMap:
+def get_map_straight_lane(
+    tile_size: float,
+    width_yellow: float,
+    width_white: float,
+    tile_spacing: float,
+    gap_len: float,
+    dash_len: float,
+    width_red: float,
+) -> SegmentsMap:
     # from inner yellow to inner white
     constants = {}
     constants["tile_size"] = tile_size
@@ -368,8 +381,18 @@ def get_map_straight_lane(tile_size: float, width_yellow: float, width_white: fl
 
 
 @dtu.contract(points="dict", faces="list", id_frame="str", color="str", use_sides_for_loc="list[4](None|int)")
-def _add_rect(points, faces, segments, x1, y1, x2, y2, id_frame: FrameName, color: str,
-              use_sides_for_loc: List[Optional[int]]):
+def _add_rect(
+    points,
+    faces,
+    segments,
+    x1,
+    y1,
+    x2,
+    y2,
+    id_frame: FrameName,
+    color: str,
+    use_sides_for_loc: List[Optional[int]],
+):
     assert x2 > x1
     assert y2 > y1
     s = len(points)

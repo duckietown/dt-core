@@ -36,24 +36,19 @@ class VehicleDetectionNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(VehicleDetectionNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(VehicleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Initialize the parameters
-        self.process_frequency = DTParam('~process_frequency',
-                                         param_type=ParamType.FLOAT)
-        self.circlepattern_dims = DTParam('~circlepattern_dims',
-                                          param_type=ParamType.LIST)
-        self.blobdetector_min_area = DTParam('~blobdetector_min_area',
-                                             param_type=ParamType.FLOAT)
-        self.blobdetector_min_dist_between_blobs = DTParam('~blobdetector_min_dist_between_blobs',
-                                                           param_type=ParamType.FLOAT)
+        self.process_frequency = DTParam("~process_frequency", param_type=ParamType.FLOAT)
+        self.circlepattern_dims = DTParam("~circlepattern_dims", param_type=ParamType.LIST)
+        self.blobdetector_min_area = DTParam("~blobdetector_min_area", param_type=ParamType.FLOAT)
+        self.blobdetector_min_dist_between_blobs = DTParam(
+            "~blobdetector_min_dist_between_blobs", param_type=ParamType.FLOAT
+        )
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #
-        self.cbParametersChanged() # TODO: THIS SHOULD BE FIXED IN THE NEW DTROS!!!!!!!!!!
+        self.cbParametersChanged()  # TODO: THIS SHOULD BE FIXED IN THE NEW DTROS!!!!!!!!!!
         #
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -66,14 +61,16 @@ class VehicleDetectionNode(DTROS):
 
         # Publishers
         self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)
-        self.pub_circlepattern_image = rospy.Publisher("~debug/detection_image/compressed", CompressedImage, queue_size=1)
-        self.pub_detection_flag = rospy.Publisher("~detection",BoolStamped, queue_size=1)
+        self.pub_circlepattern_image = rospy.Publisher(
+            "~debug/detection_image/compressed", CompressedImage, queue_size=1
+        )
+        self.pub_detection_flag = rospy.Publisher("~detection", BoolStamped, queue_size=1)
         self.log("Initialization completed.")
 
     def cbParametersChanged(self):
 
-        #TODO: THIS DOESN'T WORK WITH THE NEW DTROS!!!
-        self.publish_duration = rospy.Duration.from_sec(1.0/self.process_frequency.value)
+        # TODO: THIS DOESN'T WORK WITH THE NEW DTROS!!!
+        self.publish_duration = rospy.Duration.from_sec(1.0 / self.process_frequency.value)
         params = cv2.SimpleBlobDetector_Params()
         params.minArea = self.blobdetector_min_area.value
         params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs.value
@@ -100,10 +97,12 @@ class VehicleDetectionNode(DTROS):
         detection_flag_msg_out = BoolStamped()
         image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
 
-        (detection, centers) = cv2.findCirclesGrid(image_cv,
-                                                   patternSize=tuple(self.circlepattern_dims.value),
-                                                   flags=cv2.CALIB_CB_SYMMETRIC_GRID,
-                                                   blobDetector=self.simple_blob_detector)
+        (detection, centers) = cv2.findCirclesGrid(
+            image_cv,
+            patternSize=tuple(self.circlepattern_dims.value),
+            flags=cv2.CALIB_CB_SYMMETRIC_GRID,
+            blobDetector=self.simple_blob_detector,
+        )
 
         # if the pattern is detected, cv2.findCirclesGrid returns a non-zero result, otherwise it returns 0
         # vehicle_detected_msg_out.data = detection > 0
@@ -131,11 +130,11 @@ class VehicleDetectionNode(DTROS):
         self.pub_centers.publish(vehicle_centers_msg_out)
         self.pub_detection_flag.publish(detection_flag_msg_out)
         if self.pub_circlepattern_image.get_num_connections() > 0:
-            cv2.drawChessboardCorners(image_cv,
-                                      tuple(self.circlepattern_dims.value), centers, detection)
+            cv2.drawChessboardCorners(image_cv, tuple(self.circlepattern_dims.value), centers, detection)
             image_msg_out = self.bridge.cv2_to_compressed_imgmsg(image_cv)
             self.pub_circlepattern_image.publish(image_msg_out)
 
-if __name__ == '__main__':
-    vehicle_detection_node = VehicleDetectionNode('vehicle_detection')
+
+if __name__ == "__main__":
+    vehicle_detection_node = VehicleDetectionNode("vehicle_detection")
     rospy.spin()

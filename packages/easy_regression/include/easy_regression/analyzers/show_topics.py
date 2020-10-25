@@ -2,7 +2,6 @@ from easy_regression.analyzer_interface import AnalyzerInterface
 
 
 class ShowTopics(AnalyzerInterface):
-
     def analyze_log(self, bag_in, dict_out):
         _types, topics = bag_in.get_type_and_topic_info()
 
@@ -19,4 +18,3 @@ class ShowTopics(AnalyzerInterface):
 
     def summarize_as_image(self):
         raise NotImplementedError()
-

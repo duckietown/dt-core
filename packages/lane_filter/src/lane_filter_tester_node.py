@@ -35,7 +35,7 @@ class LaneFilterTesterNode:
         rospy.loginfo("[LaneFilterTesterNode] Shutdown.")
 
 
-if __name__ == '__main__':
-    rospy.init_node('lane_filter_tester', anonymous=False)
+if __name__ == "__main__":
+    rospy.init_node("lane_filter_tester", anonymous=False)
     lane_filter_tester_node = LaneFilterTesterNode()
     rospy.on_shutdown(lane_filter_tester_node.onShutdown)

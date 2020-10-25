@@ -7,7 +7,6 @@ from line_detector_interface.visual_state_fancy_display import vs_fancy_display
 
 
 class LineDetectorProcessor(ProcessorInterface):
-
     def __init__(self, image_prep: str, line_detector: str):
         self.image_prep = image_prep
         self.line_detector = line_detector

@@ -7,10 +7,10 @@ import duckietown_utils as dtu
 
 __all__ = [
     "TransformationsInfo",
-    'FrameName',
-    'FRAME_AXLE',
-    'FRAME_GLOBAL',
-    'FRAME_TILE',
+    "FrameName",
+    "FRAME_AXLE",
+    "FRAME_GLOBAL",
+    "FRAME_TILE",
 ]
 
 FrameName = NewType("FrameName", str)

@@ -13,15 +13,16 @@ from lane_filter_interface import LaneFilterInterface
 from .visualization import plot_phi_d_diagram_bgr
 
 __all__ = [
-    'LaneFilterClassic',
+    "LaneFilterClassic",
 ]
 
 
 class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
-    '''
+    """
 
 
-    '''
+    """
+
     mean_d_0: float
     mean_phi_0: float
     sigma_d_0: float
@@ -40,32 +41,32 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
     sigma_d_mask: float
     sigma_phi_mask: float
 
-
     def __init__(self, configuration):
         param_names = [
-            'mean_d_0',
-            'mean_phi_0',
-            'sigma_d_0',
-            'sigma_phi_0',
-            'delta_d',
-            'delta_phi',
-            'd_max',
-            'd_min',
-            'phi_max',
-            'phi_min',
-            'cov_v',
-            'linewidth_white',
-            'linewidth_yellow',
-            'lanewidth',
-            'min_max',
-            'sigma_d_mask',
-            'sigma_phi_mask',
+            "mean_d_0",
+            "mean_phi_0",
+            "sigma_d_0",
+            "sigma_phi_0",
+            "delta_d",
+            "delta_phi",
+            "d_max",
+            "d_min",
+            "phi_max",
+            "phi_min",
+            "cov_v",
+            "linewidth_white",
+            "linewidth_yellow",
+            "lanewidth",
+            "min_max",
+            "sigma_d_mask",
+            "sigma_phi_mask",
         ]
 
         dtu.Configurable.__init__(self, param_names, configuration)
 
-        self.d, self.phi = np.mgrid[self.   d_min:self.d_max:self.delta_d,
-                                   self.phi_min:self.phi_max:self.delta_phi]
+        self.d, self.phi = np.mgrid[
+            self.d_min : self.d_max : self.delta_d, self.phi_min : self.phi_max : self.delta_phi
+        ]
         # these are the bounds you would give to pcolor
         # there is one row and one column more
         # self.d, self.phi are the lower corners
@@ -75,19 +76,19 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         #         (X[i,   j+1], Y[i,   j+1]),
         #         (X[i+1, j],   Y[i+1, j]),
         #         (X[i+1, j+1], Y[i+1, j+1])
-        self.d_pcolor, self.phi_pcolor = \
-            np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
-                     self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
+        self.d_pcolor, self.phi_pcolor = np.mgrid[
+            self.d_min : (self.d_max + self.delta_d) : self.delta_d,
+            self.phi_min : (self.phi_max + self.delta_phi) : self.delta_phi,
+        ]
 
         self.belief = np.empty(self.d.shape)
         self.mean_0 = [self.mean_d_0, self.mean_phi_0]
-        self.cov_0 = [ [self.sigma_d_0, 0], [0, self.sigma_phi_0] ]
+        self.cov_0 = [[self.sigma_d_0, 0], [0, self.sigma_phi_0]]
         self.cov_mask = [self.sigma_d_mask, self.sigma_phi_mask]
 
         self.last_segments_used = None
 
         self.initialize()
-
 
     def getStatus(self):
         return LaneFilterInterface.GOOD
@@ -102,11 +103,11 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
 
         n = pos.shape[0] * pos.shape[1]
 
-        gaussian = RV.pdf(pos) * 0.5  #+ 0.5/n
+        gaussian = RV.pdf(pos) * 0.5  # + 0.5/n
 
         gaussian = gaussian / np.sum(gaussian.flatten())
 
-        uniform = np.ones(dtype='float32', shape=self.d.shape) * (1.0 / n)
+        uniform = np.ones(dtype="float32", shape=self.d.shape) * (1.0 / n)
 
         a = 0.01
         self.belief = a * gaussian + (1 - a) * uniform
@@ -118,24 +119,26 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         d_t = self.d + v * delta_t * np.sin(self.phi)
         phi_t = self.phi + w * delta_t
 
-        p_belief = np.zeros(self.belief.shape, dtype='float32')
+        p_belief = np.zeros(self.belief.shape, dtype="float32")
 
         # there has got to be a better/cleaner way to do this - just applying
         # the process model to translate each cell value
         for i in range(self.belief.shape[0]):
             for j in range(self.belief.shape[1]):
                 if self.belief[i, j] > 0:
-                    if d_t[i, j] > self.d_max or \
-                        d_t[i, j] < self.d_min or \
-                        phi_t[i, j] < self.phi_min or \
-                        phi_t[i, j] > self.phi_max:
+                    if (
+                        d_t[i, j] > self.d_max
+                        or d_t[i, j] < self.d_min
+                        or phi_t[i, j] < self.phi_min
+                        or phi_t[i, j] > self.phi_max
+                    ):
                         continue
                     i_new = int(floor((d_t[i, j] - self.d_min) / self.delta_d))
                     j_new = int(floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
                     p_belief[i_new, j_new] += self.belief[i, j]
 
-        s_belief = np.zeros(self.belief.shape, dtype='float32')
-        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode='constant')
+        s_belief = np.zeros(self.belief.shape, dtype="float32")
+        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode="constant")
 
         if np.sum(s_belief) == 0:
             # TODO: ok, what happens now? (@liam)
@@ -165,7 +168,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
     def generate_measurement_likelihood(self, segment_list):
         segments = segment_list.segments
         # initialize measurement likelihood to all zeros
-        measurement_likelihood = np.zeros(self.d.shape, dtype='float32')
+        measurement_likelihood = np.zeros(self.d.shape, dtype="float32")
         for segment in segments:
             # we don't care about RED ones for now
             if segment.color != segment.WHITE and segment.color != segment.YELLOW:
@@ -175,10 +178,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
                 continue
             d_i, phi_i, _l_i, weight = self.generateVote(segment)
             # if the vote lands outside of the histogram discard it
-            if d_i > self.d_max or \
-                d_i < self.d_min or \
-                phi_i < self.phi_min or \
-                phi_i > self.phi_max:
+            if d_i > self.d_max or d_i < self.d_min or phi_i < self.phi_min or phi_i > self.phi_max:
                 continue
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
@@ -196,14 +196,14 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         phi_max = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
 
         res = OrderedDict()
-        res['d'] = d_max
-        res['phi'] = phi_max
+        res["d"] = d_max
+        res["phi"] = phi_max
         return res
 
     def getEstimate(self):
         """ Returns a list with two elements: (d, phi) """
         res = self.get_estimate()
-        return [res['d'], res['phi']]
+        return [res["d"], res["phi"]]
 
     def getMax(self):
         return self.belief.max()
@@ -229,9 +229,9 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         l1 = np.inner(t_hat, p1)
         l2 = np.inner(t_hat, p2)
         if l1 < 0:
-            l1 = -l1;
+            l1 = -l1
         if l2 < 0:
-            l2 = -l2;
+            l2 = -l2
         l_i = (l1 + l2) / 2
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
@@ -257,4 +257,4 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
 
     def get_plot_phi_d(self, ground_truth=None):
         est = self.get_estimate()
-        return plot_phi_d_diagram_bgr(self, self.belief, phi=est['phi'], d=est['d'])
+        return plot_phi_d_diagram_bgr(self, self.belief, phi=est["phi"], d=est["d"])

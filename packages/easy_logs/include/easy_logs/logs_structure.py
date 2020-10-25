@@ -37,6 +37,7 @@ from typing import Dict, List, Optional, TypedDict
 #         - http://ipfs.duckietown.org:8080/ipfs/QmNSbQPGbTCV5bRCa9hx2i8B82bRD2dskPooMUSrnqodwv
 #       - desc: ''
 
+
 class PhysicalLogResource(TypedDict):
     dtrv: str
     size: int

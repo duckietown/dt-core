@@ -7,6 +7,7 @@ import rospy
 from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import FSMState, LanePose, SegmentList, Twist2DStamped
+
 # from duckietown_utils.instantiate_utils import instantiate
 from lane_filter import LaneFilterHistogram
 from sensor_msgs.msg import Image
@@ -47,13 +48,10 @@ class LaneFilterNode(DTROS):
     """
 
     def __init__(self, node_name):
-        super(LaneFilterNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(LaneFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
-        self._filter = rospy.get_param('~lane_filter_histogram_configuration', None)
-        self._debug = rospy.get_param('~debug', False)
+        self._filter = rospy.get_param("~lane_filter_histogram_configuration", None)
+        self._debug = rospy.get_param("~debug", False)
 
         # Create the filter
         self.filter = LaneFilterHistogram(**self._filter)
@@ -67,40 +65,29 @@ class LaneFilterNode(DTROS):
         self.latencyArray = []
 
         # Subscribers
-        self.sub = rospy.Subscriber("~segment_list",
-                                    SegmentList,
-                                    self.cbProcessSegments,
-                                    queue_size=1)
+        self.sub = rospy.Subscriber("~segment_list", SegmentList, self.cbProcessSegments, queue_size=1)
 
-        self.sub_velocity = rospy.Subscriber("~car_cmd",
-                                             Twist2DStamped,
-                                             self.updateVelocity)
+        self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
 
-        self.sub_change_params = rospy.Subscriber("~change_params",
-                                                  String,
-                                                  self.cbTemporaryChangeParams)
+        self.sub_change_params = rospy.Subscriber("~change_params", String, self.cbTemporaryChangeParams)
 
         # Publishers
-        self.pub_lane_pose = rospy.Publisher("~lane_pose",
-                                             LanePose,
-                                             queue_size=1,
-                                             dt_topic_type=TopicType.PERCEPTION)
+        self.pub_lane_pose = rospy.Publisher(
+            "~lane_pose", LanePose, queue_size=1, dt_topic_type=TopicType.PERCEPTION
+        )
 
-        self.pub_belief_img = rospy.Publisher("~belief_img",
-                                              Image,
-                                              queue_size=1,
-                                              dt_topic_type=TopicType.DEBUG)
+        self.pub_belief_img = rospy.Publisher(
+            "~belief_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
+        )
 
-        self.pub_seglist_filtered = rospy.Publisher("~seglist_filtered",
-                                                    SegmentList,
-                                                    queue_size=1,
-                                                    dt_topic_type=TopicType.DEBUG)
+        self.pub_seglist_filtered = rospy.Publisher(
+            "~seglist_filtered", SegmentList, queue_size=1, dt_topic_type=TopicType.DEBUG
+        )
 
         # FSM
         # self.sub_switch = rospy.Subscriber(
         #     "~switch", BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber(
-            "~fsm_mode", FSMState, self.cbMode, queue_size=1)
+        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
 
     def cbTemporaryChangeParams(self, msg):
         """Callback that changes temporarily the filter's parameters.
@@ -117,8 +104,8 @@ class LaneFilterNode(DTROS):
         # Set all paramters which need to be updated
         for param_name in list(params.keys()):
             param_val = params[param_name]
-            params[param_name] = eval("self.filter." + str(param_name)) # FIXME: really?
-            exec("self.filter." + str(param_name) + "=" + str(param_val)) # FIXME: really?
+            params[param_name] = eval("self.filter." + str(param_name))  # FIXME: really?
+            exec("self.filter." + str(param_name) + "=" + str(param_val))  # FIXME: really?
 
         # Sleep for reset time
         rospy.sleep(reset_time)
@@ -127,7 +114,7 @@ class LaneFilterNode(DTROS):
         for param_name in list(params.keys()):
             param_val = params[param_name]
 
-            exec("self.filter." + str(param_name) + "=" + str(param_val)) # FIXME: really?
+            exec("self.filter." + str(param_name) + "=" + str(param_val))  # FIXME: really?
 
     #    def nbSwitch(self, switch_msg):
     #        """Callback to turn on/off the node
@@ -155,8 +142,7 @@ class LaneFilterNode(DTROS):
         current_time = rospy.get_time()
         if self.currentVelocity:
             dt = current_time - self.t_last_update
-            self.filter.predict(dt=dt, v=self.currentVelocity.v,
-                                w=self.currentVelocity.omega)
+            self.filter.predict(dt=dt, v=self.currentVelocity.v, w=self.currentVelocity.omega)
 
         self.t_last_update = current_time
 
@@ -183,8 +169,7 @@ class LaneFilterNode(DTROS):
         lanePose.status = lanePose.NORMAL
 
         self.pub_lane_pose.publish(lanePose)
-        self.debugOutput(segment_list_msg, d_max, phi_max,
-                         timestamp_before_processing)
+        self.debugOutput(segment_list_msg, d_max, phi_max, timestamp_before_processing)
 
     def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_before_processing):
         """Creates and publishes debug messages
@@ -199,21 +184,17 @@ class LaneFilterNode(DTROS):
         if self._debug:
             # Latency of Estimation including curvature estimation
             estimation_latency_stamp = rospy.Time.now() - timestamp_before_processing
-            estimation_latency = estimation_latency_stamp.secs + \
-                                 estimation_latency_stamp.nsecs / 1e9
+            estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs / 1e9
             self.latencyArray.append(estimation_latency)
 
             if len(self.latencyArray) >= 20:
                 self.latencyArray.pop(0)
 
             # print "Latency of segment list: ", segment_latency
-            print(("Mean latency of Estimation:................. %s" %
-                   np.mean(self.latencyArray)))
+            print(("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray)))
 
             # Get the segments that agree with the best estimate and publish them
-            inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments,
-                                                              d_max,
-                                                              phi_max)
+            inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
             inlier_segments_msg = SegmentList()
             inlier_segments_msg.header = segment_list_msg.header
             inlier_segments_msg.segments = inlier_segments
@@ -221,7 +202,8 @@ class LaneFilterNode(DTROS):
 
             # Create belief image and publish it
             belief_img = self.bridge.cv2_to_imgmsg(
-                np.array(255 * self.filter.belief).astype("uint8"), "mono8")
+                np.array(255 * self.filter.belief).astype("uint8"), "mono8"
+            )
             belief_img.header.stamp = segment_list_msg.header.stamp
             self.pub_belief_img.publish(belief_img)
 
@@ -232,9 +214,9 @@ class LaneFilterNode(DTROS):
         self.currentVelocity = twist_msg
 
     def loginfo(self, s):
-        rospy.loginfo('[%s] %s' % (self.node_name, s))
+        rospy.loginfo("[%s] %s" % (self.node_name, s))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     lane_filter_node = LaneFilterNode(node_name="lane_filter_node")
     rospy.spin()

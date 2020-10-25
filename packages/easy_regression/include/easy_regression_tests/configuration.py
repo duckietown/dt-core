@@ -47,7 +47,7 @@ def parse_reg_test():
     #     msg = 'I do not expect Unicode'
     #     msg += '\n' + x.__repr__()
     #     raise ValueError(msg)
-    _ = dtu.instantiate(x['constructor'], x['parameters'])
+    _ = dtu.instantiate(x["constructor"], x["parameters"])
 
 
 @dtu.unit_test
@@ -55,12 +55,12 @@ def parse_reg_fail():
     x = dtu.yaml_load(s_fail)
     print((x.__repr__()))
     try:
-        _ = dtu.instantiate(x['constructor'], x['parameters'])
+        _ = dtu.instantiate(x["constructor"], x["parameters"])
     except RTParseError:
         pass
     else:
-        raise Exception('Expected failure')
+        raise Exception("Expected failure")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

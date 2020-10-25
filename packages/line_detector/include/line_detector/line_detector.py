@@ -38,8 +38,15 @@ class LineDetector(LineDetectorInterface):
 
     """
 
-    def __init__(self, canny_thresholds=[80, 200], canny_aperture_size=3, dilation_kernel_size=3,
-                 hough_threshold=2, hough_min_line_length=3, hough_max_line_gap=1):
+    def __init__(
+        self,
+        canny_thresholds=[80, 200],
+        canny_aperture_size=3,
+        dilation_kernel_size=3,
+        hough_threshold=2,
+        hough_min_line_length=3,
+        hough_max_line_gap=1,
+    ):
 
         self.canny_thresholds = canny_thresholds
         self.canny_aperture_size = canny_aperture_size
@@ -87,8 +94,12 @@ class LineDetector(LineDetectorInterface):
         Returns:
             :obj:`numpy array`: a binary image with the edges
         """
-        edges = cv2.Canny(self.bgr, self.canny_thresholds[0], self.canny_thresholds[1],
-                          apertureSize=self.canny_aperture_size)
+        edges = cv2.Canny(
+            self.bgr,
+            self.canny_thresholds[0],
+            self.canny_thresholds[1],
+            apertureSize=self.canny_aperture_size,
+        )
         return edges
 
     def houghLine(self, edges):
@@ -105,8 +116,14 @@ class LineDetector(LineDetectorInterface):
              were detected, returns an empty list.
 
         """
-        lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi / 180, threshold=self.hough_threshold,
-                                minLineLength=self.hough_min_line_length, maxLineGap=self.hough_max_line_gap)
+        lines = cv2.HoughLinesP(
+            edges,
+            rho=1,
+            theta=np.pi / 180,
+            threshold=self.hough_threshold,
+            minLineLength=self.hough_min_line_length,
+            maxLineGap=self.hough_max_line_gap,
+        )
         if lines is not None:
             lines = lines.reshape((-1, 4))  # it has an extra dimension
         else:
@@ -133,8 +150,9 @@ class LineDetector(LineDetectorInterface):
         map = color_range.inRange(self.hsv)
 
         # binary dilation: fills in gaps and makes the detected regions grow
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                           (self.dilation_kernel_size, self.dilation_kernel_size))
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, (self.dilation_kernel_size, self.dilation_kernel_size)
+        )
         map = cv2.dilate(map, kernel)
 
         # extract only the edges which come from the region with the selected color
@@ -163,21 +181,21 @@ class LineDetector(LineDetectorInterface):
         centers = []
         if len(lines) > 0:
             length = np.sum((lines[:, 0:2] - lines[:, 2:4]) ** 2, axis=1, keepdims=True) ** 0.5
-            dx = 1. * (lines[:, 3:4] - lines[:, 1:2]) / length
-            dy = 1. * (lines[:, 0:1] - lines[:, 2:3]) / length
+            dx = 1.0 * (lines[:, 3:4] - lines[:, 1:2]) / length
+            dy = 1.0 * (lines[:, 0:1] - lines[:, 2:3]) / length
 
             centers = np.hstack([(lines[:, 0:1] + lines[:, 2:3]) / 2, (lines[:, 1:2] + lines[:, 3:4]) / 2])
-            x3 = (centers[:, 0:1] - 3. * dx).astype('int')
-            y3 = (centers[:, 1:2] - 3. * dy).astype('int')
-            x4 = (centers[:, 0:1] + 3. * dx).astype('int')
-            y4 = (centers[:, 1:2] + 3. * dy).astype('int')
+            x3 = (centers[:, 0:1] - 3.0 * dx).astype("int")
+            y3 = (centers[:, 1:2] - 3.0 * dy).astype("int")
+            x4 = (centers[:, 0:1] + 3.0 * dx).astype("int")
+            y4 = (centers[:, 1:2] + 3.0 * dy).astype("int")
 
             np.clip(x3, 0, map.shape[1] - 1, out=x3)
             np.clip(y3, 0, map.shape[0] - 1, out=y3)
             np.clip(x4, 0, map.shape[1] - 1, out=x4)
             np.clip(y4, 0, map.shape[0] - 1, out=y4)
 
-            flag_signs = (np.logical_and(map[y3, x3] > 0, map[y4, x4] == 0)).astype('int') * 2 - 1
+            flag_signs = (np.logical_and(map[y3, x3] > 0, map[y4, x4] == 0)).astype("int") * 2 - 1
             normals = np.hstack([dx, dy]) * flag_signs
 
         return centers, normals

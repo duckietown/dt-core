@@ -6,7 +6,7 @@ from easy_logs.cli.generic import GenericLogDisplay
 class Find(GenericLogDisplay):
     """ Prints the filename for the specified log. """
 
-    cmd = 'dt-logs-find'
+    cmd = "dt-logs-find"
 
     def show_info(self, logs):
         for id_log, log in list(logs.items()):
@@ -14,4 +14,4 @@ class Find(GenericLogDisplay):
                 filename = get_local_bag_file(log)
                 print(filename)
             except NotAvailableLocally:
-                dtu.logger.error('No local file for %s' % id_log)
+                dtu.logger.error("No local file for %s" % id_log)

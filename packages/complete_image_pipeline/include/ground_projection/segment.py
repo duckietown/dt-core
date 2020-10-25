@@ -2,7 +2,8 @@ from duckietown_msgs.msg import Segment, SegmentList
 from image_processing.ground_projection_geometry import GroundProjectionGeometry, ImageSpaceResdepPoint
 from image_processing.rectification import Rectify
 
-__all__ = ['rectify_segments', 'rectify_segment']
+__all__ = ["rectify_segments", "rectify_segment"]
+
 
 def rectify_segment(rectify: Rectify, gpg: GroundProjectionGeometry, s1: Segment) -> Segment:
     pixels_normalized = []

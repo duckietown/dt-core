@@ -9,28 +9,30 @@ class RTParseError(dtu.DTConfigException):
     """ Cannot parse condition """
 
 
-CheckResult0 = namedtuple('CheckResult0',
-                             ['status',  # One of the above in CHECK_RESULTS
-                              'summary',  # A short string
-                              'details',  # A long description
-                              ])
+CheckResult0 = namedtuple(
+    "CheckResult0",
+    [
+        "status",  # One of the above in CHECK_RESULTS
+        "summary",  # A short string
+        "details",  # A long description
+    ],
+)
 
 
 class CheckResult(CheckResult0):
-
     def __str__(self):
-        s = 'CheckResult:'
-        s += '\n' + dtu.indent(self.status, '   status: ')
-        s += '\n' + dtu.indent(self.summary, '  summary: ')
-        s += '\n' + dtu.indent(self.details, '', '  details: ')
+        s = "CheckResult:"
+        s += "\n" + dtu.indent(self.status, "   status: ")
+        s += "\n" + dtu.indent(self.summary, "  summary: ")
+        s += "\n" + dtu.indent(self.details, "", "  details: ")
         return s
 
 
 class RTCheck(object, metaclass=ABCMeta):
-    FAIL = 'fail'
-    OK = 'ok'
-    NODATA = 'nodata'  # the historical data is not there yet
-    ABNORMAL = 'abnormal'  # Other error in the evaluation
+    FAIL = "fail"
+    OK = "ok"
+    NODATA = "nodata"  # the historical data is not there yet
+    ABNORMAL = "abnormal"  # Other error in the evaluation
 
     CHECK_RESULTS = [OK, FAIL, NODATA, ABNORMAL]
 
@@ -80,4 +82,5 @@ class RTCheck(object, metaclass=ABCMeta):
 
         """
         from .implementation import _parse_regression_test_check
+
         return _parse_regression_test_check(line)

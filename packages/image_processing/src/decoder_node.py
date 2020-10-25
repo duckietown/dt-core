@@ -9,9 +9,8 @@ from duckietown_msgs.msg import BoolStamped
 
 
 class DecoderNode:
-
     def __init__(self):
-        rospy.init_node('image_decoder')
+        rospy.init_node("image_decoder")
         self.active = True
         self.bridge = CvBridge()
 
@@ -20,8 +19,9 @@ class DecoderNode:
         self.pub_raw = rospy.Publisher("~image/raw", Image, queue_size=1)
         self.pub_compressed = rospy.Publisher("~image/compressed", CompressedImage, queue_size=1)
         self.last_stamp = rospy.Time.now()
-        self.sub_compressed_img = rospy.Subscriber("~compressed_image", CompressedImage,
-                                                   self.cbImg, queue_size=1)
+        self.sub_compressed_img = rospy.Subscriber(
+            "~compressed_image", CompressedImage, self.cbImg, queue_size=1
+        )
         self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
     def setupParam(self, param_name, default_value):
@@ -50,6 +50,6 @@ class DecoderNode:
         self.pub_compressed.publish(msg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     node = DecoderNode()
     rospy.spin()

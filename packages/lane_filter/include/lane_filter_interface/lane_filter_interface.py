@@ -2,21 +2,19 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 __all__ = [
-    'LaneFilterInterface',
+    "LaneFilterInterface",
 ]
 
 
 class LaneFilterInterface(metaclass=ABCMeta):
 
-    LOST = 'lost'
-    GOOD = 'good'
-    STRUGGLING = 'struggling'
+    LOST = "lost"
+    GOOD = "good"
+    STRUGGLING = "struggling"
 
     POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
 
-    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
-                                  ('d', 'float64')])
-
+    ESTIMATE_DATATYPE = np.dtype([("phi", "float64"), ("d", "float64")])
 
     @abstractmethod
     def initialize(self):

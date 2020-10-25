@@ -7,8 +7,8 @@ import numpy as np
 import duckietown_utils as dtu
 
 __all__ = [
-    'GridHelper',
-    'VotingGridVarSpec',
+    "GridHelper",
+    "VotingGridVarSpec",
 ]
 
 
@@ -27,15 +27,16 @@ class GridHelper:
         This class abstracts the task of creating a grid that
         is used for voting.
     """
+
     _names: List[str]
     _specs: List[VotingGridVarSpec]
     _mgrids_plus: List
 
-    def __init__(self, variables: Dict[str, Dict], precision='float32'):
+    def __init__(self, variables: Dict[str, Dict], precision="float32"):
         self.precision = precision
         dtu.check_isinstance(variables, dict)
         if len(variables) != 2:
-            msg = f'I can only deal with 2 variables, obtained {variables}'
+            msg = f"I can only deal with 2 variables, obtained {variables}"
             raise ValueError(msg)
 
         self._names = list(variables)
@@ -43,8 +44,7 @@ class GridHelper:
 
         s0 = self._specs[0]
         s1 = self._specs[1]
-        self._mgrids = list(np.mgrid[s0.min:s0.max:s0.resolution,
-                            s1.min:s1.max:s1.resolution])
+        self._mgrids = list(np.mgrid[s0.min : s0.max : s0.resolution, s1.min : s1.max : s1.resolution])
 
         for a in [0, 1]:
             new_max = self._specs[a].min + self._mgrids[a].shape[a] * self._specs[a].resolution
@@ -66,8 +66,12 @@ class GridHelper:
         #         (X[i,   j+1], Y[i,   j+1]),
         #         (X[i+1, j],   Y[i+1, j]),
         #         (X[i+1, j+1], Y[i+1, j+1])
-        self._mgrids_plus = list(np.mgrid[s0.min:s0.max + s0.resolution:s0.resolution,
-                                 s1.min:s1.max + s1.resolution:s1.resolution])
+        self._mgrids_plus = list(
+            np.mgrid[
+                s0.min : s0.max + s0.resolution : s0.resolution,
+                s1.min : s1.max + s1.resolution : s1.resolution,
+            ]
+        )
 
         k0_o_sigma = 1.0 / self._specs[0].resolution
 
@@ -96,13 +100,13 @@ class GridHelper:
         """ Returns the shape of the grid """
         return self.shape
 
-    def create_new(self, dtype='float64') -> np.ndarray:
+    def create_new(self, dtype="float64") -> np.ndarray:
         """ Creates a new numpy array of compatible dimensions, set to NaN """
         res = np.zeros(shape=self.shape, dtype=dtype)
         res.fill(np.nan)
         return res
 
-    @dtu.contract(target='array', value='dict')
+    @dtu.contract(target="array", value="dict")
     def add_vote(self, target: np.ndarray, value, weight, F, counts=None):
         """ Returns 1 if hit, otherwise 0.
 
@@ -163,7 +167,7 @@ class GridHelper:
         values2 = np.empty(shape=(2, M), dtype=self.precision)
         weights2 = np.empty(shape=M, dtype=self.precision)
         values_ref2 = np.empty(shape=(2, M), dtype=self.precision)
-        group = np.empty(shape=M, dtype='int16')
+        group = np.empty(shape=M, dtype="int16")
 
         cell_size_0 = self._specs[0].resolution
         cell_size_1 = self._specs[1].resolution
@@ -173,24 +177,24 @@ class GridHelper:
         for k, (di, dj) in enumerate(itertools.product(list(range(-F, F + 1)), list(range(-F, F + 1)))):
             off = N * k
             # same value ref
-            values_ref2[:, off:off + N] = values
-            weights2[off:off + N] = weights
-            values2[:, off:off + N] = values
-            values2[0, off:off + N] += di * cell_size_0
-            values2[1, off:off + N] += dj * cell_size_1
+            values_ref2[:, off : off + N] = values
+            weights2[off : off + N] = weights
+            values2[:, off : off + N] = values
+            values2[0, off : off + N] += di * cell_size_0
+            values2[1, off : off + N] += dj * cell_size_1
 
             #             print('di %s %s  diffco \n%s\n%s' %(di, dj,
             #                                                 values2[0, off:off+N] - values_ref2[0,
             #                                                 off:off+N],
             #                                                 values2[1, off:off+N] - values_ref2[1,
             #                                                 off:off+N]  ))
-            group[off:off + N] = np.array(list(range(N)))
+            group[off : off + N] = np.array(list(range(N)))
             nd += 1
 
         assert nd == factor
         return factor, values_ref2, values2, weights2, group
 
-    @dtu.contract(target='array', values='array[2xN]', weights='array[N]')
+    @dtu.contract(target="array", values="array[2xN]", weights="array[N]")
     def add_vote_faster(self, target, values, weights, F=1, counts=None):
 
         with dtu.timeit_clock("adding additional votes (orig: %s)" % values.shape[1]):
@@ -210,7 +214,7 @@ class GridHelper:
 
             nvalid = values.shape[1]
 
-            coords = np.zeros((2, nvalid), dtype='int32')
+            coords = np.zeros((2, nvalid), dtype="int32")
             K = [self.K0, self.K1]
 
             for a in range(2):
@@ -224,7 +228,7 @@ class GridHelper:
                 #             print('coords[%d] = %s' % (a, coords[a, :]))
                 xr = (values_ref[a, :] - spec.min) * inv_resolution
 
-                dc = (xr - (coords[a, :] + 0.5))
+                dc = xr - (coords[a, :] + 0.5)
 
                 #             print('dc[%d] = %s' % (a, dc))
                 dr = dc * spec.resolution
@@ -332,43 +336,48 @@ def gaussian_kernel(x, sigma):
 
 
 def spec_from_yaml(spec):
-    vmin = spec['min']
-    vmax = spec['max']
-    resolution = spec['resolution']
-    description = spec['description']
-    units = spec['units']
-    units_display = spec.get('units_display', units)
+    vmin = spec["min"]
+    vmax = spec["max"]
+    resolution = spec["resolution"]
+    description = spec["description"]
+    units = spec["units"]
+    units_display = spec.get("units_display", units)
 
-    return VotingGridVarSpec(min=vmin, max=vmax, resolution=resolution,
-                             description=description, units=units,
-                             units_display=units_display)
+    return VotingGridVarSpec(
+        min=vmin,
+        max=vmax,
+        resolution=resolution,
+        description=description,
+        units=units,
+        units_display=units_display,
+    )
 
 
 def check_no_nans(target):
     if np.any(np.isnan(target)):
-        msg = 'I found some NaNs'
-        msg += '\n' + str(target)
+        msg = "I found some NaNs"
+        msg += "\n" + str(target)
         raise ValueError(msg)
 
 
 def array_as_string(a, v2s):
-    s = ''
+    s = ""
     for i in range(a.shape[0]):
-        s += '['
+        s += "["
         for j in range(a.shape[1]):
             c = v2s(a[i, j])
             s += c
-        s += ']\n'
+        s += "]\n"
     return s
 
 
 def array_as_string_sign(a):
     def w(x):
         if x > 0:
-            return '+'
+            return "+"
         elif x < 0:
-            return '-'
+            return "-"
         else:
-            return ' '
+            return " "
 
     return array_as_string(a, w)

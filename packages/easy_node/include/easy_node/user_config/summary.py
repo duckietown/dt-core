@@ -2,7 +2,7 @@ import duckietown_utils as dtu
 from .db import get_config_db
 from .get_configuration_files import ConfigInfo
 
-__all__ = ['user_config_summary']
+__all__ = ["user_config_summary"]
 
 
 def user_config_summary() -> str:
@@ -19,26 +19,45 @@ def user_config_summary() -> str:
 
     table = []
 
-    table.append(['package name', 'node name', 'config_name', 'effective',
-                  'extends', 'valid', 'error', 'description', 'filename', ])
+    table.append(
+        [
+            "package name",
+            "node name",
+            "config_name",
+            "effective",
+            "extends",
+            "valid",
+            "error",
+            "description",
+            "filename",
+        ]
+    )
     for c in db.configs:
         assert isinstance(c, ConfigInfo)
-        d = dtu.truncate_string_right(c.description.replace('\n', ' '), 40)
-        date = c.date_effective.strftime('%Y-%m-%d')
+        d = dtu.truncate_string_right(c.description.replace("\n", " "), 40)
+        date = c.date_effective.strftime("%Y-%m-%d")
         if c.valid is None:
-            valid = '?'
-            valid_error = ''
+            valid = "?"
+            valid_error = ""
         else:
-            valid = 'yes' if c.valid else red('no')
-            valid_error = '' if c.valid else red(c.error_if_invalid)
+            valid = "yes" if c.valid else red("no")
+            valid_error = "" if c.valid else red(c.error_if_invalid)
 
-        table.append([
-            c.package_name, c.node_name, c.config_name,
-            date, c.extends, valid, valid_error,
-            d, dtu.friendly_path(c.filename)
-        ])
+        table.append(
+            [
+                c.package_name,
+                c.node_name,
+                c.config_name,
+                date,
+                c.extends,
+                valid,
+                valid_error,
+                d,
+                dtu.friendly_path(c.filename),
+            ]
+        )
 
-    dtu.remove_table_field(table, 'filename')
+    dtu.remove_table_field(table, "filename")
 
     s = dtu.format_table_plus(table, colspacing=4)
     return s

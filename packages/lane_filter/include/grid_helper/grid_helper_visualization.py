@@ -11,9 +11,10 @@ def grid_helper_plot(grid_helper, belief, truth=None, estimate=None):
 
     with a as pylab:
         grid_helper_plot_field(grid_helper, belief, pylab)
-#         pylab.axis('equal')
+        #         pylab.axis('equal')
         grid_helper_annotate_axes(grid_helper, pylab)
     return a
+
 
 def grid_helper_plot_field(grid_helper, field, pylab):
     """
@@ -24,12 +25,12 @@ def grid_helper_plot_field(grid_helper, field, pylab):
     """
     field = field.copy()
     # note transpose
-    zeros = (field == 0)
+    zeros = field == 0
 
     field[zeros] = np.nan
 
     image = scale(field, min_value=0)
-    z = image[:,:,0] # just R component
+    z = image[:, :, 0]  # just R component
     x = grid_helper._mgrids_plus[0]
     y = grid_helper._mgrids_plus[1]
 
@@ -38,8 +39,9 @@ def grid_helper_plot_field(grid_helper, field, pylab):
     x = convert_unit(x, s0.units, s0.units_display)
     y = convert_unit(y, s1.units, s1.units_display)
     z = ma.masked_array(z, zeros)
-    pylab.pcolor(x, y, np.ones(z.shape), cmap='Pastel1')
-    pylab.pcolor(x, y, z, cmap='gray')
+    pylab.pcolor(x, y, np.ones(z.shape), cmap="Pastel1")
+    pylab.pcolor(x, y, z, cmap="gray")
+
 
 #         pylab.plot(f_d(d), f_phi(phi), 'go', markersize=20,
 #                    markeredgecolor='magenta',
@@ -84,30 +86,35 @@ def grid_helper_plot_field(grid_helper, field, pylab):
 # #         pylab.annotate("on left yellow tape", xy=(+W,y), **args)
 # #         pylab.annotate("in other lane", xy=(+W*1.3,y), **args)
 
+
 def convert_unit(value, unit, to_unit):
     if unit == to_unit:
         return value
 
     multipliers = {}
-    def one_a_is(x,y,v):
-        multipliers[(x,y)] = v
-        multipliers[(y,x)] = 1.0/v
-    one_a_is('m', 'cm', 100)
-    one_a_is('deg', 'rad', np.deg2rad(1))
+
+    def one_a_is(x, y, v):
+        multipliers[(x, y)] = v
+        multipliers[(y, x)] = 1.0 / v
+
+    one_a_is("m", "cm", 100)
+    one_a_is("deg", "rad", np.deg2rad(1))
 
     key = (unit, to_unit)
     if not key in multipliers:
-        msg = 'Conversion between %s and %s' % (unit, to_unit)
+        msg = "Conversion between %s and %s" % (unit, to_unit)
         raise NotImplementedError(msg)
     return multipliers[key] * value
 
 
 def friendly_value(spec, value):
     converted = convert_unit(value, spec.units, spec.units_display)
-    return '%.2f %s' % (converted, spec.units_display)
+    return "%.2f %s" % (converted, spec.units_display)
+
 
 def friendly_resolution(spec):
     return friendly_value(spec, spec.resolution)
+
 
 def grid_helper_display_coords_from_value(grid_helper, point):
     """
@@ -122,46 +129,53 @@ def grid_helper_display_coords_from_value(grid_helper, point):
         coords.append(conv)
     return coords
 
+
 def grid_helper_set_axes(grid_helper, pylab):
     vmin = dict([(name, _.min) for name, _ in zip(grid_helper._names, grid_helper._specs)])
     vmax = dict([(name, _.max) for name, _ in zip(grid_helper._names, grid_helper._specs)])
-#     vmax = [_.max for _ in grid_helper._specs]
+    #     vmax = [_.max for _ in grid_helper._specs]
     cmin = grid_helper_display_coords_from_value(grid_helper, vmin)
     cmax = grid_helper_display_coords_from_value(grid_helper, vmax)
 
-    pylab.axis([cmin[0], cmax[0], cmin[1],cmax[1]])
+    pylab.axis([cmin[0], cmax[0], cmin[1], cmax[1]])
+
 
 def grid_helper_mark_point(grid_helper, pylab, point, color, markersize):
     """
         point = dict-like object like dict(phi=..,d=...)
     """
-    markersize  = float(markersize)
+    markersize = float(markersize)
 
     coords = grid_helper_display_coords_from_value(grid_helper, point)
 
-    pylab.plot(coords[0], coords[1], 'o',
-               markersize=markersize,
-               markeredgecolor=color,
-               markeredgewidth=markersize/4,
-               markerfacecolor='none')
+    pylab.plot(
+        coords[0],
+        coords[1],
+        "o",
+        markersize=markersize,
+        markeredgecolor=color,
+        markeredgewidth=markersize / 4,
+        markerfacecolor="none",
+    )
 
-    pylab.plot(coords[0], coords[1], 'o',
-               markeredgecolor='none',
-               markersize=markersize/6,
-               markeredgewidth=0,
-               markerfacecolor=color)
+    pylab.plot(
+        coords[0],
+        coords[1],
+        "o",
+        markeredgecolor="none",
+        markersize=markersize / 6,
+        markeredgewidth=0,
+        markerfacecolor=color,
+    )
 
 
 def grid_helper_annotate_axes(grid_helper: GridHelper, pylab):
-#     pylab.axis([f_d(d_min), f_d(d_max), f_phi(phi_min), f_phi(phi_max)])
-    for a in [0,1]:
+    #     pylab.axis([f_d(d_min), f_d(d_max), f_phi(phi_min), f_phi(phi_max)])
+    for a in [0, 1]:
         s0 = grid_helper._specs[a]
         n0 = grid_helper._names[a]
-        t = '%s: %s (%s); cell = %s' % (n0, s0.description, s0.units_display,
-                                        friendly_resolution(s0))
+        t = "%s: %s (%s); cell = %s" % (n0, s0.description, s0.units_display, friendly_resolution(s0))
         if a == 0:
             pylab.xlabel(t)
         else:
             pylab.ylabel(t)
-
-

@@ -16,7 +16,7 @@ def test_validity1():
 
     # print format_db(db)
 
-    family = db.get_family('F')
+    family = db.get_family("F")
     assert family.valid == False
 
 
@@ -56,31 +56,31 @@ def test_instance():
 
     print((format_db(db)))
 
-    family = db.get_family('adder')
+    family = db.get_family("adder")
     assert family.valid == True
 
-    one = db.create_instance('adder', 'one')
+    one = db.create_instance("adder", "one")
 
-    assert type(one).__name__ == 'One'
-
-    try:
-        db.create_instance('not_found', 'does_not_exist')
-        raise Exception()
-    except Exception as e:
-        assert 'not find' in str(e), e
+    assert type(one).__name__ == "One"
 
     try:
-        db.create_instance('adder', 'does_not_exist')
+        db.create_instance("not_found", "does_not_exist")
         raise Exception()
     except Exception as e:
-        assert 'not find' in str(e), e
+        assert "not find" in str(e), e
 
     try:
-        db.create_instance('adder', 'not_sub')
+        db.create_instance("adder", "does_not_exist")
         raise Exception()
     except Exception as e:
-        assert 'MyAdderInterface' in str(e)
+        assert "not find" in str(e), e
+
+    try:
+        db.create_instance("adder", "not_sub")
+        raise Exception()
+    except Exception as e:
+        assert "MyAdderInterface" in str(e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

@@ -14,8 +14,8 @@ __all__ = [
     "SegMapFace",
     "FAMILY_SEGMAPS",
     "SegmentsMap",
-    'PointName',
-    'plot_map_and_segments'
+    "PointName",
+    "plot_map_and_segments",
 ]
 
 PointName = NewType("PointName", str)

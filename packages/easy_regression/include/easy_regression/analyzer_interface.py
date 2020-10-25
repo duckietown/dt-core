@@ -1,10 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-__all__ = ['AnalyzerInterface']
+__all__ = ["AnalyzerInterface"]
 
 
 class AnalyzerInterface(object, metaclass=ABCMeta):
-
     @abstractmethod
     def analyze_log(self, bag_in, dict_out):
         """
@@ -24,4 +23,3 @@ class AnalyzerInterface(object, metaclass=ABCMeta):
 
     def summarize_as_image(self):
         raise NotImplementedError()
-

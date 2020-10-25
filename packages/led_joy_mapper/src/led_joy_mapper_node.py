@@ -9,7 +9,7 @@ from std_msgs.msg import String
 class LEDJoyMapper:
     def __init__(self):
         self.node_name = rospy.get_name()
-        rospy.loginfo("[%s] Initializing " %(self.node_name))
+        rospy.loginfo("[%s] Initializing " % (self.node_name))
 
         self.joy = None
         self.last_pub_msg = None
@@ -20,21 +20,21 @@ class LEDJoyMapper:
         self.sub_joy_ = rospy.Subscriber("joy", Joy, self.cbJoy, queue_size=1)
 
         self.button2patterns = {
-             # 'a' is pressed
-            0: 'CAR_SIGNAL_A',
+            # 'a' is pressed
+            0: "CAR_SIGNAL_A",
             # 'b' is pressed
-            1: 'OFF',
-	    #1: 'ON_RED',
+            1: "OFF",
+            # 1: 'ON_RED',
             # 'Y' is pressed
-            3: 'ON_GREEN'
+            3: "ON_GREEN"
             # 'X' is pressed
-#            4: 'ON_BLUE',
+            #            4: 'ON_BLUE',
             # lb is pressed
-#            5: 'OFF',
+            #            5: 'OFF',
             # rb is pressed
-#             5: 'traffic_light_stop',
+            #             5: 'traffic_light_stop',
             # logitek button is pressed
-#             8: 'test_all_1',
+            #             8: 'test_all_1',
         }
 
     def cbJoy(self, joy_msg):
@@ -48,7 +48,8 @@ class LEDJoyMapper:
                 self.pub_pattern.publish(pattern)
                 rospy.loginfo("Publishing pattern %s" % (pattern))
 
+
 if __name__ == "__main__":
-    rospy.init_node("led_joy_mapper",anonymous=False)
+    rospy.init_node("led_joy_mapper", anonymous=False)
     led_joy_mapper = LEDJoyMapper()
     rospy.spin()

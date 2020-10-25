@@ -8,8 +8,8 @@ import duckietown_utils as dtu
 from .algo_structures import EasyAlgoFamily, EasyAlgoInstance
 
 __all__ = [
-    'get_easy_algo_db',
-    'EasyAlgoDB',
+    "get_easy_algo_db",
+    "EasyAlgoDB",
 ]
 
 NoneType = type(None)
@@ -18,14 +18,14 @@ NoneType = type(None)
 class EasyAlgoDB:
     _singleton: "EasyAlgoDB" = None
 
-    pattern = '*.easy_algo_family.yaml'
+    pattern = "*.easy_algo_family.yaml"
 
     def __init__(self, sources: Optional[Sequence[str]] = None, use_as_singleton: bool = False):
         if use_as_singleton:
             EasyAlgoDB._singleton = self
         if sources is None:
             sources = dtu.get_config_sources()
-        self.all_yaml = dtu.look_everywhere_for_config_files('*.yaml', sources)
+        self.all_yaml = dtu.look_everywhere_for_config_files("*.yaml", sources)
 
         self.family_name2config = load_family_config(self.all_yaml)
         for k, v in list(self.family_name2config.items()):
@@ -39,7 +39,7 @@ class EasyAlgoDB:
             if raise_if_no_matches and not res:
                 msg = "Could not find any match for the queries:"
                 for q in query:
-                    msg += '\n- %s' % q
+                    msg += "\n- %s" % q
                 raise dtu.DTNoMatches(msg)
             return res
         else:
@@ -49,13 +49,12 @@ class EasyAlgoDB:
             return result
 
     def get_family(self, x: str):
-        dtu.check_is_in('family', x, self.family_name2config)
+        dtu.check_is_in("family", x, self.family_name2config)
         return self.family_name2config[x]
 
     def query_and_instance(self, family_name: str, query, raise_if_no_matches=False):
         results = self.query(family_name, query, raise_if_no_matches=raise_if_no_matches)
-        stuff = dict((k, self.create_instance(family_name, k))
-                     for k in results)
+        stuff = dict((k, self.create_instance(family_name, k)) for k in results)
         return stuff
 
     def create_instance(self, family_name: str, instance_name_or_spec: Union[dict, str]):
@@ -63,18 +62,22 @@ class EasyAlgoDB:
 
         family = self.get_family(family_name)
         if not family.valid:
-            msg = ('Cannot instantiate %r because its family %r is invalid.' %
-                   (instance_name_or_spec, family_name))
-            msg += '\n\n' + dtu.indent(family.error_if_invalid, "  > ")
+            msg = "Cannot instantiate %r because its family %r is invalid." % (
+                instance_name_or_spec,
+                family_name,
+            )
+            msg += "\n\n" + dtu.indent(family.error_if_invalid, "  > ")
             raise dtu.DTConfigException(msg)
 
         if isinstance(instance_name_or_spec, str):
             instance_name = instance_name_or_spec
-            dtu.check_is_in('instance', instance_name, family.instances)
+            dtu.check_is_in("instance", instance_name, family.instances)
             instance = family.instances[instance_name]
             if not instance.valid:
-                msg = ('Cannot instantiate %r because it is invalid:\n%s' %
-                       (instance_name, dtu.indent(instance.error_if_invalid, '> ')))
+                msg = "Cannot instantiate %r because it is invalid:\n%s" % (
+                    instance_name,
+                    dtu.indent(instance.error_if_invalid, "> "),
+                )
                 raise dtu.DTConfigException(msg)
             res = dtu.instantiate(instance.constructor, instance.parameters)
         elif isinstance(instance_name_or_spec, dict):
@@ -85,8 +88,11 @@ class EasyAlgoDB:
 
         interface = dtu.import_name(family.interface)
         if not isinstance(res, interface):
-            msg = ('I expected that %r would be a %s but it is a %s.' %
-                   (instance_name_or_spec, interface.__name__, type(res).__name__))
+            msg = "I expected that %r would be a %s but it is a %s." % (
+                instance_name_or_spec,
+                interface.__name__,
+                type(res).__name__,
+            )
             raise dtu.DTConfigException(msg)
 
         return res
@@ -95,8 +101,9 @@ class EasyAlgoDB:
 def get_easy_algo_db() -> EasyAlgoDB:
     if EasyAlgoDB._singleton is None:
         cache_algos = dtu.DuckietownConstants.use_cache_for_algos
-        EasyAlgoDB._singleton = (dtu.get_cached('EasyAlgoDB', EasyAlgoDB)
-                                 if cache_algos else EasyAlgoDB(use_as_singleton=True))
+        EasyAlgoDB._singleton = (
+            dtu.get_cached("EasyAlgoDB", EasyAlgoDB) if cache_algos else EasyAlgoDB(use_as_singleton=True)
+        )
     return EasyAlgoDB._singleton
 
 
@@ -111,29 +118,28 @@ class SpecValues:
 def _parse_inline_spec(x: dict) -> Tuple[str, SpecValues]:
     dtu.check_isinstance(x, dict)
     if len(x) != 1:
-        msg = 'Invalid spec: length is %d' % len(x)
+        msg = "Invalid spec: length is %d" % len(x)
         dtu.raise_desc(ValueError, msg, x=x)
     key = list(x)[0]
     value = x[key]
 
     value = copy.deepcopy(value)
-    if 'description' in value:
-        description = value.pop('description')
-        dtu.dt_check_isinstance('description', description, str)
+    if "description" in value:
+        description = value.pop("description")
+        dtu.dt_check_isinstance("description", description, str)
     else:
         description = None
 
-    constructor = value.pop('constructor')
-    dtu.dt_check_isinstance('constructor', constructor, str)
+    constructor = value.pop("constructor")
+    dtu.dt_check_isinstance("constructor", constructor, str)
 
-    parameters = value.pop('parameters')
-    dtu.dt_check_isinstance('parameters', parameters, (dict, type(None)))
+    parameters = value.pop("parameters")
+    dtu.dt_check_isinstance("parameters", parameters, (dict, type(None)))
 
     if parameters is None:
         parameters = {}
 
-    res = SpecValues(constructor=constructor, parameters=parameters,
-                     description=description)
+    res = SpecValues(constructor=constructor, parameters=parameters, description=description)
     return key, res
 
 
@@ -155,7 +161,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
         #
     """
     if not isinstance(all_yaml, dict):
-        msg = 'Expected a dict, got %s' % type(all_yaml).__name__
+        msg = "Expected a dict, got %s" % type(all_yaml).__name__
         raise ValueError(msg)
     family_name2config = {}
 
@@ -168,35 +174,42 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
         if c.family_name in family_name2config:
             one = family_name2config[c.family_name].filename
             two = c.filename
-            msg = 'Repeated filename:\n%s\n%s' % (one, two)
+            msg = "Repeated filename:\n%s\n%s" % (one, two)
             raise dtu.DTConfigException(msg)
 
         def interpret_instance_spec(filename, data):
-            dtu.dt_check_isinstance('data', data, dict)
+            dtu.dt_check_isinstance("data", data, dict)
 
             basename = os.path.basename(filename)
             instance_name = dtu.id_from_basename_pattern(basename, c.instances_pattern)
 
-            if c.default_constructor is not None and not 'constructor' in data:
-                description = '(not given)'
+            if c.default_constructor is not None and not "constructor" in data:
+                description = "(not given)"
                 constructor = c.default_constructor
                 parameters = dict(data)
             else:
-                description = data.pop('description')
-                dtu.dt_check_isinstance('description', description, str)
+                description = data.pop("description")
+                dtu.dt_check_isinstance("description", description, str)
 
-                constructor = data.pop('constructor')
-                dtu.dt_check_isinstance('constructor', constructor, str)
+                constructor = data.pop("constructor")
+                dtu.dt_check_isinstance("constructor", constructor, str)
 
-                parameters = data.pop('parameters')
-                dtu.dt_check_isinstance('parameters', parameters, (dict, NoneType))
+                parameters = data.pop("parameters")
+                dtu.dt_check_isinstance("parameters", parameters, (dict, NoneType))
 
-                if parameters is None: parameters = {}
+                if parameters is None:
+                    parameters = {}
 
-            return EasyAlgoInstance(family_name=c.family_name, instance_name=instance_name,
-                                    description=description, filename=filename,
-                                    constructor=constructor, parameters=parameters,
-                                    valid=True, error_if_invalid=None)
+            return EasyAlgoInstance(
+                family_name=c.family_name,
+                instance_name=instance_name,
+                description=description,
+                filename=filename,
+                constructor=constructor,
+                parameters=parameters,
+                valid=True,
+                error_if_invalid=None,
+            )
 
         c = check_validity_family(c)
 
@@ -208,7 +221,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
             if i.instance_name in instances:
                 one = instances[i.instance_name].filename
                 two = i.filename
-                msg = 'Repeated filename:\n%s\n%s' % (one, two)
+                msg = "Repeated filename:\n%s\n%s" % (one, two)
                 raise dtu.DTConfigException(msg)
 
             # i = check_validity_instance(c, i)
@@ -231,7 +244,7 @@ def check_validity_instances(family: EasyAlgoFamily) -> EasyAlgoFamily:
 @dtu.contract(f=EasyAlgoFamily, i=EasyAlgoInstance, returns=EasyAlgoInstance)
 def check_validity_instance(f, i):
     if not f.valid:
-        msg = 'Instance not valid because family not valid.'
+        msg = "Instance not valid because family not valid."
         return i._replace(valid=False, error_if_invalid=msg)
 
     try:
@@ -244,8 +257,7 @@ def check_validity_instance(f, i):
     interface = dtu.import_name(f.interface)
     #     print('interface: %s' % interface)
     if not isinstance(res, interface):
-        msg = ('Expected a %s but it is a %s.' %
-               (interface.__name__, type(res).__name__))
+        msg = "Expected a %s but it is a %s." % (interface.__name__, type(res).__name__)
         return i._replace(valid=False, error_if_invalid=msg)
     return i
 
@@ -267,7 +279,7 @@ def check_validity_family_interface(f):
         dtu.import_name(symbol)
     except ValueError:
         # logger.error(e)
-        error_if_invalid = 'Invalid symbol %r.' % symbol
+        error_if_invalid = "Invalid symbol %r." % symbol
         return f._replace(valid=False, error_if_invalid=error_if_invalid)
     return f
 
@@ -276,36 +288,38 @@ def interpret_easy_algo_config(filename: str, data: dict) -> EasyAlgoFamily:
     """ Interprets the family config """
     basename = os.path.basename(filename)
     family_name = dtu.id_from_basename_pattern(basename, EasyAlgoDB.pattern)
-    instances_pattern = '*.%s.yaml' % family_name
+    instances_pattern = "*.%s.yaml" % family_name
     #     tests_pattern = '*.%s_test.yaml' % family_name
 
     data0 = dict(data)
     try:
-        dtu.dt_check_isinstance('contents', data, dict)
+        dtu.dt_check_isinstance("contents", data, dict)
 
-        description = data.pop('description')
-        dtu.dt_check_isinstance('description', description, str)
+        description = data.pop("description")
+        dtu.dt_check_isinstance("description", description, str)
 
-        interface = data.pop('interface')
-        dtu.dt_check_isinstance('interface', interface, str)
+        interface = data.pop("interface")
+        dtu.dt_check_isinstance("interface", interface, str)
 
-        locations = data.pop('locations', None)
-        default_constructor = data.pop('default_constructor', None)
+        locations = data.pop("locations", None)
+        default_constructor = data.pop("default_constructor", None)
     except Exception as e:
-        msg = f'Cannot interpret data: \n\n{data0}'
+        msg = f"Cannot interpret data: \n\n{data0}"
         raise Exception(msg) from e
 
     if data:
-        msg = 'Extra keys in configuration: %s' % list(data)
+        msg = "Extra keys in configuration: %s" % list(data)
         raise dtu.DTConfigException(msg)
 
-    return EasyAlgoFamily(interface=interface,
-                          family_name=family_name,
-                          filename=filename,
-                          instances=None,
-                          instances_pattern=instances_pattern,
-                          description=description,
-                          valid=True,
-                          locations=locations,
-                          default_constructor=default_constructor,
-                          error_if_invalid=False)
+    return EasyAlgoFamily(
+        interface=interface,
+        family_name=family_name,
+        filename=filename,
+        instances=None,
+        instances_pattern=instances_pattern,
+        description=description,
+        valid=True,
+        locations=locations,
+        default_constructor=default_constructor,
+        error_if_invalid=False,
+    )

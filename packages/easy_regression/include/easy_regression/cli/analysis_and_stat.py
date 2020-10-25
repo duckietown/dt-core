@@ -9,27 +9,27 @@ from easy_regression.analyzer_interface import AnalyzerInterface
 
 
 def print_results(analyzers: List[str], results_all, out: str):
-    base = os.path.join(out, 'statistics')
+    base = os.path.join(out, "statistics")
     yaml_data = dtu.yaml_dump_pretty(results_all)
-    dtu.write_str_to_file(yaml_data, os.path.join(base, 'statistics.yaml'))
-    print((dtu.indent(yaml_data, 'print_results ')))
+    dtu.write_str_to_file(yaml_data, os.path.join(base, "statistics.yaml"))
+    print((dtu.indent(yaml_data, "print_results ")))
 
     for a in analyzers:
-        dtu.write_str_to_file(dtu.yaml_dump_pretty(results_all[a]),
-                              os.path.join(base, '%s.table.yaml' % a))
+        dtu.write_str_to_file(dtu.yaml_dump_pretty(results_all[a]), os.path.join(base, "%s.table.yaml" % a))
         s = ""
-        s += '\n' + '-' * 10 + ' Results for %s ' % a + '-' * 10
+        s += "\n" + "-" * 10 + " Results for %s " % a + "-" * 10
         table = table_for_analyzer(results_all[a])
-        s += '\n' + dtu.indent(dtu.format_table_plus(table, colspacing=3), '  ')
-        s += '\n'
-        dtu.write_str_to_file(s, os.path.join(base, '%s.table.txt' % a))
+        s += "\n" + dtu.indent(dtu.format_table_plus(table, colspacing=3), "  ")
+        s += "\n"
+        dtu.write_str_to_file(s, os.path.join(base, "%s.table.txt" % a))
 
 
 def table_for_analyzer(results_all):
     from easy_regression.cli.run_regression_tests import ALL_LOGS
+
     keys = list(results_all[ALL_LOGS].keys())
 
-    head = ['log name'] + keys
+    head = ["log name"] + keys
     table = [head]
     for k, v in list(results_all.items()):
         row = [k]
@@ -41,13 +41,13 @@ def table_for_analyzer(results_all):
             elif isinstance(value, dict):
                 s = ""
                 for mk, mv in list(value.items()):
-                    s += '\n %s  %s' % (mk, mv)
+                    s += "\n %s  %s" % (mk, mv)
                 row.append(s)
             else:
                 row.append(type(value).__name__)
 
         if k == ALL_LOGS:
-            table.append([''] * len(head))
+            table.append([""] * len(head))
         table.append(row)
 
     return table
@@ -58,7 +58,7 @@ def job_merge(results, analyzer):
         results: log name -> results dict
     """
     easy_algo_db = get_easy_algo_db()
-    analyzer_instance = easy_algo_db.create_instance('analyzer', analyzer)
+    analyzer_instance = easy_algo_db.create_instance("analyzer", analyzer)
 
     results = list(results.values())
 
@@ -81,10 +81,10 @@ def merge_n(analyzer: AnalyzerInterface, results) -> dict:
 @dtu.contract(analyzer=str)
 def job_analyze(log: str, analyzer: str):
     easy_algo_db = get_easy_algo_db()
-    analyzer_instance = easy_algo_db.create_instance('analyzer', analyzer)
+    analyzer_instance = easy_algo_db.create_instance("analyzer", analyzer)
     in_bag = rosbag.Bag(log)
     results = OrderedDict()
-    dtu.logger.info('Running %s on %s' % (analyzer, log))
+    dtu.logger.info("Running %s on %s" % (analyzer, log))
     analyzer_instance.analyze_log(in_bag, results)
     in_bag.close()
     return results

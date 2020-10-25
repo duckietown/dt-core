@@ -43,53 +43,29 @@ class LaneControllerNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(LaneControllerNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
         self.params = dict()
-        self.params['~v_bar'] = DTParam(
-            '~v_bar',
-            param_type=ParamType.FLOAT,
-            min_value=0.0,
-            max_value=5.0
+        self.params["~v_bar"] = DTParam("~v_bar", param_type=ParamType.FLOAT, min_value=0.0, max_value=5.0)
+        self.params["~k_d"] = DTParam("~k_d", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
+        self.params["~k_theta"] = DTParam(
+            "~k_theta", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0
         )
-        self.params['~k_d'] = DTParam(
-            '~k_d',
-            param_type=ParamType.FLOAT,
-            min_value=-100.0,
-            max_value=100.0
+        self.params["~k_Id"] = DTParam("~k_Id", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
+        self.params["~k_Iphi"] = DTParam(
+            "~k_Iphi", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0
         )
-        self.params['~k_theta'] = DTParam(
-            '~k_theta',
-            param_type=ParamType.FLOAT,
-            min_value=-100.0,
-            max_value=100.0
-        )
-        self.params['~k_Id'] = DTParam(
-            '~k_Id',
-            param_type=ParamType.FLOAT,
-            min_value=-100.0,
-            max_value=100.0
-        )
-        self.params['~k_Iphi'] = DTParam(
-            '~k_Iphi',
-            param_type=ParamType.FLOAT,
-            min_value=-100.0,
-            max_value=100.0
-        )
-        self.params['~theta_thres'] = rospy.get_param('~theta_thres', None)
-        self.params['~d_thres'] = rospy.get_param('~d_thres', None)
-        self.params['~d_offset'] = rospy.get_param('~d_offset', None)
-        self.params['~integral_bounds'] = rospy.get_param('~integral_bounds', None)
-        self.params['~d_resolution'] = rospy.get_param('~d_resolution', None)
-        self.params['~phi_resolution'] = rospy.get_param('~phi_resolution', None)
-        self.params['~omega_ff'] = rospy.get_param('~omega_ff', None)
-        self.params['~verbose'] = rospy.get_param('~verbose', None)
-        self.params['~stop_line_slowdown'] = rospy.get_param('~stop_line_slowdown', None)
+        self.params["~theta_thres"] = rospy.get_param("~theta_thres", None)
+        self.params["~d_thres"] = rospy.get_param("~d_thres", None)
+        self.params["~d_offset"] = rospy.get_param("~d_offset", None)
+        self.params["~integral_bounds"] = rospy.get_param("~integral_bounds", None)
+        self.params["~d_resolution"] = rospy.get_param("~d_resolution", None)
+        self.params["~phi_resolution"] = rospy.get_param("~phi_resolution", None)
+        self.params["~omega_ff"] = rospy.get_param("~omega_ff", None)
+        self.params["~verbose"] = rospy.get_param("~verbose", None)
+        self.params["~stop_line_slowdown"] = rospy.get_param("~stop_line_slowdown", None)
 
         # Need to create controller object before updating parameters, otherwise it will fail
         self.controller = LaneController(self.params)
@@ -109,41 +85,37 @@ class LaneControllerNode(DTROS):
         self.obstacle_stop_line_detected = False
         self.at_obstacle_stop_line = False
 
-        self.current_pose_source = 'lane_filter'
+        self.current_pose_source = "lane_filter"
 
         # Construct publishers
-        self.pub_car_cmd = rospy.Publisher("~car_cmd",
-                                           Twist2DStamped,
-                                           queue_size=1,
-                                           dt_topic_type=TopicType.CONTROL)
+        self.pub_car_cmd = rospy.Publisher(
+            "~car_cmd", Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL
+        )
 
         # Construct subscribers
-        self.sub_lane_reading = rospy.Subscriber("~lane_pose",
-                                                 LanePose,
-                                                 self.cbAllPoses,
-                                                 "lane_filter",
-                                                 queue_size=1)
-        self.sub_intersection_navigation_pose = rospy.Subscriber("~intersection_navigation_pose",
-                                                                 LanePose,
-                                                                 self.cbAllPoses,
-                                                                 "intersection_navigation",
-                                                                 queue_size=1)
-        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed",
-                                                        WheelsCmdStamped,
-                                                        self.cbWheelsCmdExecuted,
-                                                        queue_size=1)
-        self.sub_stop_line = rospy.Subscriber("~stop_line_reading",
-                                              StopLineReading,
-                                              self.cbStopLineReading,
-                                              queue_size=1)
-        self.sub_obstacle_stop_line = rospy.Subscriber("~obstacle_distance_reading",
-                                                        StopLineReading,
-                                                        self.cbObstacleStopLineReading,
-                                                        queue_size=1)
+        self.sub_lane_reading = rospy.Subscriber(
+            "~lane_pose", LanePose, self.cbAllPoses, "lane_filter", queue_size=1
+        )
+        self.sub_intersection_navigation_pose = rospy.Subscriber(
+            "~intersection_navigation_pose",
+            LanePose,
+            self.cbAllPoses,
+            "intersection_navigation",
+            queue_size=1,
+        )
+        self.sub_wheels_cmd_executed = rospy.Subscriber(
+            "~wheels_cmd_executed", WheelsCmdStamped, self.cbWheelsCmdExecuted, queue_size=1
+        )
+        self.sub_stop_line = rospy.Subscriber(
+            "~stop_line_reading", StopLineReading, self.cbStopLineReading, queue_size=1
+        )
+        self.sub_obstacle_stop_line = rospy.Subscriber(
+            "~obstacle_distance_reading", StopLineReading, self.cbObstacleStopLineReading, queue_size=1
+        )
 
         self.log("Initialized.")
 
-    def cbObstacleStopLineReading(self,msg):
+    def cbObstacleStopLineReading(self, msg):
         """
         Callback storing the current obstacle distance, if detected.
 
@@ -168,12 +140,12 @@ class LaneControllerNode(DTROS):
 
         self.fsm_state = fsm_state_msg.state  # String of current FSM state
 
-        if self.fsm_state == 'INTERSECTION_CONTROL':
-            self.current_pose_source = 'intersection_navigation'
+        if self.fsm_state == "INTERSECTION_CONTROL":
+            self.current_pose_source = "intersection_navigation"
         else:
-            self.current_pose_source = 'lane_filter'
+            self.current_pose_source = "lane_filter"
 
-        if self.params['~verbose'] == 2:
+        if self.params["~verbose"] == 2:
             self.log("Pose source: %s" % self.current_pose_source)
 
     def cbAllPoses(self, input_pose_msg, pose_source):
@@ -220,7 +192,7 @@ class LaneControllerNode(DTROS):
         current_s = rospy.Time.now().to_sec()
         dt = None
         if self.last_s is not None:
-            dt = (current_s - self.last_s)
+            dt = current_s - self.last_s
 
         if self.at_stop_line or self.at_obstacle_stop_line:
             v = 0
@@ -228,27 +200,30 @@ class LaneControllerNode(DTROS):
         else:
 
             # Compute errors
-            d_err = pose_msg.d - self.params['~d_offset']
+            d_err = pose_msg.d - self.params["~d_offset"]
             phi_err = pose_msg.phi
 
             # We cap the error if it grows too large
-            if np.abs(d_err) > self.params['~d_thres']:
-                self.log("d_err too large, thresholding it", 'error')
-                d_err = np.sign(d_err) * self.params['~d_thres']
-
+            if np.abs(d_err) > self.params["~d_thres"]:
+                self.log("d_err too large, thresholding it", "error")
+                d_err = np.sign(d_err) * self.params["~d_thres"]
 
             wheels_cmd_exec = [self.wheels_cmd_executed.vel_left, self.wheels_cmd_executed.vel_right]
             if self.obstacle_stop_line_detected:
-                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance)
-                #TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
-                v = v*0.25
-                omega = omega*0.25
+                v, omega = self.controller.compute_control_action(
+                    d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance
+                )
+                # TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
+                v = v * 0.25
+                omega = omega * 0.25
 
             else:
-                v, omega = self.controller.compute_control_action(d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance)
+                v, omega = self.controller.compute_control_action(
+                    d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance
+                )
 
             # For feedforward action (i.e. during intersection navigation)
-            omega += self.params['~omega_ff']
+            omega += self.params["~omega_ff"]
 
         # Initialize car control msg, add header from input message
         car_control_msg = Twist2DStamped()
@@ -269,6 +244,6 @@ class LaneControllerNode(DTROS):
 
 if __name__ == "__main__":
     # Initialize the node
-    lane_controller_node = LaneControllerNode(node_name='lane_controller_node')
+    lane_controller_node = LaneControllerNode(node_name="lane_controller_node")
     # Keep it spinning
     rospy.spin()
