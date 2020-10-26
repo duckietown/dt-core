@@ -49,7 +49,7 @@ def wrap_test_main(f):
 
 
 def get_rospkg_root(package_name):
-    import rospkg  # @UnresolvedImport
+    import rospkg
 
     rospack = rospkg.RosPack()
     package_root = rospack.get_path(package_name)

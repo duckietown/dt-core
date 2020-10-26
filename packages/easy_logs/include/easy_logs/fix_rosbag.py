@@ -3,7 +3,7 @@ from rosbag.bag import ROSBagException
 
 
 def _hotfix_get_message_type(info):
-    import genpy, genmsg  # @UnresolvedImport
+    import genpy, genmsg
 
     _message_types = rosbag.bag._message_types
     message_type = _message_types.get(info.md5sum)

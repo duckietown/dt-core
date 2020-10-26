@@ -8,3 +8,4 @@ dt_apriltags
 
 procgraph-z6
 ros_node_utils>=2.0.0
+duckietown-utils-daffy

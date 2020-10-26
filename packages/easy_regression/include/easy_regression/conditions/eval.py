@@ -40,9 +40,9 @@ class Wrapper(RTCheck):
     def __str__(self):
         return self.evaluable.__str__()
 
-    # @contract(returns=CheckResult, result_db=ResultDB)
+
     def check(self, rdb):
-        """ 
+        """
             Returns a CheckResult, or raises
             RegressionTestCheckException
             if an abnormal situation is encountered.
