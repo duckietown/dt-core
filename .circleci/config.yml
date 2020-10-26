@@ -101,7 +101,7 @@ jobs:
             . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-all
 
             rm -rf out/comptests
-            
+
       - store_artifacts:
           path: out
           destination: out
