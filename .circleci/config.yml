@@ -57,6 +57,8 @@ jobs:
     environment:
       DUCKIETOWN_DATA: /data
       DUCKIETOWN_ROOT: /
+    machine:
+      docker_layer_caching: true
     steps:
 
       - checkout
