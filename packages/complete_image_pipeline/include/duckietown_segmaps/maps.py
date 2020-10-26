@@ -46,13 +46,13 @@ FAMILY_SEGMAPS = FrameName("segmap")
 
 
 class SegmentsMap:
-    points: Dict[str, SegMapPoint]
+    points: Dict[PointName, SegMapPoint]
     segments: List[SegMapSegment]
     faces: List[SegMapFace]
 
     def __init__(
         self,
-        points: Dict[str, SegMapPoint],
+        points: Dict[PointName, SegMapPoint],
         segments: List[SegMapSegment],
         faces: List[SegMapFace],
         constants: Optional[Dict[str, float]] = None,

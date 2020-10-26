@@ -93,6 +93,9 @@ jobs:
           command: |
             mkdir /data
             mkdir /data/config
+
+            echo 'config echo 1' > ~/.compmake.rc
+
             . /opt/ros/noetic/setup.sh && . /code/catkin_ws/devel/local_setup.bash && make test-circle
 
 

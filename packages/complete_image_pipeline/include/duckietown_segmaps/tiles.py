@@ -1,4 +1,4 @@
-from typing import cast, List, Optional
+from typing import cast, Dict, List, Optional
 
 import numpy as np
 from geometry import SO2_from_angle
@@ -17,7 +17,7 @@ RED = dtu.ColorConstants.STR_RED
 GREEN = dtu.ColorConstants.STR_GREEN
 
 
-def three_way_intersection(tile_size, tile_spacing, width_white):
+def three_way_intersection(tile_size: float, tile_spacing: float, width_white: float):
     constants = {}
     constants["tile_size"] = tile_size
     constants["tile_spacing"] = tile_spacing
@@ -53,12 +53,9 @@ def three_way_intersection(tile_size, tile_spacing, width_white):
 
         add_corner(points, faces, segments, tile_size, extra, width_white, FRAME_TILE, angle=angle)
 
-    data = dict(points=points, segments=segments, faces=faces, constants=constants)
-
-    return SegmentsMap(**data)
+    return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
-@dtu.contract(returns=SegmentsMap)
 def get_map_empty_tile(tile_size, tile_spacing, buffer_black) -> SegmentsMap:
     constants = {}
     constants["tile_size"] = tile_size
@@ -78,8 +75,7 @@ def get_map_empty_tile(tile_size, tile_spacing, buffer_black) -> SegmentsMap:
         points, faces, segments, x, y, theta, length, width, FRAME_TILE, color, use_sides_for_loc
     )
 
-    data = dict(points=points, segments=segments, faces=faces, constants=constants)
-    return SegmentsMap(**data)
+    return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
 def empty_tile(tile_size: float, tile_spacing: float, width_white: float) -> SegmentsMap:
@@ -99,9 +95,7 @@ def empty_tile(tile_size: float, tile_spacing: float, width_white: float) -> Seg
         extra = (tile_spacing - tile_size) / 2
         add_corner(points, faces, segments, tile_size, extra, width_white, FRAME_TILE, angle=angle)
 
-    data = dict(points=points, segments=segments, faces=faces, constants=constants)
-
-    return SegmentsMap(**data)
+    return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
 def get_map_intersection_center(
@@ -249,9 +243,8 @@ def get_map_intersection_center(
             points, faces, segments, x, y, theta, length, width, id_frame, color, use_sides_for_loc
         )
 
-    data = dict(points=points, segments=segments, faces=faces, constants=constants)
 
-    return SegmentsMap(**data)
+    return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
 def get_map_straight_lane(
@@ -290,9 +283,10 @@ def get_map_straight_lane(
 
     S = -tile_size / 2 - extra
     D = tile_size / 2 + extra
-    points = {}
-    segments = []
-    faces = []
+
+    points: Dict[PointName, SegMapPoint] = {}
+    segments: List[SegMapSegment] = []
+    faces: List[SegMapFace] = []
 
     points["p1"] = SegMapPoint(id_frame=FRAME, coords=np.array([S, y1, 0]))
     points["q1"] = SegMapPoint(id_frame=FRAME, coords=np.array([D, y1, 0]))
@@ -328,7 +322,7 @@ def get_map_straight_lane(
             )
         )
 
-    ngaps = (tile_size) / (gap_len + dash_len) + 1
+    ngaps: int = int(tile_size / (gap_len + dash_len)) + 1
     if width_red is not None:
         do_not_go_over = tile_size / 2
     else:
@@ -375,9 +369,7 @@ def get_map_straight_lane(
         )
         constants["width_red"] = width_red
 
-    data = dict(points=points, segments=segments, faces=faces, constants=constants)
-
-    return SegmentsMap(**data)
+    return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
 @dtu.contract(points="dict", faces="list", id_frame="str", color="str", use_sides_for_loc="list[4](None|int)")
@@ -446,7 +438,7 @@ def __add_rect_by_coords(points, faces, segments, coords, id_frame, color, use_s
             segments.append(SegMapSegment(color=c, points=[p0, p1]))
 
 
-def add_tile(points, faces, segments, tile_size, tile_spacing):
+def add_tile(points, faces, segments, tile_size: float, tile_spacing: float):
     """ Add tile bg at 0,0 """
     extra = (tile_spacing - tile_size) / 2
     x1 = -tile_size / 2 - extra
@@ -586,7 +578,7 @@ def add_corner(points, faces, segments, tile_size, extra, width_white, id_frame,
 
 @dtu.contract(lengths="list[N]", colors="list[N](str|None)")
 def add_curved(
-    points, faces, segments, id_frame, center, radius, alpha1, alpha2, width, colors, lengths, detect_color
+    points, faces, segments, id_frame, center, radius, alpha1, alpha2, width, colors: List[Optional[dtu.ColorString]], lengths: List[float], detect_color
 ):
     assert alpha2 > alpha1
     assert len(colors) == len(lengths)
