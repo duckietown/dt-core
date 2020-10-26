@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 from easy_node.user_config.summary import user_config_summary
 

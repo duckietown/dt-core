@@ -1,5 +1,5 @@
 import numpy as np
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from numpy.testing.utils import assert_almost_equal
 from lane_filter_generic.lane_filter_more_generic import get_estimate
 

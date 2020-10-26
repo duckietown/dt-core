@@ -4,7 +4,7 @@ from collections import namedtuple, OrderedDict
 
 from bs4.element import Tag
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs
 from easy_logs.easy_logs_summary_imp import format_logs
 from easy_logs.resource_desc import DTR

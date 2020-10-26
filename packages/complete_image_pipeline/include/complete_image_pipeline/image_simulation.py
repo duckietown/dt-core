@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from geometry import SE2value
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_segmaps.draw_map_on_images import plot_map
 from duckietown_segmaps.maps import FRAME_AXLE, SegmentsMap
 from duckietown_segmaps.transformations import TransformationsInfo

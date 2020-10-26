@@ -1,6 +1,6 @@
 import os
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 
 def _cwd():

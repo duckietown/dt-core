@@ -6,7 +6,7 @@ from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import multivariate_normal, entropy
 
 from duckietown_msgs.msg import SegmentList
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 import numpy as np
 
 from lane_filter_interface import LaneFilterInterface

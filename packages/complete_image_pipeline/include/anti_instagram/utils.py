@@ -1,5 +1,5 @@
 import cv2
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 import numpy as np
 

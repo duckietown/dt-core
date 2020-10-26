@@ -5,7 +5,7 @@ import cv2
 import matplotlib
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from anti_instagram import AntiInstagramInterface
 from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps import FRAME_AXLE, FRAME_GLOBAL

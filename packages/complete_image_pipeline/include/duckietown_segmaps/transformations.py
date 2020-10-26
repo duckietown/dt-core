@@ -3,7 +3,7 @@ from typing import Dict, NewType, Tuple, TYPE_CHECKING
 import numpy as np
 from geometry import SE2value, SE3value
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 __all__ = [
     "TransformationsInfo",

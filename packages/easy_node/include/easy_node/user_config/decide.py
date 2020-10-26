@@ -1,7 +1,7 @@
 import os
 from typing import Tuple
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 __all__ = ["get_user_configuration", "get_config_sequence"]
 

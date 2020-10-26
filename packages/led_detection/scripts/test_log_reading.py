@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from duckietown_utils.bag_logs import d8n_read_all_images
 
+import duckietown_rosbag_utils as dbu
 print("This simple test reads all images in a log and computes some stats.")
 import sys
 
@@ -14,7 +14,7 @@ filename = sys.argv[1]
 
 print(("filename: %s" % filename))
 
-data = d8n_read_all_images(filename)
+data = dbu.d8n_read_all_images(filename)
 
 
 print(data.shape)  # (928,)

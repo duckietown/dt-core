@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing.utils import assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from lane_filter_generic.lane_filter_more_generic import get_estimate, get_estimate_2
 
 

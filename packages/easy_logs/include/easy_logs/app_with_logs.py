@@ -3,8 +3,8 @@ import os
 from abc import ABC
 from typing import List
 
-import duckietown_utils as dtu
-from duckietown_utils.cli import D8App
+import duckietown_code_utils as dtu
+from duckietown_code_utils.cli import D8App
 from .logs_db import (
     get_all_resources,
     get_easy_logs_db2,

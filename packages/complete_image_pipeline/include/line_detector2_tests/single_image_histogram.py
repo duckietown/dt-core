@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from reprep.graphics.filter_posneg import posneg
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 
 @dtu.unit_test

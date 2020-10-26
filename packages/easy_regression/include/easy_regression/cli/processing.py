@@ -1,7 +1,7 @@
 import os
 import shutil
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_algo.algo_db import name_from_spec
 from easy_logs import get_local_bag_file

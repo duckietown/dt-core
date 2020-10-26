@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 

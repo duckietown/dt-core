@@ -4,13 +4,14 @@ import sys
 
 from led_detection.LEDDetector import LEDDetector
 
-from duckietown_utils import get_ros_package_path, logger
-from duckietown_utils.wildcards import expand_string
-from duckietown_utils.wrap_main import wrap_main
+import duckietown_code_utils as dtu
+from duckietown_rosdata_utils.more import get_ros_package_path
 from led_detection.unit_tests import load_tests
 
 W = 0
 H = 0
+
+logger = dtu.logger
 
 
 def main():
@@ -18,14 +19,14 @@ def main():
     args = sys.argv[1:]
     if len(args) != 2:
         msg = "I need two arguments. Please see README.md for documentation."
-        logger.error(msg)
+        dtu.logger.error(msg)
         sys.exit(2)
 
     which_tests0 = sys.argv[1]
     which_estimators0 = sys.argv[2]
 
     package_dir = get_ros_package_path("led_detection")
-    logger.debug("Package dir: %r" % package_dir)
+    dtu.logger.debug("Package dir: %r" % package_dir)
 
     # dirname = 'catkin_ws/src/f23-LED/led_detection/scripts/'
     # filename = 'all_tests.yaml'
@@ -38,8 +39,8 @@ def main():
     }
     # ,'LEDDetector_forloops' : LEDDetector_forloops(True, True, True)}
 
-    which_tests = expand_string(which_tests0, list(alltests))
-    which_estimators = expand_string(which_estimators0, list(estimators))
+    which_tests = dtu.expand_string(which_tests0, list(alltests))
+    which_estimators = dtu.expand_string(which_estimators0, list(estimators))
 
     logger.info("     tests: %r |-> %s" % (which_tests0, which_tests))
     logger.info("estimators: %r |-> %s" % (which_estimators0, which_estimators))
@@ -69,9 +70,9 @@ def is_match(detection, expected):
     print(("shape is %s, %s" % (W, H)))
     predicates = {
         "position": abs(1.0 * detection.pixels_normalized.x * W - expected["image_coordinates"][0])
-        < expected["image_coordinates_margin"]
-        and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
-        < expected["image_coordinates_margin"],
+                    < expected["image_coordinates_margin"]
+                    and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
+                    < expected["image_coordinates_margin"],
         "frequency": detection.frequency == expected["frequency"],
         # 'timestamps': abs(detection.timestamp1-expected['timestamp1'])<0.1 and
         #              abs(detection.timestamp2-expected['timestamp2'])<0.1
@@ -127,4 +128,4 @@ def run_test(id_test, test, id_estimator, estimator):
 
 
 if __name__ == "__main__":
-    wrap_main(main)
+    dtu.wrap_main(main)

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import duckietown_code_utils as dtu
 import rospy
 from duckietown_msgs.msg import Segment, SegmentList
-from duckietown_utils import logger
+
+logger = dtu.logger
 
 
 class LaneFilterTesterNode:

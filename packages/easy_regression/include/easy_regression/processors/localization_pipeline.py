@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 import rospy
 from complete_image_pipeline.pipeline import run_pipeline
 

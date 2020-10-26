@@ -4,7 +4,8 @@ from collections import OrderedDict
 import numpy as np
 from quickapp import QuickApp
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary
@@ -107,9 +108,9 @@ def work(log, outd, max_images, only_camera, write_frames):
     # noinspection PyUnboundLocalVariable
     bag = rosbag.Bag(filename)
 
-    main = dtu.get_image_topic(bag)
+    main = dbu.get_image_topic(bag)
 
-    topics = [_ for _, __ in dtu.d8n_get_all_images_topic_bag(bag)]
+    topics = [_ for _, __ in dbu.d8n_get_all_images_topic_bag(bag)]
     bag.close()
     dtu.logger.debug("%s - topics: %s" % (filename, topics))
     for topic in topics:
@@ -123,8 +124,8 @@ def work(log, outd, max_images, only_camera, write_frames):
             msg = "Cannot read Bag file %s" % filename
             dtu.logger.error(msg)
             raise
-        bag_proxy = dtu.BagReadProxy(bag, t0, t1)
-        res = dtu.d8n_read_all_images_from_bag(
+        bag_proxy = dbu.BagReadProxy(bag, t0, t1)
+        res = dbu.d8n_read_all_images_from_bag(
             bag_proxy, topic, max_images=max_images, use_relative_time=True
         )
         bag.close()

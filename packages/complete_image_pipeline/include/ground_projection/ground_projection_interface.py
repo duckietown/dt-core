@@ -4,7 +4,7 @@ from collections import namedtuple
 import cv2
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 from image_processing.calibration_utils import get_extrinsics_filename
 from image_processing.ground_projection_geometry import GroundProjectionGeometry

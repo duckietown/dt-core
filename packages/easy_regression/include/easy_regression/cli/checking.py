@@ -3,9 +3,8 @@ import os
 import socket
 from datetime import datetime
 
-import duckietown_utils as dtu
-from duckietown_utils import CmdException
-from easy_algo.algo_db import get_easy_algo_db
+import duckietown_code_utils as dtu
+from easy_algo import get_easy_algo_db
 from easy_regression.cli.db_yaml import get_unique_filename, yaml_from_rdbe
 from easy_regression.conditions.interface import CheckResult, RTCheck
 from easy_regression.conditions.result_db import ResultDB, ResultDBEntry
@@ -27,7 +26,7 @@ def make_entry(rt_name, results_all):
     try:
         branch = git_cmd("git rev-parse --abbrev-ref HEAD")
         commit = git_cmd("git rev-parse --verify HEAD")
-    except CmdException:
+    except dtu.CmdException:
         dtu.logger.info("no repo detected")
         branch = "not-available"
         commit = "not-available"

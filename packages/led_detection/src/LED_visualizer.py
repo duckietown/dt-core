@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+import sys
+import time
 from math import ceil, floor
 
-# plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt4agg import (
@@ -12,10 +13,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import rospy
-import sys
-import time
 from duckietown_msgs.msg import LEDDetectionArray, LEDDetectionDebugInfo
-from duckietown_utils.bag_logs import numpy_from_ros_compressed
+from duckietown_rosdata_utils import numpy_from_ros_compressed
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Byte
 

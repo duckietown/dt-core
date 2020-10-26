@@ -3,7 +3,7 @@ from typing import List
 import cv2
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from line_detector_interface import Detections, LineDetectorInterface
 
 __all__ = ["LineDetectorHSV"]

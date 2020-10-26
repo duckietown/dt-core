@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 from geometry import SE2value
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_segmaps import FAMILY_SEGMAPS, FRAME_GLOBAL, SegmentsMap
 from easy_algo import get_easy_algo_db
 

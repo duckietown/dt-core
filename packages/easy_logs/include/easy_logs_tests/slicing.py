@@ -1,6 +1,5 @@
-import duckietown_utils as dtu
-from easy_logs import filters_slice, get_easy_logs_db2
-from duckietown_utils import logger
+import duckietown_code_utils as dtu
+from easy_logs import filters_slice, get_easy_logs_db2, logger
 
 
 def get_test_db():

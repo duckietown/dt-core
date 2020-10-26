@@ -1,6 +1,6 @@
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 
 __all__ = [

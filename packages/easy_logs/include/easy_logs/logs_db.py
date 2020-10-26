@@ -3,8 +3,9 @@ from collections import defaultdict, namedtuple
 from dataclasses import replace
 from typing import Dict, List, Union
 
-import duckietown_utils as dtu
-from duckietown_utils.yaml_pretty import yaml_dump_pretty
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dru
+
 from .constants import EasyLogsConstants
 from .logs_structure import physical_log_from_yaml, PhysicalLog, yaml_from_physical_log
 from .resource_desc import create_dtr_version_1, DTR, get_local_filepath, NotLocalPath
@@ -71,7 +72,7 @@ def yaml_representation_of_phy_logs(logs: Dict[str, PhysicalLog]) -> str:
     res = {}
     for k, l in list(logs.items()):
         res[k] = yaml_from_physical_log(l)
-    s = yaml_dump_pretty(res)
+    s = dtu.yaml_dump_pretty(res)
     return s
 
 
@@ -181,7 +182,7 @@ def query_logs(
 def _read_stats(pl, use_filename):
     assert isinstance(pl, PhysicalLog)
 
-    info = dtu.rosbag_info_cached(use_filename)
+    info = dru.rosbag_info_cached(use_filename)
     if info is None:
         return replace(pl, valid=False, error_if_invalid="Not indexed")
 
@@ -284,12 +285,12 @@ def get_logs_local():
                 to_censor = True
         if to_censor:
             ignored.append(filename)
-            dtu.logger.warn("Ignoring %s" % filename)
+            dtu.logger.warn(f"Ignoring {filename}")
             continue
 
         if not is_valid_name(basename):
-            msg = 'Ignoring Bag file with invalid file name "%r".' % (basename)
-            msg += "\n Full path: %s" % filename
+            msg = f'Ignoring Bag file with invalid file name "{basename!r}".'
+            msg += f"\n Full path: {filename}"
             dtu.logger.warn(msg)
             continue
 
@@ -309,18 +310,18 @@ def get_logs_local():
 
             if old_sha1 == new_sha1:
                 # just a duplicate
-                msg = "File is a duplicate: %s " % filename
+                msg = f"File is a duplicate: {filename} "
                 dtu.logger.warn(msg)
                 continue
             # Actually a different log
-            msg = "Found twice this log: %s" % l.log_name
+            msg = f"Found twice this log: {l.log_name}"
             msg += "\nProbably it is a processed version."
             msg += "\n\nVersion 1:"
 
             msg += "\n\n" + dtu.indent(str(old), "  ")
             msg += "\n\n\nVersion 2:"
-            msg += "\n\ncurrent: %s" % filename
-            msg += "\n\ncurrent: %s" % ("RCDP" in filename)
+            msg += f"\n\ncurrent: {filename}"
+            msg += f"\n\ncurrent: {'RCDP' in filename}"
             msg += "\n\n" + dtu.indent(str(l), "  ")
             if raise_if_duplicated:
                 raise Exception(msg)

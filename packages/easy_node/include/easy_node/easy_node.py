@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import rospy
 import threading
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
 from .node_description.configuration import load_configuration_package_node

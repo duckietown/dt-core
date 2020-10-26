@@ -4,7 +4,7 @@ import numpy as np
 from geometry import SO2_from_angle
 from numpy.testing.utils import assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment
 from .maps import PointName, SegMapFace, SegMapPoint, SegMapSegment, SegmentsMap
 from .transformations import FRAME_TILE, FrameName

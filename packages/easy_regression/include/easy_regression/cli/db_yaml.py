@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import os
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.conditions.result_db import ResultDBEntry
 
 

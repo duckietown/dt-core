@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 ResultDBEntry0 = namedtuple(
     "ResultDBEntry0", ["regression_test_name", "date", "host", "cpu", "user", "results", "branch", "commit"]

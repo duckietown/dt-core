@@ -1,6 +1,6 @@
 import shutil
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_logs import get_local_bag_file, NotAvailableLocally, D8AppWithLogs
 
 import os
@@ -30,8 +30,8 @@ class Copy(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info("Found %d logs." % len(logs))
-        outdir = self.options.outdir
+        self.info(f"Found {len(logs):d} logs.")
+        outdir = self.options['outdir']
 
         if outdir is None:
             outdir = "."
@@ -53,4 +53,4 @@ class Copy(D8AppWithLogs):
                 shutil.copy(filename, out)
                 print(out)
             except NotAvailableLocally:
-                dtu.logger.error("No local file for %s" % id_log)
+                dtu.logger.error(f"No local file for {id_log}")

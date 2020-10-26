@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from anti_instagram import AntiInstagram
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import Segment, SegmentList
 from easy_algo import get_easy_algo_db

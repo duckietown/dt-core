@@ -4,7 +4,7 @@ import traceback
 from dataclasses import dataclass
 from typing import Dict, Optional, Sequence, Tuple, Union
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .algo_structures import EasyAlgoFamily, EasyAlgoInstance
 
 __all__ = [

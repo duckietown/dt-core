@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from numpy.testing.utils import assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
 
 from image_processing.ground_projection_geometry import GroundPoint, GroundProjectionGeometry, Point

@@ -5,7 +5,8 @@ import cv2
 import numpy as np
 import sys
 import time
-from duckietown_utils import logger
+import duckietown_code_utils as dtu
+logger = dtu.logger
 
 # milansc:
 # colors in bgr

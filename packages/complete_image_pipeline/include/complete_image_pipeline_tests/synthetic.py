@@ -3,7 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from complete_image_pipeline.image_simulation import simulate_image
 from complete_image_pipeline.pipeline import run_pipeline
 from duckietown_segmaps import FAMILY_SEGMAPS

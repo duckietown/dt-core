@@ -1,7 +1,7 @@
 import os
 
-import duckietown_utils as dtu
-from duckietown_utils.cli import D8App
+import duckietown_code_utils as dtu
+from duckietown_code_utils.cli import D8App
 from .pipeline import run_pipeline
 
 __all__ = [

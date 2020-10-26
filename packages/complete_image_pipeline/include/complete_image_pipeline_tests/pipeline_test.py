@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from complete_image_pipeline.pipeline import run_pipeline
 from image_processing.more_utils import get_robot_camera_geometry
 

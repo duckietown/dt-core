@@ -1,5 +1,7 @@
-import duckietown_utils as dtu
-from duckietown_utils import logger
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+
+logger = dtu.logger
 
 __all__ = [
     "LEDDetectionUnitTest",
@@ -21,7 +23,7 @@ class LEDDetectionUnitTest:
         interval = self.data["interval"]
         t0, t1 = interval[0], interval[1]
         print(("t0:%s, t1:%s" % (t0, t1)))
-        data = dtu.d8n_read_images_interval(filename, t0, t1)
+        data = dbu.d8n_read_images_interval(filename, t0, t1)
         return data
 
     def get_query(self):
@@ -89,7 +91,6 @@ def load_tests(filename):
             raise
 
     return contents
-
 
 # example YAML:
 #

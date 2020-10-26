@@ -1,6 +1,6 @@
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .map_localization_template import LocalizationTemplate
 
 __all__ = ["TemplateStraight"]

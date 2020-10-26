@@ -2,7 +2,7 @@
 # @create-shortcut-for-this
 
 from complete_image_pipeline.on_logs import SingleImagePipelineLog
-from duckietown_utils.cli import d8app_run
+from duckietown_code_utils.cli import D8App_run
 
 if __name__ == '__main__':
     d8app_run(SingleImagePipelineLog)

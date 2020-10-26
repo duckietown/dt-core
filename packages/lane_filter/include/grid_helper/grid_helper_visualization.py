@@ -1,4 +1,4 @@
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+import duckietown_code_utils as dtu
 import numpy as np
 from reprep.graphics.filter_scale import scale
 import numpy.ma as ma
@@ -7,7 +7,7 @@ from .voting_grid import GridHelper
 
 
 def grid_helper_plot(grid_helper, belief, truth=None, estimate=None):
-    a = CreateImageFromPylab(dpi=120)
+    a = dtu.CreateImageFromPylab(dpi=120)
 
     with a as pylab:
         grid_helper_plot_field(grid_helper, belief, pylab)

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_logs.app_with_logs import D8AppWithLogs
 
 

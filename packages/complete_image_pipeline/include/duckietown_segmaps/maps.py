@@ -5,7 +5,7 @@ import numpy as np
 from geometry import SE2value
 from numpy.testing.utils import assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .transformations import FRAME_AXLE, FRAME_GLOBAL, FrameName, TransformationsInfo
 
 __all__ = [

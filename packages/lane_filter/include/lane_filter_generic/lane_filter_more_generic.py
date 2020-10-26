@@ -7,9 +7,9 @@ from geometry import SE2_from_translation_angle, SO2_from_angle
 from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegMapSegment, SegmentsMap
-from duckietown_utils.matplotlib_utils import CreateImageFromPylab
+
 from easy_algo import get_easy_algo_db
 from grid_helper import (
     convert_unit,
@@ -307,7 +307,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
     def get_plot_phi_d(self, ground_truth=None, bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
         figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
-        a = CreateImageFromPylab(dpi=120, figure_args=figure_args)
+        a = dtu.CreateImageFromPylab(dpi=120, figure_args=figure_args)
 
         gh = self.grid_helper
         with a as pylab:

@@ -2,8 +2,8 @@ import os
 
 import cv2
 
-import duckietown_utils as dtu
-from duckietown_utils.cli import D8App
+import duckietown_code_utils as dtu
+from duckietown_code_utils.cli import D8App
 from image_processing.calibration_utils import (
     disable_old_homography,
     get_camera_info_for_robot,

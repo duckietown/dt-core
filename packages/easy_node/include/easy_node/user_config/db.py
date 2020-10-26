@@ -3,7 +3,7 @@ from typing import Dict, Sequence, Union
 
 import yaml
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_node.node_description.configuration import EasyNodeConfig, load_configuration_for_nodes_in_package
 from .get_configuration_files import get_all_configuration_files
 

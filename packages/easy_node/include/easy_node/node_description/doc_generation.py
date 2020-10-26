@@ -1,6 +1,6 @@
 import os
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .configuration import EasyNodeConfig, load_configuration_for_nodes_in_package, PROCESS_THREADED
 
 

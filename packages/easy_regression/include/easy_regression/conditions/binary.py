@@ -1,6 +1,6 @@
 from contracts.utils import check_isinstance
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.conditions.eval import EvaluationError, ResultWithDescription
 from easy_regression.conditions.interface import RTParseError
 

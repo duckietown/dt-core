@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext
 from easy_regression import ProcessorInterface, ProcessorUtilsInterface

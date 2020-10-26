@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 FAMILY_LINE_DETECTOR = "line_detector"
 

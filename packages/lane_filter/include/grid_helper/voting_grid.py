@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 __all__ = [
     "GridHelper",

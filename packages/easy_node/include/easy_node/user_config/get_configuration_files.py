@@ -6,7 +6,7 @@ from dateutil.parser import parse
 from frozendict import frozendict
 from yaml.error import YAMLError
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 SUFFIX = ".config.yaml"
 

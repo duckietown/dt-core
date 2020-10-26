@@ -2,7 +2,7 @@ from collections import defaultdict, OrderedDict
 
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.analyzer_interface import AnalyzerInterface
 from easy_regression.cli.processing import interpret_ros
 

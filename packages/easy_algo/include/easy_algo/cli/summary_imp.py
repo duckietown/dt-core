@@ -1,4 +1,4 @@
-from duckietown_utils.cli import D8App, d8app_run
+from duckietown_code_utils.cli import D8App, d8app_run
 from ..algo_db import get_easy_algo_db
 from ..formatting import format_db, format_instances
 

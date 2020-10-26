@@ -1,4 +1,4 @@
-from duckietown_utils.cli import d8app_run
+from duckietown_code_utils.cli import d8app_run
 
 
 def main_details():

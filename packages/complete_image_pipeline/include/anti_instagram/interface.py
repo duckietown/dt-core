@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from abc import ABCMeta, abstractmethod
 
 __all__ = [

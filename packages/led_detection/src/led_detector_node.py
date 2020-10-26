@@ -7,7 +7,7 @@ import rospy
 from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType
 from duckietown_msgs.msg import SignalsDetection
-from duckietown_utils import numpy_from_ros_compressed
+from duckietown_rosdata_utils import numpy_from_ros_compressed
 from led_detection.LED_detector import LEDDetector
 from sensor_msgs.msg import CompressedImage
 

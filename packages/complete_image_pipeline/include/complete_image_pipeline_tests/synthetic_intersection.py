@@ -1,6 +1,6 @@
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .synthetic import dirn, test_synthetic_phi
 
 actual_map_name = "DT17_scenario_four_way"

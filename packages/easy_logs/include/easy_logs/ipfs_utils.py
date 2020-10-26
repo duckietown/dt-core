@@ -1,10 +1,8 @@
 import json
 import os
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
-# from duckietown_utils.caching import get_cached
-# from duckietown_utils.system_cmd_imp import system_cmd_result
 
 base = ["ipfs", "--api", "/ip4/127.0.0.1/tcp/5001"]
 

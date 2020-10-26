@@ -1,7 +1,7 @@
 from collections import defaultdict
 from contextlib import contextmanager
 import time
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 
 __all__ = [

@@ -19,8 +19,8 @@ import os
 from collections import OrderedDict
 from copy import deepcopy
 
-import duckietown_utils as dtu
-from duckietown_utils.test_hash import sha1_for_file_cached
+import duckietown_code_utils as dtu
+
 from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 
 has_ipfs = detect_ipfs()
@@ -67,7 +67,7 @@ def create_dtr_version_1(filename):
         hashes["ipfs"] = Qm
 
     with dtu.timeit_wall("hashing %s" % filename, minimum=500):
-        hashes["sha1"] = sha1_for_file_cached(filename)
+        hashes["sha1"] = dtu.sha1_for_file_cached(filename)
 
     urls = []
 

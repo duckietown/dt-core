@@ -3,9 +3,9 @@ from typing import List
 
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_segmaps import FAMILY_SEGMAPS
-from duckietown_utils.cli import D8App
+from duckietown_code_utils.cli import D8App
 from easy_algo import get_easy_algo_db
 from image_processing.more_utils import get_robot_camera_geometry
 from .image_simulation import simulate_image

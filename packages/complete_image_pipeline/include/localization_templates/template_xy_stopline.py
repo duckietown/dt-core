@@ -2,7 +2,7 @@ import numpy as np
 from geometry import SE2value
 from numpy.ma.testutils import assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from localization_templates import LocalizationTemplate
 
 __all__ = [

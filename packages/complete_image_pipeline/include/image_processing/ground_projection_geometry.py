@@ -3,8 +3,8 @@ from typing import NewType, Optional, Tuple
 import cv2
 import numpy as np
 
-import duckietown_utils as dtu
-from duckietown_utils import NPImageBGR
+import duckietown_code_utils as dtu
+
 from .constants import BOARD_HEIGHT, BOARD_WIDTH, SQUARE_SIZE, X_OFFSET, Y_OFFSET
 
 
@@ -130,7 +130,7 @@ class GroundProjectionGeometry:
         y = pixel.y / self.im_height
         return ImageSpaceNormalizedPoint(Point(x, y))
 
-    def pixel2ground(self, pixel: ImageSpaceResdepPoint) -> GroundPoint:
+    def pixel2ground(self, pixel: ImageSpaceNormalizedPoint) -> GroundPoint:
         """
         Projects a normalized pixel (``[0, 1] X [0, 1]``) to the ground
         plane using the homography matrix.
@@ -158,7 +158,7 @@ class GroundProjectionGeometry:
         pixel: ImageSpaceResdepPoint = self.vector2pixel(vec)
         return self.pixel2ground(pixel)
 
-    def ground2pixel(self, point: GroundPoint) -> ImageSpaceResdepPoint:
+    def ground2pixel(self, point: GroundPoint) -> ImageSpaceNormalizedPoint:
         """
         Projects a point on the ground plane to a normalized pixel (``[0, 1] X [0, 1]``) using the
         homography matrix.
@@ -192,7 +192,7 @@ class GroundProjectionGeometry:
 
     @staticmethod
     def estimate_homography(
-        cv_image_rectified: NPImageBGR,
+        cv_image_rectified: dtu.NPImageBGR,
         board_w: int = BOARD_WIDTH,
         board_h: int = BOARD_HEIGHT,
         square_size: float = SQUARE_SIZE,

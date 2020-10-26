@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_logs.easy_logs_summary_imp import format_logs
 from easy_logs.logs_db import get_easy_logs_db2
 

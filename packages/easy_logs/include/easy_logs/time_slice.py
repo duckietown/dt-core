@@ -2,7 +2,7 @@ from collections import OrderedDict
 from dataclasses import replace
 from typing import Tuple
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .logs_structure import PhysicalLog
 
 __all__ = [

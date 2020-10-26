@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 import numpy as np
 import numpy.ma as ma
 from reprep.graphics.filter_scale import scale

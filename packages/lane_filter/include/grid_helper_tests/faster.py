@@ -3,7 +3,7 @@ import os
 
 from numpy.testing.utils import assert_equal, assert_almost_equal
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from grid_helper.grid_helper_visualization import grid_helper_plot
 from grid_helper.voting_grid import GridHelper, array_as_string_sign, array_as_string
 import numpy as np

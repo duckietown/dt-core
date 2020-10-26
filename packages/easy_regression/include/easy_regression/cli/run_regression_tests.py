@@ -4,10 +4,11 @@ import time
 from collections import OrderedDict
 
 from bs4.element import Tag
+from quickapp import QuickApp
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
 import rosbag
-from duckietown_utils.bag_visualization import get_summary_of_bag_messages
 from easy_algo import get_easy_algo_db
 from easy_logs.app_with_logs import D8AppWithLogs, get_log_if_not_exists
 from easy_regression.cli.analysis_and_stat import job_analyze, job_merge, print_results
@@ -20,7 +21,6 @@ from easy_regression.cli.checking import (
 from easy_regression.cli.processing import process_one_dynamic
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.regression_test import RegressionTest
-from quickapp import QuickApp
 
 logger = dtu.logger
 
@@ -125,7 +125,7 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
         for topic in rt.get_topic_videos():
             mp4 = os.path.join(log_out_dir, "videos", log_name + "-" + sanitize_topic(topic) + ".mp4")
             job_id = "make_video-%s" % sanitize_topic(topic)
-            v = c.comp(dtu.d8n_make_video_from_bag, log_out_, topic, mp4, job_id=job_id)
+            v = c.comp(dbu.d8n_make_video_from_bag, log_out_, topic, mp4, job_id=job_id)
             report_filenames.append(v)
             do_before_deleting_tmp_dir.append(v)
 
@@ -220,10 +220,10 @@ def write_images(bag_filename, topic, basename):
     nfound = bag.get_message_count(topic)
     if nfound == 0:
         msg = "Found 0 messages for topic %s" % topic
-        msg += "\n\n" + dtu.indent(get_summary_of_bag_messages(bag), "  ")
+        msg += "\n\n" + dtu.indent(dbu.get_summary_of_bag_messages(bag), "  ")
         raise ValueError(msg)
 
-    res = dtu.d8n_read_all_images_from_bag(bag, topic)
+    res = dbu.d8n_read_all_images_from_bag(bag, topic)
     n = len(res)
     filenames = []
     for i in range(n):

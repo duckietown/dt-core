@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .db import get_config_db
 from .get_configuration_files import ConfigInfo
 

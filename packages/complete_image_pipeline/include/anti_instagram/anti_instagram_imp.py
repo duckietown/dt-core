@@ -3,7 +3,7 @@ from .kmeans import getparameters2, identifyColors, runKMeans
 from .scale_and_shift import scaleandshift
 from anti_instagram.kmeans import CENTERS, CENTERS2
 import numpy as np
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .interface import AntiInstagramInterface
 
 logger = dtu.logger

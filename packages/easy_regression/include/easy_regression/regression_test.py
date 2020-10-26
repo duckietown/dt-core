@@ -3,7 +3,7 @@ import copy
 
 from contracts.utils import check_isinstance
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.conditions.interface import RTCheck, RTParseError
 
 __all__ = [

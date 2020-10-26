@@ -1,7 +1,7 @@
 import os
 from collections import namedtuple, OrderedDict
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 
 from sensor_msgs.msg import CompressedImage
 

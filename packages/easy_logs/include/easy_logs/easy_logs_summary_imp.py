@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from ruamel import yaml
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_logs import get_local_bag_file, NotAvailableLocally
 from easy_logs.resource_desc import DTR
 

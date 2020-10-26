@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 import rospy
 from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface

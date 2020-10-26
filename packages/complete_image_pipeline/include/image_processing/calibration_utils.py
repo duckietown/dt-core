@@ -5,7 +5,7 @@ import time
 import numpy as np
 import yaml
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from sensor_msgs.msg import CameraInfo
 
 

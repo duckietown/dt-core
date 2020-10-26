@@ -5,7 +5,7 @@ import cv2
 import matplotlib
 import numpy as np
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.draw_map_on_images import plot_map, predict_segments
 from duckietown_segmaps.maps import FRAME_AXLE, FRAME_GLOBAL, plot_map_and_segments

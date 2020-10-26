@@ -3,9 +3,9 @@ import os
 import numpy as np
 from reprep.plot_utils.axes import turn_all_axes_off
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from complete_image_pipeline.image_simulation import simulate_image, SimulationData
-from duckietown_utils.cli import D8App
+from duckietown_code_utils.cli import D8App
 from easy_algo import get_easy_algo_db
 from image_processing.more_utils import get_robot_camera_geometry
 from .maps import _plot_map_segments, FAMILY_SEGMAPS, SegmentsMap

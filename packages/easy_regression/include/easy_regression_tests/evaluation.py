@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.conditions.interface import RTCheck
 from easy_regression.conditions.references import parse_date_spec
 from easy_regression.conditions.result_db import ResultDB, ResultDBEntry

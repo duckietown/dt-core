@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .interface import RTCheck, CheckResult
 from .result_db import ResultDB, AmbiguousQuery
 

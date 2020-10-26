@@ -1,4 +1,4 @@
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.references import parse_reference
 

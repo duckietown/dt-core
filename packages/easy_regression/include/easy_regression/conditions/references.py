@@ -3,7 +3,7 @@ from typing import Sequence
 
 import yaml
 
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from .eval import Evaluable, EvaluationError
 from .interface import RTParseError
 from .result_db import ResultDBEntry
