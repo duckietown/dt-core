@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from typing import Any
+
 import numpy as np
 import yaml
 
@@ -74,7 +76,7 @@ class AprilPostPros:
 
         rospy.loginfo("[%s] has started", self.node_name)
 
-    def setupParam(self, param_name: str, default_value: object = rospy.client._Unspecified):
+    def setupParam(self, param_name: str, default_value: Any = rospy.client._Unspecified):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)
         return value

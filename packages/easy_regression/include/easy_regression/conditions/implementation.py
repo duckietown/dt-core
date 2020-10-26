@@ -5,7 +5,7 @@ from easy_regression.conditions.interface import RTParseError
 from easy_regression.conditions.references import parse_reference
 
 
-def _parse_regression_test_check(line):
+def _parse_regression_test_check(line: str) -> Wrapper:
     line = line.strip()
     delim = " "
     tokens = line.split(delim)

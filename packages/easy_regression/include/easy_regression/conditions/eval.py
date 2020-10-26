@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
+from typing import Any, Callable
 
 import duckietown_code_utils as dtu
 from .interface import RTCheck, CheckResult
@@ -14,10 +15,9 @@ class DataNotFound(Exception):
     pass
 
 
-class Evaluable(object, metaclass=ABCMeta):
+class Evaluable(metaclass=ABCMeta):
     @abstractmethod
-    @dtu.contract(rdb=ResultDB)
-    def eval(self, rdb):
+    def eval(self, rdb: ResultDB) -> CheckResult:
         """ Raise EvaluationError or DataNotFound """
 
 
@@ -34,11 +34,12 @@ class ResultWithDescription:
 
 
 class Wrapper(RTCheck):
-    def __init__(self, evaluable):
+    evaluable: Evaluable
+    def __init__(self, evaluable: Evaluable):
         self.evaluable = evaluable
 
     def __str__(self):
-        return self.evaluable.__str__
+        return self.evaluable.__str__()
 
     def check(self, rdb):
         """
@@ -52,9 +53,9 @@ class Wrapper(RTCheck):
             if not isinstance(res, ResultWithDescription):
                 msg = f"Expected ResultWithDescription, obtained {res.__repr__()}"
                 return CheckResult(status=RTCheck.ABNORMAL, summary="Invalid test", details=msg)
-            if res.__bool__() == True:
+            if res.__bool__():
                 return CheckResult(status=RTCheck.OK, summary="OK", details=res.desc)
-            if res.__bool__() == False:
+            if not res.__bool__():
                 return CheckResult(status=RTCheck.FAIL, summary="Failed", details=res.desc)
         except AmbiguousQuery as e:
             return CheckResult(status=RTCheck.FAIL, summary="Ambiguous query", details=str(e))
@@ -65,8 +66,10 @@ class Wrapper(RTCheck):
 
 
 class BinaryEval(Evaluable):
-    @dtu.contract(a=Evaluable, b=Evaluable)
-    def __init__(self, a, op, b):
+    a: Evaluable
+    b: Evaluable
+    op: Callable[[Any, Any], bool]
+    def __init__(self, a: Evaluable, op: Callable[[Any, Any], bool], b: Evaluable):
         self.a = a
         self.op = op
         self.b = b

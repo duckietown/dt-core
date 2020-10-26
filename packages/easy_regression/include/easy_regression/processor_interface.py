@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-class ProcessorUtilsInterface(object, metaclass=ABCMeta):
+class ProcessorUtilsInterface( metaclass=ABCMeta):
     @abstractmethod
     def write_stat(self, name: str, value, t: Optional[float] = None, prefix=()):
         pass
@@ -18,7 +18,7 @@ class ProcessorUtilsInterface(object, metaclass=ABCMeta):
         pass
 
 
-class ProcessorInterface(object, metaclass=ABCMeta):
+class ProcessorInterface(metaclass=ABCMeta):
     FAMILY = "processor"
 
     @abstractmethod
