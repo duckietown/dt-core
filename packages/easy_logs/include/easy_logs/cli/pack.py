@@ -1,7 +1,5 @@
-from collections import OrderedDict
-
 from easy_logs.app_with_logs import D8AppWithLogs
-from easy_logs.cli.gallery import get_report, get_gallery_style
+from easy_logs.cli.gallery import get_gallery_style, get_report
 from easy_logs.ipfs_utils import MakeIPFS
 from easy_logs.logs_db import yaml_representation_of_phy_logs
 from easy_logs.resource_desc import DTR
@@ -9,9 +7,6 @@ from easy_logs.resource_desc import DTR
 __all__ = [
     "Pack",
 ]
-
-# def show_url(x):
-#    return x.startswith('http')
 
 
 class Pack(D8AppWithLogs):
@@ -100,8 +95,14 @@ def get_index():
 
 <p style='font-family:monospace'>
 @inproceedings{paull17duckietown,<br/>
-&nbsp; author = "Paull, Liam and Tani, Jacopo and Ahn, Heejin and Alonso-Mora, Javier and Carlone, Luca and Cap, Michal and Chen, Yu Fan and Choi, Changhyun and Dusek, Jeff and Hoehener, Daniel and Liu, Shih-Yuan and Novitzky, Michael and Okuyama, Igor Franzoni and Pazis, Jason and Rosman, Guy and Varricchio, Valerio and Wang, Hsueh-Cheng and Yershov, Dmitry and Zhao, Hang and Benjamin, Michael and Carr, Christopher and Zuber, Maria and Karaman, Sertac and Frazzoli, Emilio and Vecchio, Domitilla Del and Rus, Daniela and How, Jonathan and Leonard, John and Censi, Andrea",<br/>
-&nbsp;     title = "Duckietown: an Open and Inexpensive and Flexible Platform for Autonomy Education and Research",<br/>
+&nbsp; author = "Paull, Liam and Tani, Jacopo and Ahn, Heejin and Alonso-Mora, Javier and Carlone, 
+Luca and Cap, Michal and Chen, Yu Fan and Choi, Changhyun and Dusek, Jeff and Hoehener, Daniel and Liu, 
+Shih-Yuan and Novitzky, Michael and Okuyama, Igor Franzoni and Pazis, Jason and Rosman, Guy and Varricchio, 
+Valerio and Wang, Hsueh-Cheng and Yershov, Dmitry and Zhao, Hang and Benjamin, Michael and Carr, 
+Christopher and Zuber, Maria and Karaman, Sertac and Frazzoli, Emilio and Vecchio, Domitilla Del and Rus, 
+Daniela and How, Jonathan and Leonard, John and Censi, Andrea",<br/>
+&nbsp;     title = "Duckietown: an Open and Inexpensive and Flexible Platform for Autonomy Education and 
+Research",<br/>
 &nbsp; url = "http://duckietown.mit.edu/",<br/>
 &nbsp; booktitle = "IEEE International Conference on Robotics and Automation (ICRA)",<br/>
 &nbsp; year = "2017",<br/>
@@ -119,7 +120,6 @@ def get_index():
 
 
 def create_ipfs_dag(logs, m):
-
     for id_log, log in list(logs.items()):
         for rname, res in list(log.resources.items()):
             dtr = DTR.from_yaml(res)

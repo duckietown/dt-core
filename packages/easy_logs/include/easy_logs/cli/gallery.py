@@ -1,6 +1,6 @@
 import os
 import random
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 
 from bs4.element import Tag
 

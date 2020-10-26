@@ -4,8 +4,7 @@ from dataclasses import replace
 from typing import Dict, List, Union
 
 import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dru
-import duckietown_rosdata_utils as dru
+import duckietown_rosbag_utils as dbu
 from .constants import EasyLogsConstants
 from .logs_structure import physical_log_from_yaml, PhysicalLog, yaml_from_physical_log
 from .resource_desc import create_dtr_version_1, DTR, get_local_filepath, NotLocalPath
@@ -182,7 +181,7 @@ def query_logs(
 def _read_stats(pl, use_filename):
     assert isinstance(pl, PhysicalLog)
 
-    info = dru.rosbag_info_cached(use_filename)
+    info = dbu.rosbag_info_cached(use_filename)
     if info is None:
         return replace(pl, valid=False, error_if_invalid="Not indexed")
 
@@ -410,7 +409,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         for s, filename_resource in list(base2basename2filename[_base].items()):
             basedot = _base + "."
             if s.startswith(basedot):
-                rest = s[len(basedot) :]
+                rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
                     dtr = create_dtr_version_1(filename_resource)

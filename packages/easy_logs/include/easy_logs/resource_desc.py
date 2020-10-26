@@ -16,11 +16,9 @@
 
 """
 import os
-from collections import OrderedDict
 from copy import deepcopy
 
 import duckietown_code_utils as dtu
-
 from .ipfs_utils import detect_ipfs, get_ipfs_hash_cached
 
 has_ipfs = detect_ipfs()
@@ -148,6 +146,6 @@ def get_local_filepath(uri):
         otherwise raise ValueError()"""
     uri_prefix = _file_uri_prefix()
     if uri.startswith(uri_prefix):
-        return uri[len(uri_prefix) :]
+        return uri[len(uri_prefix):]
     else:
         raise NotLocalPath("Not current host: %s" % uri)
