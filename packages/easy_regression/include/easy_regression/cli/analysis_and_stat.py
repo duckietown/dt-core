@@ -73,7 +73,7 @@ def merge_n(analyzer: AnalyzerInterface, results) -> dict:
     else:
         first = results[0]
         rest = merge_n(analyzer, results[1:])
-        r = OrderedDict()
+        r = {}
         analyzer.reduce(first, rest, r)
         return r
 
@@ -83,7 +83,7 @@ def job_analyze(log: str, analyzer: str):
     easy_algo_db = get_easy_algo_db()
     analyzer_instance = easy_algo_db.create_instance("analyzer", analyzer)
     in_bag = rosbag.Bag(log)
-    results = OrderedDict()
+    results = {}
     dtu.logger.info("Running %s on %s" % (analyzer, log))
     analyzer_instance.analyze_log(in_bag, results)
     in_bag.close()

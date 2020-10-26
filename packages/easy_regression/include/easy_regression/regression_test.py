@@ -54,7 +54,7 @@ class RegressionTest:
         return self.analyzers
 
     def get_logs(self, algo_db):
-        logs = OrderedDict()
+        logs = {}
         for s in self.logs:
             for k, log in list(algo_db.query(s).items()):
                 if k in logs:

@@ -11,7 +11,7 @@ import numpy as np
 
 @dtu.unit_test
 def compare_faster():
-    variables = collections.OrderedDict()
+    variables = {}
     variables["alpha"] = dict(
         min=-180, max=180, description="angle", resolution=5, units="deg", units_display="deg"
     )
@@ -68,7 +68,7 @@ def compare_faster():
 
 @dtu.unit_test
 def compare_faster2():
-    variables = collections.OrderedDict()
+    variables = {}
     variables["alpha"] = dict(
         min=-180, max=180, description="angle", resolution=5, units="deg", units_display="deg"
     )

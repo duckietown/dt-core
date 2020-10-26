@@ -45,8 +45,8 @@ def run_pipeline(image: np.ndarray,
 
     dtu.check_isinstance(image, np.ndarray)
 
-    res = OrderedDict()
-    stats = OrderedDict()
+    res = {}
+    stats = {}
 
     res['Raw input image'] = image
     gpg = GroundProjectionGeometry()
@@ -180,8 +180,8 @@ def run_pipeline(image: np.ndarray,
 
 
 def judge_quality(image, observed_segment_list, predicted_segment_list):
-    res = OrderedDict()
-    stats = OrderedDict()
+    res = {}
+    stats = {}
 
     #     mask2gray = lambda x: (x * 255).clip(0, 255).astype('uint8')
     H, W, _ = image.shape

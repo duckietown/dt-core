@@ -90,6 +90,8 @@ jobs:
       - run:
           name: run tests
           command:
+            mkdir /data
+            mkdir /data/config
             . /opt/ros/noetic/setup.sh && . /code/catkin_ws/devel/local_setup.bash && make test-circle
 
 

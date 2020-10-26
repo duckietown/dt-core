@@ -82,7 +82,7 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
     # results_all['analyzer'][log_name]
     results_all = {}
     for a in analyzers:
-        results_all[a] = OrderedDict()
+        results_all[a] = {}
 
     date = dtu.format_time_as_YYYY_MM_DD(time.time())
     prefix = "run_regression_test-%s-%s-" % (rt_name, date)

@@ -58,7 +58,7 @@ class DTR:
 
 
 def create_dtr_version_1(filename):
-    res = OrderedDict()
+    res = {}
 
     hashes = {}
 

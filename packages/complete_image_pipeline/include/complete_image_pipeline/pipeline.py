@@ -57,8 +57,8 @@ def run_pipeline(
 
     dtu.check_isinstance(image, np.ndarray)
 
-    res = OrderedDict()
-    stats = OrderedDict()
+    res = {}
+    stats = {}
 
     res["Raw input image"] = image
     algo_db = get_easy_algo_db()

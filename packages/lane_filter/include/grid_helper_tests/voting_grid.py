@@ -17,7 +17,7 @@ from grid_helper.voting_grid import GridHelper
 @dtu.unit_test
 def grid1():
     resolutions = [0.1, 0.2]
-    variables = collections.OrderedDict()
+    variables = {}
     variables["x"] = dict(
         min=1, max=2, description="X variable", resolution=resolutions[0], units="m", units_display="cm"
     )
@@ -42,7 +42,7 @@ def grid1():
 
 @dtu.unit_test
 def grid_visualization():
-    variables = collections.OrderedDict()
+    variables = {}
     variables["alpha"] = dict(
         min=-np.pi / 2,
         max=np.pi / 2,
@@ -67,7 +67,7 @@ def grid_visualization():
 @dtu.unit_test
 def voting_kernel1():
     resolution = 10.0
-    variables = collections.OrderedDict()
+    variables = {}
     variables["x"] = dict(
         min=100, max=500, description="x", resolution=resolution, units="cm", units_display="cm"
     )

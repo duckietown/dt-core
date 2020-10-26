@@ -195,7 +195,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         d_max = self.d_min + (maxids[0] + 0.5) * self.delta_d
         phi_max = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
 
-        res = OrderedDict()
+        res = {}
         res["d"] = d_max
         res["phi"] = phi_max
         return res

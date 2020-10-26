@@ -33,10 +33,10 @@ NoneType = type(None)
 
 def merge_configuration(c1: EasyNodeConfig, c2: EasyNodeConfig) -> EasyNodeConfig:
     """ Merges two configurations. Values in c2 override the ones in c1 """
-    parameters = OrderedDict()
-    subscriptions = OrderedDict()
-    contracts = OrderedDict()
-    publishers = OrderedDict()
+    parameters = {}
+    subscriptions = {}
+    contracts = {}
+    publishers = {}
     for c in [c1, c2]:
         parameters.update(c.parameters)
         subscriptions.update(c.subscriptions)
@@ -134,8 +134,8 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
         dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
 
 
-def load_configuration_parameters(data: dict) -> OrderedDict:
-    res = OrderedDict()
+def load_configuration_parameters(data: dict) -> dict:
+    res = {}
     for k, v in list(data.items()):
         try:
             check_good_name(k)
@@ -146,8 +146,8 @@ def load_configuration_parameters(data: dict) -> OrderedDict:
     return res
 
 
-def load_configuration_subscriptions(data: dict) -> OrderedDict:
-    res = OrderedDict()
+def load_configuration_subscriptions(data: dict) -> dict:
+    res = {}
     for k, v in list(data.items()):
         try:
             check_good_name(k)
@@ -158,8 +158,8 @@ def load_configuration_subscriptions(data: dict) -> OrderedDict:
     return res
 
 
-def load_configuration_publishers(data: dict) -> OrderedDict:
-    res = OrderedDict()
+def load_configuration_publishers(data: dict) -> dict:
+    res = {}
     for k, v in list(data.items()):
         try:
             check_good_name(k)

@@ -43,7 +43,7 @@ class SignalStats(AnalyzerInterface):
     def reduce(self, a, b, a_plus_b):
         topics = set(a)  # (a) + list(b))
         for topic in topics:
-            a_plus_b[topic] = OrderedDict()
+            a_plus_b[topic] = {}
             print((topic + " ----------- "))
             reduce_stats(a[topic], b[topic], a_plus_b[topic])
 
@@ -58,7 +58,7 @@ class SignalStats(AnalyzerInterface):
 
 
 def compute_stats(timestamps, values):
-    res = OrderedDict()
+    res = {}
     res["num_log_segments"] = 1
     res["length"] = float(timestamps[-1] - timestamps[0])
     res["nsamples"] = len(timestamps)
@@ -88,7 +88,7 @@ def look_for_topics(bag):
     #     ok = ['std_msgs/Float64', 'std_msgs/Float64MultiArray']
     ok = ["std_msgs/Float64"]
 
-    found = OrderedDict()
+    found = {}
     for t, v in list(stat.topics.items()):
         if v.message_count == 0:
             #             print('skipping %s because no count' % t)

@@ -46,7 +46,7 @@ class Gallery(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        logs_valid = OrderedDict()
+        logs_valid = {}
         ninvalid = 0
         length_invalid = 0.0
         for log_name, log in list(logs.items()):

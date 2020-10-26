@@ -228,7 +228,7 @@ class LaneFilterHistogram(LaneFilterInterface):
 
     def get_estimate(self):
         d, phi = self.getEstimate()
-        res = OrderedDict()
+        res = {}
         res["d"] = d
         res["phi"] = phi
         return res

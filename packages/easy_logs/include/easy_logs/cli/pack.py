@@ -65,7 +65,7 @@ class Pack(D8AppWithLogs):
 
 
 def get_valid(logs):
-    logs_valid = OrderedDict()
+    logs_valid = {}
     for log_name, log in list(logs.items()):
         if log.valid:
             logs_valid[log_name] = log

@@ -8,7 +8,7 @@ from easy_regression.conditions.result_db import ResultDBEntry
 
 @dtu.contract(r=ResultDBEntry)
 def yaml_from_rdbe(r):
-    d = OrderedDict()
+    d = {}
     d["description"] = "The result of running a unit test"
     d["constructor"] = "easy_regression.rdbe_from_yaml"
     d["parameters"] = r._asdict()
