@@ -1,15 +1,13 @@
+import threading
 from collections import UserDict
 from contextlib import contextmanager
-import rospy
-import threading
 
 import duckietown_code_utils as dtu
-
-from .node_description.configuration import PROCESS_THREADED, PROCESS_SYNCHRONOUS
-from .node_description.configuration import load_configuration_package_node
+import rospy
+from .node_description.configuration import (load_configuration_package_node, PROCESS_SYNCHRONOUS,
+                                             PROCESS_THREADED)
 from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
-
 
 __all__ = [
     "EasyNode",
@@ -17,7 +15,6 @@ __all__ = [
 
 
 class EasyNode:
-
     ENV = dtu.DuckietownConstants.DUCKIETOWN_CONFIG_SEQUENCE_variable
 
     def __init__(self, package_name, node_type_name):
@@ -159,7 +156,6 @@ class EasyNode:
 
         self.publishers = Publishers()
         for s in list(publishers.values()):
-
             P = rospy.Publisher(s.topic, s.type, queue_size=s.queue_size, latch=s.latch)
             setattr(self.publishers, s.name, P)
 
@@ -171,7 +167,7 @@ class EasyNode:
                 if not name in parameters:
                     msg = f"The user is trying to use {name!r}, which is not a parameter "
                     msg += "for this node.\n"
-                    s =  "\n- ".join( list(parameters)
+                    s = "\n- ".join(list(parameters))
                     msg += f"The declared parameters that can be used are:\n- {s}"
 
                     raise AttributeError(msg)
