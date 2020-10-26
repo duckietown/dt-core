@@ -102,6 +102,7 @@ jobs:
             . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
 
             find . -name '*pickle' -delete
+            find . -name 'compmake' -print | xargs rm -rf
 
       - store_artifacts:
           path: out
