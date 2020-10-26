@@ -98,7 +98,7 @@ jobs:
 
             echo 'config echo 1' > ~/.compmake.rc
 
-            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-all
+            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
 
             rm -rf out/comptests
 
