@@ -56,7 +56,7 @@ def run_pipeline(
 
     dtu.check_isinstance(image, np.ndarray)
 
-    res = {}
+    res: Dict[str, dtu.NPImageBGR] = {}
     stats = {}
 
     res["Raw input image"] = image

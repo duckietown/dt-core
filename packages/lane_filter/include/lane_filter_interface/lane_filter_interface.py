@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+
 import numpy as np
 
 __all__ = [
@@ -7,7 +8,6 @@ __all__ = [
 
 
 class LaneFilterInterface(metaclass=ABCMeta):
-
     LOST = "lost"
     GOOD = "good"
     STRUGGLING = "struggling"

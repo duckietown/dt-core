@@ -1,17 +1,19 @@
-import duckietown_code_utils as dtu
 import numpy as np
 import numpy.ma as ma
 from reprep.graphics.filter_scale import scale
+
+import duckietown_code_utils as dtu
 
 __all__ = ["plot_phi_d_diagram_bgr"]
 
 
 def plot_phi_d_diagram_bgr(
-    lane_filter, belief, phi, d, dpi=120, bgcolor=(0, 204, 255), other_phi=None, other_d=None
-):
+    lane_filter, belief, phi, d, dpi: int = 120,
+    bgcolor: dtu.BGRColor8 = dtu.ColorConstants.BGR_DUCKIETOWN_YELLOW, other_phi=None, other_d=None
+) -> dtu.NPImageBGR:
     """ Returns a BGR image """
-
-    figure_args = dict(facecolor=tuple(x / 255.0 for x in bgcolor))
+    facecolor = dtu.matplotlib_01_from_rgb(dtu.rgb_color_from_bgr_color(bgcolor))
+    figure_args = dict(facecolor=facecolor)
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
     with a as pylab:
@@ -46,7 +48,6 @@ def plot_phi_d_diagram_bgr(
 
         if other_phi is not None:
             for _phi, _d in zip(other_phi, other_d):
-
                 pylab.plot(
                     f_d(_d),
                     f_phi(_phi),

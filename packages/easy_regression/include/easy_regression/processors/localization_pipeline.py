@@ -15,6 +15,12 @@ logger = dtu.logger
 
 
 class LocalizationPipelineProcessor(ProcessorInterface):
+    line_detector: str
+    image_prep: str
+    lane_filter: str
+    anti_instagram: str
+    all_details: bool
+
     def __init__(self, line_detector: str, image_prep: str, lane_filter: str, anti_instagram: str):
         self.line_detector = line_detector
         self.image_prep = image_prep
@@ -23,7 +29,8 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.all_details = False
 
     def process_log(
-        self, bag_in: dbu.BagReadProxy, prefix_in, bag_out, prefix_out, utils: ProcessorUtilsInterface
+        self, bag_in: dbu.BagReadProxy, prefix_in: str, bag_out, prefix_out: str,
+        utils: ProcessorUtilsInterface
     ):
         log_name = utils.get_log().log_name
 
@@ -56,11 +63,10 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             rect = (480, 640) if not self.all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
+            msg = f"abs: {mp.time_absolute}  window: {mp.time_window}  from log: " \
+                  f"{mp.time_from_physical_log_start}"
             dtu.logger.info(
-                (
-                    f"abs: {mp.time_absolute}  window: {mp.time_window}  from log: "
-                    f"{mp.time_from_physical_log_start}"
-                )
+                msg
             )
             headers = [
                 f"Robot: {vehicle_name} log: {log_name} time: {mp.time_from_physical_log_start:.2f} s",

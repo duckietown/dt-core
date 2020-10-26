@@ -1,6 +1,7 @@
 from math import floor, sqrt
 
 import numpy as np
+import duckietown_code_utils as dtu
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import entropy, multivariate_normal
 
@@ -173,7 +174,7 @@ class LaneFilterHistogram(LaneFilterInterface):
             self.filtered_segments.append(segment)
             # only consider points in a certain range from the Duckiebot for the position estimation
             point_range = self.getSegmentDistance(segment)
-            if point_range < self.range_est and point_range > self.range_est_min:
+            if self.range_est > point_range > self.range_est_min:
                 segmentsArray.append(segment)
                 # print functions to help understand the functionality of the code
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
@@ -290,6 +291,6 @@ class LaneFilterHistogram(LaneFilterInterface):
         y_c = (segment.points[0].y + segment.points[1].y) / 2
         return sqrt(x_c ** 2 + y_c ** 2)
 
-    def get_plot_phi_d(self, ground_truth=None):
+    def get_plot_phi_d(self, ground_truth=None) -> dtu.NPImageBGR:
         d, phi = self.getEstimate()
         return plot_phi_d_diagram_bgr(self, self.belief, phi=phi, d=d)

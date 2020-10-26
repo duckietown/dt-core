@@ -253,6 +253,6 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         weight = 1
         return d_i, phi_i, l_i, weight
 
-    def get_plot_phi_d(self, ground_truth=None):
+    def get_plot_phi_d(self, ground_truth=None) -> dtu.NPImageBGR:
         est = self.get_estimate()
         return plot_phi_d_diagram_bgr(self, self.belief, phi=est["phi"], d=est["d"])
