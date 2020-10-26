@@ -214,8 +214,9 @@ class LaneControllerNode(DTROS):
                     d_err, phi_err, dt, wheels_cmd_exec, self.obstacle_stop_line_distance
                 )
                 # TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
-                v = v * 0.25
-                omega = omega * 0.25
+
+                v *= 0.25
+                omega *= 0.25
 
             else:
                 v, omega = self.controller.compute_control_action(

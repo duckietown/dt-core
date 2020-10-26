@@ -52,6 +52,7 @@ jobs:
           destination: out/package.tgz
 
   unit-tests-from-parent:
+    resource_class: large
     docker:
       - image:  duckietown/dt-ros-commons:daffy-amd64
 
