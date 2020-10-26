@@ -2,12 +2,6 @@ import os
 from collections import namedtuple, OrderedDict
 
 import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dbu
-import duckietown_rosdata_utils as dru
-import duckietown_code_utils as dtu
-
-import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dbu
 import duckietown_rosdata_utils as dru
 from sensor_msgs.msg import CompressedImage
 

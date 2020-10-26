@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 
-import duckietown_code_utils as dtu
 import duckietown_rosbag_utils as dru
-from duckietown_rosbag_utils.bag_info import read_camera_info_from_bag
 from sensor_msgs.msg import CameraInfo
 from .calibration_utils import get_camera_info_for_robot, get_homography_for_robot
 from .ground_projection_geometry import GroundProjectionGeometry

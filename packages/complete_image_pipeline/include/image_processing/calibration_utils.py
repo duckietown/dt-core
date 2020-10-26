@@ -2,13 +2,11 @@ import os
 import shutil
 import time
 
-import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dbu
-import duckietown_rosdata_utils as dru
 import numpy as np
 import yaml
 
 import duckietown_code_utils as dtu
+import duckietown_rosdata_utils as dru
 from sensor_msgs.msg import CameraInfo
 
 

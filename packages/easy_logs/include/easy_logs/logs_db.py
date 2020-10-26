@@ -4,11 +4,8 @@ from dataclasses import replace
 from typing import Dict, List, Union
 
 import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dbu
-import duckietown_rosdata_utils as dru
-import duckietown_code_utils as dtu
 import duckietown_rosbag_utils as dru
-
+import duckietown_rosdata_utils as dru
 from .constants import EasyLogsConstants
 from .logs_structure import physical_log_from_yaml, PhysicalLog, yaml_from_physical_log
 from .resource_desc import create_dtr_version_1, DTR, get_local_filepath, NotLocalPath

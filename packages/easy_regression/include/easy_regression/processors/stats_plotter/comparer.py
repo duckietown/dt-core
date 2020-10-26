@@ -5,6 +5,7 @@ from typing import List
 import numpy as np
 
 import duckietown_code_utils as dtu
+import duckietown_rosdata_utils as dru
 import rospy
 from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface
@@ -75,7 +76,7 @@ def do_comparer_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name)
         bgr = _do_plot(s1, d1, s2, d2)
 
         t_inf = rospy.Time.from_sec(bag_in.get_end_time())
-        omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
+        omsg = dru.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
         otopic = prefix_out + "/" + plot_name + "_%s_%s" % (i, j)
         bag_out.write(otopic, omsg, t=t_inf)
 

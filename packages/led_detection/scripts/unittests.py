@@ -5,7 +5,6 @@ import sys
 from led_detection.LEDDetector import LEDDetector
 
 import duckietown_code_utils as dtu
-import duckietown_rosdata_utils as dru
 from duckietown_rosdata_utils.more import get_ros_package_path
 from led_detection.unit_tests import load_tests
 

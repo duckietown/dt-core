@@ -1,16 +1,18 @@
 import os
 import shutil
 
+import numpy as np
+
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import rosbag
 from easy_algo import get_easy_algo_db
 from easy_algo.algo_db import name_from_spec
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import download_if_necessary
 from easy_logs.logs_structure import PhysicalLog
-from easy_regression.processor_interface import ProcessorUtilsInterface, ProcessorInterface
-import numpy as np
-import rosbag
-from std_msgs.msg import Float64, Int64, Float64MultiArray, MultiArrayDimension, MultiArrayLayout
+from easy_regression.processor_interface import ProcessorInterface, ProcessorUtilsInterface
+from std_msgs.msg import Float64, Float64MultiArray, Int64, MultiArrayDimension, MultiArrayLayout
 
 
 class ProcessorUtils(ProcessorUtilsInterface):
@@ -177,7 +179,7 @@ def process_one_processor(
     t0_rel = t0_absolute - bag0.get_start_time()
     t1_rel = t1_absolute - bag0.get_start_time()
 
-    in_bag =dbu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
+    in_bag = dbu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
 
     utils = ProcessorUtils(bag_out=out_bag, log=log)
     processor.process_log(in_bag, prefix_in, out_bag, prefix_out, utils)

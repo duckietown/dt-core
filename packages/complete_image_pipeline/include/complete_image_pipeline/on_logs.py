@@ -3,6 +3,8 @@ import os
 from quickapp import QuickApp
 
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs
@@ -82,11 +84,11 @@ def look_at(
 
     dtu.logger.info("Vehicle name: %s" % vehicle_name)
 
-    brp =dbu.BagReadProxy(bag)
+    brp = dbu.BagReadProxy(bag)
     rcg = get_robot_camera_geometry_from_log(brp)
 
     topic = dbu.get_image_topic(bag)
-    res = dtu.d8n_read_all_images_from_bag(bag, topic, max_images=1)
+    res = dru.d8n_read_all_images_from_bag(bag, topic, max_images=1)
 
     image_cv = res[0]["rgb"]
 

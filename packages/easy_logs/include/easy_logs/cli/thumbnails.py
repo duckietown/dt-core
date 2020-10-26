@@ -6,7 +6,6 @@ from quickapp import QuickApp
 
 import duckietown_code_utils as dtu
 import duckietown_rosbag_utils as dbu
-import duckietown_rosdata_utils as dru
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs, download_if_necessary

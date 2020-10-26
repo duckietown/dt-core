@@ -3,9 +3,7 @@ import os
 import cv2
 
 import duckietown_code_utils as dtu
-import duckietown_rosbag_utils as dbu
 import duckietown_rosdata_utils as dru
-import duckietown_code_utils as dtu
 from duckietown_code_utils.cli import D8App
 from image_processing.calibration_utils import (
     disable_old_homography,
