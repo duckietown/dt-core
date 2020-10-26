@@ -1,4 +1,6 @@
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
 import rospy
 from complete_image_pipeline.pipeline import run_pipeline
 
@@ -21,16 +23,15 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.all_details = False
 
     def process_log(
-        self, bag_in: dtu.BagReadProxy, prefix_in, bag_out, prefix_out, utils: ProcessorUtilsInterface
+        self, bag_in:dbu.BagReadProxy, prefix_in, bag_out, prefix_out, utils: ProcessorUtilsInterface
     ):
         log_name = utils.get_log().log_name
 
-        vehicle_name = dtu.which_robot(bag_in)
+        vehicle_name = dbu.which_robot(bag_in)
 
         logger.info("Vehicle name: %s" % vehicle_name)
 
-        # noinspection PyTypeChecker
-        topic = dtu.get_image_topic(bag_in)
+        topic = dbu.get_image_topic(bag_in)
 
         rcg = get_robot_camera_geometry_from_log(bag_in)
 
@@ -39,7 +40,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         sequence = bag_in.read_messages_plus(topics=[topic])
         for _i, mp in enumerate(sequence):
 
-            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(mp.msg))
+            bgr = dtu.bgr_from_rgb(dru.rgb_from_ros(mp.msg))
 
             res, stats = run_pipeline(
                 bgr,
@@ -77,7 +78,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             otopic = "all"
 
-            omsg = dtu.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
+            omsg = dru.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
             t = rospy.Time.from_sec(mp.time_absolute)
             dtu.logger.info(("written %r at t = %s" % (otopic, t.to_sec())))
             bag_out.write(prefix_out + "/" + otopic, omsg, t=t)

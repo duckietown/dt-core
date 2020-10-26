@@ -2,7 +2,13 @@ import os
 from collections import namedtuple, OrderedDict
 
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
+import duckietown_code_utils as dtu
 
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
 from sensor_msgs.msg import CompressedImage
 
 __all__ = [
@@ -62,7 +68,7 @@ def load_configuration_baseline():
 
 
 def load_configuration_package_node(package_name: str, node_type_name: str) -> EasyNodeConfig:
-    path = dtu.get_ros_package_path(package_name)
+    path = dru.get_ros_package_path(package_name)
     look_for = "%s.easy_node.yaml" % node_type_name
     found = dtu.locate_files(path, look_for)
     if not found:
@@ -331,7 +337,7 @@ def load_configuration_for_nodes_in_package(package_name: str):
         returns dict node_name -> config
     """
     suffix = ".easy_node.yaml"
-    package_dir = dtu.get_ros_package_path(package_name)
+    package_dir = dru.get_ros_package_path(package_name)
     configs = dtu.locate_files(package_dir, "*" + suffix)
     res = {}
     for c in configs:

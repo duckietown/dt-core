@@ -3,6 +3,9 @@ import os
 import cv2
 
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
+import duckietown_code_utils as dtu
 from duckietown_code_utils.cli import D8App
 from image_processing.calibration_utils import (
     disable_old_homography,
@@ -72,7 +75,7 @@ class CalibrateExtrinsics(D8App):
                     )
                 )
 
-            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
+            bgr = dtu.bgr_from_rgb(dru.rgb_from_ros(img_msg))
             self.info(("Picture taken: %s " % str(bgr.shape)))
 
         else:

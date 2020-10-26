@@ -4,6 +4,9 @@ from dataclasses import replace
 from typing import Dict, List, Union
 
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
+import duckietown_code_utils as dtu
 import duckietown_rosbag_utils as dru
 
 from .constants import EasyLogsConstants

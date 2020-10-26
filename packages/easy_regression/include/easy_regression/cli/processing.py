@@ -177,7 +177,7 @@ def process_one_processor(
     t0_rel = t0_absolute - bag0.get_start_time()
     t1_rel = t1_absolute - bag0.get_start_time()
 
-    in_bag = dtu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
+    in_bag =dbu.BagReadProxy(bag0, t0_rel, t1_rel, bag_absolute_t0_ref=bag_absolute_t0_ref)
 
     utils = ProcessorUtils(bag_out=out_bag, log=log)
     processor.process_log(in_bag, prefix_in, out_bag, prefix_out, utils)

@@ -2,6 +2,9 @@ import os
 import shutil
 import time
 
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
 import numpy as np
 import yaml
 
@@ -47,7 +50,7 @@ def get_homography_info_config_file(robot_name: str) -> str:
     strict = False
     roots = [
         os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
-        os.path.join(dtu.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
+        os.path.join(dru.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
     ]
 
     found = []
@@ -244,7 +247,7 @@ def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
 def get_camera_info_config_file(robot_name: str) -> str:
     roots = [
         os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
-        os.path.join(dtu.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
+        os.path.join(dru.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
     ]
 
     for df in roots:

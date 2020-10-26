@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import cv2
 import numpy as np
-
+import duckietown_rosdata_utils as dru
 import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList
 from image_processing.calibration_utils import get_extrinsics_filename
@@ -166,7 +166,7 @@ def find_ground_coordinates(
 def load_board_info(filename: str = None) -> dict:
     """Load calibration checkerboard info"""
     if filename is None:
-        root = dtu.get_ros_package_path("duckietown")
+        root = dru.get_ros_package_path("duckietown")
         filename = root + "/config/baseline/ground_projection/ground_projection/default.yaml"
 
     if not os.path.isfile(filename):

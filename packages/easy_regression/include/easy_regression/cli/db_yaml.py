@@ -2,6 +2,9 @@ from collections import OrderedDict
 import os
 
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
+import duckietown_code_utils as dtu
 from easy_regression.conditions.result_db import ResultDBEntry
 
 
@@ -23,6 +26,6 @@ def get_unique_filename(rt_name, rdbe):
     d = rdbe.date.replace("-", "")
     basename = rt_name + "_%s_%s_%s.rdbe.yaml" % (d, rdbe.branch, commit)
 
-    dr = dtu.get_ros_package_path("easy_regression")
+    dr = dru.get_ros_package_path("easy_regression")
     filename = os.path.join(dr, "db", rt_name, basename)
     return filename

@@ -16,7 +16,7 @@ class LineDetectorProcessor(ProcessorInterface):
         line_detector = algo_db.create_instance(FAMILY_LINE_DETECTOR, self.line_detector)
         image_prep = algo_db.create_instance("image_prep", self.image_prep)
 
-        vehicle = dtu.which_robot(bag_in)
+        vehicle = dbu.which_robot(bag_in)
         topic = "/%s/camera_node/image/compressed" % vehicle
         context = FakeContext()
         transform = None

@@ -60,7 +60,7 @@ class SingleImagePipeline(D8App):
                 )
                 raise
 
-            bgr = dtu.bgr_from_rgb(dtu.rgb_from_ros(img_msg))
+            bgr = dtu.bgr_from_rgb(dru.rgb_from_ros(img_msg))
             self.info("Picture taken: %s " % str(bgr.shape))
 
         dtu.DuckietownConstants.show_timeit_benchmarks = True

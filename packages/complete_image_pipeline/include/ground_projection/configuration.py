@@ -52,7 +52,7 @@ homography: [-5.828719e-05, -0.0001358896, -0.2350442, 0.001113641, -2.290353e-0
 # def get_homography_info_config_file(robot_name):
 #     strict = False
 #     roots = [os.path.join(dtu.get_duckiefleet_root(), 'calibrations'),
-#              os.path.join(dtu.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
+#              os.path.join(dru.get_ros_package_path('duckietown'), 'config', 'baseline', 'calibration')]
 #
 #     found = []
 #     for df in roots:

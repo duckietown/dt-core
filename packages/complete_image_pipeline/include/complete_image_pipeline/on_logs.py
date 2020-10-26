@@ -78,14 +78,14 @@ def look_at(
 
     bag = rosbag.Bag(filename)
 
-    vehicle_name = dtu.which_robot(bag)
+    vehicle_name = dbu.which_robot(bag)
 
     dtu.logger.info("Vehicle name: %s" % vehicle_name)
 
-    brp = dtu.BagReadProxy(bag)
+    brp =dbu.BagReadProxy(bag)
     rcg = get_robot_camera_geometry_from_log(brp)
 
-    topic = dtu.get_image_topic(bag)
+    topic = dbu.get_image_topic(bag)
     res = dtu.d8n_read_all_images_from_bag(bag, topic, max_images=1)
 
     image_cv = res[0]["rgb"]
