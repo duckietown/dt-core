@@ -92,6 +92,7 @@ def load_tests(filename):
 
     return contents
 
+
 # example YAML:
 #
 # allblinking_test1-argo:

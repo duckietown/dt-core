@@ -70,9 +70,9 @@ def is_match(detection, expected):
     print(("shape is %s, %s" % (W, H)))
     predicates = {
         "position": abs(1.0 * detection.pixels_normalized.x * W - expected["image_coordinates"][0])
-                    < expected["image_coordinates_margin"]
-                    and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
-                    < expected["image_coordinates_margin"],
+        < expected["image_coordinates_margin"]
+        and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
+        < expected["image_coordinates_margin"],
         "frequency": detection.frequency == expected["frequency"],
         # 'timestamps': abs(detection.timestamp1-expected['timestamp1'])<0.1 and
         #              abs(detection.timestamp2-expected['timestamp2'])<0.1

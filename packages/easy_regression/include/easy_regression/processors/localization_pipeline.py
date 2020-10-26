@@ -23,7 +23,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.all_details = False
 
     def process_log(
-        self, bag_in:dbu.BagReadProxy, prefix_in, bag_out, prefix_out, utils: ProcessorUtilsInterface
+        self, bag_in: dbu.BagReadProxy, prefix_in, bag_out, prefix_out, utils: ProcessorUtilsInterface
     ):
         log_name = utils.get_log().log_name
 

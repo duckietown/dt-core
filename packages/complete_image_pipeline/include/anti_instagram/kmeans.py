@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import time
 import duckietown_code_utils as dtu
+
 logger = dtu.logger
 
 # milansc:

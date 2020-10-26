@@ -40,7 +40,6 @@ class Wrapper(RTCheck):
     def __str__(self):
         return self.evaluable.__str__()
 
-
     def check(self, rdb):
         """
             Returns a CheckResult, or raises

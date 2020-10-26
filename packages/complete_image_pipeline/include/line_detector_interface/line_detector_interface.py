@@ -7,8 +7,7 @@ FAMILY_LINE_DETECTOR = "line_detector"
 
 Detections = namedtuple("Detections", ["lines", "normals", "area", "centers"])
 
-__all__ = ['LineDetectorInterface', 'Detections',
-           'FAMILY_LINE_DETECTOR']
+__all__ = ["LineDetectorInterface", "Detections", "FAMILY_LINE_DETECTOR"]
 
 
 class LineDetectorInterface(metaclass=ABCMeta):

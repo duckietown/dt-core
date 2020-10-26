@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import duckietown_rosbag_utils as dbu
+
 print("This simple test reads all images in a log and computes some stats.")
 import sys
 

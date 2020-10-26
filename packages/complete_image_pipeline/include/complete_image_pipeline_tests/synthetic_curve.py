@@ -3,7 +3,8 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_code_utils as dtu
 from complete_image_pipeline_tests.synthetic import dirn, test_synthetic
-logger =dtu.logger
+
+logger = dtu.logger
 from easy_algo import get_easy_algo_db
 from localization_templates import FAMILY_LOC_TEMPLATES, TemplateBeforeCurve
 from localization_templates.template_lane_straight import phi_d_friendly

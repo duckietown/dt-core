@@ -409,7 +409,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         for s, filename_resource in list(base2basename2filename[_base].items()):
             basedot = _base + "."
             if s.startswith(basedot):
-                rest = s[len(basedot):]
+                rest = s[len(basedot) :]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
                     dtr = create_dtr_version_1(filename_resource)

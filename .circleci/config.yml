@@ -56,7 +56,7 @@ jobs:
       - image:  duckietown/dt-ros-commons:daffy-amd64
     environment:
       DUCKIETOWN_DATA: /data
-      DUCKIETOWN_ROOT: /data
+      DUCKIETOWN_ROOT: /
     steps:
 
       - checkout

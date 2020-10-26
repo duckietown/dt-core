@@ -31,7 +31,7 @@ class Copy(D8AppWithLogs):
         logs = db.query(query)
 
         self.info(f"Found {len(logs):d} logs.")
-        outdir = self.options['outdir']
+        outdir = self.options["outdir"]
 
         if outdir is None:
             outdir = "."

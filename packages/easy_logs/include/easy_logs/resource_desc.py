@@ -146,6 +146,6 @@ def get_local_filepath(uri):
         otherwise raise ValueError()"""
     uri_prefix = _file_uri_prefix()
     if uri.startswith(uri_prefix):
-        return uri[len(uri_prefix):]
+        return uri[len(uri_prefix) :]
     else:
         raise NotLocalPath("Not current host: %s" % uri)
