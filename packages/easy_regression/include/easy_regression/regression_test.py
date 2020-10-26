@@ -1,5 +1,6 @@
 import copy
 from collections import namedtuple
+from typing import List, Optional, TypedDict
 
 from contracts.utils import check_isinstance
 
@@ -11,13 +12,29 @@ __all__ = [
     "ChecksWithComment",
 ]
 
+
+class CheckDescription(TypedDict):
+    desc: Optional[str]
+    cond: str
+
+
 ChecksWithComment = namedtuple("ChecksWithComment", ["checks", "comment"])
 
 ProcessorEntry = namedtuple("ProcessorEntry", ["processor", "prefix_in", "prefix_out"])
 
 
 class RegressionTest:
-    def __init__(self, logs, processors=[], analyzers=[], checks=[], topic_videos=[], topic_images=[]):
+    processors: List[ProcessorEntry]
+
+    def __init__(self, logs, processors: Optional[List[object]] = None, analyzers: Optional[List[str]] = None,
+                 checks: Optional[List[str]] = None, topic_videos: Optional[List[str]] = None,
+                 topic_images: Optional[List[str]] = None):
+        processors = processors or []
+        analyzers = analyzers or []
+        checks = checks or []
+        topic_videos = topic_videos or []
+        topic_images = topic_images or []
+
         self.logs = logs
 
         self.processors = []
@@ -45,12 +62,10 @@ class RegressionTest:
             msg += "\n" + dtu.indent(dtu.yaml_dump_pretty(checks), "", "parsing: ")
             dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
-    @dtu.contract(returns="list($ProcessorEntry)")
-    def get_processors(self):
+    def get_processors(self) -> List[ProcessorEntry]:
         return self.processors
 
-    @dtu.contract(returns="list(str)")
-    def get_analyzers(self):
+    def get_analyzers(self) -> List[str]:
         return self.analyzers
 
     def get_logs(self, algo_db):
@@ -74,13 +89,14 @@ class RegressionTest:
         return self.cwcs
 
 
-def parse_list_of_checks(checks):
+def parse_list_of_checks(checks: List[CheckDescription]) -> List[ChecksWithComment]:
     checks = copy.deepcopy(checks)
     cwcs = []
     for c in checks:
-        desc = c.pop("desc", None)
-        cond = c.pop("cond")
-        if c:
+        c2 = dict(c)
+        desc = c2.pop("desc", None)
+        cond = c2.pop("cond")
+        if c2:
             msg = f"Spurious fields: {list(c)}"
             raise ValueError(msg)
         lines = [_.strip() for _ in cond.strip().split("\n") if _.strip()]

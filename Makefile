@@ -106,9 +106,10 @@ tagtest=duckietown/dt-core-test:daffy-devel-AC-cleanup-amd64
 shell:
 	docker run -it $(tag) bash
 
+# -v ${DT_ENV_DEVELOPER}/src/dt-ros-commons/packages:/code/catkin_ws/src/dt-ros-commons/packages \
+
 shell-mount:
 	docker run -it \
-		-v ${DT_ENV_DEVELOPER}/src/dt-ros-commons/packages:/code/catkin_ws/src/dt-ros-commons/packages \
 		-v $(PWD)/Makefile:/code/catkin_ws/src/dt-core/Makefile \
 		-v $(PWD)/packages:/code/catkin_ws/src/dt-core/packages \
 		-v $(PWD)/out:/code/catkin_ws/src/dt-core/out \

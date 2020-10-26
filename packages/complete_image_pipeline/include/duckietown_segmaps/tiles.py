@@ -390,7 +390,7 @@ def _add_rect(
     x2,
     y2,
     id_frame: FrameName,
-    color: str,
+    color: dtu.ColorString,
     use_sides_for_loc: List[Optional[int]],
 ):
     assert x2 > x1
@@ -410,7 +410,7 @@ def _add_rect(
             # note order is important because it should be counterclockwise
             p0 = names[(i + 1) % 4]
             p1 = names[i]
-            segments.append(SegMapSegment(color=c, points=[p0, p1]))
+            segments.append(SegMapSegment(color=c, points=[p0, p1])) # XXX: fixme
 
 
 def _add_rect_tilted(points, faces, segments, x, y, theta, length, width, id_frame, color, use_sides_for_loc):

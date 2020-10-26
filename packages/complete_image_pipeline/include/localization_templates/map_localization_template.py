@@ -12,6 +12,7 @@ FAMILY_LOC_TEMPLATES = "localization_template"
 __all__ = [
     "LocalizationTemplate",
     "FAMILY_LOC_TEMPLATES",
+
 ]
 
 

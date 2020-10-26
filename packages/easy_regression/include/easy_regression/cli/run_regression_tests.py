@@ -1,7 +1,6 @@
 import os
 import shutil
 import time
-from collections import OrderedDict
 
 from bs4.element import Tag
 from quickapp import QuickApp

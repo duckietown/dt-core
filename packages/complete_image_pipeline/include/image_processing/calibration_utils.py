@@ -49,6 +49,7 @@ def get_homography_info_config_file(robot_name: str) -> str:
     roots = [
         os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
         os.path.join(dru.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
+        os.path.join(dru.get_ros_package_path("complete_image_pipeline"), "log-calib-config", "baseline", "calibration"),
     ]
 
     found = []

@@ -1,14 +1,12 @@
-from collections import OrderedDict
 from math import floor
 
+import numpy as np
 from numpy.testing.utils import assert_almost_equal
 from scipy.ndimage.filters import gaussian_filter
-from scipy.stats import multivariate_normal, entropy
+from scipy.stats import entropy, multivariate_normal
 
-from duckietown_msgs.msg import SegmentList
 import duckietown_code_utils as dtu
-import numpy as np
-
+from duckietown_msgs.msg import SegmentList
 from lane_filter_interface import LaneFilterInterface
 from .visualization import plot_phi_d_diagram_bgr
 

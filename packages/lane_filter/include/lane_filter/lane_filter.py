@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from math import floor, sqrt
 
 import numpy as np

@@ -6,9 +6,9 @@ from numpy.testing.utils import assert_almost_equal
 
 import duckietown_code_utils as dtu
 from duckietown_msgs.msg import Segment, SegmentList, Vector2D
-
 from image_processing.ground_projection_geometry import GroundPoint, GroundProjectionGeometry, Point
-from .maps import FRAME_AXLE, SegmentsMap
+from .maps import SegmentsMap
+from .transformations import FRAME_AXLE
 
 
 def rotate(l: List, n: int) -> List:

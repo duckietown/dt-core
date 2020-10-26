@@ -27,7 +27,7 @@ class AmbiguousQuery(Exception):
 
 class ResultDB:
 
-    def __init__(self, current:ResultDBEntry, entries: Sequence[ResultDBEntry]):
+    def __init__(self, current: ResultDBEntry, entries: Sequence[ResultDBEntry]):
         for e in entries:
             dtu.check_isinstance(e, ResultDBEntry)
         self.entries = entries

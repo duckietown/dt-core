@@ -3,6 +3,7 @@ from collections import defaultdict, namedtuple
 import numpy as np
 
 import duckietown_code_utils as dtu
+import duckietown_rosdata_utils as dru
 import rospy
 from easy_regression.cli.processing import interpret_ros
 from easy_regression.processor_interface import ProcessorInterface
@@ -128,6 +129,6 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
     # dtu.write_bgr_as_jpg(bgr, output_filename)
 
     t_inf = rospy.Time.from_sec(bag_in.get_end_time())
-    omsg = dtu.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
+    omsg = dru.d8_compressed_image_from_cv_image(bgr, timestamp=t_inf)
     otopic = prefix_out + "/" + plot_name
     bag_out.write(otopic, omsg, t=t_inf)

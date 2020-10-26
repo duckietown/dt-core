@@ -1,5 +1,5 @@
 import os
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 
 import duckietown_code_utils as dtu
 import duckietown_rosdata_utils as dru
@@ -8,8 +8,10 @@ from sensor_msgs.msg import CompressedImage
 __all__ = [
     "EasyNodeConfig",
     "load_configuration",
+    'PROCESS_THREADED',
+    'PROCESS_VALUES',
+    'PROCESS_SYNCHRONOUS',
 ]
-
 
 EasyNodeConfig = namedtuple(
     "EasyNodeConfig",
@@ -241,7 +243,7 @@ def message_class_from_string(s):
     # e.g. "std_msgs/Header"
     i = s.index("/")
     package = s[:i]
-    name = s[i + 1 :]
+    name = s[i + 1:]
     symbol = f"{package}.msg.{name}"
     try:
         msgclass = dtu.import_name(symbol)
@@ -355,7 +357,7 @@ def format_enc(enc: EasyNodeConfig, descriptions: bool = False) -> str:
 
 
 def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [["name", "type", "default", "description",]]
+    table = [["name", "type", "default", "description", ]]
 
     for p in list(enc.parameters.values()):
         if p.desc:
@@ -377,7 +379,7 @@ def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
 
 
 def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [["name", "type", "topic", "options", "process", "description",]]
+    table = [["name", "type", "topic", "options", "process", "description", ]]
 
     for p in list(enc.subscriptions.values()):
         if p.desc:
@@ -401,7 +403,7 @@ def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
 
 @dtu.contract(enc=EasyNodeConfig, returns=str)
 def format_enc_publishers(enc, descriptions):
-    table = [["name", "type", "topic", "options", "description",]]
+    table = [["name", "type", "topic", "options", "description", ]]
 
     for p in list(enc.publishers.values()):
         if p.desc:

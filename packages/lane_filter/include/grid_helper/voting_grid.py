@@ -9,6 +9,8 @@ import duckietown_code_utils as dtu
 __all__ = [
     "GridHelper",
     "VotingGridVarSpec",
+    "array_as_string",
+    "array_as_string_sign",
 ]
 
 

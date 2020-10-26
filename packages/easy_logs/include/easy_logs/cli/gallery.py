@@ -11,6 +11,8 @@ from easy_logs.resource_desc import DTR
 
 __all__ = [
     "Gallery",
+    "get_gallery_style",
+    "get_report",
 ]
 
 

@@ -16,6 +16,9 @@ __all__ = [
     "SegmentsMap",
     "PointName",
     "plot_map_and_segments",
+    "get_normal_outward_for_segment",
+
+
 ]
 
 PointName = NewType("PointName", str)

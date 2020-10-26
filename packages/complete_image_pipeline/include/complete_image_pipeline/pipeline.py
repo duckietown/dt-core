@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import Dict, Tuple
 
 import cv2
