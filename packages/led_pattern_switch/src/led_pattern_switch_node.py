@@ -27,19 +27,19 @@ class LEDPatternSwitchNode:
                 topic_name, String, self.msgincb, callback_args=src_name
             )
 
-        rospy.loginfo("[%s] Initialized. " % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialized. ")
 
     def cbFSMState(self, fsm_state_msg):
         self.current_src_name = self.mappings.get(fsm_state_msg.state)
         if self.current_src_name is None:
             rospy.logwarn(
-                "[%s] FSMState %s not handled. No msg pass through the switch."
-                % (self.node_name, fsm_state_msg.state)
+                f"[{self.node_name}] FSMState {fsm_state_msg.state} not handled. No msg pass through the "
+                f"switch."
             )
         else:
             rospy.loginfo(
-                "[%s] Led pattern switched to %s in state %s."
-                % (self.node_name, self.current_src_name, fsm_state_msg.state)
+                f"[{self.node_name}] Led pattern switched to {self.current_src_name} in state "
+                f"{fsm_state_msg.state}."
             )
 
     def msgincb(self, msg, src_name):
@@ -52,7 +52,7 @@ class LEDPatternSwitchNode:
         # rospy.loginfo("[%s] %s callback does not match, not publishing"%(self.node_name,src_name))
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
 if __name__ == "__main__":

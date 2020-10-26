@@ -35,11 +35,9 @@ class LocalizationTemplate:
 
             frames = set(_.id_frame for _ in list(self._map.points.values()))
             if frames != {FRAME_GLOBAL}:
-                msg = "Expected that all points in the map %r are in the frame %r." % (
-                    self.tile_name,
-                    FRAME_GLOBAL,
-                )
-                msg += " These are the frames: %s." % frames
+                msg = f"Expected that all points in the map {self.tile_name!r} are in the frame " \
+                      f"{FRAME_GLOBAL!r}."
+                msg += f" These are the frames: {frames}."
                 raise ValueError(msg)
         return self._map
 

@@ -25,7 +25,7 @@ def parse_reference(s):
         TS = [T_DATE, T_BRANCH, T_COMMIT]
 
         if (T_COMMIT in s) and (T_DATE in s):
-            msg = "Cannot specify commit and date: %s" % s
+            msg = f"Cannot specify commit and date: {s}"
             raise RTParseError(msg)
 
         date = None
@@ -45,18 +45,18 @@ def parse_reference(s):
             elif which == T_DATE:
                 s, date_spec = dtu.string_split(s, T_DATE)
                 if not date_spec:
-                    msg = "Invalid date spec %r." % date_spec
+                    msg = f"Invalid date spec {date_spec!r}."
                     raise RTParseError(msg)
                 date = parse_date_spec(date_spec)
             elif which == T_BRANCH:
                 s, branch_spec = dtu.string_split(s, T_BRANCH)
                 if not branch_spec:
-                    msg = "Invalid branch spec %r." % branch_spec
+                    msg = f"Invalid branch spec {branch_spec!r}."
                     raise RTParseError(msg)
             elif which == T_COMMIT:
                 s, commit = dtu.string_split(s, T_COMMIT)
                 if not commit:
-                    msg = "Invalid commit %r." % branch_spec
+                    msg = f"Invalid commit {branch_spec!r}."
                     raise RTParseError(msg)
 
         tokens = s.split("/")
@@ -76,11 +76,11 @@ def parse_reference(s):
         c = yaml.load(s, Loader=yaml.UnsafeLoader)
         if isinstance(c, str) and "/" in c:
             msg = 'The syntax is "v:analyzer/log/statistic"'
-            msg += "\nInvalid string: %r" % c
+            msg += f"\nInvalid string: {c!r}"
             raise RTParseError(msg)
         return Constant(c)
     except yaml.YAMLError:
-        msg = "Could not parse reference %s." % s.__repr__()
+        msg = f"Could not parse reference {s!r}."
         raise RTParseError(msg)
 
 
@@ -90,7 +90,7 @@ def parse_date_spec(d: str) -> datetime:
     try:
         return parse(d)
     except ValueError as e:
-        msg = "Cannot parse date %s." % d.__repr__()
+        msg = f"Cannot parse date {d!r}."
         dtu.raise_wrapped(RTParseError, e, msg, compact=True)
 
 
@@ -104,13 +104,7 @@ class StatisticReference(Evaluable):
         self.commit = commit
 
     def __str__(self):
-        return "StatisticReference(%s,%s,%s,%s,%s)" % (
-            self.analyzer,
-            self.log,
-            self.statistic,
-            self.branch,
-            self.date,
-        )
+        return f"StatisticReference({self.analyzer},{self.log},{self.statistic},{self.branch},{self.date})"
 
     def eval(self, rdb):
         db_entry = rdb.query_results_one(branch=self.branch, date=self.date, commit=self.commit)
@@ -144,4 +138,4 @@ class Constant(Evaluable):
         return self.x
 
     def __repr__(self):
-        return "Constant(%s)" % self.x.__repr__()
+        return f"Constant({self.x!r})"

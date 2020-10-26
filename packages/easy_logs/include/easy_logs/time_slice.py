@@ -17,7 +17,7 @@ class MakeTimeSlice(dtu.Spec):
         self.t1 = t1
 
     def __str__(self):
-        s = "MakeTimeSlice  { %s : %s }" % (self.t0, self.t1)
+        s = f"MakeTimeSlice  {{ {self.t0} : {self.t1} }}"
         s += "\n" + dtu.indent(str(self.children[0]), "  ")
         return s
 
@@ -55,10 +55,10 @@ class MakeTimeSlice(dtu.Spec):
         #         B = '%d'%self.t1*100 if self.t1 is not None else "END"
         #
         #         id_log2 = id_log + '_from%sto%s' % (A,B)
-        A = "%d" % (new_start * 100)
-        B = "%d" % (new_end * 100)
+        A = f"{new_start * 100:d}"
+        B = f"{new_end * 100:d}"
 
-        id_log2 = id_log + "_from%sto%s" % (A, B)
+        id_log2 = id_log + f"_from{A}to{B}"
         log2 = replace(log, t0=new_start, t1=new_end, length=length)
         return id_log2, log2
 

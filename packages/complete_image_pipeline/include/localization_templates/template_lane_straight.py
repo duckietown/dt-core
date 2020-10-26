@@ -7,7 +7,7 @@ __all__ = ["TemplateStraight"]
 
 
 def phi_d_friendly(res):
-    return "phi: %s deg  d: %s m" % (np.rad2deg(res["phi"]), res["d"])
+    return f"phi: {np.rad2deg(res['phi'])} deg  d: {res['d']} m"
 
 
 class TemplateStraight(LocalizationTemplate):

@@ -146,7 +146,7 @@ class LaneControllerNode(DTROS):
             self.current_pose_source = "lane_filter"
 
         if self.params["~verbose"] == 2:
-            self.log("Pose source: %s" % self.current_pose_source)
+            self.log(f"Pose source: {self.current_pose_source}")
 
     def cbAllPoses(self, input_pose_msg, pose_source):
         """Callback receiving pose messages from multiple topics.

@@ -62,7 +62,7 @@ class ConfigDB:
         known = node_config.parameters
         for k in c.values:
             if k not in known:
-                msg = 'The parameter "%s" is not known.\nKnown: %s.' % (k, sorted(known))
+                msg = f'The parameter "{k}" is not known.\nKnown: {sorted(known)}.'
                 raise ValidationError(msg)
 
     def find(self, package_name: str, node_name: str, config_name, date):
@@ -85,22 +85,18 @@ class ConfigDB:
     def resolve(self, package_name: str, node_name: str, config_sequence: Union[list, tuple], date=None):
         """ Returns a QueryResult """
         if len(config_sequence) == 0:
-            msg = "Invalid empty config_sequence while querying for %s/%s" % (package_name, node_name)
+            msg = f"Invalid empty config_sequence while querying for {package_name}/{node_name}"
             raise ValueError(msg)
         values = {}
         origin = {}
         origin_filename = {}
 
         if not package_name in self.package2nodes:
-            msg = 'Could not find package "%s"; I know %s.' % (package_name, sorted(self.package2nodes))
+            msg = f'Could not find package "{package_name}"; I know {sorted(self.package2nodes)}.'
             raise dtu.DTConfigException(msg)
         nodes = self.package2nodes[package_name]
         if not node_name in nodes:
-            msg = 'Could not find node "%s" in package "%s"; I know %s.' % (
-                node_name,
-                package_name,
-                sorted(nodes),
-            )
+            msg = f'Could not find node "{node_name}" in package "{package_name}"; I know {sorted(nodes)}.'
             raise dtu.DTConfigException(msg)
 
         node_config = nodes[node_name]
@@ -132,11 +128,8 @@ class ConfigDB:
                         origin[k] = config_name
 
         if not using:
-            msg = "Cannot find any configuration for %s/%s with config sequence %s" % (
-                package_name,
-                node_name,
-                ":".join(config_sequence),
-            )
+            msg = f"Cannot find any configuration for {package_name}/{node_name} with config sequence " \
+                  f"{':'.join(config_sequence)}"
             raise dtu.DTConfigException(msg)
 
         return QueryResult(
@@ -168,8 +161,8 @@ class QueryResult:
         return len(self.all_keys) == len(self.values)
 
     def __str__(self):
-        s = "Configuration result for node `%s` (package `%s`)" % (self.node_name, self.package_name)
-        s += "\nThe configuration sequence was %s." % list(self.config_sequence)
+        s = f"Configuration result for node `{self.node_name}` (package `{self.package_name}`)"
+        s += f"\nThe configuration sequence was {list(self.config_sequence)}."
         s += "\nThe following is the list of parameters set and their origin:"
         s += "\n" + dtu.indent(config_summary(self.all_keys, self.values, self.origin), "  ")
         return s

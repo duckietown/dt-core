@@ -26,7 +26,7 @@ class LineDetectorNode2(EasyNode):
     def on_parameters_changed(self, _first_time, updated):
 
         if "verbose" in updated:
-            self.info("Verbose is now %r" % self.config.verbose)
+            self.info(f"Verbose is now {self.config.verbose!r}")
 
         if "line_detector" in updated:
             db = get_easy_algo_db()
@@ -52,7 +52,7 @@ class LineDetectorNode2(EasyNode):
             try:
                 image_cv = dtu.bgr_from_jpg(image_msg.data)
             except ValueError as e:
-                self.error("Could not decode image: %s" % e)
+                self.error(f"Could not decode image: {e}")
                 return
 
         with context.phase("resizing"):
@@ -128,17 +128,17 @@ class LineDetectorNode2(EasyNode):
 
             with context.phase("published-images"):
                 # Publish the frame with lines
-                out = dtu.d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
+                out = dru.d8n_image_msg_from_cv_image(image_with_lines, "bgr8", same_timestamp_as=image_msg)
                 self.publishers.image_with_lines.publish(out)
 
             with context.phase("pub_edge/pub_segment"):
-                out = dtu.d8n_image_msg_from_cv_image(
+                out = dru.d8n_image_msg_from_cv_image(
                     self.detector.edges, "mono8", same_timestamp_as=image_msg
                 )
                 self.publishers.edge.publish(out)
 
                 colorSegment = color_segment(white.area, red.area, yellow.area)
-                out = dtu.d8n_image_msg_from_cv_image(colorSegment, "bgr8", same_timestamp_as=image_msg)
+                out = dru.d8n_image_msg_from_cv_image(colorSegment, "bgr8", same_timestamp_as=image_msg)
                 self.publishers.color_segment.publish(out)
 
         if self.intermittent_log_now():
@@ -150,7 +150,7 @@ class LineDetectorNode2(EasyNode):
     def intermittent_log(self, s):
         if not self.intermittent_log_now():
             return
-        self.info("%3d:%s" % (self.intermittent_counter, s))
+        self.info(f"{self.intermittent_counter:3d}:{s}")
 
 
 def toSegmentMsg(lines, normals, color):

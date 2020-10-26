@@ -132,7 +132,7 @@ class LEDDetectorNode(DTROS):
             # Start processing
             elif not self.capture_finished and self.first_timestamp > 0:
                 if self.params["~verbose"] == 2:
-                    self.log("Relative Time %s, processing" % rel_time)
+                    self.log(f"Relative Time {rel_time}, processing")
                 self.node_state = 2
                 self.capture_finished = True
                 self.first_timestamp = 0
@@ -189,7 +189,7 @@ class LEDDetectorNode(DTROS):
 
         # Print on screen
         if self.params["~verbose"] == 2:
-            self.log("Analyzing %s images of size %s X %s" % (num_img, w, h))
+            self.log(f"Analyzing {num_img} images of size {w} X {h}")
 
         # Get blobs right
         blobs_right, frame_right = self.detector.find_blobs(img_right, "car")
@@ -293,8 +293,8 @@ class LEDDetectorNode(DTROS):
         # Print performance
         if self.params["~verbose"] == 2:
             self.log(
-                "[%s] Detection completed. Processing time: %.2f s. Total time:  %.2f s"
-                % (self.node_name, processing_time, total_time)
+                f"[{self.node_name}] Detection completed. Processing time: {processing_time:.2f} s. Total "
+                f"time:  {total_time:.2f} s"
             )
 
         # Keep going

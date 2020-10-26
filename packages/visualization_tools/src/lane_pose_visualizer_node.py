@@ -13,7 +13,7 @@ class LanePoseVisualizer(DTROS):
 
         # Get vehicle name from namespace
         self.veh_name = rospy.get_namespace().strip("/")
-        rospy.loginfo("[%s] Vehicle name: %s" % (self.node_name, self.veh_name))
+        rospy.loginfo(f"[{self.node_name}] Vehicle name: {self.veh_name}")
 
         # Setup publisher
         self.pub_markers = rospy.Publisher(
@@ -23,7 +23,7 @@ class LanePoseVisualizer(DTROS):
         # Setup subscriber
         self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose, self.cbLanePose, queue_size=1)
 
-        rospy.loginfo("[%s] Initialzed." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzed.")
 
     def cbLanePose(self, lane_pose_msg):
         marker_array = MarkerArray()
@@ -69,7 +69,7 @@ class LanePoseVisualizer(DTROS):
         return marker
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
 if __name__ == "__main__":

@@ -14,4 +14,4 @@ class Find(GenericLogDisplay):
                 filename = get_local_bag_file(log)
                 print(filename)
             except NotAvailableLocally:
-                dtu.logger.error("No local file for %s" % id_log)
+                dtu.logger.error(f"No local file for {id_log}")

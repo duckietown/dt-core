@@ -68,12 +68,12 @@ class AntiInstagramNode(DTROS):
             try:
                 image = self.bridge.compressed_imgmsg_to_cv2(self.image_msg, "bgr8")
             except ValueError as e:
-                self.log("Anti_instagram cannot decode image: %s" % e)
+                self.log(f"Anti_instagram cannot decode image: {e}")
         return image
 
     def calculate_new_parameters(self, event):
         if self.image_msg is None:
-            self.log("[%s] Waiting for first image!")
+            self.log("Waiting for first image!")
             return
         image = self.decode_image_msg()
         (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(

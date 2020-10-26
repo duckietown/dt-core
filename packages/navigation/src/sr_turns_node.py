@@ -12,7 +12,7 @@ class SRTurnsNode:
         self.node_name = rospy.get_name()
         self.turn_type = -1
 
-        rospy.loginfo("[%s] Initialzing." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzing.")
 
         # Setup publishers
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)
@@ -20,7 +20,7 @@ class SRTurnsNode:
         # Setup subscribers
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
 
-        rospy.loginfo("[%s] Initialzed." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialized.")
 
         self.rate = rospy.Rate(30)  # 10hz
 
@@ -36,15 +36,15 @@ class SRTurnsNode:
                 chosenTurn = availableTurns[randomIndex]
                 self.turn_type = chosenTurn
                 self.pub_turn_type.publish(self.turn_type)
-                rospy.loginfo("[%s] possible turns %s." % (self.node_name, availableTurns))
-                rospy.loginfo("[%s] Turn type now: %i" % (self.node_name, self.turn_type))
+                rospy.loginfo(f"[{self.node_name}] possible turns {availableTurns}.")
+                rospy.loginfo(f"[{self.node_name}] Turn type now: {self.turn_type:d}")
         else:
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
-            rospy.loginfo("[%s] Turn type: %i" % (self.node_name, self.turn_type))
+            rospy.loginfo(f"[{self.node_name}] Turn type: {self.turn_type:d}")
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
 if __name__ == "__main__":

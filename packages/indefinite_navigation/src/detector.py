@@ -123,7 +123,7 @@ class StaticObjectDetectorNode:
         self.pub_turns = rospy.Publisher("~turned", Bool, queue_size=1)
         self.bridge = CvBridge()
 
-        rospy.loginfo("[%s] Initialized." % (self.name))
+        rospy.loginfo(f"[{self.name}] Initialized.")
 
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
@@ -137,7 +137,7 @@ class StaticObjectDetectorNode:
         crossing, turns = self.turn_counter.cbmsg(center)
         if crossing:
             # only trigger if it's been awhile
-            rospy.loginfo("Crossing.  %d turn" % turns)
+            rospy.loginfo(f"Crossing.  {turns:d} turn")
             self.pub_turns.publish(Bool(data=True))
         self.pub_ibvs.publish(Float32(data=center))
 

@@ -35,7 +35,7 @@ class ActionsDispatcherNode:
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        rospy.loginfo(f"[{self.node_name}] {param_name} = {value} ")
         return value
 
     def updateMode(self, data):
@@ -96,7 +96,7 @@ class ActionsDispatcherNode:
             else:
                 print(("Actions to be executed:", self.actions))
         except rospy.ServiceException as e:
-            print(("Service call failed: %s" % e))
+            print((f"Service call failed: {e}"))
 
     def pubLocalized(self):
         msg = BoolStamped()

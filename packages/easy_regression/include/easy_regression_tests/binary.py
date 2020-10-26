@@ -22,8 +22,8 @@ def parse_binary_check_bad():
             pass
         else:
             msg = "Expected DTParseError."
-            msg += "\nString: %r" % b
-            msg += "\nReturns: %s" % res
+            msg += f"\nString: {b!r}"
+            msg += f"\nReturns: {res}"
             raise Exception(msg)
 
 

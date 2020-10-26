@@ -30,7 +30,7 @@ class ResultWithDescription:
         return self.value
 
     def __str__(self):
-        return "%s { %s }" % (self.value, self.desc)
+        return f"{self.value} {{ {self.desc} }}"
 
 
 class Wrapper(RTCheck):
@@ -38,7 +38,7 @@ class Wrapper(RTCheck):
         self.evaluable = evaluable
 
     def __str__(self):
-        return self.evaluable.__str__()
+        return self.evaluable.__str__
 
     def check(self, rdb):
         """
@@ -50,7 +50,7 @@ class Wrapper(RTCheck):
         try:
             res = self.evaluable.eval(rdb)
             if not isinstance(res, ResultWithDescription):
-                msg = "Expected ResultWithDescription, obtained %s" % res.__repr__()
+                msg = f"Expected ResultWithDescription, obtained {res.__repr__()}"
                 return CheckResult(status=RTCheck.ABNORMAL, summary="Invalid test", details=msg)
             if res.__bool__() == True:
                 return CheckResult(status=RTCheck.OK, summary="OK", details=res.desc)
@@ -77,7 +77,7 @@ class BinaryEval(Evaluable):
             try:
                 yield
             except EvaluationError as e:
-                msg = "Cannot evaluate binary operation: error during %s" % m
+                msg = f"Cannot evaluate binary operation: error during {m}"
                 msg += "\n" + str(self)
                 dtu.raise_wrapped(EvaluationError, e, msg, compact=True)
 

@@ -1,6 +1,8 @@
 import os
+from typing import cast
 
 import duckietown_code_utils as dtu
+import duckietown_rosdata_utils as dru
 from duckietown_code_utils.cli import D8App
 from .pipeline import run_pipeline
 
@@ -28,7 +30,7 @@ class SingleImagePipeline(D8App):
         output = self.options.output
         if output is None:
             output = "out/pipeline"  # + dtu.get_md5(self.options.image)[:6]
-            self.info("No --output given, using %s" % output)
+            self.info(f"No --output given, using {output}")
 
         # noinspection PyUnresolvedReferences
         opt_image = self.options.image
@@ -49,19 +51,20 @@ class SingleImagePipeline(D8App):
 
             # Dummy to get ROS message
             rospy.init_node("single_image")
-            img_msg = None
+
             try:
-                img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
+                img_msg = cast(CompressedImage,
+                               rospy.wait_for_message(topic_name, CompressedImage, timeout=10))
                 self.info("Image captured")
             except rospy.ROSException as e:
                 self.info(
-                    "\n\n\nDidn't get any message: %s\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION "
-                    "4.1.9 OR HIGHER!\n\n\n" % (e,)
+                    f"\n\n\nDidn't get any message: {e}\n MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION "
+                    "4.1.9 OR HIGHER!\n\n\n"
                 )
                 raise
 
             bgr = dtu.bgr_from_rgb(dru.rgb_from_ros(img_msg))
-            self.info("Picture taken: %s " % str(bgr.shape))
+            self.info(f"Picture taken: {str(bgr.shape)} ")
 
         dtu.DuckietownConstants.show_timeit_benchmarks = True
         res, _stats = run_pipeline(bgr)

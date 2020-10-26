@@ -6,7 +6,7 @@ class NodeNotInGraph(Exception):
         self.node = node
 
     def __str__(self):
-        return "Node %s not in graph." % self.node
+        return f"Node {self.node} not in graph."
 
 
 class Edge:
@@ -17,7 +17,7 @@ class Edge:
         self.action = action
 
     def __hash__(self):
-        return hash("%s_%s_%f_%s" % (self.source, self.target, self.weight, self.action))
+        return hash(f"{self.source}_{self.target}_{self.weight:f}_{self.action}")
 
     def __eq__(self, other):
         return (
@@ -28,7 +28,7 @@ class Edge:
         )
 
     def __repr__(self):
-        return "Edge(%r,%r,%r,%r)" % (self.source, self.target, self.weight, self.action)
+        return f"Edge({self.source!r},{self.target!r},{self.weight!r},{self.action!r})"
 
 
 class Graph:
@@ -96,7 +96,7 @@ class Graph:
 
         for node in self._nodes:
             node_name = self.node_label_fn(node)
-            node_pos = "%f,%f!" % (self.node_positions[node][0], self.node_positions[node][1])
+            node_pos = f"{self.node_positions[node][0]:f},{self.node_positions[node][1]:f}!"
             if highlight_nodes and node == target_node:
                 g.node(name=node_name, pos=node_pos, color="magenta", shape="circle")  # green
             elif highlight_nodes and node == start_node:

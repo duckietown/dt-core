@@ -50,7 +50,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
 
         topic_fqn = prefix_in + signal_spec.topic
         if not topic_fqn in topic2messages:
-            msg = "Could not found any value for topic %r." % topic_fqn
+            msg = f"Could not found any value for topic {topic_fqn!r}."
             raise ValueError(msg)
 
     bgcolor = dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW
@@ -97,7 +97,7 @@ def do_plot(bag_in, prefix_in, bag_out, prefix_out, signals, plot_name):
             )
 
             if not use_legend:
-                label = "%s [%s]" % (signal_spec.label, signal_spec.units_display)
+                label = f"{signal_spec.label} [{signal_spec.units_display}]"
                 ax.set_ylabel(label, color=signal_spec.color)
                 ax.tick_params("y", colors=color)
 

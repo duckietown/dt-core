@@ -26,7 +26,7 @@ class EasyNode:
         rospy.init_node(node_type_name, anonymous=False)
 
     def _msg(self, msg):
-        return "%s | %s" % (self.node_type_name, msg)
+        return f"{self.node_type_name} | {msg}"
 
     def info(self, msg):
         msg = self._msg(msg)
@@ -44,7 +44,7 @@ class EasyNode:
         self.info("on_init (default)")
 
     def on_parameters_changed(self, first_time, changed):
-        self.info("(default) First: %s Parameters changed: %s" % (first_time, changed))
+        self.info(f"(default) First: {first_time} Parameters changed: {changed}")
 
     def on_shutdown(self):
         self.info("on_shutdown (default)")
@@ -88,13 +88,13 @@ class EasyNode:
             sp = SubscriberProxy(S)
             setattr(self.subscribers, s.name, sp)
 
-            self.info("Subscribed to %s" % s.topic)
+            self.info(f"Subscribed to {s.topic}")
             if s.process == PROCESS_THREADED:
                 sp.init_threaded()
 
     def _sub_callback(self, subscription, subscriber_proxy, data):
         subscriber_proxy.pts.received_message(data)
-        callback_name = "on_received_%s" % subscription.name
+        callback_name = f"on_received_{subscription.name}"
         if hasattr(self, callback_name):
             if subscription.process == PROCESS_SYNCHRONOUS:
                 # Call directly
@@ -111,7 +111,7 @@ class EasyNode:
                 assert False, subscription.process
         else:
             subscriber_proxy.pts.decided_to_skip()
-            self.info("No callback %r defined." % callback_name)
+            self.info(f"No callback {callback_name!r} defined.")
 
     def _get_context(self, subscription):
         class Context:
@@ -169,11 +169,11 @@ class EasyNode:
         class Config:
             def __getattr__(self, name):
                 if not name in parameters:
-                    msg = "The user is trying to use %r, which is not a parameter " % name
+                    msg = f"The user is trying to use {name!r}, which is not a parameter "
                     msg += "for this node.\n"
-                    msg += "The declared parameters that can be used are:\n- %s" % "\n- ".join(
-                        list(parameters)
-                    )
+                    s =  "\n- ".join( list(parameters)
+                    msg += f"The declared parameters that can be used are:\n- {s}"
+
                     raise AttributeError(msg)
                 return object.__getattr__(self, name)
 
@@ -188,15 +188,15 @@ class EasyNode:
         if not qr.is_complete():
             msg = "\nThe configuration that I could load is not complete:\n"
             msg += dtu.indent(str(qr), "   | ")
-            msg = dtu.indent(msg, "%s / %s fatal error >  " % (self.package_name, self.node_type_name))
+            msg = dtu.indent(msg, f"{self.package_name} / {self.node_type_name} fatal error >  ")
             raise dtu.DTConfigException(msg)
-        self.info("Loaded configuration:\n%s" % qr)
+        self.info(f"Loaded configuration:\n{qr}")
 
         for p in list(parameters.values()):
             try:
                 val = qr.values.get(p.name)
             except KeyError:
-                msg = "Could not load required parameter %r." % p.name
+                msg = f"Could not load required parameter {p.name!r}."
                 raise dtu.DTConfigException(msg)
 
             # write to parameter server, for transparency
@@ -272,7 +272,7 @@ class UpdatedParameters(UserDict):
     def __contains__(self, x):
         if self.allowed is not None:
             if not x in self.allowed:
-                msg = "The user is trying to check that a parameter %r was updated, " % x
-                msg += "however, no such parameter was declared (the declared ones were: %s)." % self.allowed
+                msg = f"The user is trying to check that a parameter {x!r} was updated, "
+                msg += f"however, no such parameter was declared (the declared ones were: {self.allowed})."
                 raise ValueError(msg)
         return UserDict.__contains__(self, x)

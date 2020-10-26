@@ -4,7 +4,6 @@ from quickapp import QuickApp
 
 import duckietown_code_utils as dtu
 import duckietown_rosbag_utils as dbu
-import duckietown_rosdata_utils as dru
 import rosbag
 from easy_logs import get_local_bag_file
 from easy_logs.app_with_logs import D8AppWithLogs
@@ -43,24 +42,17 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         else:
             query = extra
         logs = db.query(query)
+        output = self.options['output']
+        line_detector = self.options['line_detector']
+        image_prep = self.options['image_prep']
+        lane_filter = self.options['lane_filter']
+        anti_instagram = self.options['anti_instagram']
+        all_details = self.options['details']
 
-        # noinspection PyUnresolvedReferences
-        output = self.options.output
-        # noinspection PyUnresolvedReferences
-        line_detector = self.options.line_detector
-        # noinspection PyUnresolvedReferences
-        image_prep = self.options.image_prep
-        # noinspection PyUnresolvedReferences
-        lane_filter = self.options.lane_filter
-        # noinspection PyUnresolvedReferences
-        anti_instagram = self.options.anti_instagram
-        # noinspection PyUnresolvedReferences
-        all_details = self.options.details
-
-        self.info("anti_instagram: %s" % anti_instagram)
-        self.info("image_prep: %s" % image_prep)
-        self.info("line_detector: %s" % line_detector)
-        self.info("lane_filter: %s" % lane_filter)
+        self.info(f"anti_instagram: {anti_instagram}")
+        self.info(f"image_prep: {image_prep}")
+        self.info(f"line_detector: {line_detector}")
+        self.info(f"lane_filter: {lane_filter}")
 
         for k, log in list(logs.items()):
             d = os.path.join(output, k)
@@ -82,13 +74,13 @@ def look_at(
 
     vehicle_name = dbu.which_robot(bag)
 
-    dtu.logger.info("Vehicle name: %s" % vehicle_name)
+    dtu.logger.info(f"Vehicle name: {vehicle_name}")
 
     brp = dbu.BagReadProxy(bag)
     rcg = get_robot_camera_geometry_from_log(brp)
 
     topic = dbu.get_image_topic(bag)
-    res = dru.d8n_read_all_images_from_bag(bag, topic, max_images=1)
+    res = dbu.d8n_read_all_images_from_bag(bag, topic, max_images=1)
 
     image_cv = res[0]["rgb"]
 

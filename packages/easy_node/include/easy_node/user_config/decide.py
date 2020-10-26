@@ -14,13 +14,13 @@ def get_config_sequence() -> Tuple[str, ...]:
     from easy_node.easy_node import EasyNode
 
     if not EasyNode.ENV in os.environ:
-        msg = 'Could not find the environment variable "%s".' % EasyNode.ENV
+        msg = f'Could not find the environment variable "{EasyNode.ENV}".'
         raise dtu.DTConfigException(msg)
 
     s = os.environ[EasyNode.ENV]
     tokens = [_ for _ in s.split(":") if _.strip()]
     if not tokens:
-        msg = "The variable %s is empty." % EasyNode.ENV
+        msg = f"The variable {EasyNode.ENV} is empty."
         raise dtu.DTConfigException(msg)
 
     return tuple(tokens)

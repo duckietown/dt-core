@@ -261,7 +261,7 @@ class LEDWindow(QWidget):
     def mousePressEvent(self, event):
         click_img_coord = event.pos() - QPoint(self.frametl[0], self.frametl[1])
         click_img_coord = 1.0 * click_img_coord / self.imagescale
-        print(("Clicked point: %s" % click_img_coord))
+        print(f"Clicked point: {click_img_coord}")
         mindist = float("inf")
         closest = None
         W = self.camera_image.width()

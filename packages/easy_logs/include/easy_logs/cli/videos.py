@@ -66,7 +66,7 @@ For example:
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info("Found %d logs." % len(logs))
+        self.info(f"Found {len(logs):d} logs.")
         logs_valid = {}
         for log_name, log in list(logs.items()):
             if log.valid:
@@ -78,10 +78,10 @@ For example:
         for log_name, log in list(logs_valid.items()):
             out = os.path.join(outdir, log_name)
 
-            job_id = "download-%s" % log.log_name
+            job_id = f"download-{log.log_name}"
             log_downloaded = context.comp(download_if_necessary, log, job_id=job_id)
 
-            job_id = "setup-%s" % log_name
+            job_id = f"setup-{log_name}"
             context.comp_dynamic(jobs_videos, log_downloaded, log_name, out, only_camera, job_id=job_id)
 
 
@@ -105,13 +105,8 @@ def jobs_videos(context, log, name, outd, only_camera):
 
         assert count >= min_messages
         if actual_count < min_messages:
-            msg = "There are only %d (out of %d) in the slice [%s, %s]" % (
-                actual_count,
-                count,
-                log.t0,
-                log.t1,
-            )
-            msg += "\n topic: %s" % topic
+            msg = f"There are only {actual_count:d} (out of {count:d}) in the slice [{log.t0}, {log.t1}]"
+            msg += f"\n topic: {topic}"
             continue
 
         d = topic.replace("/", "_")
@@ -129,13 +124,13 @@ def jobs_videos(context, log, name, outd, only_camera):
                 out,
                 t0=log.t0,
                 t1=log.t1,
-                job_id="%s-%s" % (name, topic),
+                job_id=f"{name}-{topic}",
             )
 
         else:
             out = os.path.join(outd, name + "-" + d + ".mp4")
             j = context.comp(
-                dbu.d8n_make_video_from_bag, filename, topic, out, job_id="%s-%s" % (name, topic)
+                dbu.d8n_make_video_from_bag, filename, topic, out, job_id=f"{name}-{topic}"
             )
 
             # create link

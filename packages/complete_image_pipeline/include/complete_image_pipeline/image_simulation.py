@@ -40,7 +40,7 @@ def simulate_image(
 
     frames = list(set(_.id_frame for _ in list(sm_orig.points.values())))
     id_frame = frames[0]
-    dtu.logger.debug("frames: %s choose %s" % (frames, id_frame))
+    dtu.logger.debug(f"frames: {frames} choose {id_frame}")
 
     tinfo.add_transformation(frame1=id_frame, frame2=FRAME_AXLE, g=pose)
 

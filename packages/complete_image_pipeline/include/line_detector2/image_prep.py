@@ -17,7 +17,7 @@ class ImagePrep:
         self.resampling_algorithm = resampling_algorithm
         allowed = ["nearest", "linear"]
         if not resampling_algorithm in allowed:
-            msg = "Good values for resampling_algorithm: %s, not %r." % (allowed, resampling_algorithm)
+            msg = f"Good values for resampling_algorithm: {allowed}, not {resampling_algorithm!r}."
             raise ValueError(msg)
 
     def process(self, context, image_cv, line_detector, transform):
@@ -25,11 +25,11 @@ class ImagePrep:
 
         shape = image_cv.shape
         if len(shape) != 3:
-            msg = "Expected shape with 3 elements, got %s" % shape.__repr__()
+            msg = f"Expected shape with 3 elements, got {shape.__repr__()}"
             raise ValueError(msg)
 
         self.image_cv = image_cv
-        with context.phase("resizing (method: %s)" % self.resampling_algorithm):
+        with context.phase(f"resizing (method: {self.resampling_algorithm})"):
             # Resize and crop image
             h0, w0 = image_cv.shape[0:2]
             h1, w1 = self.shape

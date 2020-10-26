@@ -66,7 +66,7 @@ Use like this:
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info("Found %d logs." % len(logs))
+        self.info(f"Found {len(logs):d} logs.")
         logs_valid = {}
         for log_name, log in list(logs.items()):
             if log.valid:
@@ -111,7 +111,7 @@ def work(log, outd, max_images, only_camera, write_frames):
 
     topics = [_ for _, __ in dbu.d8n_get_all_images_topic_bag(bag)]
     bag.close()
-    dtu.logger.debug("%s - topics: %s" % (filename, topics))
+    dtu.logger.debug(f"{filename} - topics: {topics}")
     for topic in topics:
 
         if only_camera and topic != main:
@@ -120,7 +120,7 @@ def work(log, outd, max_images, only_camera, write_frames):
         try:
             bag = rosbag.Bag(filename)
         except:
-            msg = "Cannot read Bag file %s" % filename
+            msg = f"Cannot read Bag file {filename}"
             dtu.logger.error(msg)
             raise
         bag_proxy = dbu.BagReadProxy(bag, t0, t1)
@@ -145,14 +145,14 @@ def work(log, outd, max_images, only_camera, write_frames):
                 rgb = dtu.zoom_image(rgb, zoom)
 
             timestamp = res[i]["timestamp"]
-            s = "t = %.2f" % (timestamp - t0)
+            s = f"t = {timestamp - t0:.2f}"
             with_label = dtu.add_header_to_rgb(rgb, s)
             images_with_label.append(with_label)
 
         if write_frames:
             for i, rgb in enumerate(images_with_label):
                 rgb = res[i]["rgb"]
-                fn = os.path.join(d0, ("image-%05d" % i) + ".jpg")
+                fn = os.path.join(d0, f"image-{i:05d}" + ".jpg")
                 dtu.write_bgr_as_jpg(dtu.bgr_from_rgb(rgb), fn)
 
         grid = dtu.make_images_grid(

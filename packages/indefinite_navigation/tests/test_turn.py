@@ -47,12 +47,12 @@ class IndefNavigationTurnNode(unittest.TestCase):
         self.turn_forward_serv = rospy.ServiceProxy(forward_service, Empty)
 
         self.rate = rospy.Rate(30)  # 10hz
-        rospy.loginfo("[%s] Initialized." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialized.")
 
     def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        rospy.loginfo(f"[{self.node_name}] {param_name} = {value} ")
         return value
 
     def cbLane(self, data):
@@ -92,7 +92,7 @@ class IndefNavigationTurnNode(unittest.TestCase):
         stop.omega = 0
         startTime = rospy.Time.now()
         end_time = startTime + rospy.Duration.from_sec(1)
-        rospy.loginfo("start_time = %s, end_time=%s" % (startTime, end_time))
+        rospy.loginfo(f"start_time = {startTime}, end_time={end_time}")
         while rospy.Time.now() < end_time:
             self.pub_wheels.publish(stop)
             rospy.sleep(0.1)
@@ -113,24 +113,16 @@ class IndefNavigationTurnNode(unittest.TestCase):
         if abs(off_d) < 0.08:
             result_trim = "PASSED"
 
-        info = """
+        info = f"""
         TURN RESULT
         ===================
-        Goal location is (%.4f, %.4f), 
-        final location is (%.4f, %.4f).
+        Goal location is ({init_d:.4f}, {init_phi:.4f}), 
+        final location is ({final_d:.4f}, {final_phi:.4f}).
         
-        distance offset = %.4f
-        distance angle offset = %.4f
-        TURN TEST % s
-        """ % (
-            init_d,
-            init_phi,
-            final_d,
-            final_phi,
-            off_d,
-            off_phi,
-            result_trim,
-        )
+        distance offset = {off_d:.4f}
+        distance angle offset = {off_phi:.4f}
+        TURN TEST {result_trim: }
+        """
         print(info)
         self.assertEqual(result_trim, "PASSED", info)
 

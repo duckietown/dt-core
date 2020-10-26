@@ -135,7 +135,7 @@ class LineDetectorNode(DTROS):
         try:
             image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
         except ValueError as e:
-            self.logerr("Could not decode image: %s" % e)
+            self.logerr(f"Could not decode image: {e}")
             return
 
         # Perform color correction
@@ -184,7 +184,7 @@ class LineDetectorNode(DTROS):
                         self._to_segment_msg(lines_normalized, det.normals, color_id)
                     )
                 except AttributeError:
-                    self.logerr("Color name %s is not defined in the Segment message" % color)
+                    self.logerr(f"Color name {color} is not defined in the Segment message")
 
         # Publish the message
         self.pub_lines.publish(segment_list)
@@ -210,7 +210,7 @@ class LineDetectorNode(DTROS):
             self.pub_d_maps.publish(debug_image_msg)
 
         for channels in ["HS", "SV", "HV"]:
-            publisher = getattr(self, "pub_d_ranges_%s" % channels)
+            publisher = getattr(self, f"pub_d_ranges_{channels}")
             if publisher.get_num_connections() > 0:
                 debug_img = self._plot_ranges_histogram(channels)
                 debug_image_msg = self.bridge.cv2_to_imgmsg(debug_img, encoding="bgr8")

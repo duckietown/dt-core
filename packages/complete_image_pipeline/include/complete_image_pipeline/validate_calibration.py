@@ -74,7 +74,7 @@ def try_simulated_localization(robot_name: str):
     phi = np.deg2rad(5)
     max_phi_err = np.deg2rad(5)
     max_d_err = 0.03
-    outd = "out/try_simulated_localization-%s" % robot_name
+    outd = f"out/try_simulated_localization-{robot_name}"
 
     from complete_image_pipeline_tests.synthetic import test_synthetic_phi
 
@@ -102,7 +102,7 @@ def create_visuals(robots: List[str], actual_map_name: str, out: str):
     res2 = {}
 
     for i, robot_name in enumerate(sorted(robots)):
-        logger.info("%d/%d: %s" % (i, len(robots), robot_name))
+        logger.info(f"{i:d}/{len(robots):d}: {robot_name}")
         rcg = get_robot_camera_geometry(robot_name)
 
         pose = np.eye(3)

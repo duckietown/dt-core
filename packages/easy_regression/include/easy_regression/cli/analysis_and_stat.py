@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict
 from typing import List
 
 import duckietown_code_utils as dtu
@@ -15,13 +14,13 @@ def print_results(analyzers: List[str], results_all, out: str):
     print((dtu.indent(yaml_data, "print_results ")))
 
     for a in analyzers:
-        dtu.write_str_to_file(dtu.yaml_dump_pretty(results_all[a]), os.path.join(base, "%s.table.yaml" % a))
+        dtu.write_str_to_file(dtu.yaml_dump_pretty(results_all[a]), os.path.join(base, f"{a}.table.yaml"))
         s = ""
-        s += "\n" + "-" * 10 + " Results for %s " % a + "-" * 10
+        s += "\n" + "-" * 10 + f" Results for {a} " + "-" * 10
         table = table_for_analyzer(results_all[a])
         s += "\n" + dtu.indent(dtu.format_table_plus(table, colspacing=3), "  ")
         s += "\n"
-        dtu.write_str_to_file(s, os.path.join(base, "%s.table.txt" % a))
+        dtu.write_str_to_file(s, os.path.join(base, f"{a}.table.txt"))
 
 
 def table_for_analyzer(results_all):
@@ -41,7 +40,7 @@ def table_for_analyzer(results_all):
             elif isinstance(value, dict):
                 s = ""
                 for mk, mv in list(value.items()):
-                    s += "\n %s  %s" % (mk, mv)
+                    s += f"\n {mk}  {mv}"
                 row.append(s)
             else:
                 row.append(type(value).__name__)
@@ -78,13 +77,12 @@ def merge_n(analyzer: AnalyzerInterface, results) -> dict:
         return r
 
 
-@dtu.contract(analyzer=str)
 def job_analyze(log: str, analyzer: str):
     easy_algo_db = get_easy_algo_db()
     analyzer_instance = easy_algo_db.create_instance("analyzer", analyzer)
     in_bag = rosbag.Bag(log)
     results = {}
-    dtu.logger.info("Running %s on %s" % (analyzer, log))
+    dtu.logger.info(f"Running {analyzer} on {log}")
     analyzer_instance.analyze_log(in_bag, results)
     in_bag.close()
     return results

@@ -46,7 +46,7 @@ For example:
         db = get_easy_algo_db()
         maps = list(db.query_and_instance(FAMILY_SEGMAPS, query))
 
-        self.debug("maps: %s" % maps)
+        self.debug(f"maps: {maps}")
         for id_map in maps:
             display_map(id_map, out)
 

@@ -79,7 +79,7 @@ class SegmentsMap:
             dtu.check_isinstance(S, SegMapSegment)
             for p in S.points:
                 if not p in self.points:
-                    msg = "Invalid point %r" % p
+                    msg = f"Invalid point {p!r}"
                     raise ValueError(msg)
             assert len(S.points) == 2
 
@@ -88,15 +88,15 @@ class SegmentsMap:
 
             dist = np.linalg.norm(w1 - w2)
             if dist == 0:
-                msg = "This is a degenerate segment (points: %s %s) " % (w1, w2)
-                msg += "names: %s" % S.points
+                msg = f"This is a degenerate segment (points: {w1} {w2}) "
+                msg += f"names: {S.points}"
                 raise ValueError(msg)
 
         for F in self.faces:
             dtu.check_isinstance(F, SegMapFace)
             for p in F.points:
                 if not p in self.points:
-                    msg = "Invalid point %r" % p
+                    msg = f"Invalid point {p!r}"
                     raise ValueError(msg)
 
     @staticmethod
@@ -107,7 +107,7 @@ class SegmentsMap:
         constants = {}
         for i, sm in enumerate(sms):
             # first, make sure the names are different
-            sm2 = add_prefix(sm, "m%d_" % i)
+            sm2 = add_prefix(sm, f"m{i:d}_")
             points.update(sm2.points)
             segments.extend(sm2.segments)
             faces.extend(sm2.faces)
@@ -203,7 +203,7 @@ def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref
         ys = []
         for p in face.points:
             if sm.points[p].id_frame != expect_frame:
-                msg = "Expected points in frame %r, got %r" % (expect_frame, sm.points[p].id_frame)
+                msg = f"Expected points in frame {expect_frame!r}, got {sm.points[p].id_frame!r}"
                 raise NotImplementedError(msg)
 
             coords = sm.points[p].coords
@@ -223,7 +223,7 @@ def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref
 
             # If we are both in FRAME_AXLE
             if not (sm.points[p1].id_frame == expect_frame) and (sm.points[p2].id_frame == expect_frame):
-                msg = "Cannot deal with points not in frame %r" % expect_frame
+                msg = f"Cannot deal with points not in frame {expect_frame!r}"
                 raise NotImplementedError(msg)
 
             w1 = np.array(sm.points[p1].coords)
@@ -271,7 +271,7 @@ def get_normal_outward_for_segment(w1: np.ndarray, w2: np.ndarray) -> np.ndarray
     dn = np.hypot(d[0], d[1])
     if dn == 0:
         msg = "Could not compute normal for segment with two points equal:"
-        msg += " %s %s" % (w1, w2)
+        msg += f" {w1} {w2}"
         raise ValueError(msg)
     d = d / dn
 

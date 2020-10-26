@@ -63,12 +63,12 @@ class IndefNavigationNode:
             elif angle_direction > 0:
                 wheels_cmd_msg.vel_left = gain  # *abs(angle_direction)
                 wheels_cmd_msg.vel_right = -gain  # *abs(angle_direction)
-                rospy.loginfo("Servo right %f " % angle_direction)
+                rospy.loginfo(f"Servo right {angle_direction:f} ")
                 self.pub_servo_status.publish(String(data="moving"))
             else:
                 wheels_cmd_msg.vel_right = gain  # *abs(angle_direction)
                 wheels_cmd_msg.vel_left = -gain  # *abs(angle_direction)
-                rospy.loginfo("Servo left %f " % angle_direction)
+                rospy.loginfo(f"Servo left {angle_direction:f} ")
                 self.pub_servo_status.publish(String(data="moving"))
 
             self.pub_wheels_cmd.publish(wheels_cmd_msg)

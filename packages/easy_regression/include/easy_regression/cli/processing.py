@@ -54,18 +54,18 @@ def ros_from_misc(name, value, t):
         data = np.array(value)
         return ros_from_np_array(data)
     else:
-        m = 'Could not find a way to write "%s" in ROS (%s)' % (name, dtu.describe_type(value))
+        m = f'Could not find a way to write "{name}" in ROS ({dtu.describe_type(value)})'
         m += "\n" + dtu.indent(str(value), "> ")
         raise ValueError(m)
 
 
 def ros_from_np_array(data):
     if data.shape == ():
-        msg = "I do not know how to convert this: \n%s\n%s" % (data.dtype, data)
+        msg = f"I do not know how to convert this: \n{data.dtype}\n{data}"
         raise NotImplementedError(msg)
     dims = []
     for i, size in enumerate(data.shape):
-        label = "dim%d" % i
+        label = f"dim{i:d}"
         stride = 0
         dims.append(MultiArrayDimension(label=label, size=size, stride=stride))
     layout = MultiArrayLayout(dim=dims)
@@ -78,10 +78,10 @@ def ros_from_np_array(data):
 @dtu.contract(log=PhysicalLog)
 def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log, delete, tmpdir):
     dtu.logger.info("process_one_dynamic()")
-    dtu.logger.info("   input: %s" % bag_filename)
-    dtu.logger.info("   processors: %s" % processors)
-    dtu.logger.info("   out: %s" % log_out)
-    dtu.logger.info("   t0 t1: %s %s" % (t0, t1))
+    dtu.logger.info(f"   input: {bag_filename}")
+    dtu.logger.info(f"   processors: {processors}")
+    dtu.logger.info(f"   out: {log_out}")
+    dtu.logger.info(f"   t0 t1: {t0} {t1}")
 
     dtu.d8n_make_sure_dir_exists(log_out)
 
@@ -89,7 +89,7 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log,
 
     def get_tmp_bag():
         i = len(tmpfiles)
-        f = os.path.join(tmpdir, "process_one_dynamic-tmp%02d.bag" % i)
+        f = os.path.join(tmpdir, f"process_one_dynamic-tmp{i:02d}.bag")
         tmpfiles.append(f)
         return f
 
@@ -115,7 +115,7 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log,
             t0_absolute,
             t1_absolute,
             log,
-            job_id="process-%d-%s" % (i, processor_name),
+            job_id=f"process-{i:d}-{processor_name}",
         )
 
     final = context.comp(finalize, bag_filename, log_out, processors, tmpfiles, delete)
@@ -123,7 +123,7 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log,
 
 
 def finalize(bag_filename, log_out, processors, tmpfiles, delete):
-    dtu.logger.info("Creating output file %s" % log_out)
+    dtu.logger.info(f"Creating output file {log_out}")
     if not processors:
         # just create symlink
         dtu.logger.info("(Just creating symlink, because there " "was no processing done.)")
@@ -132,13 +132,13 @@ def finalize(bag_filename, log_out, processors, tmpfiles, delete):
         try:
             shutil.copy(bag_filename, log_out)
         except:
-            dtu.logger.error("Could not create %s" % log_out)
-    dtu.logger.info("I created %s" % log_out)
+            dtu.logger.error(f"Could not create {log_out}")
+    dtu.logger.info(f"I created {log_out}")
 
     if delete:
         for f in tmpfiles:
             if os.path.exists(f):
-                dtu.logger.info(" deleting %s" % f)
+                dtu.logger.info(f" deleting {f}")
                 os.unlink(f)
     return log_out
 
@@ -158,13 +158,13 @@ def process_one_processor(
     easy_algo_db = get_easy_algo_db()
     processor = easy_algo_db.create_instance(ProcessorInterface.FAMILY, processor_name_or_spec)
 
-    dtu.logger.info("in: bag_filename: %s" % bag_filename)
+    dtu.logger.info(f"in: bag_filename: {bag_filename}")
     if not os.path.exists(bag_filename):
-        msg = "File does not exist: %s" % bag_filename
+        msg = f"File does not exist: {bag_filename}"
         raise ValueError(msg)
-    dtu.logger.info("out: next_bag_filename: %s" % next_bag_filename)
-    dtu.logger.info("t0_absolute: %s" % t0_absolute)
-    dtu.logger.info("t1_absolute: %s" % t1_absolute)
+    dtu.logger.info(f"out: next_bag_filename: {next_bag_filename}")
+    dtu.logger.info(f"t0_absolute: {t0_absolute}")
+    dtu.logger.info(f"t1_absolute: {t1_absolute}")
 
     log = download_if_necessary(log)
     filename = get_local_bag_file(log)

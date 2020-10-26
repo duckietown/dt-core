@@ -122,12 +122,12 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return measurement_likelihood
 
     def generate_measurement_likelihood_faster(self, segments):
-        with dtu.timeit_clock("get_compat_representation_obs (%d segments)" % len(segments)):
+        with dtu.timeit_clock(f"get_compat_representation_obs ({len(segments):d} segments)"):
             rep_obs = get_compat_representation_obs(segments)
             rep_map = self.rep_map
 
         with dtu.timeit_clock(
-            "generate_votes_faster (map: %d, obs: %d)" % (len(rep_map.weight), len(rep_obs.weight))
+            f"generate_votes_faster (map: {len(rep_map.weight):d}, obs: {len(rep_obs.weight):d})"
         ):
             votes = generate_votes_faster(rep_map, rep_obs)
 
@@ -147,7 +147,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 # print('Removed %d of %d because outside box' % (num_outside, len(weight)))
                 votes = remove_zero_weight(votes._replace(weight=weight))
 
-        with dtu.timeit_clock("compute pos iterative (%d)" % len(votes.weight)):
+        with dtu.timeit_clock(f"compute pos iterative ({len(votes.weight):d})"):
             locations = self._localization_template.coords_from_position_orientation(votes.p, votes.theta)
 
             num = len(locations)
@@ -160,7 +160,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         compare = False
 
-        with dtu.timeit_clock("add voting faster (%d)" % len(votes.weight)):
+        with dtu.timeit_clock(f"add voting faster ({len(votes.weight):d})"):
             measurement_likelihood = self.grid_helper.create_new("float32")
             measurement_likelihood.fill(0)
 
@@ -201,7 +201,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 deviation = np.max(np.abs(diff))
                 if deviation > 1e-6:
                     s = array_as_string_sign(diff)
-                    print(("max deviation: %s" % deviation))
+                    print(f"max deviation: {deviation}")
                     print(s)
 
         return measurement_likelihood
@@ -218,7 +218,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         adjust_by_number = False  # add to configuration
 
-        with dtu.timeit_clock("pose gen for %s segs" % len(segments)):
+        with dtu.timeit_clock(f"pose gen for {len(segments)} segs"):
 
             for segment in segments:
                 num_by_color[segment.color] += 1
@@ -240,13 +240,13 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                     pose_weight.append((pose, weight_adjusted))
 
         values = []
-        with dtu.timeit_clock("generating coords for %s votes" % len(pose_weight)):
+        with dtu.timeit_clock(f"generating coords for {len(pose_weight)} votes"):
             for pose, weight in pose_weight:
                 est = self._localization_template.coords_from_pose(pose)
                 value = dict((k, float(est[k])) for k in self.variables)
                 values.append((value, weight))
 
-        with dtu.timeit_clock("add voting for %s votes" % len(pose_weight)):
+        with dtu.timeit_clock(f"add voting for {len(pose_weight)} votes"):
             for value, weight in values:
                 #                 if value['dstop'] > 0.3:
                 #                     print('value:%s' % value)
@@ -256,7 +256,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 hit += added > 0
                 miss += added == 0
 
-        dtu.logger.debug("hit: %s miss : %s" % (hit, miss))
+        dtu.logger.debug(f"hit: {hit} miss : {miss}")
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
 
@@ -302,7 +302,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                     yield pose, weight
                     num += 1
         if num == 0:
-            msg = "No segment found for %s" % segment.color
+            msg = f"No segment found for {segment.color}"
             dtu.logger.debug(msg)
 
     def get_plot_phi_d(self, ground_truth=None, bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
@@ -321,27 +321,27 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             grid_helper_mark_point(gh, pylab, estimate, color="magenta", markersize=10)
 
             s = ""
-            s += "status = %s" % self.get_status()
+            s += f"status = {self.get_status()}"
             for name, spec in zip(gh._names, gh._specs):
                 convert = lambda x: "%.2f %s" % (
                     convert_unit(x, spec.units, spec.units_display),
                     spec.units_display,
                 )
                 s += "\n"
-                s += "\nest %s = %s" % (name, convert(estimate[name]))
+                s += f"\nest {name} = {convert(estimate[name])}"
                 if ground_truth is not None:
-                    s += "\ntrue %s = %s" % (name, convert(ground_truth_location[name]))
+                    s += f"\ntrue {name} = {convert(ground_truth_location[name])}"
                     err = np.abs(ground_truth_location[name] - estimate[name])
-                    s += "\nabs err = %s" % (convert(err))
+                    s += f"\nabs err = {convert(err)}"
                     cell = spec.resolution
                     percent = 100.0 / cell * err
-                    s += "\nrel err = %.1f %% of cell" % (percent)
+                    s += f"\nrel err = {percent:.1f} % of cell"
                     s += "\n true = green dot"
 
             s += "\n"
-            s += "\nentropy = %.4f" % self.get_entropy()
-            s += "\nmax = %.4f" % self.belief.max()
-            s += "\nmin = %.4f" % self.belief.min()
+            s += f"\nentropy = {self.get_entropy():.4f}"
+            s += f"\nmax = {self.belief.max():.4f}"
+            s += f"\nmin = {self.belief.min():.4f}"
 
             pylab.annotate(s, xy=(0.7, 0.45), xycoords="figure fraction")
             grid_helper_set_axes(gh, pylab)
@@ -357,7 +357,7 @@ def iterate_segment_sections(sm: SegmentsMap, map_segment: SegMapSegment, delta:
     dist = np.linalg.norm(w1 - w2)
 
     if dist == 0:
-        msg = "Could not use degenerate segment (points: %s %s) " % (w1, w2)
+        msg = f"Could not use degenerate segment (points: {w1} {w2}) "
         raise ValueError(msg)
 
     map_segment_n = get_normal_outward_for_segment(w1, w2)

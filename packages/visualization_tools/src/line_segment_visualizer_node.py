@@ -78,7 +78,7 @@ class LineSegmentVisualizer(DTROS):
         value = rospy.get_param(param_name, default_value)
         # Write to parameter server for transparancy
         rospy.set_param(param_name, value)
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        rospy.loginfo(f"[{self.node_name}] {param_name} = {value} ")
         return value
 
 

@@ -26,7 +26,7 @@ def main():
     which_estimators0 = sys.argv[2]
 
     package_dir = get_ros_package_path("led_detection")
-    dtu.logger.debug("Package dir: %r" % package_dir)
+    dtu.logger.debug(f"Package dir: {package_dir!r}")
 
     # dirname = 'catkin_ws/src/f23-LED/led_detection/scripts/'
     # filename = 'all_tests.yaml'
@@ -42,8 +42,8 @@ def main():
     which_tests = dtu.expand_string(which_tests0, list(alltests))
     which_estimators = dtu.expand_string(which_estimators0, list(estimators))
 
-    logger.info("     tests: %r |-> %s" % (which_tests0, which_tests))
-    logger.info("estimators: %r |-> %s" % (which_estimators0, which_estimators))
+    logger.info(f"     tests: {which_tests0!r} |-> {which_tests}")
+    logger.info(f"estimators: {which_estimators0!r} |-> {which_estimators}")
 
     # which tests to execute
     test_results = {}
@@ -57,7 +57,7 @@ def main():
         logger.info("All tests passed")
     else:
         which = [k for k, v in list(test_results.items()) if not v]
-        logger.error("These tests failed: %s " % which)
+        logger.error(f"These tests failed: {which} ")
         sys.exit(3)
 
 
@@ -67,12 +67,12 @@ def is_match(detection, expected):
     # else doesn't, it warns about what it is
     global W, H
 
-    print(("shape is %s, %s" % (W, H)))
+    print((f"shape is {W}, {H}"))
     predicates = {
         "position": abs(1.0 * detection.pixels_normalized.x * W - expected["image_coordinates"][0])
-        < expected["image_coordinates_margin"]
-        and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
-        < expected["image_coordinates_margin"],
+                    < expected["image_coordinates_margin"]
+                    and abs(1.0 * detection.pixels_normalized.y * H - expected["image_coordinates"][1])
+                    < expected["image_coordinates_margin"],
         "frequency": detection.frequency == expected["frequency"],
         # 'timestamps': abs(detection.timestamp1-expected['timestamp1'])<0.1 and
         #              abs(detection.timestamp2-expected['timestamp2'])<0.1
@@ -81,8 +81,8 @@ def is_match(detection, expected):
     unsatisfied = [n for n in predicates if not predicates[n]]
     if unsatisfied and (predicates["position"] or predicates["frequency"]):
         logger.warning(
-            "\nAlmost a match - (%s mismatch) - between detection: \n%s \nand expectation: \n%s"
-            % (unsatisfied, detection, expected)
+            f"\nAlmost a match - ({unsatisfied} mismatch) - between detection: \n{detection} \nand "
+            f"expectation: \n{expected}"
         )
 
     return not unsatisfied
@@ -100,15 +100,15 @@ def find_match(detection, expected_set):
 def run_test(id_test, test, id_estimator, estimator):
     global W, H
 
-    logger.info("     id_test: %s" % id_test)
-    logger.info("id_estimator: %s" % id_estimator)
+    logger.info(f"     id_test: {id_test}")
+    logger.info(f"id_estimator: {id_estimator}")
     from led_detection.unit_tests import LEDDetectionUnitTest
 
     assert isinstance(test, LEDDetectionUnitTest)
     query = test.get_query()
     print(query["images"]["rgb"][0].shape)
     H, W, _ = query["images"]["rgb"][0].shape
-    print(("shape is %s, %s" % (W, H)))
+    print((f"shape is {W}, {H}"))
     result = estimator.detect_led(**query)
 
     # We are testing whether the expected detections are a subset of
@@ -122,7 +122,7 @@ def run_test(id_test, test, id_estimator, estimator):
 
     missedLEDs = [test.expected[i] for i in range(0, len(match_count)) if match_count[i] == 0]
     if missedLEDs:
-        logger.error("missed LED detections (%s): \n %s" % (len(missedLEDs), missedLEDs))
+        logger.error(f"missed LED detections ({len(missedLEDs)}): \n {missedLEDs}")
 
     return not 0 in match_count
 

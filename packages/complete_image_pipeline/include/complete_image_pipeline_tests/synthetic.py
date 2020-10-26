@@ -211,14 +211,14 @@ def test_synthetic_phi(
     error = stats["error"]
     estimate = stats["estimate"]
     fail = False
-    msg = "location: %s  estimate: %s error: %s " % (location, estimate, error)
+    msg = f"location: {location}  estimate: {estimate} error: {error} "
     dtu.logger.info(msg)
 
     if np.abs(error["phi"]) > max_phi_err:
-        msg += "\nError in phi too big (%s > %s) " % (np.abs(error["phi"]), max_phi_err)
+        msg += f"\nError in phi too big ({np.abs(error['phi'])} > {max_phi_err}) "
         fail = True
     if np.abs(error["d"]) > max_d_err:
-        msg += "\nError in d too big (%s > %s)" % (np.abs(error["d"]), max_d_err)
+        msg += f"\nError in d too big ({np.abs(error['d'])} > {max_d_err})"
         fail = True
     if fail:
         dtu.logger.error(msg)
@@ -246,7 +246,7 @@ def test_synthetic(
 
     # first, load calibration for robot
     easy_algo_db = get_easy_algo_db()
-    dtu.logger.debug("looking for localization template %r" % template)
+    dtu.logger.debug(f"looking for localization template {template!r}")
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template)
 
     rcg = get_robot_camera_geometry(robot_name)

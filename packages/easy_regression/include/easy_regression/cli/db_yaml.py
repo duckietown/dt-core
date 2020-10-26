@@ -22,7 +22,7 @@ def rdbe_from_yaml(**parameters):
 def get_unique_filename(rt_name, rdbe):
     commit = rdbe.commit[-8:]
     d = rdbe.date.replace("-", "")
-    basename = rt_name + "_%s_%s_%s.rdbe.yaml" % (d, rdbe.branch, commit)
+    basename = rt_name + f"_{d}_{rdbe.branch}_{commit}.rdbe.yaml"
 
     dr = dru.get_ros_package_path("easy_regression")
     filename = os.path.join(dr, "db", rt_name, basename)

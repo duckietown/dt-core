@@ -178,7 +178,7 @@ class GroundProjectionGeometry:
         """
         if point.z != 0:
             msg = "This method assumes that the point is a ground point (z=0). "
-            msg += "However, the point is (%s,%s,%s)" % (point.x, point.y, point.z)
+            msg += f"However, the point is ({point.x},{point.y},{point.z})"
             raise ValueError(msg)
 
         ground_point = np.array([point.x, point.y, 1.0])

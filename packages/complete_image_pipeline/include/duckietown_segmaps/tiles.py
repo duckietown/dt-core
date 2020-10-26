@@ -311,7 +311,7 @@ def get_map_straight_lane(
 
     def add_dash(x, length):
         s = len(points)
-        pre = "dash%s_" % s
+        pre = f"dash{s}_"
         points[pre + "t0"] = SegMapPoint(id_frame=FRAME, coords=np.array([x, y3, 0]))
         points[pre + "t1"] = SegMapPoint(id_frame=FRAME, coords=np.array([x, y4, 0]))
         points[pre + "t2"] = SegMapPoint(id_frame=FRAME, coords=np.array([x + length, y4, 0]))
@@ -397,7 +397,7 @@ def _add_rect(
     assert y2 > y1
     s = len(points)
 
-    pre = "%s_" % s
+    pre = f"{s}_"
     names = cast(List[PointName], [pre + "t0", pre + "t1", pre + "t2", pre + "t3"])
     points[names[0]] = SegMapPoint(id_frame=id_frame, coords=np.array([x1, y1, 0]))
     points[names[1]] = SegMapPoint(id_frame=id_frame, coords=np.array([x1, y2, 0]))
@@ -429,10 +429,10 @@ def _add_rect_tilted(points, faces, segments, x, y, theta, length, width, id_fra
 def __add_rect_by_coords(points, faces, segments, coords, id_frame, color, use_sides_for_loc):
     s = len(points)
 
-    pre = "%s_" % s
+    pre = f"{s}_"
     names: List[PointName] = []
     for i, coord in enumerate(coords):
-        name = PointName("%s%s" % (pre, i))
+        name = PointName(f"{pre}{i}")
         names.append(name)
         points[name] = SegMapPoint(id_frame=id_frame, coords=np.array([coord[0], coord[1], 0]))
 

@@ -12,12 +12,12 @@ def call_summary():
     errors = []
     for f in list(db.family_name2config.values()):
         if not f.valid:
-            errors.append("Family %s: %s" % (f.family_name, f.error_if_invalid))
+            errors.append(f"Family {f.family_name}: {f.error_if_invalid}")
         for i in list(f.instances.values()):
             if not i.valid:
                 errors.append(
-                    "Family %s / instance %r:\n\n%s"
-                    % (f.family_name, i.instance_name, dtu.indent(i.error_if_invalid, "  "))
+                    f"Family {f.family_name} / instance {i.instance_name!r}:\n\n"
+                    f"{dtu.indent(i.error_if_invalid, '  ')}"
                 )
 
     if errors:

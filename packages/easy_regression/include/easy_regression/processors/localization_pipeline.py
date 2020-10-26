@@ -29,7 +29,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
         vehicle_name = dbu.which_robot(bag_in)
 
-        logger.info("Vehicle name: %s" % vehicle_name)
+        logger.info(f"Vehicle name: {vehicle_name}")
 
         topic = dbu.get_image_topic(bag_in)
 
@@ -58,14 +58,14 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             dtu.logger.info(
                 (
-                    "abs: %s  window: %s  from log: %s"
-                    % (mp.time_absolute, mp.time_window, mp.time_from_physical_log_start)
+                    f"abs: {mp.time_absolute}  window: {mp.time_window}  from log: "
+                    f"{mp.time_from_physical_log_start}"
                 )
             )
             headers = [
-                "Robot: %s log: %s time: %.2f s" % (vehicle_name, log_name, mp.time_from_physical_log_start),
-                "Algorithms | color correction: %s | preparation: %s | detector: %s | filter: %s"
-                % (self.anti_instagram, self.image_prep, self.line_detector, self.lane_filter,),
+                f"Robot: {vehicle_name} log: {log_name} time: {mp.time_from_physical_log_start:.2f} s",
+                f"Algorithms | color correction: {self.anti_instagram} | preparation: {self.image_prep} | "
+                f"detector: {self.line_detector} | filter: {self.lane_filter}",
             ]
 
             res = dtu.write_bgr_images_as_jpgs(res, dirname=None, bgcolor=bgcolor)
@@ -80,7 +80,7 @@ class LocalizationPipelineProcessor(ProcessorInterface):
 
             omsg = dru.d8_compressed_image_from_cv_image(cv_image, same_timestamp_as=mp.msg)
             t = rospy.Time.from_sec(mp.time_absolute)
-            dtu.logger.info(("written %r at t = %s" % (otopic, t.to_sec())))
+            dtu.logger.info(f"written {otopic!r} at t = {t.to_sec()}")
             bag_out.write(prefix_out + "/" + otopic, omsg, t=t)
 
             for name, value in list(stats.items()):

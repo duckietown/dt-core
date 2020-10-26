@@ -58,23 +58,23 @@ def get_homography_info_config_file(robot_name: str) -> str:
         fn_default = os.path.join(df, "camera_extrinsic", "default.yaml")
         if os.path.exists(fn):
             found.append(fn)
-            msg = "Using filename %s" % fn
+            msg = f"Using filename {fn}"
             print(msg)
             dtu.logger.info(msg)
         elif os.path.exists(fn_default):
             found.append(fn_default)
-            msg = "Using filename %s" % fn_default
+            msg = f"Using filename {fn_default}"
             print(msg)
             dtu.logger.info(msg)
 
     if len(found) == 0:
-        msg = "Cannot find homography file for robot %r;\n%s" % (robot_name, roots)
+        msg = f"Cannot find homography file for robot {robot_name!r};\n{roots}"
         print(msg)
         raise NoHomographyInfoAvailable(msg)
     elif len(found) == 1:
         return found[0]
     else:
-        msg = "Found more than one configuration file: \n%s" % "\n".join(found)
+        msg = "Found more than one configuration file: \n{}".format("\n".join(found))
         msg += "\n Please delete one of those."
         print(msg)
         if strict:
@@ -98,13 +98,13 @@ def homography_from_yaml(data: dict) -> np.array:
 
 
 def save_homography(H: np.array, robot_name: str) -> None:
-    dtu.logger.info("Homography:\n %s" % H)
+    dtu.logger.info(f"Homography:\n {H}")
 
     # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
     # corrupted rotation matrix)
     if H[1][2] > 0:
         msg = "WARNING: Homography could be corrupt."
-        msg += "\n %s" % H
+        msg += f"\n {H}"
         raise Exception(msg)
 
     ob = {"homography": sum(H.reshape(9, 1).tolist(), [])}
@@ -129,12 +129,13 @@ def disable_old_homography(robot_name: str):
     if os.path.exists(fn):
         fn2 = None
         for i in range(100):
-            fn2 = fn + ".disabled.%03d" % i
+            fn2 = fn + f".disabled.{i:03d}"
             if not os.path.exists(fn2):
                 break
         msg = (
-            "Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as "
-            "%s" % fn2
+            f"Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as "
+            f"{fn2} "
+
         )
         dtu.logger.warning(msg)
         shutil.move(fn, fn2)
@@ -257,9 +258,9 @@ def get_camera_info_config_file(robot_name: str) -> str:
         elif os.path.exists(fn_default):
             return fn_default
         else:
-            dtu.logger.debug("%s does not exist and neither does %s" % (fn, fn_default))
+            dtu.logger.debug(f"{fn} does not exist and neither does {fn_default}")
 
-    msg = "Cannot find intrinsic file for robot %r;\n%s" % (robot_name, roots)
+    msg = f"Cannot find intrinsic file for robot {robot_name!r};\n{roots}"
     raise NoCameraInfoAvailable(msg)
 
 

@@ -53,7 +53,7 @@ class LogicGateNode:
         valid_flag = True
         for event_name, event_dict in list(self.events_dict.items()):
             if "topic" not in event_dict:
-                rospy.logfatal("[%s] topic not defined for event %s" % (self.node_name, event_name))
+                rospy.logfatal(f"[{self.node_name}] topic not defined for event {event_name}")
                 valid_flag = False
         return valid_flag
 
@@ -62,7 +62,7 @@ class LogicGateNode:
         for gate_name, gate_dict in list(gates_dict.items()):
             gate_type = gate_dict["gate_type"]
             if gate_type not in valid_gate_types:
-                rospy.logfatal("[%s] gate_type %s is not valid." % (self.node_name, gate_type))
+                rospy.logfatal(f"[{self.node_name}] gate_type {gate_type} is not valid.")
                 return False
         return True
 
@@ -137,7 +137,7 @@ class LogicGateNode:
                 self.publish(self.getOutputMsg(gate_name, inputs), gate_name)
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
 if __name__ == "__main__":

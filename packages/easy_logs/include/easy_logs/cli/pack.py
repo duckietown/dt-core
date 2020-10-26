@@ -35,7 +35,7 @@ class Pack(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs0 = db.query(query)
         logs = get_valid(logs0)
-        print(("logs: %s" % len(logs)))
+        print(f"logs: {len(logs)}")
         m = MakeIPFS()
 
         create_ipfs_dag(logs, m)
@@ -56,7 +56,7 @@ class Pack(D8AppWithLogs):
 
         hashed = m0.get_ipfs_hash()
         print(hashed)
-        print(("Total size :  %.3f GB" % (m.total_size() / (1000 * 1000 * 1000.0))))
+        print((f"Total size :  {m.total_size() / (1000 * 1000 * 1000.0):.3f} GB"))
 
 
 def get_valid(logs):

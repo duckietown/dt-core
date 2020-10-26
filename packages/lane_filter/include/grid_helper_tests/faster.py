@@ -1,12 +1,11 @@
-import collections
 import os
 
-from numpy.testing.utils import assert_equal, assert_almost_equal
+import numpy as np
+from numpy.testing.utils import assert_almost_equal, assert_equal
 
 import duckietown_code_utils as dtu
 from grid_helper.grid_helper_visualization import grid_helper_plot
-from grid_helper.voting_grid import GridHelper, array_as_string_sign, array_as_string
-import numpy as np
+from grid_helper.voting_grid import array_as_string, array_as_string_sign, GridHelper
 
 
 @dtu.unit_test
@@ -55,13 +54,13 @@ def compare_faster():
 
     D = val_fast - val_slow
     diff = np.max(np.abs(D))
-    print(("diff: %r" % diff))
+    print(f"diff: {diff!r}")
     if diff > 1e-8:
-        print((dtu.indent(array_as_string_sign(val_fast), "val_fast ")))
-        print((dtu.indent(array_as_string_sign(val_slow), "val_slow ")))
-        print((dtu.indent(array_as_string_sign(D), "Diff ")))
-        print(("non zero val_fast: %s" % val_fast[val_fast > 0]))
-        print(("non zero val_slow: %s" % val_slow[val_slow > 0]))
+        print(dtu.indent(array_as_string_sign(val_fast), "val_fast "))
+        print(dtu.indent(array_as_string_sign(val_slow), "val_slow "))
+        print(dtu.indent(array_as_string_sign(D), "Diff "))
+        print(f"non zero val_fast: {val_fast[val_fast > 0]}")
+        print(f"non zero val_slow: {val_slow[val_slow > 0]}")
 
     assert_almost_equal(val_fast, val_slow)
 
@@ -97,8 +96,8 @@ def compare_faster2():
     weights[0] = w0
     gh.add_vote_faster(val_fast, values, weights, F)
 
-    print(("sum slow: %s" % np.sum(val_slow)))
-    print(("sum fast: %s" % np.sum(val_fast)))
+    print(f"sum slow: {np.sum(val_slow)}")
+    print(f"sum fast: {np.sum(val_fast)}")
     d = grid_helper_plot(gh, val_slow)
     fn = os.path.join(od, "compare_faster_slow.jpg")
     dtu.write_data_to_file(d.get_png(), fn)
@@ -107,7 +106,7 @@ def compare_faster2():
     fn = os.path.join(od, "compare_faster_fast.jpg")
     dtu.write_data_to_file(d.get_png(), fn)
 
-    f = lambda x: " %5f" % x if x else "    "
+    f = lambda x: f" {x:5f}" if x else "    "
     print((dtu.indent(array_as_string(val_fast, f), "val_fast ")))
     print((dtu.indent(array_as_string(val_slow, f), "val_slow ")))
 

@@ -197,7 +197,7 @@ class GridHelper:
     @dtu.contract(target="array", values="array[2xN]", weights="array[N]")
     def add_vote_faster(self, target, values, weights, F=1, counts=None):
 
-        with dtu.timeit_clock("adding additional votes (orig: %s)" % values.shape[1]):
+        with dtu.timeit_clock(f"adding additional votes (orig: {values.shape[1]})"):
             _factor, values_ref, values, weights, group = self.multiply(values, weights, F)
 
         #         cells_in_group = np.zeros(len(group))
@@ -210,7 +210,7 @@ class GridHelper:
         #             print('diff %s min %s max %s res %s' % (a, np.min(diff[a,:]), np.max(diff[a,:]),
         #                                                     self._specs[a].resolution))
 
-        with dtu.timeit_clock("computing coordinates (nvalid = %s)" % values.shape[1]):
+        with dtu.timeit_clock(f"computing coordinates (nvalid = {values.shape[1]})"):
 
             nvalid = values.shape[1]
 
@@ -255,7 +255,7 @@ class GridHelper:
             assert len(weights) == nvalid
             weights_normalized = weights / weight_group[group]
 
-        with dtu.timeit_clock("selecting valid (using %d)" % values.shape[1]):
+        with dtu.timeit_clock(f"selecting valid (using {values.shape[1]:d})"):
             AND = np.logical_and
             inside0 = AND(self._specs[0].min <= values[0, :], values[0, :] <= self._specs[0].max)
             inside1 = AND(self._specs[1].min <= values[1, :], values[1, :] <= self._specs[1].max)

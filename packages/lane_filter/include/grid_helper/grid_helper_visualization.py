@@ -102,14 +102,14 @@ def convert_unit(value, unit, to_unit):
 
     key = (unit, to_unit)
     if not key in multipliers:
-        msg = "Conversion between %s and %s" % (unit, to_unit)
+        msg = f"Conversion between {unit} and {to_unit}"
         raise NotImplementedError(msg)
     return multipliers[key] * value
 
 
 def friendly_value(spec, value):
     converted = convert_unit(value, spec.units, spec.units_display)
-    return "%.2f %s" % (converted, spec.units_display)
+    return f"{converted:.2f} {spec.units_display}"
 
 
 def friendly_resolution(spec):
@@ -174,7 +174,7 @@ def grid_helper_annotate_axes(grid_helper: GridHelper, pylab):
     for a in [0, 1]:
         s0 = grid_helper._specs[a]
         n0 = grid_helper._names[a]
-        t = "%s: %s (%s); cell = %s" % (n0, s0.description, s0.units_display, friendly_resolution(s0))
+        t = f"{n0}: {s0.description} ({s0.units_display}); cell = {friendly_resolution(s0)}"
         if a == 0:
             pylab.xlabel(t)
         else:

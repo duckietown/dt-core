@@ -50,7 +50,7 @@ def read_data_for_signals(bag_in, prefix_in, signals):
     for signal_spec in signals:
         topic_fqn = prefix_in + signal_spec.topic
         if not topic_fqn in topic2messages:
-            msg = "Could not found any value for topic %r." % topic_fqn
+            msg = f"Could not found any value for topic {topic_fqn!r}."
             raise ValueError(msg)
 
     return topic2messages
@@ -93,9 +93,9 @@ def _do_plot(s1, d1, s2, d2):
 
         pylab.plot(data_x, data_y, ".")
 
-        ylabel = "%s [%s]" % (s2.label, s2.units_display)
+        ylabel = f"{s2.label} [{s2.units_display}]"
         pylab.ylabel(ylabel, color=s2.color)
-        xlabel = "%s [%s]" % (s1.label, s1.units_display)
+        xlabel = f"{s1.label} [{s1.units_display}]"
         pylab.xlabel(xlabel, color=s1.color)
         pylab.tick_params("y", colors=s2.color)
         pylab.ylim(s2.min, s2.max)

@@ -13,7 +13,7 @@ if len(args) != 1:
 
 filename = sys.argv[1]
 
-print(("filename: %s" % filename))
+print(f"filename: {filename}")
 
 data = dbu.d8n_read_all_images(filename)
 
@@ -33,4 +33,4 @@ timestamps = data[:]["timestamp"]
 period = (timestamps[-1] - timestamps[0]) / num_images
 fps = 1.0 / period
 
-print(("fps: %.2f" % fps))
+print(f"fps: {fps:.2f}")

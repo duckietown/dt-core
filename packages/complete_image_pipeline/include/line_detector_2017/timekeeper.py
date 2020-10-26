@@ -6,7 +6,7 @@ import rospy
 def asms(s):
     if s is None:
         return "n/a"
-    return "%.1f ms" % (s * 1000)
+    return f"{s * 1000:.1f} ms"
 
 
 class TimeKeeper:
@@ -51,11 +51,7 @@ class TimeKeeper:
         s = "\nLatencies:\n"
 
         for phase, data in self.latencies:
-            s += " %22s | total latency %10s | delta wall %8s clock %8s\n" % (
-                phase,
-                data["latency_ms"],
-                data["delta_wall_ms"],
-                data["delta_clock_ms"],
-            )
+            s += f" {phase:>22} | total latency {data['latency_ms']:>10} | delta wall " \
+                 f"{data['delta_wall_ms']:>8} clock {data['delta_clock_ms']:>8}\n"
 
         return s

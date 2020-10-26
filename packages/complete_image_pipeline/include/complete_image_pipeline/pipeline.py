@@ -50,8 +50,8 @@ def run_pipeline(
         ground_truth = pose
     """
 
-    logger.debug("backend: %s" % matplotlib.get_backend())
-    logger.debug("fname: %s" % matplotlib.matplotlib_fname())
+    logger.debug(f"backend: {matplotlib.get_backend()}")
+    logger.debug(f"fname: {matplotlib.matplotlib_fname()}")
 
     quick: bool = False
 
@@ -95,7 +95,7 @@ def run_pipeline(
         if all_details:
             res["resized and corrected"] = image_prep.image_corrected
 
-    logger.debug("segment_list2: %s" % len(segment_list2.segments))
+    logger.debug(f"segment_list2: {len(segment_list2.segments)}")
 
     if all_details:
         res["segments_on_image_input_transformed"] = vs_fancy_display(image_prep.image_cv, segment_list2)
@@ -142,7 +142,7 @@ def run_pipeline(
         template_name = lane_filter.localization_template
     else:
         template_name = "DT17_template_straight_straight"
-        dtu.logger.debug("Using default template %r for visualization" % template_name)
+        dtu.logger.debug(f"Using default template {template_name!r} for visualization")
 
     localization_template = easy_algo_db.create_instance(FAMILY_LOC_TEMPLATES, template_name)
 
@@ -253,9 +253,9 @@ def judge_quality(image: dtu.NPImageBGR, observed_segment_list, predicted_segmen
 
     avg = np.mean(ratios)
 
-    percent = lambda x: "%d%%" % (x * 100)
-    s = "W %s Y %s R %s" % (percent(ratios[0]), percent(ratios[1]), percent(ratios[2]))
-    res["explained %s [%s]" % (percent(avg), s)] = summary_bgr
+    percent = lambda x: f"{x * 100:d}%"
+    s = f"W {percent(ratios[0])} Y {percent(ratios[1])} R {percent(ratios[2])}"
+    res[f"explained {percent(avg)} [{s}]"] = summary_bgr
 
     stats["quality"] = avg
     stats["ratios"] = ratios

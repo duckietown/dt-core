@@ -1,4 +1,6 @@
 import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+import duckietown_rosdata_utils as dru
 from easy_algo import get_easy_algo_db
 from easy_node.utils.timing import FakeContext
 from easy_regression import ProcessorInterface, ProcessorUtilsInterface
@@ -17,17 +19,17 @@ class LineDetectorProcessor(ProcessorInterface):
         image_prep = algo_db.create_instance("image_prep", self.image_prep)
 
         vehicle = dbu.which_robot(bag_in)
-        topic = "/%s/camera_node/image/compressed" % vehicle
+        topic = f"/{vehicle}/camera_node/image/compressed"
         context = FakeContext()
         transform = None
         frame = 0
-        for compressed_img_msg in dtu.d8n_bag_read_with_progress(bag_in, topic):
+        for compressed_img_msg in dbu.d8n_bag_read_with_progress(bag_in, topic):
 
             with context.phase("decoding"):
                 try:
                     image_cv = dtu.bgr_from_jpg(compressed_img_msg.data)
                 except ValueError as e:
-                    msg = "Could not decode image: %s" % e
+                    msg = f"Could not decode image: {e}"
                     dtu.raise_wrapped(ValueError, e, msg)
 
             segment_list = image_prep.process(context, image_cv, line_detector, transform)
@@ -37,7 +39,7 @@ class LineDetectorProcessor(ProcessorInterface):
             log_name = "log_name"
             time = 12
             rendered = dtu.add_duckietown_header(rendered, log_name, time, frame)
-            out = dtu.d8n_image_msg_from_cv_image(rendered, "bgr8", same_timestamp_as=compressed_img_msg)
+            out = dru.d8n_image_msg_from_cv_image(rendered, "bgr8", same_timestamp_as=compressed_img_msg)
 
             # Write to the bag
             bag_out.write("processed", out)

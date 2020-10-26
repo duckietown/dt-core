@@ -201,7 +201,7 @@ class GroundProjectionNode(DTROS):
         # Locate calibration yaml file or use the default otherwise
         if not os.path.isfile(cali_file):
             self.log(
-                "Can't find calibration file: %s.\n Using default calibration instead." % cali_file, "warn"
+                f"Can't find calibration file: {cali_file}.\n Using default calibration instead.", "warn"
             )
             cali_file = os.path.join(cali_file_folder, "default.yaml")
 
@@ -215,7 +215,7 @@ class GroundProjectionNode(DTROS):
             with open(cali_file, "r") as stream:
                 calib_data = yaml.load(stream)
         except yaml.YAMLError:
-            msg = "Error in parsing calibration file %s ... aborting" % cali_file
+            msg = f"Error in parsing calibration file {cali_file} ... aborting"
             self.logerr(msg)
             rospy.signal_shutdown(msg)
 

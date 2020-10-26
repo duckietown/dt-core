@@ -38,7 +38,7 @@ def run_checks(condition_result):
         t = RTCheck.from_string(ct)
         res = t.check(rdb)
         if not res.status == expected:
-            raise_error(rdb, t, res, "Expected %s" % expected)
+            raise_error(rdb, t, res, f"Expected {expected}")
 
 
 @dtu.unit_test

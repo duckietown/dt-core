@@ -39,7 +39,7 @@ class EasyAlgoDB:
             if raise_if_no_matches and not res:
                 msg = "Could not find any match for the queries:"
                 for q in query:
-                    msg += "\n- %s" % q
+                    msg += f"\n- {q}"
                 raise dtu.DTNoMatches(msg)
             return res
         else:
@@ -62,10 +62,8 @@ class EasyAlgoDB:
 
         family = self.get_family(family_name)
         if not family.valid:
-            msg = "Cannot instantiate %r because its family %r is invalid." % (
-                instance_name_or_spec,
-                family_name,
-            )
+            msg = f"Cannot instantiate {instance_name_or_spec!r} because its family {family_name!r} is " \
+                  f"invalid."
             msg += "\n\n" + dtu.indent(family.error_if_invalid, "  > ")
             raise dtu.DTConfigException(msg)
 
@@ -74,10 +72,8 @@ class EasyAlgoDB:
             dtu.check_is_in("instance", instance_name, family.instances)
             instance = family.instances[instance_name]
             if not instance.valid:
-                msg = "Cannot instantiate %r because it is invalid:\n%s" % (
-                    instance_name,
-                    dtu.indent(instance.error_if_invalid, "> "),
-                )
+                msg = f"Cannot instantiate {instance_name!r} because it is invalid:\n" \
+                      f"{dtu.indent(instance.error_if_invalid, '> ')}"
                 raise dtu.DTConfigException(msg)
             res = dtu.instantiate(instance.constructor, instance.parameters)
         elif isinstance(instance_name_or_spec, dict):
@@ -88,11 +84,8 @@ class EasyAlgoDB:
 
         interface = dtu.import_name(family.interface)
         if not isinstance(res, interface):
-            msg = "I expected that %r would be a %s but it is a %s." % (
-                instance_name_or_spec,
-                interface.__name__,
-                type(res).__name__,
-            )
+            msg = f"I expected that {instance_name_or_spec!r} would be a {interface.__name__} but it is a " \
+                  f"{type(res).__name__}."
             raise dtu.DTConfigException(msg)
 
         return res
@@ -118,7 +111,7 @@ class SpecValues:
 def _parse_inline_spec(x: dict) -> Tuple[str, SpecValues]:
     dtu.check_isinstance(x, dict)
     if len(x) != 1:
-        msg = "Invalid spec: length is %d" % len(x)
+        msg = f"Invalid spec: length is {len(x):d}"
         dtu.raise_desc(ValueError, msg, x=x)
     key = list(x)[0]
     value = x[key]
@@ -161,7 +154,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
         #
     """
     if not isinstance(all_yaml, dict):
-        msg = "Expected a dict, got %s" % type(all_yaml).__name__
+        msg = f"Expected a dict, got {type(all_yaml).__name__}"
         raise ValueError(msg)
     family_name2config = {}
 
@@ -174,7 +167,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
         if c.family_name in family_name2config:
             one = family_name2config[c.family_name].filename
             two = c.filename
-            msg = "Repeated filename:\n%s\n%s" % (one, two)
+            msg = f"Repeated filename:\n{one}\n{two}"
             raise dtu.DTConfigException(msg)
 
         def interpret_instance_spec(filename, data):
@@ -221,7 +214,7 @@ def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
             if i.instance_name in instances:
                 one = instances[i.instance_name].filename
                 two = i.filename
-                msg = "Repeated filename:\n%s\n%s" % (one, two)
+                msg = f"Repeated filename:\n{one}\n{two}"
                 raise dtu.DTConfigException(msg)
 
             # i = check_validity_instance(c, i)
@@ -257,7 +250,7 @@ def check_validity_instance(f, i):
     interface = dtu.import_name(f.interface)
     #     print('interface: %s' % interface)
     if not isinstance(res, interface):
-        msg = "Expected a %s but it is a %s." % (interface.__name__, type(res).__name__)
+        msg = f"Expected a {interface.__name__} but it is a {type(res).__name__}."
         return i._replace(valid=False, error_if_invalid=msg)
     return i
 
@@ -279,7 +272,7 @@ def check_validity_family_interface(f):
         dtu.import_name(symbol)
     except ValueError:
         # logger.error(e)
-        error_if_invalid = "Invalid symbol %r." % symbol
+        error_if_invalid = f"Invalid symbol {symbol!r}."
         return f._replace(valid=False, error_if_invalid=error_if_invalid)
     return f
 
@@ -288,7 +281,7 @@ def interpret_easy_algo_config(filename: str, data: dict) -> EasyAlgoFamily:
     """ Interprets the family config """
     basename = os.path.basename(filename)
     family_name = dtu.id_from_basename_pattern(basename, EasyAlgoDB.pattern)
-    instances_pattern = "*.%s.yaml" % family_name
+    instances_pattern = f"*.{family_name}.yaml"
     #     tests_pattern = '*.%s_test.yaml' % family_name
 
     data0 = dict(data)
@@ -308,7 +301,7 @@ def interpret_easy_algo_config(filename: str, data: dict) -> EasyAlgoFamily:
         raise Exception(msg) from e
 
     if data:
-        msg = "Extra keys in configuration: %s" % list(data)
+        msg = f'Extra keys in configuration: {list(data)}'
         raise dtu.DTConfigException(msg)
 
     return EasyAlgoFamily(

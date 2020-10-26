@@ -116,10 +116,10 @@ def voting_kernel1():
 
     errors_x = np.array(errors_x)
     errors_x_w = np.array(errors_x_w)
-    dtu.logger.debug("errors_x: %s" % errors_x)
-    dtu.logger.debug("mean: %s" % np.abs(errors_x).mean())
-    dtu.logger.debug("errors_x_w: %s" % errors_x_w)
-    dtu.logger.debug("mean: %s" % np.abs(errors_x_w).mean())
+    dtu.logger.debug(f"errors_x: {errors_x}")
+    dtu.logger.debug(f"mean: {np.abs(errors_x).mean()}")
+    dtu.logger.debug(f"errors_x_w: {errors_x_w}")
+    dtu.logger.debug(f"mean: {np.abs(errors_x_w).mean()}")
 
     assert errors_x.max() <= +resolution / 2
     assert errors_x.min() >= -resolution / 2

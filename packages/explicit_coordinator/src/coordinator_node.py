@@ -112,7 +112,7 @@ class VehicleCoordinator:
     def cbMaintenanceState(self, msg):
         if msg.state == "WAY_TO_MAINTENANCE" and self.use_priority_protocol:
             self.priority = True
-            rospy.loginfo("[%s] Granted priority rights on intersections." % (self.node_name))
+            rospy.loginfo(f"[{self.node_name}] Granted priority rights on intersections.")
         else:
             self.priority = False
 
@@ -143,7 +143,7 @@ class VehicleCoordinator:
     def set_state(self, state):
         # Update only when changing state
         if self.state != state:
-            rospy.loginfo("[%s] Transitioned from %s to %s" % (self.node_name, self.state, state))
+            rospy.loginfo(f"[{self.node_name}] Transitioned from {self.state} to {state}")
             self.last_state_transition = time()
             self.state = state
 
@@ -218,7 +218,7 @@ class VehicleCoordinator:
             self.pub_intersection_go.publish(msg)
             self.intersection_go_published = True
 
-            rospy.loginfo("[%s] Go!" % (self.node_name))
+            rospy.loginfo(f"[{self.node_name}] Go!")
 
         # Publish LEDs
         # self.roof_light_pub.publish(self.roof_light)
@@ -269,8 +269,8 @@ class VehicleCoordinator:
                 self.random_delay = self.T_MIN_RANDOM + random() * (self.T_MAX_RANDOM - self.T_MIN_RANDOM)
                 self.set_state(State.SACRIFICE_FOR_PRIORITY)
                 rospy.loginfo(
-                    "[%s] Other vehicle are waiting as well. Will wait for %.2f s"
-                    % (self.node_name, self.random_delay)
+                    f"[{self.node_name}] Other vehicle are waiting as well. Will wait for "
+                    f"{self.random_delay:.2f} s"
                 )
             # No cars detected
             else:
@@ -289,8 +289,8 @@ class VehicleCoordinator:
                 self.random_delay = self.T_MIN_RANDOM + random() * (self.T_MAX_RANDOM - self.T_MIN_RANDOM)
                 self.set_state(State.SACRIFICE_FOR_PRIORITY)
                 rospy.loginfo(
-                    "[%s] Other vehicle are waiting as well. Will wait for %.2f s"
-                    % (self.node_name, self.random_delay)
+                    f"[{self.node_name}] Other vehicle are waiting as well. Will wait for "
+                    f"{self.random_delay:.2f} s"
                 )
             # Other cars with priority detected
             elif (
@@ -300,8 +300,8 @@ class VehicleCoordinator:
                 self.random_delay = self.T_MIN_RANDOM + random() * (self.T_MAX_RANDOM - self.T_MIN_RANDOM)
                 self.set_state(State.SACRIFICE_FOR_PRIORITY)
                 rospy.loginfo(
-                    "[%s] Other vehicle are waiting as well. Will wait for %.2f s"
-                    % (self.node_name, self.random_delay)
+                    f"[{self.node_name}] Other vehicle are waiting as well. Will wait for "
+                    f"{self.random_delay:.2f} s"
                 )
             # Other cars  detected
             elif (
@@ -310,8 +310,8 @@ class VehicleCoordinator:
                 self.random_delay = self.T_MIN_RANDOM + random() * (self.T_MAX_RANDOM - self.T_MIN_RANDOM)
                 self.set_state(State.SACRIFICE)
                 rospy.loginfo(
-                    "[%s] Other vehicle are waiting as well. Will wait for %.2f s"
-                    % (self.node_name, self.random_delay)
+                    f"[{self.node_name}] Other vehicle are waiting as well. Will wait for "
+                    f"{self.random_delay:.2f} s"
                 )
             # No cars detected
             else:

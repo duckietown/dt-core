@@ -2,6 +2,7 @@ import getpass
 import os
 import socket
 from datetime import datetime
+from typing import List
 
 import duckietown_code_utils as dtu
 from easy_algo import get_easy_algo_db
@@ -47,8 +48,8 @@ def compute_check_results(rt_name, rt, results_all):
     current = make_entry(rt_name, results_all)
 
     algo_db = get_easy_algo_db()
-    entries_names = algo_db.query("rdbe", "parameters:regression_test_name:%s" % rt_name)
-    dtu.logger.info("entries: %s" % list(entries_names))
+    entries_names = algo_db.query("rdbe", f"parameters:regression_test_name:{rt_name}")
+    dtu.logger.info(f"entries: {list(entries_names)}")
     entries = []
     for name in entries_names:
         e = algo_db.create_instance("rdbe", name)
@@ -67,9 +68,9 @@ def compute_check_results(rt_name, rt, results_all):
 
 def display_check_results(results, out):
     s = ""
-    s += "\n%d results to report" % len(results)
+    s += f"\n{len(results):d} results to report"
     for i, r in enumerate(results):
-        s += "\n" + dtu.indent(str(r), "", "%d of %d: " % (i + 1, len(results)))
+        s += "\n" + dtu.indent(str(r), "", f"{i + 1:d} of {len(results):d}: ")
     print(s)
     fn = os.path.join(out, "check_results.txt")
     dtu.write_str_to_file(s, fn)
@@ -83,14 +84,13 @@ def write_to_db(rt_name, results_all, out):
     dtu.write_str_to_file(s, filename)
 
 
-@dtu.contract(results="list($CheckResult)")
-def fail_if_not_expected(results, expect):
+def fail_if_not_expected(results: List[CheckResult], expect):
     statuses = [r.status for r in results]
     summary = summarize_statuses(statuses)
     if summary != expect:
-        msg = "Expected status %r, but got %r." % (expect, summary)
+        msg = f"Expected status {expect!r}, but got {summary!r}."
         for i, r in enumerate(results):
-            msg += "\n" + dtu.indent(str(r), "", "%d of %d: " % (i + 1, len(results)))
+            msg += "\n" + dtu.indent(str(r), "", f"{i + 1:d} of {len(results):d}: ")
         raise Exception(msg)
 
 

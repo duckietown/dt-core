@@ -37,7 +37,7 @@ class MakeIPFS:
         res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True, write_stdin=dag_json)
         hashed = res.stdout.split()[1]
         assert "Qm" in hashed, hashed
-        print(("Directory of %d links: %s" % (len(self.links), hashed)))
+        print((f"Directory of {len(self.links):d} links: {hashed}"))
         return hashed
 
 
@@ -47,7 +47,7 @@ def get_hash_for_bytes(s):
     res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True, write_stdin=s)
     hashed = res.stdout.split()[1]
     if not "Qm" in hashed:
-        msg = "Invalid response, no Qm:\n%s" % dtu.indent(res.stdout, "  ")
+        msg = f"Invalid response, no Qm:\n{dtu.indent(res.stdout, '  ')}"
         raise Exception(msg)
     return hashed
 
@@ -76,7 +76,7 @@ def get_ipfs_hash_cached(filename):
 def get_ipfs_hash(filename):
     # ipfs add --only-hash LICENSE
     # added QmcgpsyWgH8Y8ajJz1Cu72KnS5uo2Aa2LpzU7kinSupNKC LICENSE
-    dtu.logger.debug("Computing IPFS hash for %s" % filename)
+    dtu.logger.debug(f"Computing IPFS hash for {filename}")
     cmd = base + ["add", "--only-hash", filename]
     cwd = "."
     res = dtu.system_cmd_result(cwd, cmd, display_stdout=False, display_stderr=False, raise_on_error=True)
@@ -84,7 +84,7 @@ def get_ipfs_hash(filename):
     out = res.stdout.strip().split(" ")
     #    print out
     if len(out) < 3 or out[0] != "added" or not out[1].startswith("Qm"):
-        msg = "Invalid output for ipds:\n%s" % dtu.indent(res.stdout, " > ")
+        msg = f"Invalid output for ipds:\n{dtu.indent(res.stdout, ' > ')}"
         raise Exception(msg)
     hashed = out[1]
     return hashed

@@ -126,11 +126,11 @@ class LEDDetector:
 
                 msg = (
                     "\n-------------------\n"
-                    + "num_img = %d \n" % num_img
-                    + "t_samp = %f \n" % t_s
-                    + "fft_peak_freq = %f \n" % fft_peak_freq
-                    + "freq_identified = %f \n" % freq_identified
-                    + "signal_name = %s \n" % detected_signal
+                    + f"num_img = {num_img:d} \n"
+                    + f"t_samp = {t_s:f} \n"
+                    + f"fft_peak_freq = {fft_peak_freq:f} \n"
+                    + f"freq_identified = {freq_identified:f} \n"
+                    + f"signal_name = {detected_signal} \n"
                     + "-------------------"
                 )
                 self.log(msg)
@@ -160,7 +160,7 @@ class LEDDetector:
         fft_peak_freq = 1.0 * np.argmax(y_f) / (num_img * t_s)
 
         if self.parameters["~verbose"] == 2:
-            self.log("Appearance perceived. = %s, frequency = %s" % (appearance_percentage, fft_peak_freq))
+            self.log(f"Appearance perceived. = {appearance_percentage}, frequency = {fft_peak_freq}")
         freq_identified = None
         # Take decision
         detected = False

@@ -30,7 +30,7 @@ class RQTNavigation(Plugin):
         # tell from pane to pane.
 
         if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (" (%d)" % context.serial_number()))
+            self._widget.setWindowTitle(self._widget.windowTitle() + (f" ({context.serial_number():d})"))
         # Add widget to the user interface
         context.add_widget(self._widget)
         self.loadComboBoxItems()

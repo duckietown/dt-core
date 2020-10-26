@@ -11,7 +11,7 @@ def _parse_regression_test_check(line):
     tokens = line.split(delim)
 
     if len(tokens) != 3:
-        msg = 'I expect exactly 3 tokens with delimiter %s.\nLine: "%s"\nTokens: %s' % (delim, line, tokens)
+        msg = f'I expect exactly 3 tokens with delimiter {delim}.\nLine: "{line}"\nTokens: {tokens}'
         raise dtu.DTConfigException(msg)
 
     try:
@@ -20,7 +20,7 @@ def _parse_regression_test_check(line):
         ref2 = parse_reference(tokens[2])
         evaluable = BinaryEval(ref1, binary, ref2)
     except RTParseError as e:
-        msg = 'Cannot parse string "%s".' % line
+        msg = f'Cannot parse string "{line}".'
         dtu.raise_wrapped(RTParseError, e, msg, compact=True)
         raise
     return Wrapper(evaluable)

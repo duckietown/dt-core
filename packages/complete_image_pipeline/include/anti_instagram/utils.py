@@ -22,11 +22,11 @@ def load_image(f):
     return read_file(f)
 
 
-def read_file(filename):
+def read_file(filename): # FIXME: Duplicate
     filename = dtu.expand_environment(filename)
     img = cv2.imread(filename)
     if img is None:
-        msg = "Cannot read filename %r." % filename
+        msg = f"Cannot read filename {filename!r}."
         raise ValueError(msg)
     return img
 

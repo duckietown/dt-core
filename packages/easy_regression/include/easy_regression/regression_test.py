@@ -1,5 +1,5 @@
-from collections import OrderedDict, namedtuple
 import copy
+from collections import namedtuple
 
 from contracts.utils import check_isinstance
 
@@ -27,7 +27,7 @@ class RegressionTest:
             prefix_in = p.pop("prefix_in", "")
             prefix_out = p.pop("prefix_out", "")
             if p:
-                msg = "Extra keys: %s" % p
+                msg = f"Extra keys: {p}"
                 raise ValueError(msg)
             p2 = ProcessorEntry(prefix_in=prefix_in, processor=processor, prefix_out=prefix_out)
             self.processors.append(p2)
@@ -58,8 +58,8 @@ class RegressionTest:
         for s in self.logs:
             for k, log in list(algo_db.query(s).items()):
                 if k in logs:
-                    msg = "Repeated log id %r" % k
-                    msg += "\n query: %s" % self.logs
+                    msg = f"Repeated log id {k!r}"
+                    msg += f"\n query: {self.logs}"
                     raise ValueError(msg)
                 logs[k] = log
         return logs
@@ -81,7 +81,7 @@ def parse_list_of_checks(checks):
         desc = c.pop("desc", None)
         cond = c.pop("cond")
         if c:
-            msg = "Spurious fields: %s" % list(c)
+            msg = f"Spurious fields: {list(c)}"
             raise ValueError(msg)
         lines = [_.strip() for _ in cond.strip().split("\n") if _.strip()]
         # remove comments

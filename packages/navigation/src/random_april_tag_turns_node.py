@@ -16,7 +16,7 @@ class RandomAprilTagTurnsNode:
         self.node_name = rospy.get_name()
         self.turn_type = -1
 
-        rospy.loginfo("[%s] Initializing." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initializing.")
 
         # Setup publishers
         # self.pub_topic_a = rospy.Publisher("~topic_a",String, queue_size=1)
@@ -34,7 +34,7 @@ class RandomAprilTagTurnsNode:
         # Create a timer that calls the cbTimer function every 1.0 second
         # self.timer = rospy.Timer(rospy.Duration.from_sec(self.pub_timestep),self.cbTimer)
 
-        rospy.loginfo("[%s] Initialzed." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzed.")
 
         self.rate = rospy.Rate(30)  # 10hz
 
@@ -84,7 +84,7 @@ class RandomAprilTagTurnsNode:
                     availableTurns = [0, 1, 2]
                 elif signType == taginfo.T_INTERSECTION:
                     availableTurns = [0, 2]
-                rospy.loginfo("[%s] reports Available turns are: [%s]", self.node_name, availableTurns)
+                rospy.loginfo(f"[{self.node_name}] reports Available turns are: [{availableTurns}]")
                 # now randomly choose a possible direction
                 if len(availableTurns) > 0:
                     randomIndex = numpy.random.randint(len(availableTurns))
@@ -107,7 +107,7 @@ class RandomAprilTagTurnsNode:
         return value
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
 if __name__ == "__main__":

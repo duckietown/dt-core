@@ -189,7 +189,7 @@ class LaneFilterNode(DTROS):
                 self.latencyArray.pop(0)
 
             # print "Latency of segment list: ", segment_latency
-            print(("Mean latency of Estimation:................. %s" % np.mean(self.latencyArray)))
+            print((f"Mean latency of Estimation:................. {np.mean(self.latencyArray)}"))
 
             # Get the segments that agree with the best estimate and publish them
             inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
@@ -212,7 +212,7 @@ class LaneFilterNode(DTROS):
         self.currentVelocity = twist_msg
 
     def loginfo(self, s):
-        rospy.loginfo("[%s] %s" % (self.node_name, s))
+        rospy.loginfo(f"[{self.node_name}] {s}")
 
 
 if __name__ == "__main__":

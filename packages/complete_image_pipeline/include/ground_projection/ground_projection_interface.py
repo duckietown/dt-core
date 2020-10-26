@@ -42,7 +42,7 @@ def estimate_homography(bgr_rectified):
     board_height = board["height"]
     square_size = board["square_size"]
     board_offset = board["offset"]
-    dtu.logger.info("board: \n %s" % board)
+    dtu.logger.info(f"board: \n {board}")
 
     # Defaults
     flags = cv2.CALIB_CB_ADAPTIVE_THRESH
@@ -58,10 +58,9 @@ def estimate_homography(bgr_rectified):
     bgr_detected = bgr_rectified.copy()
     cv2.drawChessboardCorners(bgr_detected, (7, 6), corners, ret)
 
-    if ret == False:
-        msg = "findChessboardCorners failed (len(corners) == %s)" % (
-            len(corners) if corners is not None else "none"
-        )
+    if not ret:
+        msg = f"findChessboardCorners failed (len(corners) == " \
+              f"{len(corners) if corners is not None else 'none'})"
         return HomographyEstimationResult(
             success=False,
             error=msg,
@@ -73,7 +72,7 @@ def estimate_homography(bgr_rectified):
 
     expected = board_width * board_height
     if len(corners) != expected:
-        msg = "Not all corners found in image. Expected: %s; found: %s" % (expected, len(corners))
+        msg = f"Not all corners found in image. Expected: {expected}; found: {len(corners)}"
         dtu.raise_desc(CouldNotCalibrate, msg)
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
@@ -82,7 +81,7 @@ def estimate_homography(bgr_rectified):
 
     #    bgr_detected_refined = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected_refined = grey_rectified.copy()
-    cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret)
+    cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret) # XXX: are these fixed?
 
     src_pts = []
     for r in range(board_height):
@@ -113,13 +112,13 @@ def estimate_homography(bgr_rectified):
 
 
 def save_homography(H: np.ndarray, robot_name: str) -> None:
-    dtu.logger.info("Homography:\n %s" % H)
+    dtu.logger.info(f"Homography:\n {H}")
 
     # Check if specific point in matrix is larger than zero (this would definitly mean we're having a
     # corrupted rotation matrix)
     if H[1][2] > 0:
         msg = "WARNING: Homography could be corrupt."
-        msg += "\n %s" % H
+        msg += f"\n {H}"
         raise Exception(msg)
 
     ob = {"homography": sum(H.reshape(9, 1).tolist(), [])}
@@ -170,7 +169,7 @@ def load_board_info(filename: str = None) -> dict:
         filename = root + "/config/baseline/ground_projection/ground_projection/default.yaml"
 
     if not os.path.isfile(filename):
-        msg = "No such file: %s" % filename
+        msg = f"No such file: {filename}"
         raise dtu.DTException(msg)
 
     target_data = dtu.yaml_load_file(filename)

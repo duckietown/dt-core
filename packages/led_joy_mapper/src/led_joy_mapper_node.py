@@ -9,7 +9,7 @@ from std_msgs.msg import String
 class LEDJoyMapper:
     def __init__(self):
         self.node_name = rospy.get_name()
-        rospy.loginfo("[%s] Initializing " % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initializing ")
 
         self.joy = None
         self.last_pub_msg = None
@@ -46,7 +46,7 @@ class LEDJoyMapper:
         for b, pattern in list(self.button2patterns.items()):
             if self.joy.buttons[b] == 1:
                 self.pub_pattern.publish(pattern)
-                rospy.loginfo("Publishing pattern %s" % (pattern))
+                rospy.loginfo(f"Publishing pattern {pattern}")
 
 
 if __name__ == "__main__":

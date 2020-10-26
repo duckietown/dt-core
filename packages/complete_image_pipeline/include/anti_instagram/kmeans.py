@@ -38,7 +38,7 @@ def runKMeans(cv_img, num_colors, init):
     t1 = time.time()
     kmc.fit_predict(imgdata)
     t2 = time.time()
-    logger.info(("fit time: %f" % (t2 - t1)))
+    logger.info((f"fit time: {t2 - t1:f}"))
     trained_centers = kmc.cluster_centers_
     # print trained_centers
     labels = kmc.labels_
@@ -51,7 +51,7 @@ def runKMeans(cv_img, num_colors, init):
         labelcount[i] = np.sum(labels == i)
 
     t2 = time.time()
-    logger.info(("counting labels time: %f" % (t2 - t1)))
+    logger.info((f"counting labels time: {t2 - t1:f}"))
     # print labelcount
     # IPython.embed()
     score = kmc.score(imgdata)

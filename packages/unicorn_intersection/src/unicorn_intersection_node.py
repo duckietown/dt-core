@@ -159,7 +159,7 @@ class UnicornIntersectionNode:
     def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (self.node_name, param_name, value))
+        rospy.loginfo(f"[{self.node_name}] {param_name} = {value} ")
         return value
 
     def onShutdown(self):

@@ -122,7 +122,7 @@ class AntiInstagram(AntiInstagramInterface):
             raise Exception("calculate_transform failed")
         self.scale = parameters["scale"]
         self.shift = parameters["shift"]
-        logger.debug("Scale: %s shift: %s" % (self.scale, self.shift))
+        logger.debug(f"Scale: {self.scale} shift: {self.shift}")
 
     def calculateHealth(self):
         return self.health

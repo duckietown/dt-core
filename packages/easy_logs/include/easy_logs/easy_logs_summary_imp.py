@@ -12,7 +12,7 @@ def format_logs(logs):
         s = "No logs found."
         return s
     else:
-        s = "Found %d logs.\n" % len(logs)
+        s = f"Found {len(logs):d} logs.\n"
 
         table = get_logs_description_table(logs)
         dtu.remove_table_field(table, "filename")
@@ -30,7 +30,7 @@ def format_logs(logs):
         rsort = sorted(counts, key=lambda _: -len(counts[_]))
         for rname in rsort:
             rcount = len(counts[rname])
-            s += "\n %3d %s" % (rcount, rname)
+            s += f"\n {rcount:3d} {rname}"
             if rcount <= 3:
                 s += "  " + " ".join(counts[rname])
         return s
@@ -62,12 +62,12 @@ def get_logs_description_table(logs, color=True):
         #        row.append(log.map_name)
         row.append(log.description)
         dtr = DTR.from_yaml(log.resources["bag"])
-        bag_size_mb = "%8.1f MB" % (dtr.size / (1024.0 * 1024))
+        bag_size_mb = f"{dtr.size / (1024.0 * 1024):8.1f} MB"
         row.append(bag_size_mb)
-        row.append("%s %s \n%s" % (dtr.name, bag_size_mb, dtr.hash["sha1"]))
+        row.append(f"{dtr.name} {bag_size_mb} \n{dtr.hash['sha1']}")
         row.append(log.date)
         if log.length is not None:
-            l = "%5.1f s" % log.length
+            l = f"{log.length:5.1f} s"
         else:
             l = "(none)"
         row.append(l)

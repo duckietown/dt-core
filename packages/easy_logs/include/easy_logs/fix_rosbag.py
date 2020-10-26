@@ -23,7 +23,7 @@ def _hotfix_get_message_type(info):
         #             print('WARNING: For type [%s] stored md5sum [%s] has invalid message definition."'
         #                   %(info.datatype, info.md5sum), file=sys.stderr)
         except genmsg.MsgGenerationException as ex:
-            raise ROSBagException("Error generating datatype %s: %s" % (info.datatype, str(ex)))
+            raise ROSBagException(f"Error generating datatype {info.datatype}: {str(ex)}")
 
         _message_types[info.md5sum] = message_type
 

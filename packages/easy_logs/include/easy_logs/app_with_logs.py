@@ -93,7 +93,7 @@ def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
 def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     """" Returns the path to the log. """
     log = copy.deepcopy(log)
-    dtu.logger.info("Get log if not exists: %s" % log.log_name)
+    dtu.logger.info(f"Get log if not exists: {log.log_name}")
     downloads = dtu.get_duckietown_local_log_downloads()
 
     dtr_yaml = log.resources[resource_name]
@@ -103,14 +103,14 @@ def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
     if dtr.name in all_resources.basename2filename:
         # local!
         filename = all_resources.basename2filename[dtr.name]
-        dtu.logger.info("We already have %s locally at %s" % (dtr.name, filename))
+        dtu.logger.info(f"We already have {dtr.name} locally at {filename}")
         return filename
 
-    dtu.logger.info("We do not have %s locally." % dtr.name)
+    dtu.logger.info(f"We do not have {dtr.name} locally.")
 
     filename = os.path.join(downloads, dtr.name)
     if os.path.exists(filename):
-        dtu.logger.info("It was already downloaded as %s" % filename)
+        dtu.logger.info(f"It was already downloaded as {filename}")
         return filename
 
     use = []

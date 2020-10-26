@@ -58,7 +58,7 @@ class Gallery(D8AppWithLogs):
                     length_invalid += log.length
         logs = logs_valid
 
-        self.info("Found %d valid logs." % len(logs))
+        self.info(f"Found {len(logs):d} valid logs.")
 
         s = format_logs(logs)
         self.info(s)
@@ -96,11 +96,8 @@ def get_report(logs, url_to_resource, initial_screens: bool = True) -> str:
     h.append("Duckietown Logs Database")
     body.append(h)
 
-    c = "Showing %d logs from %d different Duckiebots, for a total length of %.1f hours." % (
-        len(logs),
-        len(vehicles),
-        length / 3600.0,
-    )
+    c = f"Showing {len(logs):d} logs from {len(vehicles):d} different Duckiebots, for a total length of " \
+        f"{length / 3600.0:.1f} hours."
 
     p = Tag(name="p")
     p.append(c)
@@ -129,7 +126,7 @@ def summary_table(logs, url_to_resource):
         if rel:
             video = video_for_source(rel)
             a = Tag(name="a")
-            a.attrs["href"] = "#%s" % id_log
+            a.attrs["href"] = f"#{id_log}"
             a.attrs["class"] = "smallicon"
             a.append(video)
             d.append(a)
@@ -178,7 +175,7 @@ def make_section(_i, id_log, log, url_to_resource):
 
     c = Tag(name="pre")
 
-    s = ["Vehicle: %s" % log.vehicle, "Date: %s" % log.date, "Length: %.1f s" % log.length]
+    s = [f"Vehicle: {log.vehicle}", f"Date: {log.date}", f"Length: {log.length:.1f} s"]
 
     c.append("\n".join(s))
     d.append(c)
@@ -299,7 +296,7 @@ def get_row(i, log, url_to_resource):
     tr.append(td(log.date))
 
     if log.length is not None:
-        l = "%5.1f s" % log.length
+        l = f"{log.length:5.1f} s"
     else:
         l = "(none)"
     trh.append(td("length"))
@@ -321,7 +318,7 @@ def get_row(i, log, url_to_resource):
 
     a = Tag(name="a")
     a.append(log.log_name)
-    a.attrs["href"] = "#%s" % log.log_name
+    a.attrs["href"] = f"#{log.log_name}"
 
     tr.append(td(a))
 
@@ -365,7 +362,7 @@ def get_resource_url(log, rname):
     if rname in log.resources:
         if Gallery.deploy_ipfs:
             ipfs = log.resources[rname]["hash"]["ipfs"]
-            return "/ipfs/%s" % ipfs
+            return f"/ipfs/{ipfs}"
         else:
             url = choose_url(log.resources[rname]["urls"])
             return url
@@ -397,8 +394,8 @@ def append_urls(id_log, log, where, url_to_resource):
     for rname in log.resources:
 
         dtr = DTR.from_yaml(log.resources[rname])
-        size_mb = "%.1f MB" % (dtr.size / (1000 * 1000.0))
-        s = "%s (%s) " % (rname, size_mb)
+        size_mb = f"{dtr.size / (1000 * 1000.0):.1f} MB"
+        s = f"{rname} ({size_mb}) "
         where.append(s)
 
         urls = [url_to_resource(log, rname)]
@@ -411,9 +408,9 @@ def append_urls(id_log, log, where, url_to_resource):
         for i, url in enumerate(urls):
             where.append(" ")
             a = Tag(name="a")
-            a.attrs["download"] = "%s.%s" % (id_log, rname)
+            a.attrs["download"] = f"{id_log}.{rname}"
             a.attrs["href"] = url
-            a.append("link %s" % i)
+            a.append(f"link {i}")
             where.append(a)
             n += 1
         where.append(Tag(name="br"))

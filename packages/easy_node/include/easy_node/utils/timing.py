@@ -1,8 +1,8 @@
+import time
 from collections import defaultdict
 from contextlib import contextmanager
-import time
-import duckietown_code_utils as dtu
 
+import duckietown_code_utils as dtu
 
 __all__ = [
     "ProcessingTimingStats",
@@ -139,12 +139,8 @@ class ProcessingTimingStats:
             total_latency = dtu.seconds_as_ms(stats_latency.last_value())
             delta_wall = dtu.seconds_as_ms(stats_wall.last_value())
             delta_clock = dtu.seconds_as_ms(stats_clock.last_value())
-            msg = "%s | total latency %10s | delta wall %10s | delta clock %10s" % (
-                phase_name.ljust(l),
-                total_latency,
-                delta_wall,
-                delta_clock,
-            )
+            msg = f"{phase_name.ljust(l)} | total latency {total_latency:>10} | delta wall {delta_wall:>10} " \
+                  f"| delta clock {delta_clock:>10}"
             s += "\n" + msg
         return s
 
@@ -190,7 +186,7 @@ class SingleStat:
         else:
             duration = self.duration()
             f = n / duration
-            return "%.1f fps" % f
+            return f"{f:.1f} fps"
 
     def duration(self):
         delta = time.time()
@@ -202,7 +198,7 @@ def get_percentage(i, n):
         return "0 %"
     else:
         v = 100 * (1.0 * i / n)
-        return "%.1f %%" % v
+        return f"{v:.1f} %"
 
 
 class FakeContext:

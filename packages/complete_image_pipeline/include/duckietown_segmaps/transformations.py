@@ -48,7 +48,7 @@ class TransformationsInfo:
         key = (frame1, frame2)
 
         if not key in self.t:
-            msg = "Could not find transformation %s." % str(key)
+            msg = f"Could not find transformation {str(key)}."
             raise ValueError(msg)
 
         g = self.t[key]

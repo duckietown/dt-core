@@ -87,18 +87,18 @@ def plot_phi_d_diagram_bgr(
         pylab.plot([+W, +W], [f_phi(phi_min), f_phi(phi_max)], "y-")
         pylab.plot([+W + width_yellow, +W + width_yellow], [f_phi(phi_min), f_phi(phi_max)], "y-")
         s = ""
-        s += "status = %s" % lane_filter.getStatus()
-        s += "\nphi = %.1f deg" % f_phi(phi)
-        s += "\nd = %.1f cm" % f_d(d)
-        s += "\nentropy = %.4f" % lane_filter.get_entropy()
-        s += "\nmax = %.4f" % belief.max()
-        s += "\nmin = %.4f" % belief.min()
+        s += f"status = {lane_filter.getStatus()}"
+        s += f"\nphi = {f_phi(phi):.1f} deg"
+        s += f"\nd = {f_d(d):.1f} cm"
+        s += f"\nentropy = {lane_filter.get_entropy():.4f}"
+        s += f"\nmax = {belief.max():.4f}"
+        s += f"\nmin = {belief.min():.4f}"
 
         if other_phi is not None:
             s += "\n Other answers:"
             for _phi, _d in zip(other_phi, other_d):
-                s += "\nphi = %.1f deg" % f_phi(_phi)
-                s += "\nd = %.1f cm" % f_d(_d)
+                s += f"\nphi = {f_phi(_phi):.1f} deg"
+                s += f"\nd = {f_d(_d):.1f} cm"
 
         y = f_phi(phi_max) - 10
         args = dict(rotation=-90, color="white")
@@ -112,7 +112,7 @@ def plot_phi_d_diagram_bgr(
 
         pylab.axis([f_d(d_min), f_d(d_max), f_phi(phi_min), f_phi(phi_max)])
 
-        pylab.ylabel("phi: orientation (deg); cell = %.1f deg" % f_phi(delta_phi))
-        pylab.xlabel("d: distance from center line (cm); cell = %.1f cm" % f_d(delta_d))
+        pylab.ylabel(f"phi: orientation (deg); cell = {f_phi(delta_phi):.1f} deg")
+        pylab.xlabel(f"d: distance from center line (cm); cell = {f_d(delta_d):.1f} cm")
 
     return a.get_bgr()

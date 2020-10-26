@@ -4,5 +4,5 @@ def parse_float(a):
         res = float(a)
         return res
     except:
-        msg = "Cannot convert value to a float.\nValue: %s" % a.__repr__()
+        msg = f"Cannot convert value to a float.\nValue: {a!r}"
         raise TypeError(msg)

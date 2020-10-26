@@ -1,4 +1,5 @@
 import os
+from typing import cast
 
 import cv2
 
@@ -44,7 +45,7 @@ class CalibrateExtrinsics(D8App):
         the_input = self.options.input
         if output is None:
             output = "out/calibrate-extrinsics"  # + dtu.get_md5(self.options.image)[:6]
-            self.info("No --output given, using %s" % output)
+            self.info(f"No --output given, using {output}")
 
         if the_input is None:
 
@@ -59,7 +60,7 @@ class CalibrateExtrinsics(D8App):
 
             # Dummy for getting a ROS message
             rospy.init_node("calibrate_extrinsics")
-            img_msg = None
+
             try:
                 img_msg = rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
                 self.info("Image captured")
@@ -67,14 +68,15 @@ class CalibrateExtrinsics(D8App):
                 print(
                     (
                         "\n\n\n"
-                        "Didn't get any message: %s\n "
+                        f"Didn't get any message: {e}\n "
                         "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
-                        "\n\n\n" % (e,)
+
                     )
                 )
-
+                raise
+            img_msg = cast(CompressedImage, img_msg)
             bgr = dtu.bgr_from_rgb(dru.rgb_from_ros(img_msg))
-            self.info(("Picture taken: %s " % str(bgr.shape)))
+            self.info(f"Picture taken: {str(bgr.shape)} ")
 
         else:
             self.info(f"Loading input image {the_input}")
@@ -83,7 +85,7 @@ class CalibrateExtrinsics(D8App):
         if bgr.shape[1] != 640:
             interpolation = cv2.INTER_CUBIC
             bgr = dtu.d8_image_resize_fit(bgr, 640, interpolation)
-            self.info(("Resized to: %s " % str(bgr.shape)))
+            self.info(f"Resized to: {str(bgr.shape)} ")
         # Disable the old calibration file
         self.info("Disableing old homography")
         disable_old_homography(robot_name)

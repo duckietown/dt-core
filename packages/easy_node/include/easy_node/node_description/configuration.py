@@ -63,10 +63,10 @@ def load_configuration_baseline():
 
 def load_configuration_package_node(package_name: str, node_type_name: str) -> EasyNodeConfig:
     path = dru.get_ros_package_path(package_name)
-    look_for = "%s.easy_node.yaml" % node_type_name
+    look_for = f"{node_type_name}.easy_node.yaml"
     found = dtu.locate_files(path, look_for)
     if not found:
-        msg = "Could not find EasyNode configuration %r." % look_for
+        msg = f"Could not find EasyNode configuration {look_for!r}."
         raise dtu.DTConfigException(msg)  # XXX
 
     fn = found[0]
@@ -93,7 +93,7 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
             raise  # ide not smart
         if not isinstance(data, dict):
-            msg = "Expected a dict, got %s." % type(data).__name__
+            msg = f"Expected a dict, got {type(data).__name__}."
             raise dtu.DTConfigException(msg)
         try:
             parameters = data.pop("parameters")
@@ -107,11 +107,11 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
             raise dtu.DTConfigException(msg)
 
         if not isinstance(description, (str, NoneType)):
-            msg = "Description should be a string, not %s." % type(description).__name__
+            msg = f"Description should be a string, not {type(description).__name__}."
             raise dtu.DTConfigException(msg)
 
         if data:
-            msg = "Spurious fields found: %s" % sorted(data)
+            msg = f"Spurious fields found: {sorted(data)}"
             raise dtu.DTConfigException(msg)
 
         parameters = load_configuration_parameters(parameters)
@@ -130,7 +130,7 @@ def load_configuration(realpath, contents) -> EasyNodeConfig:
             node_type_name=None,
         )
     except dtu.DTConfigException as e:
-        msg = "Invalid configuration at %s: " % realpath
+        msg = f"Invalid configuration at {realpath}: "
         dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
 
 
@@ -141,7 +141,7 @@ def load_configuration_parameters(data: dict) -> dict:
             check_good_name(k)
             res[k] = load_configuration_parameter(k, v)
         except dtu.DTConfigException as e:
-            msg = "Invalid parameter entry %r:" % k
+            msg = f"Invalid parameter entry {k!r}:"
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -153,7 +153,7 @@ def load_configuration_subscriptions(data: dict) -> dict:
             check_good_name(k)
             res[k] = load_configuration_subscription(k, v)
         except dtu.DTConfigException as e:
-            msg = "Invalid subscription entry %r:" % k
+            msg = f"Invalid subscription entry {k!r}:"
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -165,7 +165,7 @@ def load_configuration_publishers(data: dict) -> dict:
             check_good_name(k)
             res[k] = load_configuration_publisher(k, v)
         except dtu.DTConfigException as e:
-            msg = "Invalid publisher entry %r:" % k
+            msg = f"Invalid publisher entry {k!r}:"
             dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
     return res
 
@@ -194,15 +194,15 @@ def load_configuration_parameter(name, data):
             has_default = False
 
     except KeyError as e:
-        msg = "Could not find field %r." % e.args[0]
+        msg = f"Could not find field {e.args[0]!r}."
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = "Extra keys: %r" % data
+        msg = f"Extra keys: {data!r}"
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = "Description should be a string, not %s." % type(desc).__name__
+        msg = f"Description should be a string, not {type(desc).__name__}."
         raise dtu.DTConfigException(msg)
 
     type2T = {
@@ -233,7 +233,7 @@ def check_good_name(k):
 def message_class_from_string(s):
     if not "/" in s:
         msg = ""
-        msg += 'Invalid message name "%s".\n' % s
+        msg += f'Invalid message name "{s}".\n'
         msg += 'I expected that the name of the message is in the format "PACKAGE/MSG".\n '
         msg += 'E.g. "sensor_msgs/Joy" or "duckietown_msgs/BoolStamped".'
         raise dtu.DTConfigException(msg)
@@ -242,12 +242,12 @@ def message_class_from_string(s):
     i = s.index("/")
     package = s[:i]
     name = s[i + 1 :]
-    symbol = "%s.msg.%s" % (package, name)
+    symbol = f"{package}.msg.{name}"
     try:
         msgclass = dtu.import_name(symbol)
         return msgclass
     except ValueError as e:
-        msg = 'Cannot import type for message "%s" (%s).' % (s, symbol)
+        msg = f'Cannot import type for message "{s}" ({symbol}).'
         dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
 
 
@@ -267,19 +267,19 @@ def load_configuration_subscription(name, data):
         queue_size = data.pop("queue_size", None)
         process = data.pop("process", PROCESS_SYNCHRONOUS)
         if not process in PROCESS_VALUES:
-            msg = "Invalid value of process %r not in %r." % (process, PROCESS_VALUES)
+            msg = f"Invalid value of process {process!r} not in {PROCESS_VALUES!r}."
             raise dtu.DTConfigException(msg)
 
     except KeyError as e:
-        msg = "Could not find field %r." % e
+        msg = f"Could not find field {e!r}."
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = "Description should be a string, not %s." % type(desc).__name__
+        msg = f"Description should be a string, not {type(desc).__name__}."
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = "Extra keys: %r" % data
+        msg = f"Extra keys: {data!r}"
         raise dtu.DTConfigException(msg)
     T = message_class_from_string(type_)
 
@@ -305,15 +305,15 @@ def load_configuration_publisher(name, data):
         queue_size = data.pop("queue_size", None)
 
     except KeyError as e:
-        msg = "Could not find field %r." % e
+        msg = f"Could not find field {e!r}."
         raise dtu.DTConfigException(msg)
 
     if not isinstance(desc, (str, NoneType)):
-        msg = "Description should be a string, not %s." % type(desc).__name__
+        msg = f"Description should be a string, not {type(desc).__name__}."
         raise dtu.DTConfigException(msg)
 
     if data:
-        msg = "Extra keys: %r" % data
+        msg = f"Extra keys: {data!r}"
         raise dtu.DTConfigException(msg)
 
     T = message_class_from_string(type_)
@@ -341,7 +341,7 @@ def load_configuration_for_nodes_in_package(package_name: str):
 
 
 def format_enc(enc: EasyNodeConfig, descriptions: bool = False) -> str:
-    s = 'Configuration for node "%s" in package "%s"' % (enc.node_type_name, enc.package_name)
+    s = f'Configuration for node "{enc.node_type_name}" in package "{enc.package_name}"'
     s += "\n" + "=" * len(s)
 
     S = " " * 4

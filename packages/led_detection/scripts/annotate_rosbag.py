@@ -16,8 +16,8 @@ def mouse_cb(event, x, y, flags, param):
         normalized_uv.x = float(x) / float(w)
         normalized_uv.y = float(y) / float(h)
 
-        print(("image coordinate: (%d, %d)" % (x, y)))
-        print(("normalized image coordinate: (%f, %f)" % (normalized_uv.x, normalized_uv.y)))
+        print(f"image coordinate: ({x:d}, {y:d})")
+        print(f"normalized image coordinate: ({normalized_uv.x:f}, {normalized_uv.y:f})")
 
 
 def get_image_topic_name(veh):
@@ -33,7 +33,8 @@ def get_image_topic_name(veh):
         rospy.wait_for_message(image_topic_name, Image, timeout=5)
         return image_topic_name
     except rospy.ROSException as e:
-        print(("%s" % e))
+        print(f"{e}")
+        # XXX: raise error
 
     return None
 
@@ -45,7 +46,7 @@ if __name__ == "__main__":
 
     param = sys.argv[1]
     param = param.replace("veh:=", "")
-    print(("Using vehicle name %r." % param))
+    print(f"Using vehicle name {param!r}.")
     veh = "/" + param
 
     bridge = CvBridge()

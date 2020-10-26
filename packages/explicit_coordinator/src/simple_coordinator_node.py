@@ -46,7 +46,7 @@ class VehicleCoordinator:
         else:
             self.traffic_light_intersection = False
 
-        rospy.loginfo("[simple_coordination_node]: trafficLight=%s" % str(self.traffic_light_intersection))
+        rospy.loginfo(f"[simple_coordination_node]: trafficLight={self.traffic_light_intersection}")
 
         # Subscriptions
         self.mode = "LANE_FOLLOWING"
@@ -169,7 +169,7 @@ class VehicleCoordinator:
             elif self.time_at_current_state() > 2 * self.T_SENSE:
                 if self.opposite_veh == SignalsDetection.SIGNAL_B:
                     self.random_delay = random() * self.T_MAX_RANDOM
-                    print(("Other vehicle reserving as well. Will wait for %.2f s" % self.random_delay))
+                    print(f"Other vehicle reserving as well. Will wait for {self.random_delay:.2f} s")
                     self.set_state(State.CONFLICT)
                 else:
                     self.set_state(State.GO)

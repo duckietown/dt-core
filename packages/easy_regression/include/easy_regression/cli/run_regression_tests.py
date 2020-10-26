@@ -37,7 +37,8 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         params.add_string("tests", help="Query for tests instances.", group=g)
         params.add_flag("write", help="Stores the current results in the DB", group=g)
 
-        h = "Expected status code for this regression test; one of: %s" % ", ".join(RTCheck.CHECK_RESULTS)
+        s = ", ".join(RTCheck.CHECK_RESULTS)
+        h = f"Expected status code for this regression test; one of: {s}"
         default = RTCheck.OK
         params.add_string("expect", help=h, group=g, default=default)
 
@@ -52,7 +53,7 @@ class RunRegressionTest(D8AppWithLogs, QuickApp):
         delete = not self.options["debug_no_delete"]
 
         if not expect in RTCheck.CHECK_RESULTS:
-            msg = "Invalid expect status %s; must be one of %s." % (expect, RTCheck.CHECK_RESULTS)
+            msg = f"Invalid expect status {expect}; must be one of {RTCheck.CHECK_RESULTS}."
             raise dtu.DTUserError(msg)
 
         query = self.options["tests"]
@@ -75,9 +76,9 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
 
     analyzers = rt.get_analyzers()
 
-    logger.info("logs: %s" % list(logs))
-    logger.info("processors: %s" % processors)
-    logger.info("analyzers: %s" % analyzers)
+    logger.info(f"logs: {list(logs)}")
+    logger.info(f"processors: {processors}")
+    logger.info(f"analyzers: {analyzers}")
 
     # results_all['analyzer'][log_name]
     results_all = {}
@@ -85,7 +86,7 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
         results_all[a] = {}
 
     date = dtu.format_time_as_YYYY_MM_DD(time.time())
-    prefix = "run_regression_test-%s-%s-" % (rt_name, date)
+    prefix = f"run_regression_test-{rt_name}-{date}-"
     tmpdir = dtu.create_tmpdir(prefix=prefix)
     do_before_deleting_tmp_dir = []
     for log_name, log in list(logs.items()):
@@ -111,7 +112,7 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
         )
 
         for a in analyzers:
-            r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id="analyze-%s" % a)
+            r = results_all[a][log_name] = c.comp(job_analyze, log_out_, a, job_id=f"analyze-{a}")
             do_before_deleting_tmp_dir.append(r)
 
         def sanitize_topic(x):
@@ -124,14 +125,14 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
         log_out_dir = os.path.join(out, "logs", log_name)
         for topic in rt.get_topic_videos():
             mp4 = os.path.join(log_out_dir, "videos", log_name + "-" + sanitize_topic(topic) + ".mp4")
-            job_id = "make_video-%s" % sanitize_topic(topic)
+            job_id = f"make_video-{sanitize_topic(topic)}"
             v = c.comp(dbu.d8n_make_video_from_bag, log_out_, topic, mp4, job_id=job_id)
             report_filenames.append(v)
             do_before_deleting_tmp_dir.append(v)
 
         for topic in rt.get_topic_images():
             basename = os.path.join(log_out_dir, "images", log_name + "-" + sanitize_topic(topic))
-            job_id = "write_image-%s" % sanitize_topic(topic)
+            job_id = f"write_image-{sanitize_topic(topic)}"
             v = c.comp(write_images, log_out_, topic, basename, job_id=job_id)
             report_filenames.append(v)
             do_before_deleting_tmp_dir.append(v)
@@ -141,7 +142,7 @@ def jobs_rt(context, rt_name: str, rt: RegressionTest, easy_logs_db, out, expect
         do_before_deleting_tmp_dir.append(v)
 
     for a in analyzers:
-        v = results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a, job_id="merge-%s" % a)
+        v = results_all[a][ALL_LOGS] = context.comp(job_merge, results_all[a], a, job_id=f"merge-{a}")
     #         do_before_deleting_tmp_dir.append(v)
 
     context.comp(print_results, analyzers, results_all, out)
@@ -175,7 +176,7 @@ def create_report_html(log_name, filenames, out):
     html.append(head)
 
     h = Tag(name="h1")
-    h.append("Report for %s" % log_name)
+    h.append(f"Report for {log_name}")
     body.append(h)
 
     for f in filenames:
@@ -215,11 +216,11 @@ def video_for_source(rel, width="100%"):
 
 def write_images(bag_filename, topic, basename):
     """ Returns the name of the first created file """
-    dtu.logger.info("reading topic %r from %r" % (topic, bag_filename))
+    dtu.logger.info(f"reading topic {topic!r} from {bag_filename!r}")
     bag = rosbag.Bag(bag_filename)
     nfound = bag.get_message_count(topic)
     if nfound == 0:
-        msg = "Found 0 messages for topic %s" % topic
+        msg = f"Found 0 messages for topic {topic}"
         msg += "\n\n" + dtu.indent(dbu.get_summary_of_bag_messages(bag), "  ")
         raise ValueError(msg)
 
@@ -232,7 +233,7 @@ def write_images(bag_filename, topic, basename):
         if n == 1:
             fn = basename + ".png"
         else:
-            fn = basename + "-%02d" % i + ".png"
+            fn = basename + f"-{i:02d}.png"
 
         filenames.append(fn)
         dtu.write_data_to_file(data, fn)
@@ -243,5 +244,5 @@ def write_images(bag_filename, topic, basename):
 
 
 def delete_tmp_dir(tmpdir, _dependencies):
-    dtu.logger.warning("deleting tmpdir %s" % tmpdir)
+    dtu.logger.warning(f"deleting tmpdir {tmpdir}")
     shutil.rmtree(tmpdir)

@@ -41,7 +41,7 @@ def delete_easy_logs_cache():
     fn = os.path.join(cache_dir, "candidate_cloud.yaml")
 
     if os.path.exists(fn):
-        dtu.logger.info("Removing %s" % fn)
+        dtu.logger.info(f"Removing {fn}")
         os.unlink(fn)
 
 
@@ -54,7 +54,7 @@ def write_candidate_cloud(logs):
     # try reading
     dtu.logger.info("reading back logs")
     logs2 = logs_from_yaml(dtu.yaml_load_plain(s))
-    dtu.logger.info("read back %s" % len(logs2))
+    dtu.logger.info(f"read back {len(logs2)}")
 
 
 def logs_from_yaml(data: dict) -> Dict[str, PhysicalLog]:
@@ -79,7 +79,7 @@ def get_logs_cloud():
     cloud_file = dtu.require_resource("cloud2.yaml")
 
     with dtu.timeit_wall("loading DB"):
-        dtu.logger.info("Loading cloud DB %s" % dtu.friendly_path(cloud_file))
+        dtu.logger.info(f"Loading cloud DB {dtu.friendly_path(cloud_file)}")
         with dtu.timeit_wall("YAML load file"):
             data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
         # with dtu.timeit_wall('plain'):
@@ -91,7 +91,7 @@ def get_logs_cloud():
         logs = logs_from_yaml(data)
 
     logs = dict(logs)
-    dtu.logger.info("Loaded cloud DB with %d entries." % len(logs))
+    dtu.logger.info(f"Loaded cloud DB with {len(logs):d} entries.")
 
     return logs
 
@@ -131,7 +131,7 @@ def query_logs(
         if raise_if_no_matches and not res:
             msg = "Could not find any match for the queries:"
             for q in query:
-                msg += "\n- %s" % q
+                msg += f"\n- {q}"
             raise dtu.DTNoMatches(msg)
         return res
     else:
@@ -218,7 +218,7 @@ def which_robot_from_bag_info(info):
         if m:
             vehicle = m.group(1)
             return vehicle
-    msg = "Could not find a topic matching %s" % pattern
+    msg = f"Could not find a topic matching {pattern!r}"
     raise ValueError(msg)
 
 
@@ -237,7 +237,7 @@ def is_valid_name(basename):
 
 def _get_base_base(x):
     if not "." in x:
-        msg = "Invalid: %s" % x
+        msg = f"Invalid: {x}"
         raise ValueError(msg)
     return x[: x.index(".")]
 
@@ -431,13 +431,14 @@ def get_local_file(dtr):
         try:
             filename = get_local_filepath(url)
             if not os.path.exists(filename):
-                msg = "DB said this file existed but it does not: %s" % url
+                msg = f"DB said this file existed but it does not: {url}"
                 dtu.logger.error(msg)
                 continue
             return filename
         except NotLocalPath:
             pass
-    msg = "None of the paths are local:\n%s" % "\n".join(dtr["urls"])
+    paths = "\n".join(dtr["urls"])
+    msg = f"None of the paths are local:\n{paths}"
     raise NotAvailableLocally(msg)
 
 

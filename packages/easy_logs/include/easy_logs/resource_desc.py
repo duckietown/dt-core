@@ -64,7 +64,7 @@ def create_dtr_version_1(filename):
         Qm = get_ipfs_hash_cached(filename)
         hashes["ipfs"] = Qm
 
-    with dtu.timeit_wall("hashing %s" % filename, minimum=500):
+    with dtu.timeit_wall(f"hashing {filename}", minimum=500):
         hashes["sha1"] = dtu.sha1_for_file_cached(filename)
 
     urls = []
@@ -78,13 +78,13 @@ def create_dtr_version_1(filename):
     # noinspection PyUnboundLocalVariable
     if "ipfs" in hashes:
         Qm = hashes["ipfs"]
-        url = "file:///ipfs/%s" % Qm
+        url = f"file:///ipfs/{Qm}"
         urls.append(url)
 
-        url = "http://gateway.ipfs.io/ipfs/%s" % Qm
+        url = f"http://gateway.ipfs.io/ipfs/{Qm}"
         urls.append(url)
 
-        url = "http://ipfs.duckietown.org:8080/ipfs/%s" % Qm
+        url = f"http://ipfs.duckietown.org:8080/ipfs/{Qm}"
         urls.append(url)
 
     name = os.path.basename(filename)
@@ -133,7 +133,7 @@ def _file_uri_prefix():
     import socket
 
     hostname = socket.gethostname()
-    uri = "file://%s" % (hostname)
+    uri = f"file://{hostname}"
     return uri
 
 
@@ -148,4 +148,4 @@ def get_local_filepath(uri):
     if uri.startswith(uri_prefix):
         return uri[len(uri_prefix) :]
     else:
-        raise NotLocalPath("Not current host: %s" % uri)
+        raise NotLocalPath(f"Not current host: {uri}")
