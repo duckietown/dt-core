@@ -54,7 +54,8 @@ jobs:
   unit-tests-from-parent:
     docker:
       - image:  duckietown/dt-ros-commons:daffy-amd64
-
+    environment:
+      DUCKIETOWN_DATA: /data
     steps:
 
       - checkout

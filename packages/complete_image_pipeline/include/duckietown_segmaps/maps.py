@@ -30,13 +30,13 @@ class SegMapPoint:
 @dataclass
 class SegMapSegment:
     points: List[PointName]
-    color: str # TODO: type for color strings
+    color: dtu.ColorString
 
 
 @dataclass
 class SegMapFace:
     points: List[PointName]
-    color: str  # TODO: type for color strings
+    color: dtu.ColorString
 
 
 FAMILY_SEGMAPS = FrameName("segmap")
