@@ -66,7 +66,7 @@ Use like this:
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info(f"Found {len(logs):d} logs.")
+        self.info(f"Found {len(logs)} logs.")
         logs_valid = {}
         for log_name, log in list(logs.items()):
             if log.valid:

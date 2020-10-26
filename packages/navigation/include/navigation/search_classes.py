@@ -58,7 +58,7 @@ class Path:
         self.cost = search_node.cost
 
     def __repr__(self):
-        return f"Number of nodes: {len(self.path):d}\nTotal cost: {self.cost:.3f}\nNodes: " \
+        return f"Number of nodes: {len(self.path)}\nTotal cost: {self.cost:.3f}\nNodes: " \
                f"{self.path}\nActions: {self.actions}"
 
     def edges(self):

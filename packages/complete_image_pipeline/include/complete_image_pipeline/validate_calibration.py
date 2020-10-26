@@ -102,7 +102,7 @@ def create_visuals(robots: List[str], actual_map_name: str, out: str):
     res2 = {}
 
     for i, robot_name in enumerate(sorted(robots)):
-        logger.info(f"{i:d}/{len(robots):d}: {robot_name}")
+        logger.info(f"{i}/{len(robots)}: {robot_name}")
         rcg = get_robot_camera_geometry(robot_name)
 
         pose = np.eye(3)

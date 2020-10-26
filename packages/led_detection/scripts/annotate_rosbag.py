@@ -16,7 +16,7 @@ def mouse_cb(event, x, y, flags, param):
         normalized_uv.x = float(x) / float(w)
         normalized_uv.y = float(y) / float(h)
 
-        print(f"image coordinate: ({x:d}, {y:d})")
+        print(f"image coordinate: ({x}, {y})")
         print(f"normalized image coordinate: ({normalized_uv.x:f}, {normalized_uv.y:f})")
 
 

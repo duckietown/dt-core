@@ -58,7 +58,7 @@ class Gallery(D8AppWithLogs):
                     length_invalid += log.length
         logs = logs_valid
 
-        self.info(f"Found {len(logs):d} valid logs.")
+        self.info(f"Found {len(logs)} valid logs.")
 
         s = format_logs(logs)
         self.info(s)
@@ -96,7 +96,7 @@ def get_report(logs, url_to_resource, initial_screens: bool = True) -> str:
     h.append("Duckietown Logs Database")
     body.append(h)
 
-    c = f"Showing {len(logs):d} logs from {len(vehicles):d} different Duckiebots, for a total length of " \
+    c = f"Showing {len(logs)} logs from {len(vehicles)} different Duckiebots, for a total length of " \
         f"{length / 3600.0:.1f} hours."
 
     p = Tag(name="p")

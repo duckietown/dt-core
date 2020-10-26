@@ -255,7 +255,7 @@ class GridHelper:
             assert len(weights) == nvalid
             weights_normalized = weights / weight_group[group]
 
-        with dtu.timeit_clock(f"selecting valid (using {values.shape[1]:d})"):
+        with dtu.timeit_clock(f"selecting valid (using {values.shape[1]})"):
             AND = np.logical_and
             inside0 = AND(self._specs[0].min <= values[0, :], values[0, :] <= self._specs[0].max)
             inside1 = AND(self._specs[1].min <= values[1, :], values[1, :] <= self._specs[1].max)

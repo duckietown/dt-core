@@ -111,7 +111,7 @@ class SpecValues:
 def _parse_inline_spec(x: dict) -> Tuple[str, SpecValues]:
     dtu.check_isinstance(x, dict)
     if len(x) != 1:
-        msg = f"Invalid spec: length is {len(x):d}"
+        msg = f"Invalid spec: length is {len(x)}"
         dtu.raise_desc(ValueError, msg, x=x)
     key = list(x)[0]
     value = x[key]

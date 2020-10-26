@@ -7,7 +7,7 @@ from .configuration import EasyNodeConfig, load_configuration_for_nodes_in_packa
 def generate_easy_node_docs():
     skip = ["easier_node"]
     packages = dtu.get_list_of_packages_in_catkin_ws()
-    dtu.logger.info(f"Looking in {len(packages):d} packages for nodes.")
+    dtu.logger.info(f"Looking in {len(packages)} packages for nodes.")
 
     names = sorted(packages, key=lambda _: packages[_])
     for package_name in names:

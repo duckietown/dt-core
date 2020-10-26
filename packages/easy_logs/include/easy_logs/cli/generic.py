@@ -27,5 +27,5 @@ class GenericLogDisplay(D8AppWithLogs):
 
         # for k in logs.values():
         #     print yaml.dump(k)
-        self.info(f"Found {len(logs):d} logs.")
+        self.info(f"Found {len(logs)} logs.")
         self.show_info(logs)

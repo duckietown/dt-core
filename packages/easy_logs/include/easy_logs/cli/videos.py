@@ -66,7 +66,7 @@ For example:
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info(f"Found {len(logs):d} logs.")
+        self.info(f"Found {len(logs)} logs.")
         logs_valid = {}
         for log_name, log in list(logs.items()):
             if log.valid:
@@ -105,7 +105,7 @@ def jobs_videos(context, log, name, outd, only_camera):
 
         assert count >= min_messages
         if actual_count < min_messages:
-            msg = f"There are only {actual_count:d} (out of {count:d}) in the slice [{log.t0}, {log.t1}]"
+            msg = f"There are only {actual_count} (out of {count}) in the slice [{log.t0}, {log.t1}]"
             msg += f"\n topic: {topic}"
             continue
 

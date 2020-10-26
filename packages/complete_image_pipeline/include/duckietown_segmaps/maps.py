@@ -107,7 +107,7 @@ class SegmentsMap:
         constants = {}
         for i, sm in enumerate(sms):
             # first, make sure the names are different
-            sm2 = add_prefix(sm, f"m{i:d}_")
+            sm2 = add_prefix(sm, f"m{i}_")
             points.update(sm2.points)
             segments.extend(sm2.segments)
             faces.extend(sm2.faces)

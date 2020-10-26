@@ -68,9 +68,9 @@ def compute_check_results(rt_name, rt, results_all):
 
 def display_check_results(results, out):
     s = ""
-    s += f"\n{len(results):d} results to report"
+    s += f"\n{len(results)} results to report"
     for i, r in enumerate(results):
-        s += "\n" + dtu.indent(str(r), "", f"{i + 1:d} of {len(results):d}: ")
+        s += "\n" + dtu.indent(str(r), "", f"{i + 1} of {len(results)}: ")
     print(s)
     fn = os.path.join(out, "check_results.txt")
     dtu.write_str_to_file(s, fn)
@@ -90,7 +90,7 @@ def fail_if_not_expected(results: List[CheckResult], expect):
     if summary != expect:
         msg = f"Expected status {expect!r}, but got {summary!r}."
         for i, r in enumerate(results):
-            msg += "\n" + dtu.indent(str(r), "", f"{i + 1:d} of {len(results):d}: ")
+            msg += "\n" + dtu.indent(str(r), "", f"{i + 1} of {len(results)}: ")
         raise Exception(msg)
 
 

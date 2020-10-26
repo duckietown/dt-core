@@ -126,7 +126,7 @@ class LEDDetector:
 
                 msg = (
                     "\n-------------------\n"
-                    + f"num_img = {num_img:d} \n"
+                    + f"num_img = {num_img} \n"
                     + f"t_samp = {t_s:f} \n"
                     + f"fft_peak_freq = {fft_peak_freq:f} \n"
                     + f"freq_identified = {freq_identified:f} \n"

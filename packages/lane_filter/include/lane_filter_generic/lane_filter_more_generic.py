@@ -122,12 +122,12 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return measurement_likelihood
 
     def generate_measurement_likelihood_faster(self, segments):
-        with dtu.timeit_clock(f"get_compat_representation_obs ({len(segments):d} segments)"):
+        with dtu.timeit_clock(f"get_compat_representation_obs ({len(segments)} segments)"):
             rep_obs = get_compat_representation_obs(segments)
             rep_map = self.rep_map
 
         with dtu.timeit_clock(
-            f"generate_votes_faster (map: {len(rep_map.weight):d}, obs: {len(rep_obs.weight):d})"
+            f"generate_votes_faster (map: {len(rep_map.weight)}, obs: {len(rep_obs.weight)})"
         ):
             votes = generate_votes_faster(rep_map, rep_obs)
 
@@ -147,7 +147,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
                 # print('Removed %d of %d because outside box' % (num_outside, len(weight)))
                 votes = remove_zero_weight(votes._replace(weight=weight))
 
-        with dtu.timeit_clock(f"compute pos iterative ({len(votes.weight):d})"):
+        with dtu.timeit_clock(f"compute pos iterative ({len(votes.weight)})"):
             locations = self._localization_template.coords_from_position_orientation(votes.p, votes.theta)
 
             num = len(locations)
@@ -160,7 +160,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         compare = False
 
-        with dtu.timeit_clock(f"add voting faster ({len(votes.weight):d})"):
+        with dtu.timeit_clock(f"add voting faster ({len(votes.weight)})"):
             measurement_likelihood = self.grid_helper.create_new("float32")
             measurement_likelihood.fill(0)
 

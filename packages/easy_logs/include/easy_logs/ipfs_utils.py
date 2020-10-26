@@ -37,7 +37,7 @@ class MakeIPFS:
         res = dtu.system_cmd_result(cwd, cmd, raise_on_error=True, write_stdin=dag_json)
         hashed = res.stdout.split()[1]
         assert "Qm" in hashed, hashed
-        print((f"Directory of {len(self.links):d} links: {hashed}"))
+        print((f"Directory of {len(self.links)} links: {hashed}"))
         return hashed
 
 

@@ -27,7 +27,7 @@ def format_families(families: List[EasyAlgoFamily], colorize: bool = True, verbo
                 n_invalid = len(family.instances) - n_valid
                 ss = f"{len(family.instances)}"
                 if n_invalid:
-                    ss += dtu.make_red(f" ({n_invalid:d} invalid)")
+                    ss += dtu.make_red(f" ({n_invalid} invalid)")
                 row.append(ss)
 
             if family.valid:
@@ -46,7 +46,7 @@ def format_families(families: List[EasyAlgoFamily], colorize: bool = True, verbo
         if not verbose:
             dtu.remove_table_field(table, "filename")
 
-        s = f"Found {len(families):d} algorithm families:\n\n"
+        s = f"Found {len(families)} algorithm families:\n\n"
         s += dtu.indent(dtu.format_table_plus(table, colspacing=4), "   ")
 
         return s
@@ -58,7 +58,7 @@ def format_instances(family, colorize, verbose=False):
             f'{family.instances_pattern}).\n\n'
         return s
     else:
-        s = f'Found {len(family.instances):d} instances of algorithm family "{family.family_name}":\n'
+        s = f'Found {len(family.instances)} instances of algorithm family "{family.family_name}":\n'
         table = []
         table.append(["Instance name", "constructor", "parameters", "description", "filename"])
         for _ in list(family.instances.values()):

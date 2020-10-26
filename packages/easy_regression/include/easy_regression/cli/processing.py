@@ -65,7 +65,7 @@ def ros_from_np_array(data):
         raise NotImplementedError(msg)
     dims = []
     for i, size in enumerate(data.shape):
-        label = f"dim{i:d}"
+        label = f"dim{i}"
         stride = 0
         dims.append(MultiArrayDimension(label=label, size=size, stride=stride))
     layout = MultiArrayLayout(dim=dims)
@@ -115,7 +115,7 @@ def process_one_dynamic(context, bag_filename, t0, t1, processors, log_out, log,
             t0_absolute,
             t1_absolute,
             log,
-            job_id=f"process-{i:d}-{processor_name}",
+            job_id=f"process-{i}-{processor_name}",
         )
 
     final = context.comp(finalize, bag_filename, log_out, processors, tmpfiles, delete)

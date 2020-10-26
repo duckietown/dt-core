@@ -65,23 +65,23 @@ class ResultDB:
 
         if len(possible) > 1:
             n = len(possible)
-            msg = f"Found {n:d} matches for this query."
+            msg = f"Found {n} matches for this query."
             msg += f"\n   branch: {branch}"
             msg += f"\n     date: {date}"
             msg += f"\n   commit: {commit}"
             msg += "\nThese are the matches:"
             for i, p in enumerate(possible):
                 dtu.check_isinstance(p, ResultDBEntry)
-                msg += "\n" + dtu.indent(str(p), f" {i + 1:2d} of {n:d}: ")
+                msg += "\n" + dtu.indent(str(p), f" {i + 1:2d} of {n}: ")
             raise AmbiguousQuery(msg)
 
         return possible[0]
 
     def __str__(self):
         n = len(self.entries)
-        s = f"ResultsDB with {n:d} entries"
+        s = f"ResultsDB with {n} entries"
         s += "\n" + dtu.indent(str(self.current), "", "  current: ")
         for i, p in enumerate(self.entries):
             dtu.check_isinstance(p, ResultDBEntry)
-            s += "\n" + dtu.indent(str(p), "", f" {i + 1:2d} of {n:d}: ")
+            s += "\n" + dtu.indent(str(p), "", f" {i + 1:2d} of {n}: ")
         return s

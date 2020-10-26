@@ -137,7 +137,7 @@ class StaticObjectDetectorNode:
         crossing, turns = self.turn_counter.cbmsg(center)
         if crossing:
             # only trigger if it's been awhile
-            rospy.loginfo(f"Crossing.  {turns:d} turn")
+            rospy.loginfo(f"Crossing.  {turns} turn")
             self.pub_turns.publish(Bool(data=True))
         self.pub_ibvs.publish(Float32(data=center))
 

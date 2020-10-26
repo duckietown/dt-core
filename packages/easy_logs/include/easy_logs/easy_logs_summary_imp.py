@@ -12,7 +12,7 @@ def format_logs(logs):
         s = "No logs found."
         return s
     else:
-        s = f"Found {len(logs):d} logs.\n"
+        s = f"Found {len(logs)} logs.\n"
 
         table = get_logs_description_table(logs)
         dtu.remove_table_field(table, "filename")

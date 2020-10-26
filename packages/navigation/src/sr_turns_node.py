@@ -37,11 +37,11 @@ class SRTurnsNode:
                 self.turn_type = chosenTurn
                 self.pub_turn_type.publish(self.turn_type)
                 rospy.loginfo(f"[{self.node_name}] possible turns {availableTurns}.")
-                rospy.loginfo(f"[{self.node_name}] Turn type now: {self.turn_type:d}")
+                rospy.loginfo(f"[{self.node_name}] Turn type now: {self.turn_type}")
         else:
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
-            rospy.loginfo(f"[{self.node_name}] Turn type: {self.turn_type:d}")
+            rospy.loginfo(f"[{self.node_name}] Turn type: {self.turn_type}")
 
     def on_shutdown(self):
         rospy.loginfo(f"[{self.node_name}] Shutting down.")

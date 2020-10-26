@@ -91,7 +91,7 @@ def get_logs_cloud():
         logs = logs_from_yaml(data)
 
     logs = dict(logs)
-    dtu.logger.info(f"Loaded cloud DB with {len(logs):d} entries.")
+    dtu.logger.info(f"Loaded cloud DB with {len(logs)} entries.")
 
     return logs
 

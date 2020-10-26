@@ -253,7 +253,7 @@ def judge_quality(image: dtu.NPImageBGR, observed_segment_list, predicted_segmen
 
     avg = np.mean(ratios)
 
-    percent = lambda x: f"{x * 100:d}%"
+    percent = lambda x: f"{int(x * 100)}%"
     s = f"W {percent(ratios[0])} Y {percent(ratios[1])} R {percent(ratios[2])}"
     res[f"explained {percent(avg)} [{s}]"] = summary_bgr
 

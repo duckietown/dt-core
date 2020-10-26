@@ -55,8 +55,8 @@ class MakeTimeSlice(dtu.Spec):
         #         B = '%d'%self.t1*100 if self.t1 is not None else "END"
         #
         #         id_log2 = id_log + '_from%sto%s' % (A,B)
-        A = f"{new_start * 100:d}"
-        B = f"{new_end * 100:d}"
+        A = f"{new_start * 100}"
+        B = f"{new_end * 100}"
 
         id_log2 = id_log + f"_from{A}to{B}"
         log2 = replace(log, t0=new_start, t1=new_end, length=length)

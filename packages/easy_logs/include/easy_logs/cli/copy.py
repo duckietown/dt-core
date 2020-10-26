@@ -30,7 +30,7 @@ class Copy(D8AppWithLogs):
         db = self.get_easy_logs_db()
         logs = db.query(query)
 
-        self.info(f"Found {len(logs):d} logs.")
+        self.info(f"Found {len(logs)} logs.")
         outdir = self.options["outdir"]
 
         if outdir is None:
