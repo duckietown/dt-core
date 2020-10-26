@@ -85,7 +85,7 @@ jobs:
             ln -s  `pwd` /code/catkin_ws/src/dt-core
             ls -la /code/catkin_ws/src
             . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-            pip3 install duckietown-utils=daffy
+            pip3 install duckietown-utils-daffy
       - run:
           name: run tests
           command:
