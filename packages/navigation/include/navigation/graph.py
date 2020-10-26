@@ -17,7 +17,7 @@ class Edge:
         self.action = action
 
     def __hash__(self):
-        return hash(f"{self.source}_{self.target}_{self.weight:f}_{self.action}")
+        return hash(f"{self.source}_{self.target}_{self.weight}_{self.action}")
 
     def __eq__(self, other):
         return (
@@ -96,7 +96,7 @@ class Graph:
 
         for node in self._nodes:
             node_name = self.node_label_fn(node)
-            node_pos = f"{self.node_positions[node][0]:f},{self.node_positions[node][1]:f}!"
+            node_pos = f"{self.node_positions[node][0]},{self.node_positions[node][1]}!"
             if highlight_nodes and node == target_node:
                 g.node(name=node_name, pos=node_pos, color="magenta", shape="circle")  # green
             elif highlight_nodes and node == start_node:

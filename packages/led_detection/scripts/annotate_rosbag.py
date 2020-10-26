@@ -17,7 +17,7 @@ def mouse_cb(event, x, y, flags, param):
         normalized_uv.y = float(y) / float(h)
 
         print(f"image coordinate: ({x}, {y})")
-        print(f"normalized image coordinate: ({normalized_uv.x:f}, {normalized_uv.y:f})")
+        print(f"normalized image coordinate: ({normalized_uv.x}, {normalized_uv.y})")
 
 
 def get_image_topic_name(veh):
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     key = 0
 
     image_topic_name = get_image_topic_name(veh)
-    print(("image topic name: " + image_topic_name))
+    print("image topic name: " + image_topic_name)
 
     if image_topic_name is not None:
         while key is not 27:
