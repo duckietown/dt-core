@@ -100,7 +100,6 @@ def get_easy_algo_db() -> EasyAlgoDB:
     return EasyAlgoDB._singleton
 
 
-# SpecValues = namedtuple('SpecValues', 'description constructor parameters')
 @dataclass
 class SpecValues:
     description: str

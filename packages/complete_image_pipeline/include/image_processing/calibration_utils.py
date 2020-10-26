@@ -1,9 +1,11 @@
 import os
 import shutil
 import time
+from typing import List
 
 import numpy as np
 import yaml
+from rospkg import ResourceNotFound
 
 import duckietown_code_utils as dtu
 import duckietown_rosdata_utils as dru
@@ -38,6 +40,30 @@ def get_homography_for_robot(robot_name: str) -> np.ndarray:
     return homography
 
 
+def get_roots_for_calibrations() -> List[str]:
+    roots: List[str] = []
+    try:
+        d = dtu.get_duckiefleet_root()
+    except dtu.DTConfigException:
+        dtu.logger.warn('Skipping duckiefleet root.')
+        pass
+    else:
+        roots.append(os.path.join(d, "calibrations"))
+    try:
+        d = dru.get_ros_package_path("duckietown")
+    except ResourceNotFound:
+        dtu.logger.warn('Skipping duckietown root.')
+    else:
+        roots.append(os.path.join(d, "config", "baseline", "calibration"))
+
+    d0 = dru.get_ros_package_path("complete_image_pipeline")
+    dd = os.path.join(d0, "log-calib-config", "baseline",
+                      "calibration")
+    roots.append(dd)
+
+    return roots
+
+
 def get_homography_info_config_file(robot_name: str) -> str:
     """
     Raises NoHomographyInfoAvailable.
@@ -46,11 +72,7 @@ def get_homography_info_config_file(robot_name: str) -> str:
     :return:
     """
     strict = False
-    roots = [
-        os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
-        os.path.join(dru.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
-        os.path.join(dru.get_ros_package_path("complete_image_pipeline"), "log-calib-config", "baseline", "calibration"),
-    ]
+    roots = get_roots_for_calibrations()
 
     found = []
     for df in roots:
@@ -60,24 +82,22 @@ def get_homography_info_config_file(robot_name: str) -> str:
         if os.path.exists(fn):
             found.append(fn)
             msg = f"Using filename {fn}"
-            print(msg)
             dtu.logger.info(msg)
         elif os.path.exists(fn_default):
             found.append(fn_default)
             msg = f"Using filename {fn_default}"
-            print(msg)
             dtu.logger.info(msg)
 
     if len(found) == 0:
         msg = f"Cannot find homography file for robot {robot_name!r};\n{roots}"
-        print(msg)
+        dtu.logger.error(msg)
         raise NoHomographyInfoAvailable(msg)
     elif len(found) == 1:
         return found[0]
     else:
         msg = "Found more than one configuration file: \n{}".format("\n".join(found))
         msg += "\n Please delete one of those."
-        print(msg)
+        dtu.logger.warn(msg)
         if strict:
             raise Exception(msg)
         else:
@@ -94,8 +114,7 @@ def homography_from_yaml(data: dict) -> np.array:
         msg = "Could not interpret data:"
         msg += "\n\n" + dtu.indent(yaml.dump(data), "   ")
         dtu.logger.error(msg)
-        dtu.raise_wrapped(InvalidHomographyInfo, e, msg)
-        raise
+        raise InvalidHomographyInfo(msg) from e
 
 
 def save_homography(H: np.array, robot_name: str) -> None:
@@ -245,10 +264,7 @@ def camera_info_from_yaml(calib_data: dict) -> CameraInfo:
 
 
 def get_camera_info_config_file(robot_name: str) -> str:
-    roots = [
-        os.path.join(dtu.get_duckiefleet_root(), "calibrations"),
-        os.path.join(dru.get_ros_package_path("duckietown"), "config", "baseline", "calibration"),
-    ]
+    roots = get_roots_for_calibrations()
 
     for df in roots:
         # Load camera information
