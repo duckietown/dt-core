@@ -140,7 +140,9 @@ def save_homography(H: np.array, robot_name: str) -> None:
 
 
 def get_extrinsics_filename(robot_name: str) -> str:
-    fn = dtu.get_duckiefleet_root() + "/calibrations/camera_extrinsic/" + robot_name + ".yaml"
+    """ This is the file in DUCKIEFLEET_ROOT that is used to save to."""
+    df_root = dtu.get_duckiefleet_root()
+    fn = os.path.join(df_root, "calibrations", "camera_extrinsic", f'{robot_name}.yaml')
     return fn
 
 

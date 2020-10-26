@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import duckietown_code_utils as dtu
 
 __all__ = [
     "color_segment",
@@ -10,7 +11,7 @@ __all__ = [
 
 
 # draw line segments
-def drawLines(bgr, lines, paint):
+def drawLines(bgr: dtu.NPImageBGR, lines, paint):
     if len(lines) > 0:
         for x1, y1, x2, y2 in lines:
             cv2.line(bgr, (x1, y1), (x2, y2), paint, 2)
@@ -19,7 +20,7 @@ def drawLines(bgr, lines, paint):
 
 
 # draw segment normals
-def drawNormals(bgr, lines, normals):
+def drawNormals(bgr: dtu.NPImageBGR, lines, normals):
     if len(lines) > 0:
         for x1, y1, x2, y2, dx, dy in np.hstack((lines, normals)):
             x3 = int((x1 + x2) / 2.0 - 4.0 * dx)
@@ -31,7 +32,7 @@ def drawNormals(bgr, lines, normals):
 
 
 # draw segment normals2
-def drawNormals2(bgr, centers, normals, paint):
+def drawNormals2(bgr: dtu.NPImageBGR, centers, normals, paint):
     if len(centers) > 0:
         for x, y, dx, dy in np.hstack((centers, normals)):
             x3 = int(x - 2.0 * dx)
@@ -76,6 +77,6 @@ def color_segment(area_white, area_red, area_yellow):
         assert nz.shape == (h, w), nz.shape
 
         for j in [0, 1, 2]:
-            res[:, :, j] = (1 - nz) * res[:, :, j].copy() + (nz) * m[:, :, j]
+            res[:, :, j] = (1 - nz) * res[:, :, j].copy() + nz * m[:, :, j]
 
     return res

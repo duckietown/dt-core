@@ -139,7 +139,7 @@ def get_horizon_points(gpg: GroundProjectionGeometry, shift: int):
 
     S = 2 ** shift
     # XXX
-    return ((int(p_left.x * S), int(p_left.y * S)), (int(p_right.x * S), int(p_right.y * S)))
+    return (int(p_left.x * S), int(p_left.y * S)), (int(p_right.x * S), int(p_right.y * S))
 
 
 def plot_ground_sky(base: dtu.NPImageBGR, gpg: GroundProjectionGeometry, color_ground, color_sky):

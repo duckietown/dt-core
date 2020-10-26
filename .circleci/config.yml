@@ -54,7 +54,7 @@ jobs:
   unit-tests-from-parent:
     docker:
       - image:  duckietown/dt-ros-commons:daffy-amd64
-        
+
     environment:
       DUCKIETOWN_DATA: /data
       DUCKIETOWN_ROOT: /
@@ -98,6 +98,6 @@ jobs:
 
             echo 'config echo 1' > ~/.compmake.rc
 
-            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
+            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-all
 
 
