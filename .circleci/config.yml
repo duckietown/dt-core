@@ -54,7 +54,7 @@ jobs:
   unit-tests-from-parent:
     docker:
       - image:  duckietown/dt-ros-commons:daffy-amd64
-        docker_layer_caching: true 
+        
     environment:
       DUCKIETOWN_DATA: /data
       DUCKIETOWN_ROOT: /
