@@ -15,7 +15,6 @@
 	    <arg name="/fsm/logic_gate" value="false"/>
 
 		<!-- Camera and anti intagram -->
-		<arg name="/camera/raw" value="false" />
 		<arg name="anti_instagram" value="true" />
 
 	    <!-- Lane Following stack -->
