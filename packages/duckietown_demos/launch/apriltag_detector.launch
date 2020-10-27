@@ -17,7 +17,7 @@
 		<arg name="line_detector_param_file_name" default="default" />
 		<arg name="anti_instagram" default="false" />
 		<arg name="/camera/raw" value="true"/>
-		<arg name="/camera/raw/rect" value="true"/>
+		<arg name="/camera/rect" value="true"/>
 		<arg name="LED" value="false"/>
 
 		<!-- Intersection arguments -->
