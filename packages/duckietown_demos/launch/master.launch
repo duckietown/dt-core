@@ -19,7 +19,7 @@
 
     <!-- start switch args -->
     <arg name="/camera/raw" default="false"/>
-    <arg name="/camera/raw/rect" default="false"/>
+    <arg name="/camera/rect" default="false"/>
 
     <arg name="anti_instagram" default="false"/>
 
@@ -78,7 +78,7 @@
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
 
-        <group if="$(arg /camera/raw/rect)">
+        <group if="$(arg /camera/rect)">
             <!-- Image Rectification -->
             <remap from="image_raw" to="camera_node/image/raw"/>
             <remap from="camera_info" to="camera_node/camera_info"/>
