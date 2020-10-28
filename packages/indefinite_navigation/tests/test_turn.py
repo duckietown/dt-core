@@ -19,7 +19,7 @@ class IndefNavigationTurnNode(unittest.TestCase):
         # Save the name of the node
         self.node_name = rospy.get_name()
 
-        rospy.loginfo(f"[{self.node_name}] Initialzing.")
+        rospy.loginfo(f"[{self.node_name}] Initializing.")
         veh_name = self.setupParam("~veh", "")
         self.type = self.setupParam("~type", "right")
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"

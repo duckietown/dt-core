@@ -8,8 +8,8 @@ from numpy.testing.utils import assert_almost_equal
 from scipy.stats import entropy
 
 import duckietown_code_utils as dtu
+from duckietown_msgs.msg import Segment, SegmentList
 from duckietown_segmaps.maps import get_normal_outward_for_segment, SegMapSegment, SegmentsMap
-
 from easy_algo import get_easy_algo_db
 from grid_helper import (
     convert_unit,
@@ -92,7 +92,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
     def getStatus(self):
         return self.get_status()
 
-    def update(self, segment_list):
+    def update(self, segment_list: SegmentList):
         """ Returns the likelihood """
 
         self.last_segments_used = segment_list.segments
@@ -121,7 +121,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         return measurement_likelihood
 
-    def generate_measurement_likelihood_faster(self, segments):
+    def generate_measurement_likelihood_faster(self, segments: List[Segment]):
         with dtu.timeit_clock(f"get_compat_representation_obs ({len(segments)} segments)"):
             rep_obs = get_compat_representation_obs(segments)
             rep_map = self.rep_map
@@ -206,7 +206,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
         return measurement_likelihood
 
-    def generate_measurement_likelihood(self, segments):
+    def generate_measurement_likelihood(self, segments: List[Segment]):
         # initialize measurement likelihood to all zeros
         measurement_likelihood = self.grid_helper.create_new("float32")
         measurement_likelihood.fill(0)
@@ -305,8 +305,10 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             msg = f"No segment found for {segment.color}"
             dtu.logger.debug(msg)
 
-    def get_plot_phi_d(self, ground_truth=None, bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
-        figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
+    def get_plot_phi_d(self, ground_truth=None,
+                       bgcolor: dtu.RGBColor8 = dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
+        facecolor = dtu.matplotlib_01_from_rgb(bgcolor)
+        figure_args = dict(facecolor=facecolor)
         a = dtu.CreateImageFromPylab(dpi=120, figure_args=figure_args)
 
         gh = self.grid_helper

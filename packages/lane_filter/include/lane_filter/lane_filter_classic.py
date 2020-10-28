@@ -183,7 +183,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
             measurement_likelihood[i, j] += weight
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
-        measurement_likelihood = measurement_likelihood / np.sum(measurement_likelihood)
+        measurement_likelihood /= np.sum(measurement_likelihood)
         return measurement_likelihood
 
     def get_estimate(self):
@@ -235,15 +235,15 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
             if p1[0] > p2[0]:  # right edge of white lane
-                d_i = d_i - self.linewidth_white
+                d_i -= self.linewidth_white
             else:  # left edge of white lane
                 d_i = -d_i
                 phi_i = -phi_i
-            d_i = d_i - self.lanewidth / 2
+            d_i -= self.lanewidth / 2
 
         elif segment.color == segment.YELLOW:  # left lane is yellow
             if p2[0] > p1[0]:  # left edge of yellow lane
-                d_i = d_i - self.linewidth_yellow
+                d_i -= self.linewidth_yellow
                 phi_i = -phi_i
             else:  # right edge of white lane
                 d_i = -d_i

@@ -15,7 +15,7 @@ class AntiInstagram:
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         H = resized_image.shape[0]
-        cropped_image = resized_image[int(H * 0.3) : (H - 1), :, :]
+        cropped_image = resized_image[int(H * 0.3): (H - 1), :, :]
 
         half_percent = percentage / 2
         channels = cv2.split(cropped_image)
@@ -33,7 +33,7 @@ class AntiInstagram:
             # calculate thresholds
             lower_threshold.append(flattened[int(math.floor(num_pixels * half_percent))])
 
-        return (lower_threshold, self.higher_threshold)
+        return lower_threshold, self.higher_threshold
 
     def apply_color_balance(self, lower_threshold, higher_threshold, image, scale=1):
 

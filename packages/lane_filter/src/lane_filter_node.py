@@ -45,6 +45,9 @@ class LaneFilterNode(DTROS):
 
     """
 
+    filter: LaneFilterHistogram
+    bridge: CvBridge
+
     def __init__(self, node_name):
         super(LaneFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
@@ -210,7 +213,6 @@ class LaneFilterNode(DTROS):
 
     def updateVelocity(self, twist_msg):
         self.currentVelocity = twist_msg
-
 
 
 if __name__ == "__main__":

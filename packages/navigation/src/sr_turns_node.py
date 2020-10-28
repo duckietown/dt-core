@@ -12,7 +12,7 @@ class SRTurnsNode:
         self.node_name = rospy.get_name()
         self.turn_type = -1
 
-        rospy.loginfo(f"[{self.node_name}] Initialzing.")
+        rospy.loginfo(f"[{self.node_name}] Initializing.")
 
         # Setup publishers
         self.pub_turn_type = rospy.Publisher("~turn_type", Int16, queue_size=1, latch=True)

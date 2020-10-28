@@ -9,7 +9,7 @@ class LanePoseVisualzer:
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
-        rospy.loginfo(f"[{self.node_name}] Initialzing.")
+        rospy.loginfo(f"[{self.node_name}] Initializing.")
 
         # Get vehicle name from namespace
         self.veh_name = rospy.get_namespace().strip("/")
