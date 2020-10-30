@@ -5,34 +5,16 @@
 
 	<!-- start basic args -->
 	<include file="$(find duckietown_demos)/launch/master.launch">
-    <arg name="demo_name" value="$(arg demo_name)"/>
-
 		<!-- Basic parameters -->
 		<arg name="veh" value="$(arg veh)"/>
 		<arg name="param_file_name" default="default" />
-		<arg name="visualization" value="true" />
         <arg name="verbose" value="$(arg verbose)" />
+        <arg name="demo_name" value="$(arg demo_name)"/>
 
-		<!-- Basic functionalities -->
-		<arg name="line_detector_param_file_name" default="default" />
-		<arg name="anti_instagram" default="false" />
-		<arg name="/camera/raw" value="true"/>
+		<!-- Camera -->
 		<arg name="/camera/rect" value="true"/>
-		<arg name="LED" value="false"/>
 
-		<!-- Intersection arguments -->
-		<arg name="unicorn_intersection" value="false"/>
-		<arg name="apriltags" value="true" />
-		<arg name="apriltags_random" value="false" />
-		<arg name="intersectionType" value="trafficLight"/>
-
-		<!-- Multi-bot behaviours -->
-		<arg name="coordination" value="false"/>
-
-        <!-- Others -->
-        <arg name="lane_following" default="false"/>
-        <arg name="fsm" default="false"/>
-        <arg name="vehicle_avoidance" default="false"/>
-
+        <!-- Apriltag Detector -->
+        <arg name="apriltags" value="true"/>
 	</include>
 </launch>
