@@ -1,11 +1,20 @@
 <launch>
-    <arg name="pkg_name" value="image_proc"/>
-    <arg name="node_name" default="image_proc_node"/>
+    <arg name="veh"/>
+    <arg name="param_file_name" default="$(env ROBOT_TYPE)" doc="Specify a param file. ex: duckiebot"/>
+    <arg name="pkg_name" value="image_processing"/>
+    <arg name="node_name" default="rectifier_node"/>
 
-    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <!-- Subscription -->
+    <!-- "~image_in": sensor_msgs/CompressedImage. Input compressed image in JPEG format. -->
+    <!-- "~camera_info_in": sensor_msgs/CameraInfo. Input camera info. -->
+
+    <!-- Publication -->
+    <!-- "~image/compressed": sensor_msgs/CompressedImage. Rectified image encoded as JPEG. -->
+    <!-- "~camera_info": sensor_msgs/CameraInfo. Rectified camera info. -->
 
     <group ns="$(arg veh)">
-        <node pkg="$(arg pkg_name)" type="$(arg pkg_name)" name="$(arg node_name)" output="screen">
+        <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" required="true">
+            <rosparam command="load" file="$(find image_processing)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
         </node>
     </group>
 </launch>
