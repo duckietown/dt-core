@@ -14,7 +14,7 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from dt_class_utils import DTReminder
 
 from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
-from sensor_msgs.msg import Image, CameraInfo, CompressedImage
+from sensor_msgs.msg import CameraInfo, CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
 
 
@@ -46,7 +46,7 @@ class AprilTagDetector(DTROS):
         self._camera_parameters = None
         self._camera_frame = None
         # create detector object
-        self._at_detector = Detector(
+        self._detector = Detector(
             families=self.family,
             nthreads=self.nthreads,
             quad_decimate=self.quad_decimate,
@@ -57,33 +57,54 @@ class AprilTagDetector(DTROS):
         # create a CV bridge object
         self._bridge = CvBridge()
         # create subscribers
-        self._img_sub = rospy.Subscriber('image_rect', Image, self._img_cb)
-        self._cinfo_sub = rospy.Subscriber('camera_info', CameraInfo, self._cinfo_cb)
+        self._img_sub = rospy.Subscriber(
+            '~image_rect',
+            CompressedImage,
+            self._img_cb,
+            queue_size=1
+        )
+        self._cinfo_sub = rospy.Subscriber(
+            '~camera_info',
+            CameraInfo,
+            self._cinfo_cb,
+            queue_size=1
+        )
         # create publishers
         self._img_pub = rospy.Publisher(
-            'tag_detections_image/compressed', CompressedImage, queue_size=1,
-            dt_topic_type=TopicType.VISUALIZATION
+            'tag_detections/image/compressed',
+            CompressedImage,
+            queue_size=1,
+            dt_topic_type=TopicType.VISUALIZATION,
+            dt_help='Camera image with tag detections superimposed',
         )
         self._tag_pub = rospy.Publisher(
-            'tag_detections', AprilTagDetectionArray, queue_size=1,
-            dt_topic_type=TopicType.PERCEPTION
+            'tag_detections',
+            AprilTagDetectionArray,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION,
+            dt_help='Tag detections',
         )
         self._img_pub_busy = False
         # create TF broadcaster
         self._tf_bcaster = tf.TransformBroadcaster()
-        # spin forever
-        rospy.spin()
 
     def _img_cb(self, data):
+        # make sure we have received camera info
         if self._camera_parameters is None:
             return
+        # make sure somebody wants this
+        if (not self._img_pub.anybody_listening()) and (not self._tag_pub.anybody_listening()):
+            return
+        # make sure this is a good time to detect (always keep this as last check)
         if not self._detection_reminder.is_time(frequency=self.detection_freq.value):
             return
         # ---
         # turn image message into grayscale image
-        img = self._bridge.imgmsg_to_cv2(data, desired_encoding='mono8')
+        with self.profiler('/cb/image/decode'):
+            img = self._bridge.compressed_imgmsg_to_cv2(data, desired_encoding='mono8')
         # detect tags
-        tags = self._at_detector.detect(img, True, self._camera_parameters, self.tag_size)
+        with self.profiler('/cb/image/detection'):
+            tags = self._detector.detect(img, True, self._camera_parameters, self.tag_size)
         # draw the detections on an image (if needed)
         if self._img_pub.anybody_listening() and not self._img_pub_busy:
             self._img_pub_busy = True
@@ -128,7 +149,7 @@ class AprilTagDetector(DTROS):
                 p.tolist(),
                 q.tolist(),
                 detection_time,
-                '/tag{:s}'.format(str(tag.tag_id)),
+                '/tag/{:s}'.format(str(tag.tag_id)),
                 self._camera_frame
             )
         # publish detections
@@ -138,28 +159,29 @@ class AprilTagDetector(DTROS):
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
 
     def _publish_detections_image(self, img, tags):
-        # get a color buffer from the BW image
-        color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        # draw each tag
-        for tag in tags:
-            for idx in range(len(tag.corners)):
-                cv2.line(
+        with self.profiler('/detections_image'):
+            # get a color buffer from the BW image
+            color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+            # draw each tag
+            for tag in tags:
+                for idx in range(len(tag.corners)):
+                    cv2.line(
+                        color_img,
+                        tuple(tag.corners[idx - 1, :].astype(int)),
+                        tuple(tag.corners[idx, :].astype(int)),
+                        (0, 255, 0)
+                    )
+                # draw the tag ID
+                cv2.putText(
                     color_img,
-                    tuple(tag.corners[idx - 1, :].astype(int)),
-                    tuple(tag.corners[idx, :].astype(int)),
-                    (0, 255, 0)
+                    str(tag.tag_id),
+                    org=(tag.corners[0, 0].astype(int) + 10, tag.corners[0, 1].astype(int) + 10),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.8,
+                    color=(0, 0, 255)
                 )
-            # draw the tag ID
-            cv2.putText(
-                color_img,
-                str(tag.tag_id),
-                org=(tag.corners[0, 0].astype(int) + 10, tag.corners[0, 1].astype(int) + 10),
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.8,
-                color=(0, 0, 255)
-            )
-        # pack image into a message
-        img_msg = self._bridge.cv2_to_compressed_imgmsg(color_img)
+            # pack image into a message
+            img_msg = self._bridge.cv2_to_compressed_imgmsg(color_img)
         # ---
         self._img_pub.publish(img_msg)
         self._img_pub_busy = False
@@ -185,3 +207,5 @@ def _matrix_to_quaternion(R):
 
 if __name__ == '__main__':
     node = AprilTagDetector()
+    # spin forever
+    rospy.spin()
