@@ -33,7 +33,7 @@ class AprilPostPros(object):
 
         self.loc = self.setupParam("~loc", -1) # -1 if no location is given
         tags_file = open(tags_filepath, 'r')
-        self.tags_dict = yaml.load(tags_file)
+        self.tags_dict = yaml.safe_load(tags_file)
         tags_file.close()
         self.info = TagInfo()
 
