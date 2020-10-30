@@ -1,14 +1,14 @@
 <launch>
     <arg name="veh"/>
-    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+    <arg name="param_file_name" default="$(env ROBOT_TYPE)" doc="Specify a param file. ex: duckiebot"/>
     <arg name="pkg_name" value="image_processing"/>
     <arg name="node_name" default="decoder_node"/>
 
-    <!-- Publication -->
-    <!-- "~image/raw": sensor_msgs/Image. Raw image by decoding a compressed image in jpeg format.-->
-
     <!-- Subscription -->
-    <!-- "~compressed_image": sensor_msgs/CompressedImage. Input compressed image in jpeg format.-->
+    <!-- "~image_in": sensor_msgs/CompressedImage. Input compressed image in JPEG format. -->
+
+    <!-- Publication -->
+    <!-- "~image_out": sensor_msgs/Image. Raw image obtained by decoding a JPEG image. -->
 
     <group ns="$(arg veh)">
         <node  pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" required="true">
