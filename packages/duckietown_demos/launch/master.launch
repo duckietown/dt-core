@@ -154,7 +154,7 @@
             <remap from="lane_filter_node/segment_list" to="ground_projection_node/lineseglist_out"/>
             <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
             <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
-	    <remap from="lane_filter_node/seglist_filtered" to="lane_controller_node/seglist_filtered" />
+	    <!--<remap from="lane_filter_node/seglist_filtered" to="lane_controller_node/seglist_filtered" />-->
             <include file="$(find lane_filter)/launch/lane_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
