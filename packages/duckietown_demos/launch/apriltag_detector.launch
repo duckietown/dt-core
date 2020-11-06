@@ -7,7 +7,6 @@
 	<include file="$(find duckietown_demos)/launch/master.launch">
 		<!-- Basic parameters -->
 		<arg name="veh" value="$(arg veh)"/>
-		<arg name="param_file_name" default="default" />
         <arg name="verbose" value="$(arg verbose)" />
         <arg name="demo_name" value="$(arg demo_name)"/>
 
