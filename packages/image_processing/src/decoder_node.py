@@ -25,7 +25,8 @@ class DecoderNode(DTROS):
             "~image_in",
             CompressedImage,
             self.cb_image,
-            queue_size=1
+            queue_size=1,
+            buff_size='10MB'
         )
 
         # publishers

@@ -3,12 +3,12 @@
 import cv2
 import rospy
 import numpy as np
-from cv_bridge import CvBridge
 from image_geometry import PinholeCameraModel
 from sensor_msgs.msg import CompressedImage, CameraInfo
 
 from duckietown.dtros import DTROS, DTParam, NodeType, TopicType
 from dt_class_utils import DTReminder
+from turbojpeg import TurboJPEG
 
 
 class RectifierNode(DTROS):
@@ -21,7 +21,7 @@ class RectifierNode(DTROS):
         self.alpha = DTParam("~alpha", 0.0)
 
         # utility objects
-        self.bridge = CvBridge()
+        self.jpeg = TurboJPEG()
         self.reminder = DTReminder(frequency=self.publish_freq.value)
         self.camera_model = None
         self.rect_camera_info = None
@@ -32,7 +32,8 @@ class RectifierNode(DTROS):
             "~image_in",
             CompressedImage,
             self.cb_image,
-            queue_size=1
+            queue_size=1,
+            buff_size='10MB'
         )
         self.sub_camera_info = rospy.Subscriber(
             "~camera_info_in",
@@ -114,13 +115,22 @@ class RectifierNode(DTROS):
             return
         # turn 'compressed distorted image message' into 'raw distorted image'
         with self.profiler('/cb/image/decode'):
-            dist_img = self.bridge.compressed_imgmsg_to_cv2(msg)
+            dist_img = self.jpeg.decode(msg.data)
         # run input image through the lens map
         with self.profiler('/cb/image/rectify'):
             rect_img = cv2.remap(dist_img, self.mapx, self.mapy, cv2.INTER_NEAREST)
         # turn 'raw rectified image' into 'compressed rectified image message'
         with self.profiler('/cb/image/encode'):
-            rect_img_msg = self.bridge.cv2_to_compressed_imgmsg(rect_img)
+            # rect_img_msg = self.bridge.cv2_to_compressed_imgmsg(rect_img)
+            rect_img_msg = CompressedImage(
+                format="jpeg",
+                data=self.jpeg.encode(rect_img)
+            )
+        # maintain original header
+        rect_img_msg.header.stamp = msg.header.stamp
+        rect_img_msg.header.frame_id = msg.header.frame_id
+        self.rect_camera_info.header.stamp = msg.header.stamp
+        self.rect_camera_info.header.frame_id = msg.header.frame_id
         # publish image
         self.pub_img.publish(rect_img_msg)
         # publish camera info

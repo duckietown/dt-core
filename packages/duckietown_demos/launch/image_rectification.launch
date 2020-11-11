@@ -10,7 +10,7 @@
         <arg name="verbose" value="$(arg verbose)" />
         <arg name="demo_name" value="$(arg demo_name)"/>
 
-        <!-- Apriltag Detector -->
-        <arg name="apriltags" value="true"/>
+		<!-- Camera -->
+		<arg name="/camera/rect" value="true"/>
 	</include>
 </launch>

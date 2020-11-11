@@ -238,14 +238,14 @@
     <!-- Start AprilTags -->
     <group if="$(arg apriltags)">
         <!-- Detector node -->
-        <remap from="apriltag_detector_node/image_rect" to="rectifier_node/image/compressed" />
+        <remap from="apriltag_detector_node/image" to="camera_node/image/compressed" />
         <remap from="apriltag_detector_node/camera_info" to="camera_node/camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>
 
         <!-- Postprocessing node -->
-        <remap from="apriltag_postprocessing_node/apriltags_in" to="tag_detections" />
+        <remap from="apriltag_postprocessing_node/detections" to="apriltag_detector_node/detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
