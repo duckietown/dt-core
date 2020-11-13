@@ -12,6 +12,8 @@ import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import Header
+
+
 class AprilPostPros(object):
     """ """
     def __init__(self):
@@ -27,13 +29,13 @@ class AprilPostPros(object):
         self.scale_y = self.setupParam("~scale_y", 1)
         self.scale_z = self.setupParam("~scale_z", 1)
 
-# -------- Start adding back the tag info stuff
+        # -------- Start adding back the tag info stuff
 
         tags_filepath = self.setupParam("~tags_file")
 
         self.loc = self.setupParam("~loc", -1) # -1 if no location is given
         tags_file = open(tags_filepath, 'r')
-        self.tags_dict = yaml.load(tags_file)
+        self.tags_dict = yaml.safe_load(tags_file)
         tags_file.close()
         self.info = TagInfo()
 
@@ -63,7 +65,7 @@ class AprilPostPros(object):
 
 
 
-        self.sub_prePros        = rospy.Subscriber("~apriltags_in", AprilTagDetectionArray, self.callback, queue_size=1)
+        self.sub_prePros        = rospy.Subscriber("~detections", AprilTagDetectionArray, self.callback, queue_size=1)
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
@@ -170,6 +172,7 @@ class AprilPostPros(object):
         new_tag_data.infos = tag_infos
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
+
 
 if __name__ == '__main__':
     rospy.init_node('AprilPostPros', anonymous=False)

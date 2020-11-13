@@ -19,12 +19,11 @@
 
     <!-- start switch args -->
     <arg name="/camera/raw" default="false"/>
-    <arg name="/camera/raw/rect" default="false"/>
+    <arg name="/camera/rect" default="false"/>
 
     <arg name="anti_instagram" default="false"/>
 
     <arg name="visualization" default="false" />
-
 
     <arg name="lane_following" default="false"/>
     <arg name="/lane_following/line_detection" default="false"/>
@@ -68,25 +67,24 @@
     <!-- end switch args -->
 
 
-<!-- Camera decoded or rectified -->
+    <!-- Image Decoding -->
     <group if="$(arg /camera/raw)">
-        <!-- Image Decoding -->
-        <remap from="decoder_node/compressed_image" to="camera_node/image/compressed"/>
-        <remap from="decoder_node/image/raw" to="camera_node/image/raw"/>
+        <remap from="decoder_node/image_in" to="camera_node/image/compressed"/>
+        <remap from="decoder_node/image_out" to="camera_node/image/raw"/>
         <include file="$(find image_processing)/launch/image_decoding.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
+    </group>
 
-        <group if="$(arg /camera/raw/rect)">
-            <!-- Image Rectification -->
-            <remap from="image_raw" to="camera_node/image/raw"/>
-            <remap from="camera_info" to="camera_node/camera_info"/>
-            <remap from="image_rect_color" to="camera_node/image/rect" />
-            <include file="$(find image_processing)/launch/image_rectification.launch">
-                <arg name="veh" value="$(arg veh)"/>
-            </include>
-        </group>
+
+    <!-- Image Rectification -->
+    <group if="$(arg /camera/rect)">
+        <remap from="rectifier_node/image_in" to="camera_node/image/compressed"/>
+        <remap from="rectifier_node/camera_info_in" to="camera_node/camera_info"/>
+        <include file="$(find image_processing)/launch/image_rectification.launch">
+            <arg name="veh" value="$(arg veh)"/>
+        </include>
     </group>
     <!-- End Camera -->
 
@@ -156,6 +154,7 @@
             <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
             <remap from="lane_filter_node/left_wheel_encoder_node/tick" to="left_wheel_encoder_node/tick"/>
             <remap from="lane_filter_node/right_wheel_encoder_node/tick" to="right_wheel_encoder_node/tick"/>
+	        <!--<remap from="lane_filter_node/seglist_filtered" to="lane_controller_node/seglist_filtered" />-->
             <include file="$(find lane_filter)/launch/lane_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -241,14 +240,14 @@
     <!-- Start AprilTags -->
     <group if="$(arg apriltags)">
         <!-- Detector node -->
-        <remap from="image_rect" to="camera_node/image/rect" />
-        <remap from="camera_info" to="camera_node/camera_info" />
+        <remap from="apriltag_detector_node/image" to="camera_node/image/compressed" />
+        <remap from="apriltag_detector_node/camera_info" to="camera_node/camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>
 
         <!-- Postprocessing node -->
-        <remap from="apriltag_postprocessing_node/apriltags_in" to="tag_detections" />
+        <remap from="apriltag_postprocessing_node/detections" to="apriltag_detector_node/detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="config" value="$(arg config)"/>
