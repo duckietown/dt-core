@@ -1,0 +1,22 @@
+<launch>
+	<arg name="veh" doc="The name of the robot (e.g., autobot01, watchtower02, ...)"/>
+    <arg name="robot_type" doc="The type of the robot (e.g., duckiebot, watchtower, ...)"/>
+    <arg name="robot_configuration" doc="The configuration of the robot (e.g., DB19, WT18, ...)"/>
+    <arg name="pkg_name" value="autolab"/>
+    <arg name="node_name" default="localization_node"/>
+    <arg name="param_file_name" default="default" doc="Specify a param filename. ex: montreal_loop"/>
+
+    <!-- Subscription -->
+    <!-- "~detections": duckietown_msgs/AprilTagDetectionArray. Input tag detections -->
+
+    <!-- Publication -->
+    <!--  None  -->
+
+    <group ns="$(arg veh)">
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg robot_type)_$(arg node_name).py" output="screen">
+            <param name="robot_configuration" value="$(arg robot_configuration)" />
+            <rosparam command="load"
+                file="$(find autolab)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+        </node>
+    </group>
+</launch>

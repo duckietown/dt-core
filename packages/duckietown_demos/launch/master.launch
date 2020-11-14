@@ -60,6 +60,8 @@
     <arg name="/coordination/explicit_coordination" default="false"/>
     <arg name="/coordination/priority_protocol" default= "false"/>
 
+    <arg name="/localization" default="false"/>
+
     <arg name="parallel_autonomy" default="false"/>
 
     <arg name="apriltags_random" default="false"/>
@@ -260,6 +262,20 @@
         </include>
     </group>
     <!--End Apriltags -->
+
+    <!-- Start Localization -->
+
+    <group if="$(arg /localization)">
+        <!-- Localization node -->
+        <remap from="localization_node/detections" to="apriltag_detector_node/detections" />
+        <include file="$(find autolab)/launch/localization.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="robot_type" value="$(arg robot_type)"/>
+            <arg name="robot_configuration" value="$(arg robot_configuration)"/>
+        </include>
+    </group>
+    <!--End Localization -->
+
 
     <!-- Start LEDs Detection -->
     <group if="$(arg LED)">
