@@ -183,7 +183,7 @@ class AprilTagDetector(DTROS):
                 p.tolist(),
                 q.tolist(),
                 msg.header.stamp,
-                '/tag/{:s}'.format(str(tag.tag_id)),
+                'tag/{:s}'.format(str(tag.tag_id)),
                 msg.header.frame_id
             )
         # publish detections
