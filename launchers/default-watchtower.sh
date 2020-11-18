@@ -13,7 +13,7 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-launcher-default-${ROBOT_TYPE}
+dt-launcher-apriltag-detector
 
 
 # ----------------------------------------------------------------------------
