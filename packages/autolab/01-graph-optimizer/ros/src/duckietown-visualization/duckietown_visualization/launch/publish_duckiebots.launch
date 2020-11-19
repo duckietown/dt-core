@@ -1,0 +1,12 @@
+<launch>
+    
+    <arg name="duckiebot_list"/>
+    
+    <node pkg="duckietown_visualization" name="duckiebot_marker_publisher" 
+        type="publish_duckiebots.py" output="screen"> 
+        
+        <rosparam command="load" file="$(arg duckiebot_list)" />
+    
+    </node>
+
+</launch>

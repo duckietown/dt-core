@@ -1,0 +1,14 @@
+version: '3'
+services:
+    localization:
+        image: cslam-graphoptimizer:test
+        container_name: graph-optimizer
+        environment:
+            OUTPUT_DIR: /data
+            ROS_MASTER_IP: 172.31.168.2
+            ROS_MASTER : duckietown-2
+            DUCKIETOWN_WORLD_FORK : duckietown
+            MAP_NAME : ETH_small_loop2
+        network_mode: host
+        volumes:
+            - ~/tst:/data

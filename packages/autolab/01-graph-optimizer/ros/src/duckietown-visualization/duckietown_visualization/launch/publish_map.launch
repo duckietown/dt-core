@@ -1,0 +1,18 @@
+<launch>
+    
+    <arg name="map_name" default="robotarium1"/>
+    
+    <arg name="rviz_config" 
+        default="$(find duckietown_visualization)/config/default.rviz"/>
+    
+    <node pkg="duckietown_visualization" name="duckietown_map_publisher" 
+        type="publish_map.py" output="screen"> 
+        
+        <param name="map_name" value="$(arg map_name)"/>
+    
+    </node>
+
+    <node type="rviz" name="rviz" pkg="rviz" 
+        args="-d $(arg rviz_config)" />
+
+</launch>

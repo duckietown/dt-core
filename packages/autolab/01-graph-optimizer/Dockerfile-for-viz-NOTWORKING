@@ -1,0 +1,30 @@
+FROM duckietown/dt-ros-commons:daffy-amd64
+
+MAINTAINER Amaury Camus <camusam@ethz.ch>
+
+# Install rospy
+RUN apt-get update; apt-get install -y ros-kinetic-rospy ros-kinetic-rviz python-pip python-numpy python-scipy ; apt-get clean
+
+# RUN pip install --upgrade pip
+RUN pip install PyGeometry
+
+# Set up prerequisites
+# The sed command is used to remove the first line of requirements.txt which is PyYAML because it stops the execution of the installation midway and dependencies still remain
+# RUN git clone https://github.com/duckietown/duckietown-world.git /duckietown-world; cd /duckietown-world; sed '2d' requirements.txt > requirements1.txt; pip install -r requirements1.txt; python setup.py develop --no-deps
+RUN git clone https://github.com/duckietown/duckietown-world.git /duckietown-world
+# Setup the ros-cslam
+RUN mkdir -p /catkin-ws/src
+COPY ros/src/duckietown-visualization/duckietown_visualization /catkin-ws/src/duckietown_visualization
+RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash; cd /catkin-ws/; catkin_make"
+
+# Copy the rviz file
+COPY ros-cslam/src/duckietown-visualization/config/cSLAM.rviz /catkin-ws/cSLAM.rviz
+
+# Copy the bash wrapper
+COPY scripts/wrapper_visualization.sh /catkin-ws/wrapper_visualization.sh
+RUN chmod +x /catkin-ws/wrapper_visualization.sh
+
+ENV DISPLAY $DISPLAY
+ENV QT_X11_NO_MITSHM 1
+
+CMD /bin/bash -c "cd /catkin-ws; source /catkin-ws/devel/setup.bash; /catkin-ws/wrapper_visualization.sh"

@@ -1,0 +1,32 @@
+
+onthefloor: 
+  from_type: origin
+  to_type: duckiebot
+  standard_space_deviation: 0.00005
+  standard_angle_deviation: 1
+  position: [0.0, 0.0, 0.08]
+  rotation: [0.0, 0.0, 0.0]
+  constraints:
+    x: False
+    y: False
+    z: True
+    qx: True
+    qy: True
+    qz: False
+
+
+# straightgoing: 
+#   from_type: duckiebot
+#   to_type: duckiebot
+#   standard_space_deviation: 0.0000001
+#   standard_angle_deviation: 0.0000001
+#   position: [0.0, 0.0, 0.0]
+#   rotation: [0.0, 0.0, 0.0]
+#   constraints:
+#     x: False
+#     y: True
+#     z: False
+#     qx: True
+#     qy: True
+#     qz: True
+

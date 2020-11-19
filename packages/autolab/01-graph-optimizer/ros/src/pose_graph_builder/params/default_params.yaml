@@ -1,0 +1,18 @@
+ 
+# G2O PARAMS
+optim_verbose : False
+online_optimization : False # Leave to false, with True doesn't work 
+maximum_g2o_iterations : 20
+save_g2o_output : False
+
+# RESAMPLER PARAMS
+resampling_frequency : 15.0
+
+# DUCKIETOWN_GRAPH PARAMS
+stocking_time : 120
+optimization_frequency : 0.2
+minimum_edge_number_for_optimization : 100
+rejection_sampling_int : 30
+max_number_same_edge : 20
+using_priors : True
+result_folder : "/data"

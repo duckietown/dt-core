@@ -1,0 +1,17 @@
+version: '3'
+services:
+    localization:
+        image: duckietown/cslam-graphoptimizer:daffy-amd64
+        # build:
+        #     context: .
+        environment:
+            ATMSGS_BAG: /data/processed.bag
+            OUTPUT_DIR: /challenges/challenge-evaluation-output
+            ROS_MASTER_IP: 172.31.168.115
+            ROS_MASTER : duckietown3
+            DUCKIETOWN_WORLD_FORK : AmaurX
+            MAP_NAME : robotarium2
+        network_mode: host
+        volumes:
+            - ~/AIDO3_experiment_data/submission_40/eval0/20190913_161852/data/logs_processed:/data
+

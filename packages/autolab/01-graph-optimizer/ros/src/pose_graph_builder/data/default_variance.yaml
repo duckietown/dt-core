@@ -1,0 +1,24 @@
+watchtower: 
+  type: watchtower
+  position_deviation: 0.5
+  angle_deviation: 15.0
+
+
+odometry: 
+  type: odometry
+  position_deviation: 0.5
+  angle_deviation: 2.0
+
+
+retrointerpolation: 
+  type: retrointerpolation
+  position_deviation: 0.05
+  angle_deviation: 5.0
+
+
+
+# not used at the moment
+duckiebot: 
+  type: duckiebot
+  position_deviation: 20
+  angle_deviation: 30

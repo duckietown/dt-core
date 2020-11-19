@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>visualization_example</name>
+  <version>0.0.1</version>
+  <description>The visualization_example package</description>
+  
+  <maintainer email="suriro@student.ethz.ch">Rohit Suri</maintainer>
+
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rospy</build_depend>
+  <build_depend>tf</build_depend>
+  
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
+  
+  <export>
+  </export>
+</package>
