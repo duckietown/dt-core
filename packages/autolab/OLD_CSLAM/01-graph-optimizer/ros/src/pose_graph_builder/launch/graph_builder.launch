@@ -1,9 +1,0 @@
-<launch>
-    <param name='config_folder' value='$(find pose_graph_builder)/data' />
-    <param name='duckietown_world_folder' value='$(find pose_graph_builder)/../duckietown-world' />
-
-    <rosparam file="$(find pose_graph_builder)/params/default_params.yaml" command="load"/>
-
-    <node name="listener" pkg="pose_graph_builder" type="transform_listener_ros.py" output="screen" required="true"/>
-    <!-- <node name="marker_publisher" pkg="cslam_visualization" type="publiss_markers.py"/> -->
-</launch>
