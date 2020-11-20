@@ -1,14 +1,7 @@
 FROM duckietown/dt-ros-commons:daffy-amd64
 
-ENV DISPLAY $DISPLAY
-ENV QT_X11_NO_MITSHM 1
 
-# Install rospy
 
-RUN sudo apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated libqt5opengl5-dev python3-pyqt5.qtopengl
-RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated ros-noetic-rospy ros-noetic-tf2 ros-noetic-tf libsuitesparse-dev ros-noetic-tf-conversions python3-pyqt5.qtopengl qtbase5-dev qtdeclarative5-dev libeigen3-dev python3-pip python3-numpy python3-scipy vim && apt-get clean
-# RUN pip install --upgrade pip
-RUN pip3 install PyGeometry
 
 # DO NOT PUT ANYTHING HERE BEFORE THE G2O BUILDING! IT TAKES AGES!
 ARG g2o_lib_dir=lib/src/g2opy
