@@ -182,7 +182,7 @@
         <!-- Lane controller -->
         <group if="$(arg /lane_following/lane_controller)">
             <remap from="lane_controller_node/lane_pose" to="lane_filter_node/lane_pose"/>
-            <remap from="lane_controller_node/wheels_cmd_executed" to="wheels_driver_node/wheels_cmd_executed" />
+            <remap from="lane_controller_node/wheels_cmd" to="wheels_driver_node/wheels_cmd" />
             <remap from="lane_controller_node/fsm_mode" to="fsm_node/mode" />
             <remap from="lane_controller_node/obstacle_distance_reading" to="road_anomaly_watcher/obstacle_distance"/>
             <!-- <remap from="lane_controller_node/obstacle_avoidance_pose" to="obst_avoid/obstacle_avoidance_pose" /> -->
