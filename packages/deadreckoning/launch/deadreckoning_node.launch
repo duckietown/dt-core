@@ -9,6 +9,7 @@
         <remap from="deadreckoning_node/left_wheel" to="left_wheel_encoder_node/tick"/>
         <remap from="deadreckoning_node/right_wheel" to="right_wheel_encoder_node/tick"/>
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
+            <param name="veh" value="$(arg veh)" />
             <rosparam command="load"
                 file="$(find deadreckoning)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
         </node>

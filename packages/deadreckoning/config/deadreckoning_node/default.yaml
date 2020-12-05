@@ -1,7 +1,7 @@
 # parameters for deadreckoning_node
 
 # How frequently to publish odometry
-publish_hz: 1.0
+publish_hz: 10.0
 
 # Max allowable age of last encoder message, after which
 # linear and angular velocities are set to zero
@@ -13,5 +13,11 @@ ticks_per_meter: 656
 # Lateral distance between the center of the two wheels (in meters)
 wheelbase: 0.1
 
+# origin reference frame name
+origin_frame: "~/odom"
+
+# target reference frame name
+target_frame: "~/base_footprint"
+
 # Verbose output
-debug: True
+debug: False
