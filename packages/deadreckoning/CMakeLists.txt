@@ -7,8 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   # duckietown_msgs # Every duckietown packages should use this.
 )
 
-catkin_python_setup()
-
 catkin_package()
 
 include_directories(
