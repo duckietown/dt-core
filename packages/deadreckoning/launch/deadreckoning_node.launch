@@ -1,5 +1,5 @@
 <launch>
-    <arg name="veh" default="autobot01" doc="Name of vehicle. ex: megaman"/>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
     <arg name="pkg_name" value="deadreckoning"/>
     <arg name="node_name" default="deadreckoning_node"/>
     <arg name="param_file_name" default="default" doc="Specify a param file. ex: experiment_1."/>
