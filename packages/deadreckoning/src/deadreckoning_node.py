@@ -33,6 +33,7 @@ class DeadReckoningNode(DTROS):
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
 
     Configuration:
+        ~veh (:obj:`str`): Robot name
         ~publish_hz (:obj:`float`): Frequency at which to publish odometry
         ~encoder_stale_dt (:obj:`float`): Time in seconds after encoders are considered stale
         ~wheelbase (:obj:`float`): Lateral distance between the center of wheels (in meters)
@@ -53,7 +54,6 @@ class DeadReckoningNode(DTROS):
 
         self.node_name = node_name
 
-        # Get params
         self.publish_hz = rospy.get_param('~publish_hz')
         self.encoder_stale_dt = rospy.get_param('~encoder_stale_dt')
         self.ticks_per_meter = rospy.get_param('~ticks_per_meter')
@@ -88,11 +88,11 @@ class DeadReckoningNode(DTROS):
 
 
         # Setup subscribers
-        self.sub_encoder_left = message_filters.Subscriber("/autobot01/left_wheel_encoder_node/tick",
-                                                 WheelEncoderStamped)
+        self.sub_encoder_left = message_filters.Subscriber("left_wheel",
+            WheelEncoderStamped)
 
-        self.sub_encoder_right = message_filters.Subscriber("/autobot01/right_wheel_encoder_node/tick",
-                                                 WheelEncoderStamped)
+        self.sub_encoder_right = message_filters.Subscriber("right_wheel",
+            WheelEncoderStamped)
 
         # Setup the time synchronizer
         self.ts_encoders = message_filters.ApproximateTimeSynchronizer([self.sub_encoder_left, self.sub_encoder_right], 10, 0.5)
@@ -192,7 +192,7 @@ class DeadReckoningNode(DTROS):
     def publish_odometry (self):
         odom = Odometry()
         odom.header.stamp = rospy.Time.now()# Ideally, should be encoder time
-        odom.header.frame_id = "TBD"
+        odom.header.frame_id = "odom"
         odom.pose.pose = Pose(Point(self.x, self.y, self.z), Quaternion(*self.q))
         odom.child_frame_id = "base_link"
         odom.twist.twist = Twist(Vector3(self.tv, 0.0, 0.0), Vector3(0.0, 0.0, self.rv))

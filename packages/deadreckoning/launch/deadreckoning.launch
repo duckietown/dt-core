@@ -4,6 +4,9 @@
     <arg name="node_name" default="deadreckoning_node"/>
     <arg name="param_file_name" default="default" doc="Specify a param file. ex: experiment_1."/>
 
+    <remap from="left_wheel" to="/$(arg veh)/left_wheel_encoder_node/tick"/>
+    <remap from="right_wheel" to="/$(arg veh)/right_wheel_encoder_node/tick"/>
+
     <group ns="$(arg veh)">
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" required="true">
             <rosparam command="load"
