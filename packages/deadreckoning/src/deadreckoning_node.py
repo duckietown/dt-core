@@ -102,6 +102,7 @@ class DeadReckoningNode(DTROS):
     def cb_ts_encoders(self, left_encoder, right_encoder):
         timestamp_now = rospy.get_time()
 
+        # Use the average of the two encoder times as the timestamp
         left_encoder_timestamp = left_encoder.header.stamp.to_sec()
         right_encoder_timestamp = right_encoder.header.stamp.to_sec()
         timestamp = (left_encoder_timestamp + right_encoder_timestamp) / 2
@@ -133,6 +134,11 @@ class DeadReckoningNode(DTROS):
         dyaw = (right_distance - left_distance) / self.wheelbase
 
         dt = timestamp - self.encoders_timestamp_last
+
+        if dt < 1E-6:
+            self.logwarn("Time since last encoder message (%f) is too small. Ignoring" % dt))
+            return
+
         self.tv = distance / dt
         self.rv = dyaw / dt
 
