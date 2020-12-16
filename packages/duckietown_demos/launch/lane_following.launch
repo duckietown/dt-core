@@ -18,9 +18,10 @@
 		<arg name="anti_instagram" value="true" />
 
 		<!-- Deadreckoning (aka. Odometry)	-->
-		<arg name="/localization" value="true"/>
+<!--		<arg name="/localization" value="true"/>
 		<arg name="/localization/deadreckoning" value="true"/>
-
+LP removing for now
+-->
 	    <!-- Lane Following stack -->
 	    <arg name="lane_following" value="true"/>
 	    <arg name="/lane_following/line_detection" value="true"/>
