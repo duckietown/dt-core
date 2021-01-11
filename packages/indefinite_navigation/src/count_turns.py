@@ -1,6 +1,6 @@
-
 class TurnCounter:
-    TURN_START, TURN_MIDDLE, CENTER = range(3)
+    TURN_START, TURN_MIDDLE, CENTER = list(range(3))
+
     def __init__(self):
         self.num_turns = 0
         self.state = self.TURN_START
@@ -10,10 +10,10 @@ class TurnCounter:
         self.state = self.TURN_START
 
     def cbmsg(self, msg):
-        if abs(msg- 0.5) < 0.2:
+        if abs(msg - 0.5) < 0.2:
             msg = "center"
         crossing = False
-        
+
         if self.state == self.TURN_START:
             if msg == -1:
                 self.state = self.TURN_MIDDLE
@@ -26,5 +26,3 @@ class TurnCounter:
             if msg != "center":
                 self.state = self.TURN_START
         return crossing, self.num_turns
-
-

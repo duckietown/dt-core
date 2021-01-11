@@ -1,9 +1,12 @@
 # LIST YOUR PYTHON3 PACKAGES HERE
 ruamel.yaml==0.16.10
 
-# Note: not sure why this is here
-reprep-z6==6.0.5
+comptests-z6
 
 # ATags3 Python bindings
 dt_apriltags
 
+procgraph-z6
+ros_node_utils>=2.0.0
+duckietown-utils-daffy
+compmake-z6>=6.0.9

@@ -1,8 +1,8 @@
 description: 3 by 3 loop
 constructor: duckietown_segmaps.compose_maps
 parameters:
-    grid_spacing: 0.584
-    tiles:
+  grid_spacing: 0.584
+  tiles:
     - cell: [1, 0]
       name: DT17_tile_straight
       rotation: -90

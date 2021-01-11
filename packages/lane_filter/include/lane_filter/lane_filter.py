@@ -1,30 +1,27 @@
-
-from collections import OrderedDict
-
-from scipy.stats import multivariate_normal, entropy
-
-# from duckietown_utils.parameters import Configurable
+from math import floor, sqrt
 
 import numpy as np
-
-# from .lane_filter_interface import LaneFilterInterface
-
-#from .visualization import plot_phi_d_diagram_bgr
-
+import duckietown_code_utils as dtu
 from scipy.ndimage.filters import gaussian_filter
-from math import floor, sqrt
-import copy
+from scipy.stats import entropy, multivariate_normal
+
+from lane_filter_interface import LaneFilterInterface
+from .visualization import plot_phi_d_diagram_bgr
+
+__all__ = ["LaneFilterHistogram"]
 
 
-class LaneFilterHistogram():
+class LaneFilterHistogram(LaneFilterInterface):
     """ Generates an estimate of the lane pose.
 
 
-    Creates and maintain a histogram grid filter to estimate the lane pose. 
-    Lane pose is defined as the tuple (`d`, `phi`) : lateral deviation and angulare deviation from the center of the lane.
+    Creates and maintain a histogram grid filter to estimate the lane pose.
+    Lane pose is defined as the tuple (`d`, `phi`) : lateral deviation and angulare deviation from the
+    center of the lane.
 
     Predict step : Uses the estimated linear and angular velocities to predict the change in the lane pose.
-    Update Step : The filter receives a segment list. For each segment, it extracts the corresponding lane pose "votes", 
+    Update Step : The filter receives a segment list. For each segment, it extracts the corresponding lane
+    pose "votes",
     and adds it to the corresponding part of the histogram.
 
     Best estimate correspond to the slot of the histogram with the highest voted value.
@@ -34,48 +31,63 @@ class LaneFilterHistogram():
 
     """
 
-    LOST = 'lost'
-    GOOD = 'good'
-    STRUGGLING = 'struggling'
-
-    POSSIBLE_STATUSES = [LOST, GOOD, STRUGGLING]
-
-    ESTIMATE_DATATYPE = np.dtype([('phi', 'float64'),
-                                  ('d', 'float64')])
+    mean_d_0: float
+    mean_phi_0: float
+    sigma_d_0: float
+    sigma_phi_0: float
+    delta_d: float
+    delta_phi: float
+    d_max: float
+    d_min: float
+    phi_max: float
+    phi_min: float
+    cov_v: float
+    linewidth_white: float
+    linewidth_yellow: float
+    lanewidth: float
+    min_max: float
+    sigma_d_mask: float
+    sigma_phi_mask: float
+    range_min: float
+    range_est: float
+    range_max: float
 
     def __init__(self, **kwargs):
         param_names = [
-            'mean_d_0',
-            'mean_phi_0',
-            'sigma_d_0',
-            'sigma_phi_0',
-            'delta_d',
-            'delta_phi',
-            'd_max',
-            'd_min',
-            'phi_max',
-            'phi_min',
-            'cov_v',
-            'linewidth_white',
-            'linewidth_yellow',
-            'lanewidth',
-            'min_max',
-            'sigma_d_mask',
-            'sigma_phi_mask',
-            'range_min',
-            'range_est',
-            'range_max',
+            "mean_d_0",
+            "mean_phi_0",
+            "sigma_d_0",
+            "sigma_phi_0",
+            "delta_d",
+            "delta_phi",
+            "d_max",
+            "d_min",
+            "phi_max",
+            "phi_min",
+            "cov_v",
+            "linewidth_white",
+            "linewidth_yellow",
+            "lanewidth",
+            "min_max",
+            "sigma_d_mask",
+            "sigma_phi_mask",
+            "range_min",
+            "range_est",
+            "range_max",
         ]
 
         for p_name in param_names:
-            assert p_name in kwargs
+            assert p_name in kwargs, (p_name, param_names, kwargs)
             setattr(self, p_name, kwargs[p_name])
 
-        self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
-                                    self.phi_min:self.phi_max:self.delta_phi]
+        self.d, self.phi = np.mgrid[
+            self.d_min : self.d_max : self.delta_d, self.phi_min : self.phi_max : self.delta_phi
+        ]
 
-        self.d_pcolor, self.phi_pcolor = np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
-                                                  self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
+        self.d_pcolor, self.phi_pcolor = np.mgrid[
+            self.d_min : (self.d_max + self.delta_d) : self.delta_d,
+            self.phi_min : (self.phi_max + self.delta_phi) : self.delta_phi,
+        ]
 
         self.belief = np.empty(self.d.shape)
 
@@ -91,8 +103,6 @@ class LaneFilterHistogram():
 
         self.initialize()
 
-
-
     def initialize(self):
         pos = np.empty(self.d.shape + (2,))
         pos[:, :, 0] = self.d
@@ -102,7 +112,7 @@ class LaneFilterHistogram():
         self.belief = RV.pdf(pos)
 
     def getStatus(self):
-        return self.GOOD
+        return LaneFilterInterface.GOOD
 
     def get_entropy(self):
         belief = self.belief
@@ -116,23 +126,26 @@ class LaneFilterHistogram():
 
         p_belief = np.zeros(self.belief.shape)
 
-        # there has got to be a better/cleaner way to do this - just applying the process model to translate each cell value
+        # there has got to be a better/cleaner way to do this - just applying the process model to
+        # translate each cell value
         for i in range(self.belief.shape[0]):
             for j in range(self.belief.shape[1]):
                 if self.belief[i, j] > 0:
-                    if d_t[i, j] > self.d_max or d_t[i, j] < self.d_min or phi_t[i, j] < self.phi_min or phi_t[i, j] > self.phi_max:
+                    if (
+                        d_t[i, j] > self.d_max
+                        or d_t[i, j] < self.d_min
+                        or phi_t[i, j] < self.phi_min
+                        or phi_t[i, j] > self.phi_max
+                    ):
                         continue
 
-                    i_new = int(
-                        floor((d_t[i, j] - self.d_min) / self.delta_d))
-                    j_new = int(
-                        floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
+                    i_new = int(floor((d_t[i, j] - self.d_min) / self.delta_d))
+                    j_new = int(floor((phi_t[i, j] - self.phi_min) / self.delta_phi))
 
                     p_belief[i_new, j_new] += self.belief[i, j]
 
         s_belief = np.zeros(self.belief.shape)
-        gaussian_filter(p_belief, self.cov_mask,
-                        output=s_belief, mode='constant')
+        gaussian_filter(p_belief, self.cov_mask, output=s_belief, mode="constant")
 
         if np.sum(s_belief) == 0:
             return
@@ -161,11 +174,12 @@ class LaneFilterHistogram():
             self.filtered_segments.append(segment)
             # only consider points in a certain range from the Duckiebot for the position estimation
             point_range = self.getSegmentDistance(segment)
-            if point_range < self.range_est and point_range > self.range_est_min:
+            if self.range_est > point_range > self.range_est_min:
                 segmentsArray.append(segment)
                 # print functions to help understand the functionality of the code
                 # print 'Adding segment to segmentsRangeArray[0] (Range: %s < 0.3)' % (point_range)
-                # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[0][-1])
+                # print 'Printout of last segment added: %s' % self.getSegmentDistance(segmentsRangeArray[
+                # 0][-1])
                 # print 'Length of segmentsRangeArray[0] up to now: %s' % len(segmentsRangeArray[0])
 
         return segmentsArray
@@ -175,15 +189,14 @@ class LaneFilterHistogram():
         segmentsArray = self.prepareSegments(segments)
         # generate all belief arrays
 
-        measurement_likelihood = self.generate_measurement_likelihood(
-            segmentsArray)
+        measurement_likelihood = self.generate_measurement_likelihood(segmentsArray)
 
         if measurement_likelihood is not None:
             self.belief = np.multiply(self.belief, measurement_likelihood)
             if np.sum(self.belief) == 0:
                 self.belief = measurement_likelihood
             else:
-                self.belief = self.belief / np.sum(self.belief)
+                self.belief /= np.sum(self.belief)
 
     def generate_measurement_likelihood(self, segments):
 
@@ -199,17 +212,15 @@ class LaneFilterHistogram():
 
             i = int(floor((d_i - self.d_min) / self.delta_d))
             j = int(floor((phi_i - self.phi_min) / self.delta_phi))
-            measurement_likelihood[i, j] = measurement_likelihood[i, j] + 1
+            measurement_likelihood[i, j] += 1
 
         if np.linalg.norm(measurement_likelihood) == 0:
             return None
-        measurement_likelihood = measurement_likelihood / \
-            np.sum(measurement_likelihood)
+        measurement_likelihood /= np.sum(measurement_likelihood)
         return measurement_likelihood
 
     def getEstimate(self):
-        maxids = np.unravel_index(
-            self.belief.argmax(), self.belief.shape)
+        maxids = np.unravel_index(self.belief.argmax(), self.belief.shape)
         d_max = self.d_min + (maxids[0] + 0.5) * self.delta_d
         phi_max = self.phi_min + (maxids[1] + 0.5) * self.delta_phi
 
@@ -217,14 +228,13 @@ class LaneFilterHistogram():
 
     def get_estimate(self):
         d, phi = self.getEstimate()
-        res = OrderedDict()
-        res['d'] = d
-        res['phi'] = phi
+        res = {}
+        res["d"] = d
+        res["phi"] = phi
         return res
 
     def getMax(self):
         return self.belief.max()
-
 
     # generate a vote for one segment
     def generateVote(self, segment):
@@ -237,27 +247,27 @@ class LaneFilterHistogram():
         d2 = np.inner(n_hat, p2)
         l1 = np.inner(t_hat, p1)
         l2 = np.inner(t_hat, p2)
-        if (l1 < 0):
+        if l1 < 0:
             l1 = -l1
-        if (l2 < 0):
+        if l2 < 0:
             l2 = -l2
 
         l_i = (l1 + l2) / 2
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
-            if(p1[0] > p2[0]):  # right edge of white lane
-                d_i = d_i - self.linewidth_white
+            if p1[0] > p2[0]:  # right edge of white lane
+                d_i -= self.linewidth_white
             else:  # left edge of white lane
 
-                d_i = - d_i
+                d_i = -d_i
 
                 phi_i = -phi_i
-            d_i = d_i - self.lanewidth / 2
+            d_i -= self.lanewidth / 2
 
         elif segment.color == segment.YELLOW:  # left lane is yellow
-            if (p2[0] > p1[0]):  # left edge of yellow lane
-                d_i = d_i - self.linewidth_yellow
+            if p2[0] > p1[0]:  # left edge of yellow lane
+                d_i -= self.linewidth_yellow
                 phi_i = -phi_i
             else:  # right edge of white lane
                 d_i = -d_i
@@ -279,8 +289,8 @@ class LaneFilterHistogram():
     def getSegmentDistance(self, segment):
         x_c = (segment.points[0].x + segment.points[1].x) / 2
         y_c = (segment.points[0].y + segment.points[1].y) / 2
-        return sqrt(x_c**2 + y_c**2)
+        return sqrt(x_c ** 2 + y_c ** 2)
 
-#    def get_plot_phi_d(self, ground_truth=None):  # @UnusedVariable
-#        d, phi = self.getEstimate()
-#        return plot_phi_d_diagram_bgr(self, self.belief, phi=phi, d=d)
+    def get_plot_phi_d(self, ground_truth=None) -> dtu.NPImageBGR:
+        d, phi = self.getEstimate()
+        return plot_phi_d_diagram_bgr(self, self.belief, phi=phi, d=d)

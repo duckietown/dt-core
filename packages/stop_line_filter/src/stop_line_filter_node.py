@@ -1,33 +1,25 @@
 #!/usr/bin/env python3
-import rospy
 import numpy as np
 
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from duckietown_msgs.msg import SegmentList, Segment, BoolStamped, StopLineReading, LanePose, FSMState
-from std_msgs.msg import Float32
+import rospy
+from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
+from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, SegmentList, StopLineReading
 from geometry_msgs.msg import Point
-import time
 
 
 # import math
 
+
 class StopLineFilterNode(DTROS):
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(StopLineFilterNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(StopLineFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Initialize the parameters
-        self.stop_distance = DTParam('~stop_distance',
-                                     param_type=ParamType.FLOAT)
-        self.min_segs = DTParam('~min_segs',
-                                param_type=ParamType.INT)
-        self.off_time = DTParam('~off_time',
-                                param_type=ParamType.FLOAT)
-        self.max_y = DTParam('~max_y',
-                             param_type=ParamType.FLOAT)
+        self.stop_distance = DTParam("~stop_distance", param_type=ParamType.FLOAT)
+        self.min_segs = DTParam("~min_segs", param_type=ParamType.INT)
+        self.off_time = DTParam("~off_time", param_type=ParamType.FLOAT)
+        self.max_y = DTParam("~max_y", param_type=ParamType.FLOAT)
 
         ## params
         # self.stop_distance = self.setupParam("~stop_distance", 0.22) # distance from the stop line that we should stop
@@ -129,8 +121,9 @@ class StopLineFilterNode(DTROS):
             stop_line_point.y = stop_line_y_accumulator / good_seg_count
             stop_line_reading_msg.stop_line_point = stop_line_point
             # Only detect redline if y is within max_y distance:
-            stop_line_reading_msg.at_stop_line = stop_line_point.x < self.stop_distance.value and \
-                                                 np.abs(stop_line_point.y) < self.max_y.value
+            stop_line_reading_msg.at_stop_line = (
+                stop_line_point.x < self.stop_distance.value and np.abs(stop_line_point.y) < self.max_y.value
+            )
 
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
             if stop_line_reading_msg.at_stop_line:
@@ -143,9 +136,7 @@ class StopLineFilterNode(DTROS):
         p_homo = np.array([point.x, point.y, 1])
         phi = self.lane_pose.phi
         d = self.lane_pose.d
-        T = np.array([[np.cos(phi), -np.sin(phi), 0],
-                      [np.sin(phi), np.cos(phi), d],
-                      [0, 0, 1]])
+        T = np.array([[np.cos(phi), -np.sin(phi), 0], [np.sin(phi), np.cos(phi), d], [0, 0, 1]])
         p_new_homo = T.dot(p_homo)
         p_new = p_new_homo[0:2]
         return p_new
@@ -154,6 +145,6 @@ class StopLineFilterNode(DTROS):
     #     rospy.loginfo("[StopLineFilterNode] Shutdown.")
 
 
-if __name__ == '__main__':
-    lane_filter_node = StopLineFilterNode(node_name='stop_line_filter')
+if __name__ == "__main__":
+    lane_filter_node = StopLineFilterNode(node_name="stop_line_filter")
     rospy.spin()

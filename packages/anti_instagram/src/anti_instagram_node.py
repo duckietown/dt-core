@@ -22,12 +22,10 @@ class AntiInstagramNode(DTROS):
         ~
 
     """
+
     def __init__(self, node_name):
 
-        super(AntiInstagramNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION
-        )
+        super(AntiInstagramNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Read parameters
 
@@ -37,24 +35,20 @@ class AntiInstagramNode(DTROS):
 
         # Construct publisher
         self.pub = rospy.Publisher(
-            "~thresholds",
-            AntiInstagramThresholds,
-            queue_size=1,
-            dt_topic_type=TopicType.PERCEPTION
+            "~thresholds", AntiInstagramThresholds, queue_size=1, dt_topic_type=TopicType.PERCEPTION
         )
 
         # Construct subscriber
         self.uncorrected_image_subscriber = rospy.Subscriber(
-            '~uncorrected_image/compressed',
+            "~uncorrected_image/compressed",
             CompressedImage,
             self.store_image_msg,
             buff_size=10000000,
-            queue_size=1
+            queue_size=1,
         )
 
         # Initialize Timer
-        rospy.Timer(rospy.Duration(self._interval),
-                    self.calculate_new_parameters)
+        rospy.Timer(rospy.Duration(self._interval), self.calculate_new_parameters)
 
         # Initialize objects and data
         self.ai = AntiInstagram()
@@ -65,7 +59,6 @@ class AntiInstagramNode(DTROS):
         # ---
         self.log("Initialized.")
 
-
     def store_image_msg(self, image_msg):
         with self.mutex:
             self.image_msg = image_msg
@@ -75,17 +68,17 @@ class AntiInstagramNode(DTROS):
             try:
                 image = self.bridge.compressed_imgmsg_to_cv2(self.image_msg, "bgr8")
             except ValueError as e:
-                self.log('Anti_instagram cannot decode image: %s' % e)
+                self.log(f"Anti_instagram cannot decode image: {e}")
         return image
 
     def calculate_new_parameters(self, event):
         if self.image_msg is None:
-            self.log("[%s] Waiting for first image!")
+            self.log("Waiting for first image!")
             return
         image = self.decode_image_msg()
-        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(image,
-                                                self._output_scale,
-                                                self._color_balance_percentage)
+        (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(
+            image, self._output_scale, self._color_balance_percentage
+        )
 
         # Publish parameters
         msg = AntiInstagramThresholds()
@@ -94,7 +87,6 @@ class AntiInstagramNode(DTROS):
         self.pub.publish(msg)
 
 
-
-if __name__ == '__main__':
-    node = AntiInstagramNode(node_name='anti_instagram_node')
+if __name__ == "__main__":
+    node = AntiInstagramNode(node_name="anti_instagram_node")
     rospy.spin()

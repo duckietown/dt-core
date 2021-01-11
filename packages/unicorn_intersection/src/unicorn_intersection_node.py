@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-import rospy
-import numpy as np
-from duckietown_msgs.msg import TurnIDandType, FSMState, BoolStamped, LanePose, Pose2DStamped, Twist2DStamped, TurnIDandType
-from std_msgs.msg import Float32, Int16, Bool, String
-from geometry_msgs.msg import Point, PoseStamped, Pose, PointStamped
-from nav_msgs.msg import Path
-import time
-import math
 import json
 
-class UnicornIntersectionNode(object):
+import rospy
+from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, TurnIDandType
+from std_msgs.msg import String
+
+
+class UnicornIntersectionNode:
     def __init__(self):
         self.node_name = "Unicorn Intersection Node"
 
@@ -23,27 +20,28 @@ class UnicornIntersectionNode(object):
         self.tag_id = -1
         self.forward_pose = False
 
-
         ## Subscribers
-        #self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.cbTurnType)
+        # self.sub_turn_type = rospy.Subscriber("~turn_type", Int16, self.cbTurnType)
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
         self.sub_int_go = rospy.Subscriber("~intersection_go", BoolStamped, self.cbIntersectionGo)
         self.sub_lane_pose = rospy.Subscriber("~lane_pose_in", LanePose, self.cbLanePose)
-        self.sub_switch = rospy.Subscriber("~switch",BoolStamped, self.cbSwitch, queue_size=1)
+        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
 
         ## Publisher
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
         self.pub_LF_params = rospy.Publisher("~lane_filter_params", String, queue_size=1)
         self.pub_lane_pose = rospy.Publisher("~lane_pose_out", LanePose, queue_size=1)
-        self.pub_int_done_detailed = rospy.Publisher("~intersection_done_detailed", TurnIDandType, queue_size=1)
+        self.pub_int_done_detailed = rospy.Publisher(
+            "~intersection_done_detailed", TurnIDandType, queue_size=1
+        )
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
 
-
     def cbLanePose(self, msg):
-        if self.forward_pose: self.pub_lane_pose.publish(msg)
+        if self.forward_pose:
+            self.pub_lane_pose.publish(msg)
 
     def changeLFParams(self, params, reset_time):
         data = {"params": params, "time": reset_time}
@@ -52,16 +50,19 @@ class UnicornIntersectionNode(object):
         self.pub_LF_params.publish(msg)
 
     def cbIntersectionGo(self, msg):
-        rospy.loginfo("[%s] Recieved intersection go message from coordinator",self.node_name)
+        rospy.loginfo("[%s] Recieved intersection go message from coordinator", self.node_name)
         if not self.active:
             return
 
-        if not msg.data: return
+        if not msg.data:
+            return
 
         while self.turn_type == -1:
             if not self.active:
                 return
-            rospy.loginfo("[%s] Requested to start intersection, but we do not see an april tag yet.",self.node_name)
+            rospy.loginfo(
+                "[%s] Requested to start intersection, but we do not see an april tag yet.", self.node_name
+            )
             rospy.sleep(2)
 
         tag_id = self.tag_id
@@ -73,7 +74,7 @@ class UnicornIntersectionNode(object):
         omega_maxs = [self.omega_max_left, self.omega_max_straight, self.omega_max_right]
         omega_mins = [self.omega_min_left, self.omega_min_straight, self.omega_min_right]
 
-        self.changeLFParams(LFparams[turn_type], sleeptimes[turn_type]+1.0)
+        self.changeLFParams(LFparams[turn_type], sleeptimes[turn_type] + 1.0)
         rospy.set_param("~lane_controller/omega_ff", omega_ffs[turn_type])
         rospy.set_param("~lane_controller/omega_max", omega_maxs[turn_type])
         rospy.set_param("~lane_controller/omega_min", omega_mins[turn_type])
@@ -101,8 +102,6 @@ class UnicornIntersectionNode(object):
         msg_done_detailed.turn_type = turn_type
         self.pub_int_done_detailed.publish(msg_done_detailed)
 
-
-
     def cbFSMState(self, msg):
         if self.state != msg.state and msg.state == "INTERSECTION_COORDINATION":
             self.turn_type = -1
@@ -112,11 +111,12 @@ class UnicornIntersectionNode(object):
     def cbSwitch(self, switch_msg):
         self.active = switch_msg.data
 
-
     def cbTurnType(self, msg):
         self.tag_id = msg.tag_id
-        if self.turn_type == -1: self.turn_type = msg.turn_type
-        if self.debug_dir != -1: self.turn_type = self.debug_dir
+        if self.turn_type == -1:
+            self.turn_type = msg.turn_type
+        if self.debug_dir != -1:
+            self.turn_type = self.debug_dir
 
     def setupParams(self):
         self.time_left_turn = self.setupParam("~time_left_turn", 2)
@@ -137,7 +137,7 @@ class UnicornIntersectionNode(object):
 
         self.debug_dir = self.setupParam("~debug_dir", -1)
 
-    def updateParams(self,event):
+    def updateParams(self, event):
         self.time_left_turn = rospy.get_param("~time_left_turn")
         self.time_straight_turn = rospy.get_param("~time_straight_turn")
         self.time_right_turn = rospy.get_param("~time_right_turn")
@@ -156,18 +156,18 @@ class UnicornIntersectionNode(object):
 
         self.debug_dir = rospy.get_param("~debug_dir")
 
-
-    def setupParam(self,param_name,default_value):
-        value = rospy.get_param(param_name,default_value)
-        rospy.set_param(param_name,value) #Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+    def setupParam(self, param_name, default_value):
+        value = rospy.get_param(param_name, default_value)
+        rospy.set_param(param_name, value)  # Write to parameter server for transparancy
+        rospy.loginfo(f"[{self.node_name}] {param_name} = {value} ")
         return value
 
     def onShutdown(self):
         rospy.loginfo("[UnicornIntersectionNode] Shutdown.")
 
-if __name__ == '__main__':
-    rospy.init_node('unicorn_intersection_node',anonymous=False)
+
+if __name__ == "__main__":
+    rospy.init_node("unicorn_intersection_node", anonymous=False)
     unicorn_intersection_node = UnicornIntersectionNode()
     rospy.on_shutdown(unicorn_intersection_node.onShutdown)
     rospy.spin()

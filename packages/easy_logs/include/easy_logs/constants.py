@@ -1,5 +1,3 @@
-
-class EasyLogsConstants(object):
-    CACHE_CLOUD = 'EasyLogsDB-logs-cloud'
-    CACHE_LOCAL = 'EasyLogsDB-logs-local'
-
+class EasyLogsConstants:
+    CACHE_CLOUD = "EasyLogsDB-logs-cloud"
+    CACHE_LOCAL = "EasyLogsDB-logs-local"

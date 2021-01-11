@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-import sys
+from navigation.srv import GraphSearch
+
 import rospy
-from navigation.srv import *
+
 
 def graph_search_client():
-    rospy.wait_for_service('graph_search')
+    rospy.wait_for_service("graph_search")
     try:
-        graph_search = rospy.ServiceProxy('graph_search', GraphSearch)
-        resp = graph_search('I15', 'I26')
+        graph_search = rospy.ServiceProxy("graph_search", GraphSearch)
+        resp = graph_search("I15", "I26")
         return resp.actions
     except rospy.ServiceException as e:
-        print("Service call failed: %s"%e)
+        print(f"Service call failed: {e}")
+
 
 if __name__ == "__main__":
-    print("%s"%(graph_search_client()))
+    print(f"{graph_search_client()}")

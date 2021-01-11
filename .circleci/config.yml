@@ -1,6 +1,12 @@
-version: 2.1
+version: "2.1"
+workflows:
+  version: "2"
+  all_of_them:
+    jobs:
+      - build-docs
+      - unit-tests-from-parent
 jobs:
-  build:
+  build-docs:
     docker:
       - image: ubuntu:18.04
 
@@ -36,6 +42,7 @@ jobs:
             export PATH="$PATH:$HOME/.local/bin"
             dts devel build --docs
 
+
       - store_artifacts:
           path: html/out
           destination: html
@@ -44,3 +51,59 @@ jobs:
           path: html/out/package.tgz
           destination: out/package.tgz
 
+  unit-tests-from-parent:
+    resource_class: large
+    docker:
+      - image:  duckietown/dt-ros-commons:daffy-amd64
+
+    environment:
+      DUCKIETOWN_DATA: /data
+      DUCKIETOWN_ROOT: /
+
+    steps:
+
+      - checkout
+      - run:
+          name: Install dts
+          command: |
+            python3 -m pip install --no-cache-dir --user -U duckietown-shell
+            export PATH="$PATH:$HOME/.local/bin"
+            dts --set-version daffy exit
+      - run:
+          name: Install dts
+          command: |
+            python3 -m pip install --no-cache-dir --user -U duckietown-shell
+            export PATH="$PATH:$HOME/.local/bin"
+            dts --set-version daffy exit
+      - run:
+          name: deps
+          command: |
+            pip3 install --use-feature=2020-resolver -r dependencies-py3.txt
+      - run:
+          name: apt
+          command: |
+            dt-apt-install dependencies-apt.txt
+      - run:
+          name: deps
+          command: |
+            ls -la /code/catkin_ws/src
+            ln -s  `pwd` /code/catkin_ws/src/dt-core
+            ls -la /code/catkin_ws/src
+            . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
+            pip3 install duckietown-utils-daffy
+      - run:
+          name: run tests
+          command: |
+            mkdir /data
+            mkdir /data/config
+
+            echo 'config echo 1' > ~/.compmake.rc
+
+            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
+
+            find . -name '*pickle' -delete
+            find . -name 'compmake' -print | xargs rm -rf
+
+      - store_artifacts:
+          path: out
+          destination: out
