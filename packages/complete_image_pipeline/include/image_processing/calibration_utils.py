@@ -136,7 +136,9 @@ def save_homography(H: np.array, robot_name: str) -> None:
 
     fn = get_extrinsics_filename(robot_name)
 
-    dtu.write_data_to_file(s, fn)
+    #TODO: dtu.write_data_to_files is broken!
+    with open(fn,'w') as file:
+        file.write(s)
 
 
 def get_extrinsics_filename(robot_name: str) -> str:
