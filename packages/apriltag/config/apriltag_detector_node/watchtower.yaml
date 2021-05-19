@@ -1,6 +1,6 @@
 # Parameters for apriltag detector node
 family: "tag36h11"
-ndetectors: 4
+ndetectors: 3
 nthreads: 2
 quad_decimate: 2.0
 quad_sigma: 0.0
