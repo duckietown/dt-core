@@ -136,7 +136,7 @@ class DeadReckoningNode(DTROS):
         dt = timestamp - self.encoders_timestamp_last
 
         if dt < 1E-6:
-            self.logwarn("Time since last encoder message (%f) is too small. Ignoring" % dt))
+            self.logwarn("Time since last encoder message (%f) is too small. Ignoring" % dt)
             return
 
         self.tv = distance / dt
