@@ -213,7 +213,7 @@ class GroundProjectionNode(DTROS):
 
         try:
             with open(cali_file, "r") as stream:
-                calib_data = yaml.load(stream)
+                calib_data = yaml.load(stream, Loader=yaml.Loader)
         except yaml.YAMLError:
             msg = f"Error in parsing calibration file {cali_file} ... aborting"
             self.logerr(msg)
