@@ -14,7 +14,8 @@ ARG BASE_IMAGE=dt-ros-commons
 ARG LAUNCHER=default
 
 # define base image
-FROM duckietown/${BASE_IMAGE}:${BASE_TAG} as BASE
+ARG DOCKER_REGISTRY=docker.io
+FROM ${DOCKER_REGISTRY}/duckietown/${BASE_IMAGE}:${BASE_TAG} as BASE
 
 # recall all arguments
 ARG ARCH
@@ -87,6 +88,6 @@ LABEL org.duckietown.label.module.type="${REPO_NAME}" \
 # <==================================================
 
 ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
-# used for downloads 
+# used for downloads
 ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
