@@ -54,6 +54,11 @@ RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 # make sure the python environment is consistent before installing new dependencies
 RUN pip3 check
 
+
+ARG PIP_INDEX_URL
+ENV PIP_INDEX_URL=${PIP_INDEX_URL}
+RUN echo PIP_INDEX_URL=${PIP_INDEX_URL}
+
 # install python3 dependencies
 COPY ./dependencies-py3.txt "${REPO_PATH}/"
 RUN pip3 install --use-feature=2020-resolver -r ${REPO_PATH}/dependencies-py3.txt
