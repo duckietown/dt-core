@@ -96,3 +96,6 @@ ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
 # used for downloads
 ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
+
+COPY scripts/send-fsm-state.sh /usr/local/bin
+
