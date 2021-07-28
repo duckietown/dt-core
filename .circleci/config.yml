@@ -32,7 +32,7 @@ jobs:
           command: |
             python3 -m pip install --no-cache-dir --user -U duckietown-shell
             export PATH="$PATH:$HOME/.local/bin"
-            dts --set-version daffy exit
+            dts --set-version ente exit
 
       - checkout
 
@@ -54,7 +54,7 @@ jobs:
   unit-tests-from-parent:
     resource_class: large
     docker:
-      - image:  duckietown/dt-ros-commons:daffy-amd64
+      - image:  duckietown/dt-ros-commons:ente-amd64
 
     environment:
       DUCKIETOWN_DATA: /data
@@ -68,13 +68,13 @@ jobs:
           command: |
             python3 -m pip install --no-cache-dir --user -U duckietown-shell
             export PATH="$PATH:$HOME/.local/bin"
-            dts --set-version daffy exit
+            dts --set-version ente exit
       - run:
           name: Install dts
           command: |
             python3 -m pip install --no-cache-dir --user -U duckietown-shell
             export PATH="$PATH:$HOME/.local/bin"
-            dts --set-version daffy exit
+            dts --set-version ente exit
       - run:
           name: deps
           command: |
@@ -90,7 +90,7 @@ jobs:
             ln -s  `pwd` /code/catkin_ws/src/dt-core
             ls -la /code/catkin_ws/src
             . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-            pip3 install duckietown-utils-daffy
+            pip3 install duckietown-utils-ente
       - run:
           name: run tests
           command: |

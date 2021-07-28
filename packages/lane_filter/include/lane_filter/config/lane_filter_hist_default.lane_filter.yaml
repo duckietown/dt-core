@@ -1,4 +1,4 @@
-description: "Current baseline (daffy)"
+description: "Current baseline (ente)"
 constructor: lane_filter.LaneFilterHistogram
 parameters:
   mean_d_0: 0
