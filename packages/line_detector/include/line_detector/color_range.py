@@ -5,9 +5,9 @@ import cv2
 class ColorRange:
     """
     The Color Range class holds one or multiple color ranges. It can easily be generated with
-    the :py:meth:`fromDict` class method and extends the `OpenCV's inRange <https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981>`_  
+    the :py:meth:`fromDict` class method and extends the `OpenCV's inRange <https://docs.opencv.org/3.4/d2/de8/group__core__array.html#ga48af0ab51e36436c5d04340e036ce981>`_
     method to work with multiple color ranges.
-    
+
     All colours must be given in ``HSV`` space.
 
     Args:
@@ -47,30 +47,33 @@ class ColorRange:
 
         # if only two entries: single-entry, if more: multi-entry
         if len(dictionary) == 2:
-            assert 'low' in dictionary, "Key 'low' must be in dictionary"
-            assert 'high' in dictionary, "Key 'high' must be in dictionary"
-            low = np.array(dictionary['low']).reshape((1, 3))
-            high = np.array(dictionary['high']).reshape((1, 3))
+            assert "low" in dictionary, "Key 'low' must be in dictionary"
+            assert "high" in dictionary, "Key 'high' must be in dictionary"
+            low = np.array(dictionary["low"]).reshape((1, 3))
+            high = np.array(dictionary["high"]).reshape((1, 3))
 
         elif len(dictionary) % 2 == 0:
 
             # make the keys tuples with `low` or `high` and the id of the entry
-            dictionary = {tuple(k.split('_')): v for k, v in dictionary.items()}
-            entry_indices = set([k[1] for k, _ in dictionary.items()])
+            dictionary = {tuple(k.split("_")): v for k, v in list(dictionary.items())}
+            entry_indices = set([k[1] for k, _ in list(dictionary.items())])
 
-            assert len(entry_indices) == len(dictionary) / 2, "The multi-entry definition doesn't " \
-                                                              "follow the requirements"
+            assert len(entry_indices) == len(dictionary) / 2, (
+                "The multi-entry definition doesn't " "follow the requirements"
+            )
 
             # build an array for the low and an array for the high range bounds
             low = np.zeros((len(entry_indices), 3))
             high = np.zeros((len(entry_indices), 3))
             for idx, entry in enumerate(entry_indices):
-                low[idx] = dictionary[('low', entry)]
-                high[idx] = dictionary[('high', entry)]
+                low[idx] = dictionary[("low", entry)]
+                high[idx] = dictionary[("high", entry)]
 
         else:
-            raise ValueError("The input dictionary has two have an even number of "
-                             "entries: a low and high value for each color range!")
+            raise ValueError(
+                "The input dictionary has two have an even number of "
+                "entries: a low and high value for each color range."
+            )
 
         return cls(low=low, high=high)
 
@@ -105,4 +108,4 @@ class ColorRange:
             :obj:`list`: a list with 3 entries representing an HSV color
         """
 
-        return list(0.5*(self.high[0]+self.low[0]).astype(int))
+        return list(0.5 * (self.high[0] + self.low[0]).astype(int))

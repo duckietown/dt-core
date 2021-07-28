@@ -27,6 +27,7 @@ class LaneController:
         ~stop_line_slowdown (:obj:`dict`): Start and end distances for slowdown at stop lines
 
     """
+
     def __init__(self, parameters):
         self.parameters = parameters
         self.d_I = 0.0
@@ -63,19 +64,25 @@ class LaneController:
         if dt is not None:
             self.integrate_errors(d_err, phi_err, dt)
 
-        self.d_I = self.adjust_integral(d_err, self.d_I, self.parameters['~integral_bounds']['d'],
-                                        self.parameters['~d_resolution'])
-        self.phi_I = self.adjust_integral(phi_err, self.phi_I, self.parameters['~integral_bounds']['phi'],
-                                          self.parameters['~phi_resolution'])
+        self.d_I = self.adjust_integral(
+            d_err, self.d_I, self.parameters["~integral_bounds"]["d"], self.parameters["~d_resolution"]
+        )
+        self.phi_I = self.adjust_integral(
+            phi_err,
+            self.phi_I,
+            self.parameters["~integral_bounds"]["phi"],
+            self.parameters["~phi_resolution"],
+        )
 
         self.reset_if_needed(d_err, phi_err, wheels_cmd_exec)
 
         # Scale the parameters linear such that their real value is at 0.22m/s
-        omega = self.parameters['~k_d'].value * d_err + \
-            self.parameters['~k_theta'].value * phi_err + \
-            self.parameters['~k_Id'].value * self.d_I + \
-            self.parameters['~k_Iphi'].value * self.phi_I
-
+        omega = (
+            self.parameters["~k_d"].value * d_err
+            + self.parameters["~k_theta"].value * phi_err
+            + self.parameters["~k_Id"].value * self.d_I
+            + self.parameters["~k_Iphi"].value * self.phi_I
+        )
 
         self.prev_d_err = d_err
         self.prev_phi_err = phi_err
@@ -94,14 +101,19 @@ class LaneController:
             stop_line_distance (:obj:`float`): distance of the stop line, None if not detected.
         """
         if stop_line_distance is None:
-            return self.parameters['~v_bar'].value
+            return self.parameters["~v_bar"].value
         else:
 
-            d1, d2 = self.parameters['~stop_line_slowdown']['start'], self.parameters['~stop_line_slowdown']['end']
+            d1, d2 = (
+                self.parameters["~stop_line_slowdown"]["start"],
+                self.parameters["~stop_line_slowdown"]["end"],
+            )
             # d1 -> v_bar, d2 -> v_bar/2
             c = (0.5 * (d1 - stop_line_distance) + (stop_line_distance - d2)) / (d1 - d2)
-            v_new = self.parameters['~v_bar'].value * c
-            v = np.max([self.parameters['~v_bar'].value / 2.0, np.min([self.parameters['~v_bar'].value, v_new])])
+            v_new = self.parameters["~v_bar"].value * c
+            v = np.max(
+                [self.parameters["~v_bar"].value / 2.0, np.min([self.parameters["~v_bar"].value, v_new])]
+            )
             return v
 
     def integrate_errors(self, d_err, phi_err, dt):
@@ -150,10 +162,10 @@ class LaneController:
         Returns:
             integral (:obj:`float`): adjusted integral value
         """
-        if integral > bounds['top']:
-            integral = bounds['top']
-        elif integral < bounds['bot']:
-            integral = bounds['bot']
+        if integral > bounds["top"]:
+            integral = bounds["top"]
+        elif integral < bounds["bot"]:
+            integral = bounds["bot"]
         elif abs(error) < resolution:
             integral = 0
         return integral

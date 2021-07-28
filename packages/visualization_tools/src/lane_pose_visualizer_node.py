@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import numpy as np
 import rospy
 import tf
 from duckietown.dtros import DTROS, NodeType, TopicType
@@ -10,26 +9,21 @@ from visualization_msgs.msg import Marker, MarkerArray
 class LanePoseVisualizer(DTROS):
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LanePoseVisualizer, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.DEBUG
-        )
+        super(LanePoseVisualizer, self).__init__(node_name=node_name, node_type=NodeType.DEBUG)
 
         # Get vehicle name from namespace
         self.veh_name = rospy.get_namespace().strip("/")
-        rospy.loginfo("[%s] Vehicle name: %s" %
-                      (self.node_name, self.veh_name))
+        rospy.loginfo(f"[{self.node_name}] Vehicle name: {self.veh_name}")
 
         # Setup publisher
-        self.pub_markers = rospy.Publisher("~lane_pose_markers",
-                                           MarkerArray, queue_size=1,
-                                           dt_topic_type=TopicType.DEBUG)
+        self.pub_markers = rospy.Publisher(
+            "~lane_pose_markers", MarkerArray, queue_size=1, dt_topic_type=TopicType.DEBUG
+        )
 
         # Setup subscriber
-        self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose,
-                                              self.cbLanePose, queue_size=1)
+        self.sub_lane_pose = rospy.Subscriber("~lane_pose", LanePose, self.cbLanePose, queue_size=1)
 
-        rospy.loginfo("[%s] Initialzed." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzed.")
 
     def cbLanePose(self, lane_pose_msg):
         marker_array = MarkerArray()
@@ -48,8 +42,7 @@ class LanePoseVisualizer(DTROS):
         marker.type = Marker.ARROW
 
         # Get rotation in quaternion
-        yaw_quat = tf.transformations.quaternion_about_axis(
-            -lane_pose_msg.phi, [0, 0, 1])
+        yaw_quat = tf.transformations.quaternion_about_axis(-lane_pose_msg.phi, [0, 0, 1])
         # rospy.loginfo("[%s] quat: %s "%(self.node_name,yaw_quat))
         marker.pose.orientation.x = yaw_quat[0]
         marker.pose.orientation.y = yaw_quat[1]
@@ -76,10 +69,10 @@ class LanePoseVisualizer(DTROS):
         return marker
 
     def on_shutdown(self):
-        rospy.loginfo("[%s] Shutting down." % (self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Shutting down.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Create the NodeName object
     node = LanePoseVisualizer(node_name="lane_pose_visualizer_node")
 

@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 import rospy
-from intersection_control.util import HelloGoodbye #Imports module. Not limited to modules in this pkg. 
-from duckietown_msgs.msg import LanePose, StopLineReading
+from duckietown_msgs.msg import LanePose, StopLineReading, Twist2DStamped
 
-from std_msgs.msg import String #Imports msg
-from std_msgs.msg import Bool #Imports msg
-#from duckietown_msgs.msg import messages to command the wheels
-from duckietown_msgs.msg import Twist2DStamped
 
-class IndefNavigationNode(object):
+class IndefNavigationNode:
     def __init__(self):
         # Save the name of the node
         self.node_name = rospy.get_name()
-        
-        rospy.loginfo("[%s] Initialzing." %(self.node_name))
+
+        rospy.loginfo(f"[{self.node_name}] Initializing.")
         veh_name = self.node_name.split("/")[1]
         wheel_topic = "/" + veh_name + "/joy_mapper_node/car_cmd"
         lane_topic = "/" + veh_name + "/lane_filter_node/lane_pose"
@@ -23,13 +18,13 @@ class IndefNavigationNode(object):
         self.stop = None
         self.forward_time = 4.8
 
-        self.pub_wheels_cmd = rospy.Publisher(wheel_topic,Twist2DStamped, queue_size=1)
-        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane, queue_size=1) 
-        self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop, queue_size=1) 
+        self.pub_wheels_cmd = rospy.Publisher(wheel_topic, Twist2DStamped, queue_size=1)
+        self.sub_lane = rospy.Subscriber(lane_topic, LanePose, self.cbLane, queue_size=1)
+        self.sub_stop = rospy.Subscriber(stop_topic, StopLineReading, self.cbStop, queue_size=1)
 
-        rospy.loginfo("[%s] Initialzed." %(self.node_name))
+        rospy.loginfo(f"[{self.node_name}] Initialzed.")
 
-        self.rate = rospy.Rate(30) # 10hz
+        self.rate = rospy.Rate(30)  # 10hz
 
     def cbLane(self, data):
         self.lane = data
@@ -38,32 +33,32 @@ class IndefNavigationNode(object):
         self.stop = data
 
     def driveForward(self):
-        #move forward
+        # move forward
         for i in range(3):
-            if self.lane == None or self.stop == None:
+            if self.lane is None or self.stop is None:
                 rospy.loginfo("still waiting for lane and stop line")
                 rospy.sleep(1)
-        if self.lane==None or self.stop == None:
+        if self.lane is None or self.stop is None:
             rospy.loginfo("could not subscribe to lane and stop line")
             return
-        
-        #Measured dist for stop as 146+8cm cm physically
+
+        # Measured dist for stop as 146+8cm cm physically
         self.init = self.lane, -1.54
         forward_for_time = self.forward_time
         starting_time = rospy.Time.now()
-        while((rospy.Time.now() - starting_time) < rospy.Duration(forward_for_time)):
+        while (rospy.Time.now() - starting_time) < rospy.Duration(forward_for_time):
             wheels_cmd_msg = Twist2DStamped()
             wheels_cmd_msg.header.stamp = rospy.Time.now()
             wheels_cmd_msg.v = 0.5
             wheels_cmd_msg.omega = 0.0
-            self.pub_wheels_cmd.publish(wheels_cmd_msg)    
-            #rospy.loginfo("Moving?.")
+            self.pub_wheels_cmd.publish(wheels_cmd_msg)
+            # rospy.loginfo("Moving?.")
             self.rate.sleep()
         self.final = self.lane, self.stop
         self.calculate()
 
     def calculate(self):
-        
+
         init_d = self.init[0].d
         init_phi = self.init[0].phi
 
@@ -77,7 +72,7 @@ class IndefNavigationNode(object):
         if abs(off_d) < 0.08:
             result_trim = "PASSED"
 
-        init_stop_y  = self.init[1]
+        init_stop_y = self.init[1]
         final_stop_y = self.final[1].stop_line_point.y
 
         velocity = abs(init_stop_y - final_stop_y) / self.forward_time
@@ -104,21 +99,28 @@ class IndefNavigationNode(object):
         velocity diff from expected: %.4f
         VELOCITY TEST: %s
 
-        """ % ( init_d, init_phi, final_d, final_phi, \
-                off_d, off_phi, result_trim,\
-                init_stop_y, final_stop_y, velocity, vel_diff, result_vel
-                )
+        """ % (
+            init_d,
+            init_phi,
+            final_d,
+            final_phi,
+            off_d,
+            off_phi,
+            result_trim,
+            init_stop_y,
+            final_stop_y,
+            velocity,
+            vel_diff,
+            result_vel,
+        )
         print(info)
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node('indef_navigation_node', anonymous=False)
+    rospy.init_node("indef_navigation_node", anonymous=False)
 
     # Create the NodeName object
     node = IndefNavigationNode()
-    #raw_input("drive forward?")
+    # raw_input("drive forward?")
     node.driveForward()
-

@@ -1,6 +1,4 @@
 # LIST YOUR APT PACKAGES HERE
-ros-noetic-image-transport
-ros-noetic-image-transport-plugins
 ros-noetic-image-geometry
 ros-noetic-image-proc
 ros-noetic-rqt
@@ -9,3 +7,7 @@ libyaml-cpp-dev
 python3-sklearn
 iputils-ping
 python3-tk
+
+mencoder
+mplayer
+ffmpeg

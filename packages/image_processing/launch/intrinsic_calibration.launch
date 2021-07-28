@@ -2,6 +2,7 @@
 <launch>
   <arg name="veh"/>
   <arg name="demo_name" value="intrinsic_calibration"/>
+
   <include file="$(find duckietown_demos)/launch/master.launch">
     <arg name="veh" value="$(arg veh)"/>
     <arg name="demo_name" value="$(arg demo_name)"/>

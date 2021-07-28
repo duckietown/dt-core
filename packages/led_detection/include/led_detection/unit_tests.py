@@ -1,29 +1,29 @@
-import numpy as np
-import duckietown_utils as dtu
-from . import logger
+import duckietown_code_utils as dtu
+import duckietown_rosbag_utils as dbu
+
+logger = dtu.logger
 
 __all__ = [
-    'LEDDetectionUnitTest',
-    'load_tests',
+    "LEDDetectionUnitTest",
+    "load_tests",
 ]
 
-class LEDDetectionUnitTest():
 
+class LEDDetectionUnitTest:
     def __init__(self, data, query, expected):
         self.data = data
         self.query = query
         self.expected = expected
 
-        query['frequencies_to_detect']
-        query['min_distance_between_LEDs_pixels']
-
+        query["frequencies_to_detect"]
+        query["min_distance_between_LEDs_pixels"]
 
     def _get_images(self):
-        filename = self.data['bag']
-        interval = self.data['interval']
+        filename = self.data["bag"]
+        interval = self.data["interval"]
         t0, t1 = interval[0], interval[1]
-        print('t0:%s, t1:%s'%(t0, t1))
-        data = dtu.d8n_read_images_interval(filename, t0, t1)
+        print((f"t0:{t0}, t1:{t1}"))
+        data = dbu.d8n_read_images_interval(filename, t0, t1)
         return data
 
     def get_query(self):
@@ -38,35 +38,39 @@ class LEDDetectionUnitTest():
         """
 
         images = self._get_images()
-        #mask = np.ones(dtype='bool', shape=images[0]['rgb'].shape)
-        d = dict(images=images,
-                 frequencies_to_detect=self.query['frequencies_to_detect'],
-                 min_distance_between_LEDs_pixels=self.query['min_distance_between_LEDs_pixels'])
+        # mask = np.ones(dtype='bool', shape=images[0]['rgb'].shape)
+        d = dict(
+            images=images,
+            frequencies_to_detect=self.query["frequencies_to_detect"],
+            min_distance_between_LEDs_pixels=self.query["min_distance_between_LEDs_pixels"],
+        )
         return d
+
 
 def LEDDetectionUnitTest_from_yaml(s):
     """
         Returns an instance of LEDDetectionUnitTest from YAML.
     """
-    data = s['data']
+    data = s["data"]
 
-    data['bag']
-    data['interval']
+    data["bag"]
+    data["interval"]
 
-    query = s['query']
-    query['frequencies_to_detect']
-    expected = s['expected']
+    query = s["query"]
+    query["frequencies_to_detect"]
+    expected = s["expected"]
     for e in expected:
-        e['timestamp1']
-        e['timestamp2']
-        e['image_coordinates'] = tuple(e['image_coordinates'])
-        e['image_coordinates_margin']
-        e['frequency']
-        #e['color']
-        #e['color_tolerance']
-        #e['confidence_min']
+        e["timestamp1"]
+        e["timestamp2"]
+        e["image_coordinates"] = tuple(e["image_coordinates"])
+        e["image_coordinates_margin"]
+        e["frequency"]
+        # e['color']
+        # e['color_tolerance']
+        # e['confidence_min']
 
     return LEDDetectionUnitTest(data=data, query=query, expected=expected)
+
 
 def load_tests(filename):
     """
@@ -74,6 +78,7 @@ def load_tests(filename):
 
         Returns a dict str -> LEDDetectionUnitTest() """
     import yaml
+
     with open(filename) as f:
         contents = yaml.load(f)
 
@@ -81,11 +86,12 @@ def load_tests(filename):
         try:
             contents[k] = LEDDetectionUnitTest_from_yaml(v)
         except:
-            logger.error('Error while reading:')
+            logger.error("Error while reading:")
             logger.error(v)
             raise
 
     return contents
+
 
 # example YAML:
 #

@@ -2,54 +2,65 @@
 
 import rospy
 from cv_bridge import CvBridge
-import cv2
-import numpy as np
-from sensor_msgs.msg import CompressedImage, Image
-from duckietown_msgs.msg import BoolStamped
+from sensor_msgs.msg import Image, CompressedImage
+
+from duckietown.dtros import DTROS, DTParam, NodeType, TopicType
+from dt_class_utils import DTReminder
 
 
-class DecoderNode(object):
+class DecoderNode(DTROS):
 
-    def __init__(self):
-        rospy.init_node('image_decoder')
-        self.active = True
+    def __init__(self, node_name):
+        super().__init__(node_name, node_type=NodeType.PERCEPTION)
+
+        # parameters
+        self.publish_freq = DTParam("~publish_freq", -1)
+
+        # utility objects
         self.bridge = CvBridge()
+        self.reminder = DTReminder(frequency=self.publish_freq.value)
 
-        self.publish_freq = self.setupParam("~publish_freq", 30.0)
-        self.publish_duration = rospy.Duration.from_sec(1.0 / self.publish_freq)
-        self.pub_raw = rospy.Publisher("~image/raw", Image, queue_size=1)
-        self.pub_compressed = rospy.Publisher("~image/compressed", CompressedImage, queue_size=1)
-        self.last_stamp = rospy.Time.now()
-        self.sub_compressed_img = rospy.Subscriber("~compressed_image", CompressedImage,
-                                                   self.cbImg, queue_size=1)
-        self.sub_switch = rospy.Subscriber("~switch", BoolStamped, self.cbSwitch, queue_size=1)
+        # subscribers
+        self.sub_img = rospy.Subscriber(
+            "~image_in",
+            CompressedImage,
+            self.cb_image,
+            queue_size=1,
+            buff_size='10MB'
+        )
 
-    def setupParam(self, param_name, default_value):
-        value = rospy.get_param(param_name, default_value)
-        rospy.set_param(param_name, value)  # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " % (rospy.get_name(), param_name, value))
-        return value
+        # publishers
+        self.pub_img = rospy.Publisher(
+            "~image_out",
+            Image,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION,
+            dt_healthy_freq=self.publish_freq.value,
+            dt_help="Raw image"
+        )
 
-    def cbSwitch(self, switch_msg):
-        self.active = switch_msg.data
-
-    def cbImg(self, msg):
-        if not self.active:
+    def cb_image(self, msg):
+        # make sure this matters to somebody
+        if not self.pub_img.anybody_listening():
             return
-        now = rospy.Time.now()
-        if now - self.last_stamp < self.publish_duration:
+        # make sure the node is not switched off
+        if not self.switch:
             return
-        else:
-            self.last_stamp = now
-        np_arr = np.fromstring(msg.data, np.uint8)
-        cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        img_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
-        img_msg.header.stamp = msg.header.stamp
-        img_msg.header.frame_id = msg.header.frame_id
-        self.pub_raw.publish(img_msg)
-        self.pub_compressed.publish(msg)
+        # make sure this is a good time to publish (always keep this as last check)
+        if not self.reminder.is_time(frequency=self.publish_freq.value):
+            return
+        # turn 'compressed image message' into 'raw image'
+        with self.profiler('/cb/image/decode'):
+            img = self.bridge.compressed_imgmsg_to_cv2(msg)
+        # turn 'raw image' into 'raw image message'
+        with self.profiler('/cb/image/serialize'):
+            out_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
+        # maintain original header
+        out_msg.header = msg.header
+        # publish image
+        self.pub_img.publish(out_msg)
 
 
 if __name__ == '__main__':
-    node = DecoderNode()
+    node = DecoderNode('decoder_node')
     rospy.spin()

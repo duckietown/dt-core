@@ -1,34 +1,37 @@
-from collections import namedtuple
 import os
+from collections import namedtuple
 
-from frozendict import frozendict
 import yaml
+from dateutil.parser import parse
+from frozendict import frozendict
 from yaml.error import YAMLError
-import duckietown_utils as dtu
+
+import duckietown_code_utils as dtu
+
+SUFFIX = ".config.yaml"
+
+ConfigInfo = namedtuple(
+    "ConfigInfo",
+    "filename package_name node_name config_name date_effective description extends "
+    "values "
+    "valid error_if_invalid ",
+)
+
+__all__ = ["get_all_configuration_files", "search_all_configuration_files", "interpret_config_file"]
 
 
-
-SUFFIX = '.config.yaml'
-
-ConfigInfo = namedtuple('ConfigInfo', 
-        'filename package_name node_name config_name date_effective description extends values '
-        'valid error_if_invalid ')
-
- 
-def get_configuration_files(package_name, node_name):
-    """
-        Gets all the configuration files for easynodes.
-        
-        These are of the form
-        
-            package-node.![name].config.yaml
-        
-        For timing:
-            
-            package-node.![name].201XMMDD.config.yaml
-    """
-    
 def get_all_configuration_files():
+    """
+            Gets all the configuration files for easynodes.
+
+            These are of the form
+
+                package-node.![name].config.yaml
+
+            For timing:
+
+                package-node.![name].201XMMDD.config.yaml
+        """
     configs = search_all_configuration_files()
     results = []
     for filename in configs:
@@ -37,123 +40,128 @@ def get_all_configuration_files():
     return results
 
 
-
 def search_all_configuration_files():
-    sources = []
     # We look in $DUCKIETOWN_ROOT/catkin_ws/src
-    sources.append(dtu.get_catkin_ws_src())
     # then we look in $DUCKIETOWN_FLEET
-    sources.append(dtu.get_duckiefleet_root())
-    
+    sources = [dtu.get_catkin_ws_src(), dtu.get_duckiefleet_root()]
+
     configs = []
-    pattern = '*' + SUFFIX
-    dtu.logger.info('Looking for %s files.' % pattern) 
+    pattern = "*" + SUFFIX
+    dtu.logger.info(f"Looking for {pattern} files.")
     for s in sources:
         fs = dtu.locate_files(s, pattern)
-        dtu.logger.info('%4d files in %s' % (len(fs), s))
+        dtu.logger.info(f"{len(fs):4d} files in {s}")
         configs.extend(fs)
-    
-#     logger.debug('I found:\n' + "\n".join(configs))
-    
+
+    #     logger.debug('I found:\n' + "\n".join(configs))
+
     return configs
 
 
-def interpret_config_file(filename):
-    """ 
-        Returns a ConfigInfo.     
+def interpret_config_file(filename: str) -> ConfigInfo:
+    """
+        Returns a ConfigInfo.
     """
     try:
         basename = os.path.basename(filename)
-        base = basename.replace(SUFFIX, '')
+        base = basename.replace(SUFFIX, "")
         # now we have something like
         #   package-node.config_name.date
         # or
         #   package-node.config_name
-        if not '.' in base:
-            msg = 'Invalid filename %r.' % filename
+        if not "." in base:
+            msg = f"Invalid filename {filename!r}."
             raise dtu.DTConfigException(msg)
-        
-        tokens = base.split('.')
+
+        tokens = base.split(".")
         if len(tokens) > 3:
-            msg = 'Too many periods/tokens (tokens=%s)' % tokens
+            msg = f"Too many periods/tokens (tokens={tokens})"
             raise dtu.DTConfigException(msg)
-        
+
         if len(tokens) <= 2:
             #  package-node.config_name
             package_node = tokens[0]
-            if not '-' in package_node:
-                msg = 'Expected a "-" in "%s".' % package_node
+            if not "-" in package_node:
+                msg = f'Expected a "-" in "{package_node}".'
                 raise dtu.DTConfigException(msg)
-            i = package_node.index('-')
+            i = package_node.index("-")
             package_name = package_node[:i]
-            node_name  = package_node[i+1:]
-        
+            node_name = package_node[i + 1 :]
+        else:
+            package_name = node_name = None  # FIXME: should we bail?
+
         config_name = tokens[1]
-        
+
         if len(tokens) == 3:
             # package-node.config_name.date
             date_effective = tokens[2]
         else:
-            date_effective = '20170101'
-        from dateutil.parser import parse
+            date_effective = "20170101"
 
         try:
-            date_effective  = parse(date_effective)
+            date_effective = parse(date_effective)
         except:
-            msg = 'Cannot interpret "%s" as a date.' % date_effective
+            msg = f'Cannot interpret "{date_effective}" as a date.'
             raise dtu.DTConfigException(msg)
 
         # now read file
-        
+
         contents = open(filename).read()
         try:
             try:
                 data = yaml.load(contents)
             except YAMLError as e:
-                dtu.raise_wrapped(dtu.DTConfigException, e, 'Invalid YAML', compact=True)
-                
+                dtu.raise_wrapped(dtu.DTConfigException, e, "Invalid YAML", compact=True)
+                raise
             if not isinstance(data, dict):
-                msg = 'Expected a dictionary inside.'
+                msg = "Expected a dictionary inside."
                 raise dtu.DTConfigException(msg)
-            
-            for field in ['description', 'values']:
+
+            for field in ["description", "values"]:
                 if not field in data:
-                    msg = 'Missing field "%s".' % field
+                    msg = f'Missing field "{field}".'
                     raise dtu.DTConfigException(msg)
-                
-            description = data.pop('description')
+
+            description = data.pop("description")
             if not isinstance(description, str):
-                msg = 'I expected that "description" is a string, obtained %r.' % description 
+                msg = f'I expected that "description" is a string, obtained {description!r}.'
                 raise dtu.DTConfigException(msg)
-            
-            extends = data.pop('extends', [])
+
+            extends = data.pop("extends", [])
             if not isinstance(extends, list):
-                msg = 'I expected that "extends" is a list, obtained %r.' % extends
+                msg = f'I expected that "extends" is a list, obtained {extends!r}.'
                 raise dtu.DTConfigException(msg)
-            
-            values = data.pop('values')
+
+            values = data.pop("values")
             if not isinstance(values, dict):
-                msg = 'I expected that "values" is a dictionary, obtained %s.' % type(values) 
+                msg = f'I expected that "values" is a dictionary, obtained {type(values)}.'
                 raise dtu.DTConfigException(msg)
-            
+
             # Freeze the data
             extends = tuple(extends)
             values = frozendict(values)
-            
+
         except dtu.DTConfigException as e:
-            msg = 'Could not interpret the contents of the file\n'
-            msg += '   %s\n' % dtu.friendly_path(filename)
-            msg += 'Contents:\n' + dtu.indent(contents, ' > ')
-            dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True) 
-        
-        return ConfigInfo(filename=filename, package_name=package_name, node_name=node_name, 
-                          config_name=config_name,
-                          date_effective=date_effective,extends=extends,
-                          description=description, values=values,
-                          # not decided
-                          valid=None,
-                          error_if_invalid=None)
-    
+            msg = "Could not interpret the contents of the file\n"
+            msg += f"   {dtu.friendly_path(filename)}\n"
+            msg += "Contents:\n" + dtu.indent(contents, " > ")
+            dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)
+            raise
+
+        return ConfigInfo(
+            filename=filename,
+            package_name=package_name,
+            node_name=node_name,
+            config_name=config_name,
+            date_effective=date_effective,
+            extends=extends,
+            description=description,
+            values=values,
+            # not decided
+            valid=None,
+            error_if_invalid=None,
+        )
+
     except dtu.DTConfigException as e:
-        msg = 'Invalid file %s' % dtu.friendly_path(filename)
+        msg = f"Invalid file {dtu.friendly_path(filename)}"
         dtu.raise_wrapped(dtu.DTConfigException, e, msg, compact=True)

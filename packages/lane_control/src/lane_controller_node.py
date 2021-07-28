@@ -129,7 +129,7 @@ class LaneControllerNode(DTROS):
                                                                  self.cbAllPoses,
                                                                  "intersection_navigation",
                                                                  queue_size=1)
-        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed",
+        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd",
                                                         WheelsCmdStamped,
                                                         self.cbWheelsCmdExecuted,
                                                         queue_size=1)

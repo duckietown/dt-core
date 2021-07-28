@@ -1,12 +1,11 @@
-import duckietown_utils as dtu
-import duckietown_utils as dtu
+import duckietown_code_utils as dtu
 from easy_algo.algo_db import EasyAlgoDB
 from easy_algo.formatting import format_db
 
 
-@dtu.unit_test 
+@dtu.unit_test
 def test_validity1():
-    data="""
+    data = """
 "F.easy_algo_family.yaml": | 
     description: desc
     interface: does.not_exist
@@ -14,24 +13,28 @@ def test_validity1():
     d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
-    
+
     # print format_db(db)
-    
-    family = db.get_family('F')
+
+    family = db.get_family("F")
     assert family.valid == False
 
-class MyAdderInterface(object):
+
+class MyAdderInterface:
     pass
+
 
 class One(MyAdderInterface):
     pass
 
-class Two(object):
+
+class Two:
     pass
 
-@dtu.unit_test 
+
+@dtu.unit_test
 def test_instance():
-    data="""
+    data = """
 "adder.easy_algo_family.yaml": | 
     description: desc
     interface: easy_algo_tests.validity.MyAdderInterface
@@ -50,34 +53,34 @@ def test_instance():
     d = dtu.dir_from_data(data)
     sources = [d]
     db = EasyAlgoDB(sources)
-     
-    print format_db(db)
-    
-    family = db.get_family('adder')
+
+    print((format_db(db)))
+
+    family = db.get_family("adder")
     assert family.valid == True
-    
-    one = db.create_instance('adder', 'one')
-    
-    assert type(one).__name__ == 'One'
+
+    one = db.create_instance("adder", "one")
+
+    assert type(one).__name__ == "One"
 
     try:
-        db.create_instance('not_found', 'does_not_exist')
+        db.create_instance("not_found", "does_not_exist")
         raise Exception()
     except Exception as e:
-        assert 'not find' in str(e), e
-    
+        assert "not find" in str(e), e
+
     try:
-        db.create_instance('adder', 'does_not_exist')
+        db.create_instance("adder", "does_not_exist")
         raise Exception()
     except Exception as e:
-        assert 'not find' in str(e), e
-        
+        assert "not find" in str(e), e
+
     try:
-        db.create_instance('adder', 'not_sub')
+        db.create_instance("adder", "not_sub")
         raise Exception()
     except Exception as e:
-        assert 'MyAdderInterface' in str(e)
+        assert "MyAdderInterface" in str(e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.run_tests_for_this_module()

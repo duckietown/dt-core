@@ -11,6 +11,8 @@ from duckietown_msgs.msg import \
 import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
+from std_msgs.msg import Header
+
 
 class AprilPostPros(object):
     """ """
@@ -27,13 +29,13 @@ class AprilPostPros(object):
         self.scale_y = self.setupParam("~scale_y", 1)
         self.scale_z = self.setupParam("~scale_z", 1)
 
-# -------- Start adding back the tag info stuff
+        # -------- Start adding back the tag info stuff
 
         tags_filepath = self.setupParam("~tags_file")
 
         self.loc = self.setupParam("~loc", -1) # -1 if no location is given
         tags_file = open(tags_filepath, 'r')
-        self.tags_dict = yaml.load(tags_file)
+        self.tags_dict = yaml.safe_load(tags_file)
         tags_file.close()
         self.info = TagInfo()
 
@@ -63,7 +65,7 @@ class AprilPostPros(object):
 
 
 
-        self.sub_prePros        = rospy.Subscriber("~apriltags_in", AprilTagDetectionArray, self.callback, queue_size=1)
+        self.sub_prePros        = rospy.Subscriber("~detections", AprilTagDetectionArray, self.callback, queue_size=1)
         self.pub_postPros       = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
 
@@ -91,9 +93,9 @@ class AprilPostPros(object):
 
             new_info = TagInfo()
             #Can use id 1 as long as no bundles are used
-            new_info.id = int(detection.id[0])
+            new_info.id = int(detection.tag_id)
             id_info = self.tags_dict[new_info.id]
-
+            #rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
             # Check yaml file to fill in ID-specific information
             new_info.tag_type = self.sign_types[id_info['tag_type']]
             if new_info.tag_type == self.info.S_NAME:
@@ -149,10 +151,10 @@ class AprilPostPros(object):
             tagzout_T_tagxout = tr.euler_matrix(-np.pi/2, 0, np.pi/2, 'rxyz')
 
             #Load translation
-            trans = detection.pose.pose.pose.position
-            rot = detection.pose.pose.pose.orientation
-            header = detection.pose.header
-
+            trans = detection.transform.translation
+            rot = detection.transform.rotation
+            header = Header()
+            header.stamp = rospy.Time.now()
             camzout_t_tagzout = tr.translation_matrix((trans.x*self.scale_x, trans.y*self.scale_y, trans.z*self.scale_z))
             camzout_R_tagzout = tr.quaternion_matrix((rot.x, rot.y, rot.z, rot.w))
             camzout_T_tagzout = tr.concatenate_matrices(camzout_t_tagzout, camzout_R_tagzout)
@@ -164,16 +166,13 @@ class AprilPostPros(object):
             (rot.x, rot.y, rot.z, rot.w) = tr.quaternion_from_matrix(veh_T_tagxout)
 
             new_tag_data.detections.append(
-                AprilTagDetection(
-                    [int(detection.id[0])],
-                    [float(detection.size[0])],
-                    PoseStamped(header, Pose(trans,rot))
-                )
+                detection
             )
 
         new_tag_data.infos = tag_infos
         # Publish Message
         self.pub_postPros.publish(new_tag_data)
+
 
 if __name__ == '__main__':
     rospy.init_node('AprilPostPros', anonymous=False)
