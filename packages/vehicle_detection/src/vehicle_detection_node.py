@@ -57,7 +57,7 @@ class VehicleDetectionNode(DTROS):
         self.last_stamp = rospy.Time.now()
 
         # Subscriber
-        self.sub_image = rospy.Subscriber("~image/compressed", CompressedImage, self.cb_image, buff_size=10000000, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image/compressed", CompressedImage, self.cb_image, queue_size=1)
 
         # Publishers
         self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)
@@ -87,6 +87,9 @@ class VehicleDetectionNode(DTROS):
             image_msg (:obj:`sensor_msgs.msg.CompressedImage`): Input image
 
         """
+
+        rospy.loginfo("IMAGE RECEIVED")
+        
         now = rospy.Time.now()
         if now - self.last_stamp < self.publish_duration:
             return
@@ -95,7 +98,7 @@ class VehicleDetectionNode(DTROS):
 
         vehicle_centers_msg_out = VehicleCorners()
         detection_flag_msg_out = BoolStamped()
-        image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
+        image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "mono8")
 
         (detection, centers) = cv2.findCirclesGrid(
             image_cv,

@@ -41,7 +41,7 @@ class FSMNode:
         for node_name, topic_name in list(nodes.items()):
             # self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
             try:
-                rospy.wait_for_service(topic_name, 10.0)
+                rospy.wait_for_service(topic_name, timeout = 2.0)
                 self.pub_dict[node_name] = rospy.ServiceProxy(topic_name, SetBool)
             except rospy.ROSException as exc:
                 rospy.loginfo("Time exceeded: " + str(exc))
