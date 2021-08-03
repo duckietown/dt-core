@@ -26,7 +26,7 @@ class RandomAprilTagTurnsNode:
         # Setup subscribers
         # self.sub_topic_b = rospy.Subscriber("~topic_b", String, self.cbTopic)
         self.sub_topic_mode = rospy.Subscriber("~mode", FSMState, self.cbMode, queue_size=1)
-        # self.fsm_mode = None #TODO what is this?
+        self.fsm_mode = None #TODO what is this?
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
 
         # Read parameters

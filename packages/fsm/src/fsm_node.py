@@ -4,7 +4,7 @@ import copy
 import rospy
 from duckietown_msgs.msg import BoolStamped, FSMState
 from duckietown_msgs.srv import SetFSMState, SetFSMStateResponse
-
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 
 class FSMNode:
     def __init__(self):
@@ -39,8 +39,13 @@ class FSMNode:
 
         self.active_nodes = None
         for node_name, topic_name in list(nodes.items()):
-            self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
-
+            # self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
+            try:
+                rospy.wait_for_service(topic_name, 10.0)
+                self.pub_dict[node_name] = rospy.ServiceProxy(topic_name, SetBool)
+            except rospy.ROSException as exc:
+                rospy.loginfo("Time exceeded: " + str(exc))
+            
         # print self.pub_dict
         # Process events definition
         param_events_dict = rospy.get_param("~events", {})
@@ -159,10 +164,15 @@ class FSMNode:
     def publishBools(self):
         active_nodes = self._getActiveNodesOfState(self.state_msg.state)
         for node_name, node_pub in list(self.pub_dict.items()):
-            msg = BoolStamped()
-            msg.header.stamp = self.state_msg.header.stamp
-            msg.data = bool(node_name in active_nodes)
-            node_state = "ON" if msg.data else "OFF"
+            try:
+                resp1 = node_pub(bool(node_name in active_nodes))
+            except rospy.ServiceException as exc:
+                rospy.loginfo("Service did not process request: " + str(exc))
+
+            #msg = BoolStamped()
+            #msg.header.stamp = self.state_msg.header.stamp
+            #msg.data = bool(node_name in active_nodes)
+            #node_state = "ON" if msg.data else "OFF"
             # rospy.loginfo("[%s] Node %s is %s in %s" %(self.node_name, node_name, node_state,
             # self.state_msg.state))
             if self.active_nodes is not None:
@@ -171,14 +181,15 @@ class FSMNode:
             # else:
             #     rospy.logwarn("[%s] self.active_nodes is None!" %(self.node_name))
             # continue
-            node_pub.publish(msg)
+            #node_pub.publish(msg)
             # rospy.loginfo("[%s] node %s msg %s" %(self.node_name, node_name, msg))
             # rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
         self.active_nodes = copy.deepcopy(active_nodes)
 
     def cbEvent(self, msg, event_name):
+        # Update timestamp
         if msg.data == self.event_trigger_dict[event_name]:
-            # Update timestamp
+            rospy.loginfo(f"NAME: {event_name}, DATA: {msg.data}")
             self.state_msg.header.stamp = msg.header.stamp
             next_state = self._getNextState(self.state_msg.state, event_name)
             if next_state is not None:

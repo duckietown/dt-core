@@ -94,14 +94,14 @@ class StopLineFilterNode(DTROS):
 
             p1_lane = self.to_lane_frame(segment.points[0])
             p2_lane = self.to_lane_frame(segment.points[1])
-            avg_x = 0.5 * (p1_lane[0] + p2_lane[0])
-            avg_y = 0.5 * (p1_lane[1] + p2_lane[1])
-            stop_line_x_accumulator += avg_x
-            stop_line_y_accumulator += avg_y  # TODO output covariance and not just mean
+            stop_line_x_accumulator += (p1_lane[0] + p2_lane[0])
+            stop_line_y_accumulator += (p1_lane[1] + p2_lane[1])  # TODO output covariance and not just mean
             good_seg_count += 1.0
+
 
         stop_line_reading_msg = StopLineReading()
         stop_line_reading_msg.header.stamp = segment_list_msg.header.stamp
+
         if good_seg_count < self.min_segs.value:
             stop_line_reading_msg.stop_line_detected = False
             stop_line_reading_msg.at_stop_line = False
@@ -117,8 +117,8 @@ class StopLineFilterNode(DTROS):
         else:
             stop_line_reading_msg.stop_line_detected = True
             stop_line_point = Point()
-            stop_line_point.x = stop_line_x_accumulator / good_seg_count
-            stop_line_point.y = stop_line_y_accumulator / good_seg_count
+            stop_line_point.x = stop_line_x_accumulator / (2*good_seg_count) # get the average of the points
+            stop_line_point.y = stop_line_y_accumulator / (2*good_seg_count) # get the average of the points
             stop_line_reading_msg.stop_line_point = stop_line_point
             # Only detect redline if y is within max_y distance:
             stop_line_reading_msg.at_stop_line = (

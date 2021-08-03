@@ -6,7 +6,7 @@
 
     <group ns="$(arg veh)">
         <node  name="vehicle_filter_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" >
-			<rosparam command="load" file="$(find vehicle_detection)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<rosparam command="load" file="$(find vehicle_detection)/config/$(arg node_name)/$(env ROBOT_HARDWARE)/$(arg param_file_name).yaml"/>
 		</node>
     </group>
 

@@ -131,14 +131,16 @@ class LineDetector(LineDetectorInterface):
 
         return lines
 
-    def colorFilter(self, color_range):
+    def colorFilter(self, color_range, extra_crop = 0):
         """
         Obtains the regions of the image that fall in the provided color range and the subset of the detected Canny
         edges which are in these regions. Applies a `dilation <https://homepages.inf.ed.ac.uk/rbf/HIPR2/dilate.htm>`_
         operation to smooth and grow the regions map.
 
         Args:
+            color       (:obj:`string`): Name of the color passed.
             color_range (:py:class:`ColorRange`): A :py:class:`ColorRange` object specifying the desired colors.
+            extra_crop  (:obj: `int`): Used for cropping images for red segments.
 
         Returns:
 
@@ -146,8 +148,13 @@ class LineDetector(LineDetectorInterface):
 
             :obj:`numpy array`: binary image with the edges in the image that fall in the color range
         """
+        
         # threshold colors in HSV space
-        map = color_range.inRange(self.hsv)
+        if extra_crop:
+            map = color_range.inRange(self.hsv)
+            map[:extra_crop,:]=0
+        else:
+            map = color_range.inRange(self.hsv)
 
         # binary dilation: fills in gaps and makes the detected regions grow
         kernel = cv2.getStructuringElement(
@@ -200,7 +207,7 @@ class LineDetector(LineDetectorInterface):
 
         return centers, normals
 
-    def detectLines(self, color_range):
+    def detectLines(self, color, color_range):
         """
         Detects the line segments in the currently set image that occur in and the edges of the regions of the image
         that are within the provided colour ranges.
@@ -211,7 +218,7 @@ class LineDetector(LineDetectorInterface):
         Returns:
             :py:class:`Detections`: A :py:class:`Detections` object with the map of regions containing the desired colors, and the detected lines, together with their center points and normals,
         """
-        map, edge_color = self.colorFilter(color_range)
+        map, edge_color = self.colorFilter(color, color_range)
         lines = self.houghLine(edge_color)
         centers, normals = self.findNormal(map, lines)
         return Detections(lines=lines, normals=normals, map=map, centers=centers)

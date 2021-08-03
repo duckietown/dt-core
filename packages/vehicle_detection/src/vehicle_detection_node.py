@@ -57,7 +57,7 @@ class VehicleDetectionNode(DTROS):
         self.last_stamp = rospy.Time.now()
 
         # Subscriber
-        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cb_image, queue_size=1)
+        self.sub_image = rospy.Subscriber("~image/compressed", CompressedImage, self.cb_image, buff_size=10000000, queue_size=1)
 
         # Publishers
         self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)

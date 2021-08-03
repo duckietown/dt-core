@@ -33,6 +33,7 @@ class LineDetectorNode(DTROS):
         ~colors (:obj:`dict`): A dictionary of colors and color ranges to be detected in the image. The keys (color names) should match the ones in the Segment message definition, otherwise an exception will be thrown! See the ``config`` directory in the node code for the default ranges.
         ~img_size (:obj:`list` of ``int``): The desired downsized resolution of the image. Lower resolution would result in faster detection but lower performance, default is ``[120,160]``
         ~top_cutoff (:obj:`int`): The number of rows to be removed from the top of the image _after_ resizing, default is 40
+        ~extra_cutoff (:obj:`int`): The number of rows to be removed from the top of the image for detecting the stop line
 
     Subscriber:
         ~camera_node/image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The camera images
@@ -58,6 +59,7 @@ class LineDetectorNode(DTROS):
         self._colors = rospy.get_param("~colors", None)
         self._img_size = rospy.get_param("~img_size", None)
         self._top_cutoff = rospy.get_param("~top_cutoff", None)
+        self.extra_crop = rospy.get_param("~extra_cutoff", None)
 
         self.bridge = CvBridge()
 
@@ -73,7 +75,7 @@ class LineDetectorNode(DTROS):
         self.detector = LineDetector(**self._line_detector_parameters)
         # Update the color ranges objects
         self.color_ranges = {color: ColorRange.fromDict(d) for color, d in list(self._colors.items())}
-
+        
         # Publishers
         self.pub_lines = rospy.Publisher(
             "~segment_list", SegmentList, queue_size=1, dt_topic_type=TopicType.PERCEPTION
@@ -154,7 +156,7 @@ class LineDetectorNode(DTROS):
         # Extract the line segments for every color
         self.detector.setImage(image)
         detections = {
-            color: self.detector.detectLines(ranges) for color, ranges in list(self.color_ranges.items())
+            color: self.detector.detectLines(ranges, self.extra_crop if color == "RED" else 0) for color, ranges in list(self.color_ranges.items())
         }
 
         # Construct a SegmentList

@@ -52,7 +52,8 @@ class LEDDetectorNode(DTROS):
         self.params["~crop_params"] = rospy.get_param("~crop_params", None)
         self.params["~blob_detector_db"] = {}
         self.params["~blob_detector_tl"] = {}
-        self.params["~verbose"] = rospy.get_param("~verbose", None)
+        #self.params["~verbose"] = rospy.get_param("~verbose", None)
+        self.params["~verbose"] = 2
         self.params["~cell_size"] = rospy.get_param("~cell_size", None)
         self.params["~LED_protocol"] = rospy.get_param("~LED_protocol", None)
 
@@ -130,7 +131,7 @@ class LEDDetectorNode(DTROS):
                 self.data.append({"timestamp": float_time, "rgb": rgb[:, :]})
 
             # Start processing
-            elif not self.capture_finished and self.first_timestamp > 0:
+            elif not self.capture_finished and self.first_timestamp > 0 and self.data != []:
                 if self.params["~verbose"] == 2:
                     self.log(f"Relative Time {rel_time}, processing")
                 self.node_state = 2
@@ -172,6 +173,11 @@ class LEDDetectorNode(DTROS):
         tic = rospy.Time.now().to_sec()
 
         # Get dimensions
+        print("self.data:")
+        #print(self.data)
+        #print(self.data[0]["rgb"].shape)
+        print(len(self.data))
+
         h, w = self.data[0]["rgb"].shape
         num_img = len(self.data)
 
