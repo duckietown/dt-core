@@ -53,7 +53,7 @@ class LEDDetectorNode(DTROS):
         self.params["~blob_detector_db"] = {}
         self.params["~blob_detector_tl"] = {}
         #self.params["~verbose"] = rospy.get_param("~verbose", None)
-        self.params["~verbose"] = 2
+        self.params["~verbose"] = 1
         self.params["~cell_size"] = rospy.get_param("~cell_size", None)
         self.params["~LED_protocol"] = rospy.get_param("~LED_protocol", None)
 
@@ -92,7 +92,7 @@ class LEDDetectorNode(DTROS):
         self.pub_image_TL = rospy.Publisher("~image_detection_TL/compressed", CompressedImage, queue_size=1)
 
         # Subscribers
-        self.sub_cam = rospy.Subscriber("~image/compressed", CompressedImage, self.camera_callback)
+        self.sub_cam = rospy.Subscriber("~image/compressed", CompressedImage, self.camera_callback, queue_size=1, buff_size=1)
 
         # Log info
         self.log("Initialized!")
@@ -251,7 +251,7 @@ class LEDDetectorNode(DTROS):
         self.right = self.detector.interpret_signal(blobs_right, t_s, num_img)
         self.front = self.detector.interpret_signal(blobs_front, t_s, num_img)
         self.traffic_light = self.detector.interpret_signal(blobs_tl, t_s, num_img)
-
+        '''
         if self.traffic_light != "traffic_light_go":
             rospy.logwarn(
                 "[%s] Traffic light detected a non-traffic light signal. Suppressed!", self.node_name
@@ -259,7 +259,7 @@ class LEDDetectorNode(DTROS):
             self.traffic_light = None
         else:
             rospy.loginfo("[%s] Traffic Light is green! GO!", self.node_name)
-
+        '''
         if self.right == "traffic_light_go":
             rospy.logwarn("[%s] Detected Vehicle with a traffic light signal. Suppressed! ", self.node_name)
             self.right = None
@@ -329,6 +329,7 @@ class LEDDetectorNode(DTROS):
             self.pub_image_TL.publish(img_tl_circle_msg)
 
         # Log results to the terminal
+        '''
         rospy.loginfo(
             "[%s] The observed LEDs are: Front = [%s] Right = [%s] Traffic light state = [%s]",
             self.node_name,
@@ -336,7 +337,7 @@ class LEDDetectorNode(DTROS):
             self.right,
             self.traffic_light,
         )
-
+        '''
         # Publish detections
         detections_msg = SignalsDetection(
             front=self.front, right=self.right, left=self.left, traffic_light_state=self.traffic_light

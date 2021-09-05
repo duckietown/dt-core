@@ -19,9 +19,9 @@
 		<arg name="anti_instagram" default="true" />
 		<arg name="/camera/raw" value="true"/>
 		<arg name="/camera/rect" value="true"/>
-		<!--<arg name="LED" value="true"/>--> <!--tomasz -->
-		<!--<arg name="/LED/detector" value="true"/>--> <!--tomasz -->
-		<!--<arg name="/LED/pattern_switch" value="true"/>--> <!--tomasz -->
+		<arg name="LED" value="true"/>-->
+		<arg name="/LED/detector" value="true"/>
+		<arg name="/LED/pattern_switch" value="true"/>
 
         <!-- Lane Following stack -->
         <arg name="lane_following" value="true"/>

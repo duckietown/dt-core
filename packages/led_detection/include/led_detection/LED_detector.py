@@ -133,6 +133,11 @@ class LEDDetector:
                     + f"signal_name = {detected_signal} \n"
                     + "-------------------"
                 )
+
+                msg = (
+                    f"freq_identified = {freq_identified} \n"
+                    + f"signal_name = {detected_signal} \n"
+                )
                 self.log(msg)
 
             return detected_signal
