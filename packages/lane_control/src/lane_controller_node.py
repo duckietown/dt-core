@@ -6,7 +6,7 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
 from lane_controller.controller import LaneController
-
+from nav_msgs.msg import Odometry
 
 class LaneControllerNode(DTROS):
     """Computes control action.
@@ -119,6 +119,8 @@ class LaneControllerNode(DTROS):
                                            dt_topic_type=TopicType.CONTROL)
 
         # Construct subscribers
+        _ = rospy.Subscriber("~odom", Odometry, self.cbOdometry, queue_size=1)
+
         self.sub_lane_reading = rospy.Subscriber("~lane_pose",
                                                  LanePose,
                                                  self.cbAllPoses,
@@ -143,6 +145,17 @@ class LaneControllerNode(DTROS):
                                                         queue_size=1)
         
         self.log("Initialized!")
+
+    def cbOdometry(self,msg):
+        """
+        Callback for odometry pose estimation
+
+        Args:
+            msg(:obj:`Odometry`): Message containing odometry information
+        """
+        self.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ODOMETRY")
+        print(msg)
+
 
     def cbObstacleStopLineReading(self,msg):
         """

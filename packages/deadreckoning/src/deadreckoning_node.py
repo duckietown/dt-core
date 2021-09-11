@@ -222,4 +222,4 @@ if __name__ == '__main__':
     node = DeadReckoningNode("deadreckoning_node")
     rospy.spin()
     # ---
-    rospy.signal_shutdown("done")
+    # rospy.signal_shutdown("done")
