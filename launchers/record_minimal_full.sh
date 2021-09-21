@@ -12,7 +12,7 @@ dt-launchfile-init
 # NOTE: Use the variable DT_REPO_PATH to know the absolute path to your code
 
 # launching app
-dt-exec roslaunch --wait duckietown_demos make_log_full.launch
+dt-exec roslaunch --wait duckietown_demos make_log_full_docker.launch veh:=$VEHICLE_NAME
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE
