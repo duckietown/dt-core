@@ -4,7 +4,7 @@ ruamel.yaml==0.16.10
 comptests-z6
 
 # ATags3 Python bindings
-dt_apriltags
+dt_apriltags>=3.1.7
 
 procgraph-z6
 ros_node_utils>=2.0.0
