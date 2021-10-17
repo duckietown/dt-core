@@ -82,10 +82,6 @@ def get_logs_cloud():
         dtu.logger.info(f"Loading cloud DB {dtu.friendly_path(cloud_file)}")
         with dtu.timeit_wall("YAML load file"):
             data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
-        # with dtu.timeit_wall('plain'):
-        #     data = open(cloud_file).read()
-        #     import yaml
-        #     yaml.load(data)
 
         dtu.logger.debug("Conversion")
         logs = logs_from_yaml(data)
@@ -409,7 +405,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         for s, filename_resource in list(base2basename2filename[_base].items()):
             basedot = _base + "."
             if s.startswith(basedot):
-                rest = s[len(basedot) :]
+                rest = s[len(basedot):]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
                     dtr = create_dtr_version_1(filename_resource)
