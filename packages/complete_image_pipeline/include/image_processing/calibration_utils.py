@@ -287,7 +287,7 @@ def get_camera_info_config_file(robot_name: str) -> str:
 
 def load_camera_info_2(filename: str) -> CameraInfo:
     with open(filename, "r") as f:
-        calib_data = yaml.load(f)
+        calib_data = yaml.load(f, Loader=yaml.Loader)
     cam_info = CameraInfo()
     cam_info.width = calib_data["image_width"]
     cam_info.height = calib_data["image_height"]

@@ -80,7 +80,7 @@ def load_tests(filename):
     import yaml
 
     with open(filename) as f:
-        contents = yaml.load(f)
+        contents = yaml.load(f, Loader=yaml.Loader)
 
     for k, v in list(contents.items()):
         try:

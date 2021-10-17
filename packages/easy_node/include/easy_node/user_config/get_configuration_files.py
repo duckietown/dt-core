@@ -106,10 +106,11 @@ def interpret_config_file(filename: str) -> ConfigInfo:
 
         # now read file
 
-        contents = open(filename).read()
+        with open(filename) as f:
+            contents =f.read()
         try:
             try:
-                data = yaml.load(contents)
+                data = yaml.load(contents,Loader=yaml.Loader)
             except YAMLError as e:
                 dtu.raise_wrapped(dtu.DTConfigException, e, "Invalid YAML", compact=True)
                 raise
