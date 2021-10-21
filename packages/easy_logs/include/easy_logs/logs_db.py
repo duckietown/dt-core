@@ -113,11 +113,11 @@ def query_logs(
     logs: Dict[str, PhysicalLog], query: QueryType, raise_if_no_matches=True
 ) -> Dict[str, PhysicalLog]:
     """
-        query: a string or a list of strings
+    query: a string or a list of strings
 
-        Returns a dict str -> PhysicalLog.
+    Returns a dict str -> PhysicalLog.
 
-        The query can also be a filename.
+    The query can also be a filename.
 
     """
     if isinstance(query, list):
@@ -332,7 +332,7 @@ def get_logs_local():
 def physical_log_from_filename(filename, base2basename2filename):
     """
 
-        related: basename -> filename
+    related: basename -> filename
     """
     date = None
     size = os.stat(filename).st_size
@@ -405,7 +405,7 @@ def physical_log_from_filename(filename, base2basename2filename):
         for s, filename_resource in list(base2basename2filename[_base].items()):
             basedot = _base + "."
             if s.startswith(basedot):
-                rest = s[len(basedot):]
+                rest = s[len(basedot) :]
                 record_name = rest.lower()
                 if not ignore_record(record_name):
                     dtr = create_dtr_version_1(filename_resource)
@@ -422,7 +422,7 @@ class NotAvailableLocally(Exception):
 
 
 def get_local_file(dtr):
-    """ Returns the local hostname if it exists, otherwise raises NotAvailableLocally() """
+    """Returns the local hostname if it exists, otherwise raises NotAvailableLocally()"""
     for url in dtr["urls"]:
         try:
             filename = get_local_filepath(url)

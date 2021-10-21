@@ -15,7 +15,7 @@ from image_processing.rectification import Rectify
 
 __all__ = [
     "simulate_image",
-    'SimulationData',
+    "SimulationData",
 ]
 
 

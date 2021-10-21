@@ -4,8 +4,11 @@ from contextlib import contextmanager
 
 import duckietown_code_utils as dtu
 import rospy
-from .node_description.configuration import (load_configuration_package_node, PROCESS_SYNCHRONOUS,
-                                             PROCESS_THREADED)
+from .node_description.configuration import (
+    load_configuration_package_node,
+    PROCESS_SYNCHRONOUS,
+    PROCESS_THREADED,
+)
 from .user_config.decide import get_user_configuration
 from .utils.timing import ProcessingTimingStats
 

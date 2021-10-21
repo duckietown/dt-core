@@ -15,7 +15,7 @@ __all__ = ["MakeThumbnails"]
 
 class MakeThumbnails(D8AppWithLogs, QuickApp):
     """
-        Creates thumbnails for the image topics in a log.
+    Creates thumbnails for the image topics in a log.
     """
 
     cmd = "dt-logs-thumbnails"

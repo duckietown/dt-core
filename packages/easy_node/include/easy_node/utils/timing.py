@@ -11,45 +11,45 @@ __all__ = [
 
 class ProcessingTimingStats:
     """
-        This is the model:
+    This is the model:
 
-            One message is received at a certain time.
-            The "acquisition time" is the time inside the message.
+        One message is received at a certain time.
+        The "acquisition time" is the time inside the message.
 
-            If asynchronous processing, then it might be that
-            processing is skipped.
+        If asynchronous processing, then it might be that
+        processing is skipped.
 
-            Then there are many "phases".
+        Then there are many "phases".
 
-        We keep track of:
+    We keep track of:
 
-            Statistics of message reception:
-                min, max, avg period:
-                    interval-stats(previous)
-                min, max, avg latency_from_aquisition (time received - time acquired)
+        Statistics of message reception:
+            min, max, avg period:
+                interval-stats(previous)
+            min, max, avg latency_from_aquisition (time received - time acquired)
 
-            Statistics of processing:
-                nskipped
-                nreceived
+        Statistics of processing:
+            nskipped
+            nreceived
 
-            For each phase:
-                min, max, avg duration
-                min, max, avg latency_from_aquisition (phase finished - time acquired)
+        For each phase:
+            min, max, avg duration
+            min, max, avg latency_from_aquisition (phase finished - time acquired)
 
 
-        Accodingly, we expect to be called as follows:
+    Accodingly, we expect to be called as follows:
 
-        - x.reset()
-        - for n iterations:
-            x.received_message(msg)
+    - x.reset()
+    - for n iterations:
+        x.received_message(msg)
 
-            [x.decided_to_skip()]
-            [x.decided_to_process()]
+        [x.decided_to_skip()]
+        [x.decided_to_process()]
 
-            with x.phase(phase-name):
-                ...
+        with x.phase(phase-name):
+            ...
 
-        A call to reset() resets all counters.
+    A call to reset() resets all counters.
     """
 
     def __init__(self):
@@ -65,10 +65,10 @@ class ProcessingTimingStats:
 
     def received_message(self, msg=None):
         """
-            Declares that we are processing the ROS message msg.
-            We take the timestamp from its header.
+        Declares that we are processing the ROS message msg.
+        We take the timestamp from its header.
 
-            If msg is None, then we use the current time for the timestamp.
+        If msg is None, then we use the current time for the timestamp.
         """
         self.stats["received"].sample()
         if msg is not None:
@@ -139,8 +139,10 @@ class ProcessingTimingStats:
             total_latency = dtu.seconds_as_ms(stats_latency.last_value())
             delta_wall = dtu.seconds_as_ms(stats_wall.last_value())
             delta_clock = dtu.seconds_as_ms(stats_clock.last_value())
-            msg = f"{phase_name.ljust(l)} | total latency {total_latency:>10} | delta wall {delta_wall:>10} " \
-                  f"| delta clock {delta_clock:>10}"
+            msg = (
+                f"{phase_name.ljust(l)} | total latency {total_latency:>10} | delta wall {delta_wall:>10} "
+                f"| delta clock {delta_clock:>10}"
+            )
             s += "\n" + msg
         return s
 
@@ -175,11 +177,11 @@ class SingleStat:
             return None
 
     def num(self):
-        """ Returns the number of samples. """
+        """Returns the number of samples."""
         return len(self.times)
 
     def fps(self):
-        """ Returns the frames per second as a string. """
+        """Returns the frames per second as a string."""
         n = self.num()
         if n == 0:
             return "0 fps"

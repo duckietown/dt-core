@@ -29,9 +29,9 @@ HomographyEstimationResult = namedtuple(
 
 def estimate_homography(bgr_rectified):
     """
-        Estimate ground projection using instrinsic camera calibration parameters.
+    Estimate ground projection using instrinsic camera calibration parameters.
 
-        Returns HomographyEstimationResult
+    Returns HomographyEstimationResult
     """
 
     assert bgr_rectified.shape == (480, 640, 3)
@@ -59,8 +59,10 @@ def estimate_homography(bgr_rectified):
     cv2.drawChessboardCorners(bgr_detected, (7, 6), corners, ret)
 
     if not ret:
-        msg = f"findChessboardCorners failed (len(corners) == " \
-              f"{len(corners) if corners is not None else 'none'})"
+        msg = (
+            f"findChessboardCorners failed (len(corners) == "
+            f"{len(corners) if corners is not None else 'none'})"
+        )
         return HomographyEstimationResult(
             success=False,
             error=msg,
@@ -81,7 +83,7 @@ def estimate_homography(bgr_rectified):
 
     #    bgr_detected_refined = cv2.cvtColor(grey_rectified, cv2.COLOR_GRAY2BGR)
     bgr_detected_refined = grey_rectified.copy()
-    cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret) # XXX: are these fixed?
+    cv2.drawChessboardCorners(bgr_detected_refined, (7, 6), corners2, ret)  # XXX: are these fixed?
 
     src_pts = []
     for r in range(board_height):
@@ -137,7 +139,7 @@ def find_ground_coordinates(
     gpg: GroundProjectionGeometry, sl: SegmentList, skip_not_on_ground: bool = True
 ) -> SegmentList:
     """
-        Creates a new segment list with the ground coordinates set.
+    Creates a new segment list with the ground coordinates set.
 
     """
     cutoff = 0.01

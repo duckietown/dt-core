@@ -1,5 +1,5 @@
 def parse_float(a):
-    """ Converts to a float value; raise TypeError. """
+    """Converts to a float value; raise TypeError."""
     try:
         res = float(a)
         return res

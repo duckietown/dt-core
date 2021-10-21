@@ -11,7 +11,7 @@ def easy_node_eval():
     args = sys.argv[1:]
 
     if len(args) != 3:
-        msg = '''
+        msg = """
 Invalid arguments (%d instead of 3).
 
 Usage:
@@ -24,18 +24,20 @@ For example:
 
 See: http://purl.org/dth/easy_node-eval
 
-''' % len(args)
+""" % len(
+            args
+        )
         raise dtu.DTConfigException(msg)
 
     package_name, node_name, config_sequence = args
-    config_sequence = [_ for _ in config_sequence.split(':') if _.strip()]
+    config_sequence = [_ for _ in config_sequence.split(":") if _.strip()]
     if not config_sequence:
-        raise dtu.DTConfigException('Empty config sequence.')
+        raise dtu.DTConfigException("Empty config sequence.")
     db = get_config_db()
     qr = db.resolve(package_name, node_name, config_sequence)
     s = str(qr)
     print(s)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.wrap_script_entry_point(easy_node_eval)

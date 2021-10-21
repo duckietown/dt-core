@@ -22,16 +22,16 @@ __all__ = ["get_all_configuration_files", "search_all_configuration_files", "int
 
 def get_all_configuration_files():
     """
-            Gets all the configuration files for easynodes.
+    Gets all the configuration files for easynodes.
 
-            These are of the form
+    These are of the form
 
-                package-node.![name].config.yaml
+        package-node.![name].config.yaml
 
-            For timing:
+    For timing:
 
-                package-node.![name].201XMMDD.config.yaml
-        """
+        package-node.![name].201XMMDD.config.yaml
+    """
     configs = search_all_configuration_files()
     results = []
     for filename in configs:
@@ -60,7 +60,7 @@ def search_all_configuration_files():
 
 def interpret_config_file(filename: str) -> ConfigInfo:
     """
-        Returns a ConfigInfo.
+    Returns a ConfigInfo.
     """
     try:
         basename = os.path.basename(filename)
@@ -107,10 +107,10 @@ def interpret_config_file(filename: str) -> ConfigInfo:
         # now read file
 
         with open(filename) as f:
-            contents =f.read()
+            contents = f.read()
         try:
             try:
-                data = yaml.load(contents,Loader=yaml.Loader)
+                data = yaml.load(contents, Loader=yaml.Loader)
             except YAMLError as e:
                 dtu.raise_wrapped(dtu.DTConfigException, e, "Invalid YAML", compact=True)
                 raise

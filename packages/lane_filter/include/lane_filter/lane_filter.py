@@ -12,7 +12,7 @@ __all__ = ["LaneFilterHistogram"]
 
 
 class LaneFilterHistogram(LaneFilterInterface):
-    """ Generates an estimate of the lane pose.
+    """Generates an estimate of the lane pose.
 
 
     Creates and maintain a histogram grid filter to estimate the lane pose.

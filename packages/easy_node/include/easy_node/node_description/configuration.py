@@ -8,9 +8,9 @@ from sensor_msgs.msg import CompressedImage
 __all__ = [
     "EasyNodeConfig",
     "load_configuration",
-    'PROCESS_THREADED',
-    'PROCESS_VALUES',
-    'PROCESS_SYNCHRONOUS',
+    "PROCESS_THREADED",
+    "PROCESS_VALUES",
+    "PROCESS_SYNCHRONOUS",
 ]
 
 EasyNodeConfig = namedtuple(
@@ -34,7 +34,7 @@ NoneType = type(None)
 
 
 def merge_configuration(c1: EasyNodeConfig, c2: EasyNodeConfig) -> EasyNodeConfig:
-    """ Merges two configurations. Values in c2 override the ones in c1 """
+    """Merges two configurations. Values in c2 override the ones in c1"""
     parameters = {}
     subscriptions = {}
     contracts = {}
@@ -58,7 +58,7 @@ def merge_configuration(c1: EasyNodeConfig, c2: EasyNodeConfig) -> EasyNodeConfi
 
 
 def load_configuration_baseline():
-    """ Get the baseline configuration. """
+    """Get the baseline configuration."""
     c1 = load_configuration_package_node("easy_node", "easy_node")
     return c1
 
@@ -243,7 +243,7 @@ def message_class_from_string(s):
     # e.g. "std_msgs/Header"
     i = s.index("/")
     package = s[:i]
-    name = s[i + 1:]
+    name = s[i + 1 :]
     symbol = f"{package}.msg.{name}"
     try:
         msgclass = dtu.import_name(symbol)
@@ -330,7 +330,7 @@ def load_configuration_contracts(data):
 
 def load_configuration_for_nodes_in_package(package_name: str):
     """
-        returns dict node_name -> config
+    returns dict node_name -> config
     """
     suffix = ".easy_node.yaml"
     package_dir = dru.get_ros_package_path(package_name)
@@ -357,7 +357,14 @@ def format_enc(enc: EasyNodeConfig, descriptions: bool = False) -> str:
 
 
 def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [["name", "type", "default", "description", ]]
+    table = [
+        [
+            "name",
+            "type",
+            "default",
+            "description",
+        ]
+    ]
 
     for p in list(enc.parameters.values()):
         if p.desc:
@@ -379,7 +386,16 @@ def format_enc_parameters(enc: EasyNodeConfig, descriptions: bool) -> str:
 
 
 def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
-    table = [["name", "type", "topic", "options", "process", "description", ]]
+    table = [
+        [
+            "name",
+            "type",
+            "topic",
+            "options",
+            "process",
+            "description",
+        ]
+    ]
 
     for p in list(enc.subscriptions.values()):
         if p.desc:
@@ -403,7 +419,15 @@ def format_enc_subscriptions(enc: EasyNodeConfig, descriptions: bool) -> str:
 
 @dtu.contract(enc=EasyNodeConfig, returns=str)
 def format_enc_publishers(enc, descriptions):
-    table = [["name", "type", "topic", "options", "description", ]]
+    table = [
+        [
+            "name",
+            "type",
+            "topic",
+            "options",
+            "description",
+        ]
+    ]
 
     for p in list(enc.publishers.values()):
         if p.desc:

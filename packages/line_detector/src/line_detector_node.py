@@ -247,7 +247,7 @@ class LineDetectorNode(DTROS):
         return segment_msg_list
 
     def _plot_ranges_histogram(self, channels):
-        """ Utility method for plotting color histograms and color ranges.
+        """Utility method for plotting color histograms and color ranges.
 
         Args:
             channels (:obj:`str`): The desired two channels, should be one of ``['HS','SV','HV']``

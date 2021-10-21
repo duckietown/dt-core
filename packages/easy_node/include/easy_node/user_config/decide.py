@@ -7,9 +7,9 @@ __all__ = ["get_user_configuration", "get_config_sequence"]
 
 
 def get_config_sequence() -> Tuple[str, ...]:
-    """ Reads the variable EasyNode.ENV
+    """Reads the variable EasyNode.ENV
 
-        it is taken as a colon-separated list of names.
+    it is taken as a colon-separated list of names.
     """
     from easy_node.easy_node import EasyNode
 

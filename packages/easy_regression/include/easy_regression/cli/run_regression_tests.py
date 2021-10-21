@@ -27,7 +27,7 @@ ALL_LOGS = "all"
 
 
 class RunRegressionTest(D8AppWithLogs, QuickApp):
-    """ Run regression tests. """
+    """Run regression tests."""
 
     cmd = "rosrun easy_regression run"
 
@@ -214,7 +214,7 @@ def video_for_source(rel, width="100%"):
 
 
 def write_images(bag_filename, topic, basename):
-    """ Returns the name of the first created file """
+    """Returns the name of the first created file"""
     dtu.logger.info(f"reading topic {topic!r} from {bag_filename!r}")
     bag = rosbag.Bag(bag_filename)
     nfound = bag.get_message_count(topic)

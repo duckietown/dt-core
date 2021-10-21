@@ -83,7 +83,7 @@ class ConfigDB:
             return None
 
     def resolve(self, package_name: str, node_name: str, config_sequence: Union[list, tuple], date=None):
-        """ Returns a QueryResult """
+        """Returns a QueryResult"""
         if len(config_sequence) == 0:
             msg = f"Invalid empty config_sequence while querying for {package_name}/{node_name}"
             raise ValueError(msg)
@@ -128,8 +128,10 @@ class ConfigDB:
                         origin[k] = config_name
 
         if not using:
-            msg = f"Cannot find any configuration for {package_name}/{node_name} with config sequence " \
-                  f"{':'.join(config_sequence)}"
+            msg = (
+                f"Cannot find any configuration for {package_name}/{node_name} with config sequence "
+                f"{':'.join(config_sequence)}"
+            )
             raise dtu.DTConfigException(msg)
 
         return QueryResult(

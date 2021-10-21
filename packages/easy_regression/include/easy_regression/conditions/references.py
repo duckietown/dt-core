@@ -8,11 +8,12 @@ from .eval import Evaluable, EvaluationError
 from .interface import RTParseError
 from .result_db import ResultDBEntry
 
-__all__ = ['parse_reference']
+__all__ = ["parse_reference"]
+
 
 def parse_reference(s: str):
     """
-        v:analyzer/log/statistic~master@date
+    v:analyzer/log/statistic~master@date
 
     """
     prefix = "v:"

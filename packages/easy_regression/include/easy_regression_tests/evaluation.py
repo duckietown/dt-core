@@ -5,11 +5,29 @@ from easy_regression.conditions.result_db import ResultDB, ResultDBEntry
 
 
 def get_test_db():
-    results = {"analyzer": {"log1": {"value2": 2, "value3": 3, "changed": 98, "same": 10,}}}
+    results = {
+        "analyzer": {
+            "log1": {
+                "value2": 2,
+                "value3": 3,
+                "changed": 98,
+                "same": 10,
+            }
+        }
+    }
     current = ResultDBEntry(
         regression_test_name="", date="", host="", cpu="", user="", results=results, branch="", commit=""
     )
-    results_old = {"analyzer": {"log1": {"value2": 2, "value3": 3, "same": 10, "changed": 100,}}}
+    results_old = {
+        "analyzer": {
+            "log1": {
+                "value2": 2,
+                "value3": 3,
+                "same": 10,
+                "changed": 100,
+            }
+        }
+    }
     old = ResultDBEntry(
         regression_test_name="",
         date=parse_date_spec("2017-01-01"),

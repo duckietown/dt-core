@@ -13,10 +13,10 @@ __all__ = [
 class TemplateXYStopline(LocalizationTemplate):
     """
 
-        Coordinates:
+    Coordinates:
 
-            dstop: distance from stop line
-            d: usual meaning
+        dstop: distance from stop line
+        d: usual meaning
 
 
     """
@@ -45,7 +45,7 @@ class TemplateXYStopline(LocalizationTemplate):
         self.offset_dstop = stop_line_starts_at
 
     def coords_from_pose(self, pose: SE2value) -> np.ndarray:
-        """ Returns an array with datatype DATATYPE_COORDS """
+        """Returns an array with datatype DATATYPE_COORDS"""
         self._init_metrics()
         xy, _ = dtu.geo.translation_angle_from_SE2(pose)
 

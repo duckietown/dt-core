@@ -17,7 +17,7 @@ __all__ = [
 
 class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
     """
-        Runs the vision pipeline on the first image in a log.
+    Runs the vision pipeline on the first image in a log.
     """
 
     cmd = "rosrun complete_image_pipeline single_image_pipeline_log"
@@ -42,12 +42,12 @@ class SingleImagePipelineLog(D8AppWithLogs, QuickApp):
         else:
             query = extra
         logs = db.query(query)
-        output = self.options['output']
-        line_detector = self.options['line_detector']
-        image_prep = self.options['image_prep']
-        lane_filter = self.options['lane_filter']
-        anti_instagram = self.options['anti_instagram']
-        all_details = self.options['details']
+        output = self.options["output"]
+        line_detector = self.options["line_detector"]
+        image_prep = self.options["image_prep"]
+        lane_filter = self.options["lane_filter"]
+        anti_instagram = self.options["anti_instagram"]
+        all_details = self.options["details"]
 
         self.info(f"anti_instagram: {anti_instagram}")
         self.info(f"image_prep: {image_prep}")

@@ -49,7 +49,7 @@ class LEDDetectionUnitTest:
 
 def LEDDetectionUnitTest_from_yaml(s):
     """
-        Returns an instance of LEDDetectionUnitTest from YAML.
+    Returns an instance of LEDDetectionUnitTest from YAML.
     """
     data = s["data"]
 
@@ -74,9 +74,9 @@ def LEDDetectionUnitTest_from_yaml(s):
 
 def load_tests(filename):
     """
-        Reads tests from a YAML file.
+    Reads tests from a YAML file.
 
-        Returns a dict str -> LEDDetectionUnitTest() """
+    Returns a dict str -> LEDDetectionUnitTest()"""
     import yaml
 
     with open(filename) as f:

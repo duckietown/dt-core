@@ -26,7 +26,6 @@ class AmbiguousQuery(Exception):
 
 
 class ResultDB:
-
     def __init__(self, current: ResultDBEntry, entries: Sequence[ResultDBEntry]):
         for e in entries:
             dtu.check_isinstance(e, ResultDBEntry)
@@ -36,8 +35,8 @@ class ResultDB:
 
     def query_results(self, branch, date, commit):
         """
-            Raises DataNotFound if not found, or
-            QueryAmbiguous if there are multiple matches.
+        Raises DataNotFound if not found, or
+        QueryAmbiguous if there are multiple matches.
         """
         if branch is None and date is None and commit is None:
             return [self.current]

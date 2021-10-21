@@ -12,7 +12,7 @@ CENTERS_BYW = np.array([[60, 60, 60], [50, 240, 240], [240, 240, 240]])
 
 
 class kMeansClass:
-    """ This class gives the ability to use the kMeans alg. with different numbers of initial centers """
+    """This class gives the ability to use the kMeans alg. with different numbers of initial centers"""
 
     input_image = []
     resized_image = []

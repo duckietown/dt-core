@@ -14,9 +14,9 @@ __all__ = ["vs_fancy_display"]
 @dtu.contract(width="int,>=1")
 def vs_fancy_display(bgr: dtu.NPImageBGR, segment_list: SegmentList, width: int = 2) -> dtu.NPImageBGR:
     """
-         Writes on a bgr image.
+    Writes on a bgr image.
 
-         Returns a new image.
+    Returns a new image.
     """
 
     ground = np.copy(bgr)

@@ -4,6 +4,6 @@ import sys
 
 from rqt_gui.main import Main
 
-plugin = 'rqt_navigation'
+plugin = "rqt_navigation"
 main = Main(filename=plugin)
 sys.exit(main.main(standalone=plugin))

@@ -93,7 +93,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
         return self.get_status()
 
     def update(self, segment_list: SegmentList):
-        """ Returns the likelihood """
+        """Returns the likelihood"""
 
         self.last_segments_used = segment_list.segments
 
@@ -268,7 +268,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
     @dtu.deprecated("use get_estimate")
     def getEstimate(self):
-        """ Returns a list with two elements: (d, phi) """
+        """Returns a list with two elements: (d, phi)"""
         res = self.get_estimate()
         return [res["d"], res["phi"]]
 
@@ -281,7 +281,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
     def generate_votes(self, segment, delta):
         """
-            yields xytheta, weight
+        yields xytheta, weight
         """
         p1 = np.array([segment.points[0].x, segment.points[0].y, segment.points[0].z])
         p2 = np.array([segment.points[1].x, segment.points[1].y, segment.points[1].z])
@@ -305,8 +305,9 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
             msg = f"No segment found for {segment.color}"
             dtu.logger.debug(msg)
 
-    def get_plot_phi_d(self, ground_truth=None,
-                       bgcolor: dtu.RGBColor8 = dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW):
+    def get_plot_phi_d(
+        self, ground_truth=None, bgcolor: dtu.RGBColor8 = dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW
+    ):
         facecolor = dtu.matplotlib_01_from_rgb(bgcolor)
         figure_args = dict(facecolor=facecolor)
         a = dtu.CreateImageFromPylab(dpi=120, figure_args=figure_args)
@@ -353,7 +354,7 @@ class LaneFilterMoreGeneric(dtu.Configurable, LaneFilterInterface):
 
 @dtu.contract(delta="float,>0")
 def iterate_segment_sections(sm: SegmentsMap, map_segment: SegMapSegment, delta: float) -> Iterator:
-    """ Yields point, normal """
+    """Yields point, normal"""
     w1 = np.array(sm.points[map_segment.points[0]].coords)
     w2 = np.array(sm.points[map_segment.points[1]].coords)
     dist = np.linalg.norm(w1 - w2)
@@ -375,7 +376,7 @@ def iterate_segment_sections(sm: SegmentsMap, map_segment: SegMapSegment, delta:
 
 
 def get_estimate(t, n, t_est, n_est):
-    """ Returns xy, theta """
+    """Returns xy, theta"""
     # find theta that makes n and n_est rotate
     alpha1 = np.arctan2(n[1], n[0])
     alpha2 = np.arctan2(n_est[1], n_est[0])
@@ -403,7 +404,7 @@ def get_estimate(t, n, t_est, n_est):
 
 
 def get_estimate_2(t, n, t_est, n_est):
-    """ Returns xy, theta """
+    """Returns xy, theta"""
     # find theta that makes n and n_est rotate
     C = n[0] * n_est[0] + n[1] * n_est[1]
     S = n[0] * n_est[1] - n[1] * n_est[0]

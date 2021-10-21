@@ -29,8 +29,12 @@ class LocalizationPipelineProcessor(ProcessorInterface):
         self.all_details = False
 
     def process_log(
-        self, bag_in: dbu.BagReadProxy, prefix_in: str, bag_out, prefix_out: str,
-        utils: ProcessorUtilsInterface
+        self,
+        bag_in: dbu.BagReadProxy,
+        prefix_in: str,
+        bag_out,
+        prefix_out: str,
+        utils: ProcessorUtilsInterface,
     ):
         log_name = utils.get_log().log_name
 
@@ -63,11 +67,11 @@ class LocalizationPipelineProcessor(ProcessorInterface):
             rect = (480, 640) if not self.all_details else (240, 320)
             res = dtu.resize_images_to_fit_in_rect(res, rect, bgcolor=bgcolor)
 
-            msg = f"abs: {mp.time_absolute}  window: {mp.time_window}  from log: " \
-                  f"{mp.time_from_physical_log_start}"
-            dtu.logger.info(
-                msg
+            msg = (
+                f"abs: {mp.time_absolute}  window: {mp.time_window}  from log: "
+                f"{mp.time_from_physical_log_start}"
             )
+            dtu.logger.info(msg)
             headers = [
                 f"Robot: {vehicle_name} log: {log_name} time: {mp.time_from_physical_log_start:.2f} s",
                 f"Algorithms | color correction: {self.anti_instagram} | preparation: {self.image_prep} | "

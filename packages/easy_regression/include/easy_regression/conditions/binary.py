@@ -9,23 +9,23 @@ from .values import parse_float
 
 def parse_binary(s):
     """
-        Syntax:
+    Syntax:
 
-            ==
-            >=
-            >
-            <=
-            <
+        ==
+        >=
+        >
+        <=
+        <
 
-            ==[10%]
-            !=
+        ==[10%]
+        !=
 
-            contains
+        contains
 
-        Returns an object that can be called with two arguments
-        and returns True or False, or TypeError.
+    Returns an object that can be called with two arguments
+    and returns True or False, or TypeError.
 
-        Raise RTParseError on error.
+    Raise RTParseError on error.
     """
 
     if s in Cmp.known:

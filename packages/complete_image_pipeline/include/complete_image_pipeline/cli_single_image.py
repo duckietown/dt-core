@@ -13,7 +13,7 @@ __all__ = [
 
 class SingleImagePipeline(D8App):
     """
-        Runs the vision pipeline on a single image.
+    Runs the vision pipeline on a single image.
     """
 
     cmd = "rosrun complete_image_pipeline single_image_pipeline"
@@ -53,8 +53,9 @@ class SingleImagePipeline(D8App):
             rospy.init_node("single_image")
 
             try:
-                img_msg = cast(CompressedImage,
-                               rospy.wait_for_message(topic_name, CompressedImage, timeout=10))
+                img_msg = cast(
+                    CompressedImage, rospy.wait_for_message(topic_name, CompressedImage, timeout=10)
+                )
                 self.info("Image captured")
             except rospy.ROSException as e:
                 self.info(

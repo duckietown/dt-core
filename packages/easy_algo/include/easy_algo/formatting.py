@@ -16,7 +16,17 @@ def format_families(families: List[EasyAlgoFamily], colorize: bool = True, verbo
         return s
     else:
 
-        table = [["Family name", "interface", "pattern", "# found", "valid", "filename", "description",]]
+        table = [
+            [
+                "Family name",
+                "interface",
+                "pattern",
+                "# found",
+                "valid",
+                "filename",
+                "description",
+            ]
+        ]
         for family in families:
             assert isinstance(family, EasyAlgoFamily)
             row = [family.family_name, family.interface, family.instances_pattern]
@@ -54,8 +64,10 @@ def format_families(families: List[EasyAlgoFamily], colorize: bool = True, verbo
 
 def format_instances(family, colorize, verbose=False):
     if not family.instances:
-        s = f'No instances files found for family "{family.family_name}" (pattern = ' \
-            f'{family.instances_pattern}).\n\n'
+        s = (
+            f'No instances files found for family "{family.family_name}" (pattern = '
+            f"{family.instances_pattern}).\n\n"
+        )
         return s
     else:
         s = f'Found {len(family.instances)} instances of algorithm family "{family.family_name}":\n'

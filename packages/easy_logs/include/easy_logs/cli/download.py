@@ -9,7 +9,7 @@ __all__ = [
 
 class Download(D8AppWithLogs, QuickAppBase):
     """
-        Downloads logs if necessary.
+    Downloads logs if necessary.
     """
 
     cmd = "dt-logs-download"

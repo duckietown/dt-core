@@ -24,7 +24,7 @@ __all__ = [
 
 class CalibrateExtrinsics(D8App):
     """Calibrate the extrinsics.
-         Run on Duckiebot directly. By default, waits for a message published by the ROS `camera_node`.
+    Run on Duckiebot directly. By default, waits for a message published by the ROS `camera_node`.
     """
 
     cmd = "rosrun complete_image_pipeline calibrate_extrinsics"
@@ -32,7 +32,9 @@ class CalibrateExtrinsics(D8App):
     def define_program_options(self, params):
         g = "Input/output"
         params.add_string(
-            "input", default=None, help="If given, use this image rather than capturing.",
+            "input",
+            default=None,
+            help="If given, use this image rather than capturing.",
         )
         params.add_string("output", default=None, short="-o", help="Output directory", group=g)
 
@@ -70,7 +72,6 @@ class CalibrateExtrinsics(D8App):
                         "\n\n\n"
                         f"Didn't get any message: {e}\n "
                         "MAKE SURE YOU USE DT SHELL COMMANDS OF VERSION 4.1.9 OR HIGHER."
-
                     )
                 )
                 raise
