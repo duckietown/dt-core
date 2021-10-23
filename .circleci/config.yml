@@ -13,7 +13,7 @@ workflows:
           context: production
           filters:
             branches:
-              only: /daffy-staging.*/
+              ignore: /daffy-staging.*/
       - unit-tests-from-parent-production: *production
 
 
