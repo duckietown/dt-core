@@ -1,85 +1,87 @@
+# TEMPLATED
 version: "2.1"
 workflows:
   version: "2"
   all_of_them:
     jobs:
-      - build-docs-staging: &staging
-          context: pip-staging
-          filters:
-            branches:
-              only: /daffy-staging.*/
-      - unit-tests-from-parent-staging: *staging
-      - build-docs-production: &production
-          context: production
-          filters:
-            branches:
-              ignore: /daffy-staging.*/
-      - unit-tests-from-parent-production: *production
-
+    - build-docs-daffy-staging: &staging
+        context: pip-staging
+        filters:
+          branches:
+            only: /daffy-staging.*/
+    - unit-tests-from-parent-daffy-staging: *staging
+    - build-docs-daffy-production: &production
+        context: production
+        filters:
+          branches:
+            ignore: /daffy-staging.*/
+    - unit-tests-from-parent-daffy-production: *production
 
 jobs:
   build-docs: &build-docs
     docker:
-      - image: ubuntu:20.04
-
+    - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:daffy-amd64
+      auth:
+        username: $DOCKER_USERNAME
+        password: $DOCKER_PASSWORD
     steps:
-      - setup_remote_docker
-      - checkout
+    - setup_remote_docker
+    - checkout
 
-      - run:
-          name: Install dependencies
-          command: |
-            apt update && \
-            apt install -y python3-pip git git-lfs curl && \
-            rm -rf /var/lib/apt/lists/*
+    - run:
+        name: Install dependencies
+        command: |
+          apt update && \
+          apt install -y python3-pip git git-lfs curl && \
+          rm -rf /var/lib/apt/lists/*
 
-      - run:
-          name: Install Docker
-          command: |
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sh get-docker.sh
-            rm get-docker.sh
+    - run:
+        name: Install Docker
+        command: |
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sh get-docker.sh
+          rm get-docker.sh
 
-      - run:
-          name: Install dts
-          command: |
-            python3 -m pip install -U pip
-            python3 -m pip check
-            python3 -m pip install --no-cache-dir --user -U duckietown-shell
-            python3 -m pip check
-            export PATH="$PATH:$HOME/.local/bin"
-            dts --set-version "$DTS_VERSION" exit
-      - run:
-          name: Python stats
-          command: |
-            mkdir -p build-stats
-            env | sort | tee  build-stats/env.txt
-            pip list   | sort | tee  build-stats/pip-list.txt
-            pip freeze | sort | tee  build-stats/pip-freeze.txt
-      - store_artifacts:
-          path: build-stats
-          destination: build-stats
-
-
-      - run:
-          name: Build the docs
-          command: |
-            export PATH="$PATH:$HOME/.local/bin"
-            dts devel docs build
+    - run:
+        name: Install dts
+        command: |
+          python3 -m pip install -U pip
+          python3 -m pip check
+          python3 -m pip install --no-cache-dir --user -U duckietown-shell
+          python3 -m pip check
+          export PATH="$PATH:$HOME/.local/bin"
+          dts --set-version "$DTS_VERSION" exit
+    - run:
+        name: Python stats
+        command: |
+          mkdir -p build-stats
+          env | sort | tee  build-stats/env.txt
+          pip list   | sort | tee  build-stats/pip-list.txt
+          pip freeze | sort | tee  build-stats/pip-freeze.txt
+    - store_artifacts:
+        path: build-stats
+        destination: build-stats
 
 
-      - store_artifacts:
-          path: html/out
-          destination: html
+    - run:
+        name: Build the docs
+        command: |
+          export PATH="$PATH:$HOME/.local/bin"
+          dts devel docs build
 
-      - store_artifacts:
-          path: html/out/package.tgz
-          destination: out/package.tgz
+
+    - store_artifacts:
+        path: html/out
+        destination: html
+
+    - store_artifacts:
+        path: html/out/package.tgz
+        destination: out/package.tgz
 
   unit-tests-from-parent: &unit-tests
     resource_class: large
     docker:
-      - image: ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:daffy-amd64
+    - image: ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:daffy-amd64
 
     environment:
       DUCKIETOWN_DATA: /data
@@ -87,49 +89,49 @@ jobs:
 
     steps:
 
-      - checkout
-      - run:
-          name: Install dts
-          command: |
-            python3 -m pip install -U pip
-            python3 -m pip check
-            python3 -m pip install --no-cache-dir --user -U duckietown-shell
-            python3 -m pip check
-            export PATH="$PATH:$HOME/.local/bin"
-            dts --set-version "$DTS_VERSION" exit
-      - run:
-          name: deps
-          command: |
-            pip3 install  -r dependencies-py3.txt
-      - run:
-          name: apt
-          command: |
-            dt-apt-install dependencies-apt.txt
-      - run:
-          name: deps
-          command: |
-            ls -la /code/catkin_ws/src
-            ln -s  `pwd` /code/catkin_ws/src/dt-core
-            ls -la /code/catkin_ws/src
-            . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-            pip3 install duckietown-utils-daffy
-      - run:
-          name: run tests
-          command: |
-            mkdir /data
-            mkdir /data/config
+    - checkout
+    - run:
+        name: Install dts
+        command: |
+          python3 -m pip install -U pip
+          python3 -m pip check
+          python3 -m pip install --no-cache-dir --user -U duckietown-shell
+          python3 -m pip check
+          export PATH="$PATH:$HOME/.local/bin"
+          dts --set-version "$DTS_VERSION" exit
+    - run:
+        name: deps
+        command: |
+          python3 -m  pip install -r dependencies-py3.txt
+    - run:
+        name: apt
+        command: |
+          dt-apt-install dependencies-apt.txt
+    - run:
+        name: deps
+        command: |
+          ls -la /code/catkin_ws/src
+          ln -s  `pwd` /code/catkin_ws/src/dt-core
+          ls -la /code/catkin_ws/src
+          . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
+          pip3 install duckietown-utils-daffy
+    - run:
+        name: run tests
+        command: |
+          mkdir /data
+          mkdir /data/config
 
-            echo 'config echo 1' > ~/.compmake.rc
+          echo 'config echo 1' > ~/.compmake.rc
 
-            . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
+          . /opt/ros/noetic/setup.sh && . ${CATKIN_WS_DIR}/devel/setup.bash && make test-circle
 
-            find . -name '*pickle' -delete
-            find . -name 'compmake' -print | xargs rm -rf
+          find . -name '*pickle' -delete
+          find . -name 'compmake' -print | xargs rm -rf
 
-      - store_artifacts:
-          path: out
-          destination: out
-  unit-tests-from-parent-staging: *unit-tests
-  unit-tests-from-parent-production: *unit-tests
-  build-docs-production: *build-docs
-  build-docs-staging: *build-docs
+    - store_artifacts:
+        path: out
+        destination: out
+  unit-tests-from-parent-daffy-staging: *unit-tests
+  unit-tests-from-parent-daffy-production: *unit-tests
+  build-docs-daffy-production: *build-docs
+  build-docs-daffy-staging: *build-docs
