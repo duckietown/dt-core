@@ -29,28 +29,10 @@ jobs:
     - checkout
 
     - run:
-        name: Install dependencies
+        name: Set dts version
         command: |
-          apt update && \
-          apt install -y python3-pip git git-lfs curl && \
-          rm -rf /var/lib/apt/lists/*
-
-    - run:
-        name: Install Docker
-        command: |
-          curl -fsSL https://get.docker.com -o get-docker.sh
-          sh get-docker.sh
-          rm get-docker.sh
-
-    - run:
-        name: Install dts
-        command: |
-          python3 -m pip install -U pip
-          python3 -m pip check
-          python3 -m pip install --no-cache-dir --user -U duckietown-shell
-          python3 -m pip check
-          export PATH="$PATH:$HOME/.local/bin"
           dts --set-version "$DTS_VERSION" exit
+
     - run:
         name: Python stats
         command: |
@@ -98,9 +80,8 @@ jobs:
         command: |
           python3 -m pip install -U pip
           python3 -m pip check
-          python3 -m pip install --no-cache-dir --user -U duckietown-shell
+          python3 -m pip install --no-cache-dir  -U duckietown-shell
           python3 -m pip check
-          export PATH="$PATH:$HOME/.local/bin"
           dts --set-version "$DTS_VERSION" exit
     - run:
         name: deps
@@ -117,7 +98,7 @@ jobs:
           ln -s  `pwd` /code/catkin_ws/src/dt-core
           ls -la /code/catkin_ws/src
           . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-          pip3 install duckietown-utils-daffy
+          python3 -m pip install duckietown-utils-daffy
     - run:
         name: run tests
         command: |
