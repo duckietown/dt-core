@@ -3,6 +3,6 @@
     <arg name="veh" default="$(env VEHICLE_NAME)"/>
     <arg name="state" />
 
-    <node pkg="rostopic" type="rostopic" name="set_state" args="pub /$(arg veh)/fsm_node/mode duckietown_msgs/FSMState {header: {}, state: '$(arg state)'}"/>
+    <node pkg="rostopic" type="rostopic" name="set_state" args="pub /$(arg veh)/fsm_node/mode duckietown_msgs/FSMState {header:{},state:'$(arg state)'}"/>
 
 </launch>
