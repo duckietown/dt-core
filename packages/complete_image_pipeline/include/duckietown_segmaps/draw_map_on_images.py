@@ -16,9 +16,9 @@ def rotate(l: List, n: int) -> List:
 
 
 def get_points_rect_coords(coords0: List, N, d):
-    """ Returns a list of world coordinates
+    """Returns a list of world coordinates
 
-        coords0 : list
+    coords0 : list
     """
     n = len(coords0)
     points = list(range(n))
@@ -60,7 +60,10 @@ def get_points_rect_coords(coords0: List, N, d):
                     pass
                 else:
                     # this outside, previous was not
-                    w_cut, _, = clip_to_plane(w, previous, N, d)
+                    (
+                        w_cut,
+                        _,
+                    ) = clip_to_plane(w, previous, N, d)
                     coords.append(w_cut)
 
                     # print('%d: this outside, previous was not: add 1' % i)
@@ -176,9 +179,9 @@ def plot_map(
     do_horizon: bool = True,
 ) -> dtu.NPImageBGR:
     """
-        base: already rectified image
+    base: already rectified image
 
-        sm= SegmentsMap in frame FRAME_AXLE
+    sm= SegmentsMap in frame FRAME_AXLE
     """
     image = base0.copy()
     x_frustum = +0.1
@@ -264,15 +267,15 @@ def clip_to_frustum(w1, w2, x_frustum, noswap=False):
 @dtu.contract(w1="array[3]", w2="array[3]")
 def clip_to_plane(w1: np.ndarray, w2: np.ndarray, n: np.ndarray, d: float) -> Tuple[np.ndarray, np.ndarray]:
     """
-        Assumes that w1 is outside. Returns w1_cut, w2
+    Assumes that w1 is outside. Returns w1_cut, w2
 
-        n*p + d > 0 inside
-        n*p + d = 0 plane
-        n*p + d < 0 outside
+    n*p + d > 0 inside
+    n*p + d = 0 plane
+    n*p + d < 0 outside
 
-        w1 is outside
+    w1 is outside
 
-     """
+    """
 
     def inside(p):
         x = np.dot(n, p) + d
@@ -298,9 +301,9 @@ def clip_to_plane(w1: np.ndarray, w2: np.ndarray, n: np.ndarray, d: float) -> Tu
 
 def predict_segments(sm: SegmentsMap, gpg: GroundProjectionGeometry) -> SegmentList:
     """
-        Predicts what segments the robot would see.
+    Predicts what segments the robot would see.
 
-        Assumes map is in FRAME_AXLE.
+    Assumes map is in FRAME_AXLE.
     """
     x_frustum = +0.1
     fov = np.deg2rad(150)

@@ -26,8 +26,8 @@ class VotingGridVarSpec:  # XXX: need to add types
 
 class GridHelper:
     """
-        This class abstracts the task of creating a grid that
-        is used for voting.
+    This class abstracts the task of creating a grid that
+    is used for voting.
     """
 
     _names: List[str]
@@ -99,22 +99,22 @@ class GridHelper:
     #         self.K1 = lambda x: x*0 + 2.0
 
     def get_shape(self) -> Tuple[int, int]:
-        """ Returns the shape of the grid """
+        """Returns the shape of the grid"""
         return self.shape
 
     def create_new(self, dtype="float64") -> np.ndarray:
-        """ Creates a new numpy array of compatible dimensions, set to NaN """
+        """Creates a new numpy array of compatible dimensions, set to NaN"""
         res = np.zeros(shape=self.shape, dtype=dtype)
         res.fill(np.nan)
         return res
 
     @dtu.contract(target="array", value="dict")
     def add_vote(self, target: np.ndarray, value, weight, F, counts=None):
-        """ Returns 1 if hit, otherwise 0.
+        """Returns 1 if hit, otherwise 0.
 
-                value = dict(phi=2,d=3)
-                weight = 1
-                hit = x.add_vote(grid, value, weight)
+        value = dict(phi=2,d=3)
+        weight = 1
+        hit = x.add_vote(grid, value, weight)
         """
 
         values = [value[_] for _ in self._names]
@@ -287,7 +287,7 @@ class GridHelper:
         return nvalid
 
     def get_max(self, target):
-        """ Returns a dictionary """
+        """Returns a dictionary"""
         assert self.shape == target.shape
         amax = target.argmax()
         check_no_nans(target)

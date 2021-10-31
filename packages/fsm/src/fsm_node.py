@@ -130,9 +130,7 @@ class FSMNode:
         state_dict = self.states_dict[state_name]
         active_nodes = state_dict.get("active_nodes")
         if active_nodes is None:
-            rospy.logwarn(
-                f"[{self.node_name}] No active nodes defined for {state_name}. Deactive all nodes."
-            )
+            rospy.logwarn(f"[{self.node_name}] No active nodes defined for {state_name}. Deactive all nodes.")
             active_nodes = []
         return active_nodes
 

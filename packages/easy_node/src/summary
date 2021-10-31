@@ -10,5 +10,5 @@ def print_summary():
     print(s)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.wrap_script_entry_point(print_summary)

@@ -82,10 +82,6 @@ def get_logs_cloud():
         dtu.logger.info(f"Loading cloud DB {dtu.friendly_path(cloud_file)}")
         with dtu.timeit_wall("YAML load file"):
             data = dtu.yaml_load_file(cloud_file, plain_yaml=True)
-        # with dtu.timeit_wall('plain'):
-        #     data = open(cloud_file).read()
-        #     import yaml
-        #     yaml.load(data)
 
         dtu.logger.debug("Conversion")
         logs = logs_from_yaml(data)
@@ -117,11 +113,11 @@ def query_logs(
     logs: Dict[str, PhysicalLog], query: QueryType, raise_if_no_matches=True
 ) -> Dict[str, PhysicalLog]:
     """
-        query: a string or a list of strings
+    query: a string or a list of strings
 
-        Returns a dict str -> PhysicalLog.
+    Returns a dict str -> PhysicalLog.
 
-        The query can also be a filename.
+    The query can also be a filename.
 
     """
     if isinstance(query, list):
@@ -336,7 +332,7 @@ def get_logs_local():
 def physical_log_from_filename(filename, base2basename2filename):
     """
 
-        related: basename -> filename
+    related: basename -> filename
     """
     date = None
     size = os.stat(filename).st_size
@@ -426,7 +422,7 @@ class NotAvailableLocally(Exception):
 
 
 def get_local_file(dtr):
-    """ Returns the local hostname if it exists, otherwise raises NotAvailableLocally() """
+    """Returns the local hostname if it exists, otherwise raises NotAvailableLocally()"""
     for url in dtr["urls"]:
         try:
             filename = get_local_filepath(url)

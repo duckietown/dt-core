@@ -26,9 +26,15 @@ ProcessorEntry = namedtuple("ProcessorEntry", ["processor", "prefix_in", "prefix
 class RegressionTest:
     processors: List[ProcessorEntry]
 
-    def __init__(self, logs, processors: Optional[List[object]] = None, analyzers: Optional[List[str]] = None,
-                 checks: Optional[List[str]] = None, topic_videos: Optional[List[str]] = None,
-                 topic_images: Optional[List[str]] = None):
+    def __init__(
+        self,
+        logs,
+        processors: Optional[List[object]] = None,
+        analyzers: Optional[List[str]] = None,
+        checks: Optional[List[str]] = None,
+        topic_videos: Optional[List[str]] = None,
+        topic_images: Optional[List[str]] = None,
+    ):
         processors = processors or []
         analyzers = analyzers or []
         checks = checks or []

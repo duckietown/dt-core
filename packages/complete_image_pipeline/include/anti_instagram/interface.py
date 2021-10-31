@@ -13,13 +13,13 @@ class AntiInstagramInterface(metaclass=ABCMeta):
     @abstractmethod
     @dtu.contract(bgr="array[HxWx3](uint8)", returns="None")
     def calculateTransform(self, bgr):
-        """ Computes the transform """
+        """Computes the transform"""
 
     @abstractmethod
     @dtu.contract(bgr="array[HxWx3](uint8)", returns="None")
     def applyTransform(self, bgr):
-        """ Applies the transform """
+        """Applies the transform"""
 
     @abstractmethod
     def calculateHealth(self):
-        """ Returns health. TODO: what is this exactly? """
+        """Returns health. TODO: what is this exactly?"""

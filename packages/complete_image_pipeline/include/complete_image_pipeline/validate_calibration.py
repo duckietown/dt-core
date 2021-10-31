@@ -19,7 +19,7 @@ __all__ = [
 class ValidateCalibration(D8App):
     """
 
-        This program validates the intrinsic/extrinsics calibrations.
+    This program validates the intrinsic/extrinsics calibrations.
 
     """
 

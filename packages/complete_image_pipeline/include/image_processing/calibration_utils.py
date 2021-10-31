@@ -21,7 +21,7 @@ class InvalidHomographyInfo(dtu.DTException):
 
 
 def get_homography_default():
-    """ Returns a nominal homography """
+    """Returns a nominal homography"""
     return get_homography_for_robot("default")
 
 
@@ -45,20 +45,19 @@ def get_roots_for_calibrations() -> List[str]:
     try:
         d = dtu.get_duckiefleet_root()
     except dtu.DTConfigException:
-        dtu.logger.warn('Skipping duckiefleet root.')
+        dtu.logger.warn("Skipping duckiefleet root.")
         pass
     else:
         roots.append(os.path.join(d, "calibrations"))
     try:
         d = dru.get_ros_package_path("duckietown")
     except ResourceNotFound:
-        dtu.logger.warn('Skipping duckietown root.')
+        dtu.logger.warn("Skipping duckietown root.")
     else:
         roots.append(os.path.join(d, "config", "baseline", "calibration"))
 
     d0 = dru.get_ros_package_path("complete_image_pipeline")
-    dd = os.path.join(d0, "log-calib-config", "baseline",
-                      "calibration")
+    dd = os.path.join(d0, "log-calib-config", "baseline", "calibration")
     roots.append(dd)
 
     return roots
@@ -136,15 +135,15 @@ def save_homography(H: np.array, robot_name: str) -> None:
 
     fn = get_extrinsics_filename(robot_name)
 
-    #TODO: dtu.write_data_to_files is broken!
-    with open(fn,'w') as file:
+    # TODO: dtu.write_data_to_files is broken!
+    with open(fn, "w") as file:
         file.write(s)
 
 
 def get_extrinsics_filename(robot_name: str) -> str:
-    """ This is the file in DUCKIEFLEET_ROOT that is used to save to."""
+    """This is the file in DUCKIEFLEET_ROOT that is used to save to."""
     df_root = dtu.get_duckiefleet_root()
-    fn = os.path.join(df_root, "calibrations", "camera_extrinsic", f'{robot_name}.yaml')
+    fn = os.path.join(df_root, "calibrations", "camera_extrinsic", f"{robot_name}.yaml")
     return fn
 
 
@@ -159,7 +158,6 @@ def disable_old_homography(robot_name: str):
         msg = (
             f"Disabling old homography - so that if this fails it is clear it failed.\n Backup saved as "
             f"{fn2} "
-
         )
         dtu.logger.warning(msg)
         shutil.move(fn, fn2)
@@ -174,7 +172,7 @@ class InvalidCameraInfo(dtu.DTException):
 
 
 def get_camera_info_default() -> CameraInfo:
-    """ Returns a nominal CameraInfo """
+    """Returns a nominal CameraInfo"""
     return get_camera_info_for_robot("default")
 
 
@@ -204,14 +202,14 @@ projection_matrix:
 
 def get_camera_info_for_robot(robot_name: str) -> CameraInfo:
     """
-        Returns a CameraInfo object for the given robot.
-        This is in a good format to pass to PinholeCameraModel:
-            self.pcm = PinholeCameraModel()
-            self.pcm.fromCameraInfo(self.ci)
-        The fields are simply lists (not array or matrix).
-        Raises:
-            NoCameraInfoAvailable  if no info available
-            InvalidCameraInfo   if the info exists but is invalid
+    Returns a CameraInfo object for the given robot.
+    This is in a good format to pass to PinholeCameraModel:
+        self.pcm = PinholeCameraModel()
+        self.pcm.fromCameraInfo(self.ci)
+    The fields are simply lists (not array or matrix).
+    Raises:
+        NoCameraInfoAvailable  if no info available
+        InvalidCameraInfo   if the info exists but is invalid
     """
 
     if robot_name == dtu.DuckietownConstants.ROBOT_NAME_FOR_TESTS:
@@ -238,8 +236,8 @@ def get_camera_info_for_robot(robot_name: str) -> CameraInfo:
 
 
 def check_camera_info_sane_for_DB17(camera_info: CameraInfo):
-    """ Raises an exception if the calibration is way off with respect
-        to platform DVB17 """
+    """Raises an exception if the calibration is way off with respect
+    to platform DVB17"""
 
     # TODO: to write
     pass
@@ -287,7 +285,7 @@ def get_camera_info_config_file(robot_name: str) -> str:
 
 def load_camera_info_2(filename: str) -> CameraInfo:
     with open(filename, "r") as f:
-        calib_data = yaml.load(f)
+        calib_data = yaml.load(f, Loader=yaml.Loader)
     cam_info = CameraInfo()
     cam_info.width = calib_data["image_width"]
     cam_info.height = calib_data["image_height"]

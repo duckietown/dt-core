@@ -9,7 +9,6 @@ from dt_class_utils import DTReminder
 
 
 class DecoderNode(DTROS):
-
     def __init__(self, node_name):
         super().__init__(node_name, node_type=NodeType.PERCEPTION)
 
@@ -22,11 +21,7 @@ class DecoderNode(DTROS):
 
         # subscribers
         self.sub_img = rospy.Subscriber(
-            "~image_in",
-            CompressedImage,
-            self.cb_image,
-            queue_size=1,
-            buff_size='10MB'
+            "~image_in", CompressedImage, self.cb_image, queue_size=1, buff_size="10MB"
         )
 
         # publishers
@@ -36,7 +31,7 @@ class DecoderNode(DTROS):
             queue_size=1,
             dt_topic_type=TopicType.PERCEPTION,
             dt_healthy_freq=self.publish_freq.value,
-            dt_help="Raw image"
+            dt_help="Raw image",
         )
 
     def cb_image(self, msg):
@@ -50,17 +45,17 @@ class DecoderNode(DTROS):
         if not self.reminder.is_time(frequency=self.publish_freq.value):
             return
         # turn 'compressed image message' into 'raw image'
-        with self.profiler('/cb/image/decode'):
+        with self.profiler("/cb/image/decode"):
             img = self.bridge.compressed_imgmsg_to_cv2(msg)
         # turn 'raw image' into 'raw image message'
-        with self.profiler('/cb/image/serialize'):
-            out_msg = self.bridge.cv2_to_imgmsg(img, 'bgr8')
+        with self.profiler("/cb/image/serialize"):
+            out_msg = self.bridge.cv2_to_imgmsg(img, "bgr8")
         # maintain original header
         out_msg.header = msg.header
         # publish image
         self.pub_img.publish(out_msg)
 
 
-if __name__ == '__main__':
-    node = DecoderNode('decoder_node')
+if __name__ == "__main__":
+    node = DecoderNode("decoder_node")
     rospy.spin()

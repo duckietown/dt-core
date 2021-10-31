@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class TransformationsInfo:
-    """ Keeps track of transformations between poses """
+    """Keeps track of transformations between poses"""
 
     t: Dict[Tuple[FrameName, FrameName], SE3value]
 
@@ -32,7 +32,7 @@ class TransformationsInfo:
         self.t = {}
 
     def add_transformation(self, frame1: FrameName, frame2: FrameName, g: SE2value):
-        """ frame2 expressed in frame1 is g in SE(2) """
+        """frame2 expressed in frame1 is g in SE(2)"""
         if g.shape == (3, 3):
             g = dtu.geo.SE3_from_SE2(g)
         elif g.shape == (4, 4):
@@ -44,7 +44,7 @@ class TransformationsInfo:
         self.t[(frame2, frame2)] = np.eye(4)
 
     def transform_point(self, xyz: np.ndarray, frame1: FrameName, frame2: FrameName) -> np.ndarray:
-        """ Transforms point xyz in frame1 to frame2 """
+        """Transforms point xyz in frame1 to frame2"""
         key = (frame1, frame2)
 
         if not key in self.t:

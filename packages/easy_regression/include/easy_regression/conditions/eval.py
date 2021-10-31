@@ -18,7 +18,7 @@ class DataNotFound(Exception):
 class Evaluable(metaclass=ABCMeta):
     @abstractmethod
     def eval(self, rdb: ResultDB) -> CheckResult:
-        """ Raise EvaluationError or DataNotFound """
+        """Raise EvaluationError or DataNotFound"""
 
 
 class ResultWithDescription:
@@ -35,6 +35,7 @@ class ResultWithDescription:
 
 class Wrapper(RTCheck):
     evaluable: Evaluable
+
     def __init__(self, evaluable: Evaluable):
         self.evaluable = evaluable
 
@@ -43,9 +44,9 @@ class Wrapper(RTCheck):
 
     def check(self, rdb):
         """
-            Returns a CheckResult, or raises
-            RegressionTestCheckException
-            if an abnormal situation is encountered.
+        Returns a CheckResult, or raises
+        RegressionTestCheckException
+        if an abnormal situation is encountered.
         """
 
         try:
@@ -69,6 +70,7 @@ class BinaryEval(Evaluable):
     a: Evaluable
     b: Evaluable
     op: Callable[[Any, Any], bool]
+
     def __init__(self, a: Evaluable, op: Callable[[Any, Any], bool], b: Evaluable):
         self.a = a
         self.op = op

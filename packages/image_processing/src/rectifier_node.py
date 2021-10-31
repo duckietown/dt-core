@@ -12,7 +12,6 @@ from turbojpeg import TurboJPEG
 
 
 class RectifierNode(DTROS):
-
     def __init__(self, node_name):
         super().__init__(node_name, node_type=NodeType.PERCEPTION)
 
@@ -29,17 +28,10 @@ class RectifierNode(DTROS):
 
         # subscribers
         self.sub_img = rospy.Subscriber(
-            "~image_in",
-            CompressedImage,
-            self.cb_image,
-            queue_size=1,
-            buff_size='10MB'
+            "~image_in", CompressedImage, self.cb_image, queue_size=1, buff_size="10MB"
         )
         self.sub_camera_info = rospy.Subscriber(
-            "~camera_info_in",
-            CameraInfo,
-            self.cb_camera_info,
-            queue_size=1
+            "~camera_info_in", CameraInfo, self.cb_camera_info, queue_size=1
         )
 
         # publishers
@@ -49,7 +41,7 @@ class RectifierNode(DTROS):
             queue_size=1,
             dt_topic_type=TopicType.PERCEPTION,
             dt_healthy_freq=self.publish_freq.value,
-            dt_help="Rectified image (i.e., image with no distortion effects from the lens)."
+            dt_help="Rectified image (i.e., image with no distortion effects from the lens).",
         )
         self.pub_camera_info = rospy.Publisher(
             "~camera_info",
@@ -57,12 +49,12 @@ class RectifierNode(DTROS):
             queue_size=1,
             dt_topic_type=TopicType.PERCEPTION,
             dt_healthy_freq=self.publish_freq.value,
-            dt_help="Camera parameters for the (virtual) rectified camera."
+            dt_help="Camera parameters for the (virtual) rectified camera.",
         )
 
     def cb_camera_info(self, msg):
         # unsubscribe from camera_info
-        self.loginfo('Camera info message received. Unsubscribing from camera_info topic.')
+        self.loginfo("Camera info message received. Unsubscribing from camera_info topic.")
         # noinspection PyBroadException
         try:
             self.sub_camera_info.shutdown()
@@ -74,22 +66,14 @@ class RectifierNode(DTROS):
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(msg)
         # find optimal rectified pinhole camera
-        with self.profiler('/cb/camera_info/get_optimal_new_camera_matrix'):
+        with self.profiler("/cb/camera_info/get_optimal_new_camera_matrix"):
             rect_camera_K, _ = cv2.getOptimalNewCameraMatrix(
-                self.camera_model.K,
-                self.camera_model.D,
-                (W, H),
-                self.alpha.value
+                self.camera_model.K, self.camera_model.D, (W, H), self.alpha.value
             )
         # create rectification map
-        with self.profiler('/cb/camera_info/init_undistort_rectify_map'):
+        with self.profiler("/cb/camera_info/init_undistort_rectify_map"):
             self.mapx, self.mapy = cv2.initUndistortRectifyMap(
-                self.camera_model.K,
-                self.camera_model.D,
-                None,
-                rect_camera_K,
-                (W, H),
-                cv2.CV_32FC1
+                self.camera_model.K, self.camera_model.D, None, rect_camera_K, (W, H), cv2.CV_32FC1
             )
         # pack rectified camera info into a CameraInfo message
         self.rect_camera_info = CameraInfo(
@@ -114,18 +98,15 @@ class RectifierNode(DTROS):
         if not self.reminder.is_time(frequency=self.publish_freq.value):
             return
         # turn 'compressed distorted image message' into 'raw distorted image'
-        with self.profiler('/cb/image/decode'):
+        with self.profiler("/cb/image/decode"):
             dist_img = self.jpeg.decode(msg.data)
         # run input image through the lens map
-        with self.profiler('/cb/image/rectify'):
+        with self.profiler("/cb/image/rectify"):
             rect_img = cv2.remap(dist_img, self.mapx, self.mapy, cv2.INTER_NEAREST)
         # turn 'raw rectified image' into 'compressed rectified image message'
-        with self.profiler('/cb/image/encode'):
+        with self.profiler("/cb/image/encode"):
             # rect_img_msg = self.bridge.cv2_to_compressed_imgmsg(rect_img)
-            rect_img_msg = CompressedImage(
-                format="jpeg",
-                data=self.jpeg.encode(rect_img)
-            )
+            rect_img_msg = CompressedImage(format="jpeg", data=self.jpeg.encode(rect_img))
         # maintain original header
         rect_img_msg.header.stamp = msg.header.stamp
         rect_img_msg.header.frame_id = msg.header.frame_id
@@ -137,6 +118,6 @@ class RectifierNode(DTROS):
         self.pub_camera_info.publish(self.rect_camera_info)
 
 
-if __name__ == '__main__':
-    node = RectifierNode('rectifier_node')
+if __name__ == "__main__":
+    node = RectifierNode("rectifier_node")
     rospy.spin()

@@ -11,7 +11,7 @@ __all__ = [
 
 class Pack(D8AppWithLogs):
     """
-        Packs everything on IPFS
+    Packs everything on IPFS
 
     """
 

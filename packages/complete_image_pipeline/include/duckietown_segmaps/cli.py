@@ -16,7 +16,7 @@ logger = dtu.logger
 
 class DisplayTileAndMaps(D8App):
     """
-        Displays the segment maps.
+    Displays the segment maps.
     """
 
     usage = """

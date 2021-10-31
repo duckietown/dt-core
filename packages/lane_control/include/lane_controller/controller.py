@@ -38,8 +38,8 @@ class LaneController:
     def update_parameters(self, parameters):
         """Updates parameters of LaneController object.
 
-            Args:
-                parameters (:obj:`dict`): dictionary containing the new parameters for LaneController object.
+        Args:
+            parameters (:obj:`dict`): dictionary containing the new parameters for LaneController object.
         """
         self.parameters = parameters
 
