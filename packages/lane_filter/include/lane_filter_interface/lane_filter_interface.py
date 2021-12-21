@@ -27,13 +27,13 @@ class LaneFilterInterface(metaclass=ABCMeta):
     @abstractmethod
     def update(self, segment_list):
         """
-            segment list: a list of Segment objects
+        segment list: a list of Segment objects
         """
 
     @abstractmethod
     def getStatus(self):
-        """ Returns one of the statuses above """
+        """Returns one of the statuses above"""
 
     @abstractmethod
     def getEstimate(self):
-        """ Returns a numpy array of datatype ESTIMATE_DATATYPE """
+        """Returns a numpy array of datatype ESTIMATE_DATATYPE"""

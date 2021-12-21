@@ -4,5 +4,5 @@
 from duckietown_code_utils.cli import d8app_run
 from easy_regression.cli.run_regression_tests import RunRegressionTest
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     d8app_run(RunRegressionTest)

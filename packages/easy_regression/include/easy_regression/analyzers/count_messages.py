@@ -17,7 +17,7 @@ class CountMessages(AnalyzerInterface):
         a_plus_b["average_num_messages"] = a_plus_b["num_messages"] / a_plus_b["num_logs"]
 
     def summarize_as_text(self, res):
-        """ Returns a dictionary label -> value that can be displayed as a table. """
+        """Returns a dictionary label -> value that can be displayed as a table."""
         return {"Total number of messages: ": res["count"]}
 
     def summarize_as_image(self):

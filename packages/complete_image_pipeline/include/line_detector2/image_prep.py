@@ -21,7 +21,7 @@ class ImagePrep:
             raise ValueError(msg)
 
     def process(self, context, image_cv, line_detector, transform):
-        """ Returns SegmentList """
+        """Returns SegmentList"""
 
         shape = image_cv.shape
         if len(shape) != 3:

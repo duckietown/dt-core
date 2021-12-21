@@ -18,9 +18,9 @@ def grid_helper_plot(grid_helper, belief, truth=None, estimate=None):
 
 def grid_helper_plot_field(grid_helper, field, pylab):
     """
-        Plots the field
+    Plots the field
 
-        values
+    values
 
     """
     field = field.copy()
@@ -118,7 +118,7 @@ def friendly_resolution(spec):
 
 def grid_helper_display_coords_from_value(grid_helper, point):
     """
-        point = dict-like object
+    point = dict-like object
     """
     coords = []
     for a in range(2):
@@ -142,7 +142,7 @@ def grid_helper_set_axes(grid_helper, pylab):
 
 def grid_helper_mark_point(grid_helper, pylab, point, color, markersize):
     """
-        point = dict-like object like dict(phi=..,d=...)
+    point = dict-like object like dict(phi=..,d=...)
     """
     markersize = float(markersize)
 

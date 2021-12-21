@@ -51,7 +51,9 @@ class TimeKeeper:
         s = "\nLatencies:\n"
 
         for phase, data in self.latencies:
-            s += f" {phase:>22} | total latency {data['latency_ms']:>10} | delta wall " \
-                 f"{data['delta_wall_ms']:>8} clock {data['delta_clock_ms']:>8}\n"
+            s += (
+                f" {phase:>22} | total latency {data['latency_ms']:>10} | delta wall "
+                f"{data['delta_wall_ms']:>8} clock {data['delta_clock_ms']:>8}\n"
+            )
 
         return s

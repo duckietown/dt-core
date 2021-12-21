@@ -11,12 +11,12 @@ logger = dtu.logger
 
 def calculate_transform(image):
     """
-        Returns tuple (bool, float, parameters)
+    Returns tuple (bool, float, parameters)
 
-        success, health, parameters
+    success, health, parameters
 
-        parameters['scale']
-        parameters['shift']
+    parameters['scale']
+    parameters['shift']
     """
     centers4 = CENTERS2
     trained4, counter4, score4 = runKMeans(image, num_colors=4, init=centers4)
@@ -83,7 +83,7 @@ def calculate_transform(image):
 
 class ScaleAndShift:
 
-    """ Represents the transformation """
+    """Represents the transformation"""
 
     def __init__(self, scale, shift):
         self.scale = scale

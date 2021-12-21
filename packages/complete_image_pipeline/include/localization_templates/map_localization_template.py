@@ -12,12 +12,11 @@ FAMILY_LOC_TEMPLATES = "localization_template"
 __all__ = [
     "LocalizationTemplate",
     "FAMILY_LOC_TEMPLATES",
-
 ]
 
 
 class LocalizationTemplate:
-    """ Represents a template on which we can localize. """
+    """Represents a template on which we can localize."""
 
     tile_name: str
     _map: Optional[SegmentsMap]
@@ -36,8 +35,10 @@ class LocalizationTemplate:
 
             frames = set(_.id_frame for _ in list(self._map.points.values()))
             if frames != {FRAME_GLOBAL}:
-                msg = f"Expected that all points in the map {self.tile_name!r} are in the frame " \
-                      f"{FRAME_GLOBAL!r}."
+                msg = (
+                    f"Expected that all points in the map {self.tile_name!r} are in the frame "
+                    f"{FRAME_GLOBAL!r}."
+                )
                 msg += f" These are the frames: {frames}."
                 raise ValueError(msg)
         return self._map

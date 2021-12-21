@@ -43,8 +43,7 @@ def generate_from_package_info(info, package_dir):
     unique = f"{parent}/{info.name}"
 
     md += (
-        f"[Link to package on Github](github:org=duckietown,repo=Software,path={unique},branch={branch})"
-        + S
+        f"[Link to package on Github](github:org=duckietown,repo=Software,path={unique},branch={branch})" + S
     )
 
     md += '### Essentials {nonumber="1"}' + S

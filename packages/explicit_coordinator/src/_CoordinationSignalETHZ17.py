@@ -68,18 +68,18 @@ string frame_id
 
     def __init__(self, *args, **kwds):
         """
-    Constructor. Any message fields that are implicitly/explicitly
-    set to None will be assigned a default value. The recommend
-    use is keyword arguments as this is more robust to future message
-    changes.  You cannot mix in-order arguments and keyword arguments.
+        Constructor. Any message fields that are implicitly/explicitly
+        set to None will be assigned a default value. The recommend
+        use is keyword arguments as this is more robust to future message
+        changes.  You cannot mix in-order arguments and keyword arguments.
 
-    The available fields are:
-       header,signal
+        The available fields are:
+           header,signal
 
-    :param args: complete set of field values, in .msg order
-    :param kwds: use keyword arguments corresponding to message field names
-    to set specific fields.
-    """
+        :param args: complete set of field values, in .msg order
+        :param kwds: use keyword arguments corresponding to message field names
+        to set specific fields.
+        """
         if args or kwds:
             super(CoordinationSignal, self).__init__(*args, **kwds)
             # message fields cannot be None, assign default values for those that are
@@ -93,15 +93,15 @@ string frame_id
 
     def _get_types(self):
         """
-    internal API method
-    """
+        internal API method
+        """
         return self._slot_types
 
     def serialize(self, buff):
         """
-    serialize message into buffer
-    :param buff: buffer, ``StringIO``
-    """
+        serialize message into buffer
+        :param buff: buffer, ``StringIO``
+        """
         try:
             _x = self
             buff.write(_get_struct_3I().pack(_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs))
@@ -131,9 +131,9 @@ string frame_id
 
     def deserialize(self, str):
         """
-    unpack serialized message in str into this message instance
-    :param str: byte array of serialized message, ``str``
-    """
+        unpack serialized message in str into this message instance
+        :param str: byte array of serialized message, ``str``
+        """
         try:
             if self.header is None:
                 self.header = std_msgs.msg.Header()
@@ -141,9 +141,11 @@ string frame_id
             _x = self
             start = end
             end += 12
-            (_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs,) = _get_struct_3I().unpack(
-                str[start:end]
-            )
+            (
+                _x.header.seq,
+                _x.header.stamp.secs,
+                _x.header.stamp.nsecs,
+            ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
@@ -168,10 +170,10 @@ string frame_id
 
     def serialize_numpy(self, buff, numpy):
         """
-    serialize message with numpy array types into buffer
-    :param buff: buffer, ``StringIO``
-    :param numpy: numpy python module
-    """
+        serialize message with numpy array types into buffer
+        :param buff: buffer, ``StringIO``
+        :param numpy: numpy python module
+        """
         try:
             _x = self
             buff.write(_get_struct_3I().pack(_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs))
@@ -204,10 +206,10 @@ string frame_id
 
     def deserialize_numpy(self, str, numpy):
         """
-    unpack serialized message in str into this message instance using numpy for array types
-    :param str: byte array of serialized message, ``str``
-    :param numpy: numpy python module
-    """
+        unpack serialized message in str into this message instance using numpy for array types
+        :param str: byte array of serialized message, ``str``
+        :param numpy: numpy python module
+        """
         try:
             if self.header is None:
                 self.header = std_msgs.msg.Header()
@@ -215,9 +217,11 @@ string frame_id
             _x = self
             start = end
             end += 12
-            (_x.header.seq, _x.header.stamp.secs, _x.header.stamp.nsecs,) = _get_struct_3I().unpack(
-                str[start:end]
-            )
+            (
+                _x.header.seq,
+                _x.header.stamp.secs,
+                _x.header.stamp.nsecs,
+            ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])

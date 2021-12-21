@@ -6,7 +6,7 @@ class SASParams:
 
 
 def scaleandshift(img, scale, shift):
-    """ Returns a float image, which might be outside of [0,255]"""
+    """Returns a float image, which might be outside of [0,255]"""
     # logger.info('scale: %s' % scale)
     # logger.info('shift: %s' % shift)
 

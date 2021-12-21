@@ -15,7 +15,7 @@ __all__ = [
 
 class MakeVideos(D8AppWithLogs, QuickApp):
     """
-        Creates videos for the image topics in a log.
+    Creates videos for the image topics in a log.
     """
 
     cmd = "dt-logs-videos"
@@ -129,9 +129,7 @@ def jobs_videos(context, log, name, outd, only_camera):
 
         else:
             out = os.path.join(outd, name + "-" + d + ".mp4")
-            j = context.comp(
-                dbu.d8n_make_video_from_bag, filename, topic, out, job_id=f"{name}-{topic}"
-            )
+            j = context.comp(dbu.d8n_make_video_from_bag, filename, topic, out, job_id=f"{name}-{topic}")
 
             # create link
             if topic == main_camera_topic:

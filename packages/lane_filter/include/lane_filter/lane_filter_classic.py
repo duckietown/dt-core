@@ -16,10 +16,7 @@ __all__ = [
 
 
 class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
-    """
-
-
-    """
+    """"""
 
     mean_d_0: float
     mean_phi_0: float
@@ -149,7 +146,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         return LaneFilterInterface.GOOD
 
     def update(self, segments):
-        """ Returns the likelihood """
+        """Returns the likelihood"""
         self.last_segments_used = segments
 
         measurement_likelihood = self.generate_measurement_likelihood(segments)
@@ -199,7 +196,7 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
         return res
 
     def getEstimate(self):
-        """ Returns a list with two elements: (d, phi) """
+        """Returns a list with two elements: (d, phi)"""
         res = self.get_estimate()
         return [res["d"], res["phi"]]
 
@@ -213,9 +210,9 @@ class LaneFilterClassic(dtu.Configurable, LaneFilterInterface):
     def generateVote(self, segment):
         """
 
-            return d_i, phi_i, l_i, weight
+        return d_i, phi_i, l_i, weight
 
-            XXX: What is l_i?
+        XXX: What is l_i?
         """
         p1 = np.array([segment.points[0].x, segment.points[0].y])
         p2 = np.array([segment.points[1].x, segment.points[1].y])

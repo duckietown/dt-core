@@ -41,12 +41,12 @@ def run_pipeline(
     actual_map=None,
 ) -> Tuple[Dict[str, dtu.NPImageBGR], Dict[str, float]]:
     """
-        Image: numpy (H,W,3) == BGR
-        Returns a dictionary, res with the following fields:
+    Image: numpy (H,W,3) == BGR
+    Returns a dictionary, res with the following fields:
 
-            res['input_image']
+        res['input_image']
 
-        ground_truth = pose
+    ground_truth = pose
     """
 
     logger.debug(f"backend: {matplotlib.get_backend()}")
@@ -283,7 +283,7 @@ def only_one_color(segment_list, color):
 
 
 def get_grid(shape, L=32, col=None):
-    """ Creates a grid of given shape """
+    """Creates a grid of given shape"""
     if col is None:
         col = {0: (255, 0, 0), 1: (0, 255, 0)}
     H, W = shape

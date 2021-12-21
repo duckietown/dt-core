@@ -22,7 +22,7 @@ def show_url(x):
 
 class Gallery(D8AppWithLogs):
     """
-        Creates the gallery for the logs.
+    Creates the gallery for the logs.
 
     """
 
@@ -98,8 +98,10 @@ def get_report(logs, url_to_resource, initial_screens: bool = True) -> str:
     h.append("Duckietown Logs Database")
     body.append(h)
 
-    c = f"Showing {len(logs)} logs from {len(vehicles)} different Duckiebots, for a total length of " \
+    c = (
+        f"Showing {len(logs)} logs from {len(vehicles)} different Duckiebots, for a total length of "
         f"{length / 3600.0:.1f} hours."
+    )
 
     p = Tag(name="p")
     p.append(c)

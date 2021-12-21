@@ -4,7 +4,7 @@ from .simpleColorBalanceClass import *
 
 
 class ScaleAndShift:
-    """ Represents the linear transformation """
+    """Represents the linear transformation"""
 
     def __init__(self, scale, shift):
         self.scale = scale

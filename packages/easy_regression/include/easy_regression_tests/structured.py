@@ -5,7 +5,14 @@ from easy_regression_tests.evaluation import raise_error
 
 
 def get_test_db():
-    results = {"analyzer": {"log1": {"value2": 1, "composite": {"a": 2, "b": {"c": 3}},}}}
+    results = {
+        "analyzer": {
+            "log1": {
+                "value2": 1,
+                "composite": {"a": 2, "b": {"c": 3}},
+            }
+        }
+    }
     current = ResultDBEntry(
         regression_test_name="", date="", host="", cpu="", user="", results=results, branch="", commit=""
     )

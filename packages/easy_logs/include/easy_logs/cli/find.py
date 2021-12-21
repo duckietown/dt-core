@@ -4,7 +4,7 @@ from easy_logs.cli.generic import GenericLogDisplay
 
 
 class Find(GenericLogDisplay):
-    """ Prints the filename for the specified log. """
+    """Prints the filename for the specified log."""
 
     cmd = "dt-logs-find"
 

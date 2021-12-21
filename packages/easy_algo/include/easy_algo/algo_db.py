@@ -62,8 +62,10 @@ class EasyAlgoDB:
 
         family = self.get_family(family_name)
         if not family.valid:
-            msg = f"Cannot instantiate {instance_name_or_spec!r} because its family {family_name!r} is " \
-                  f"invalid."
+            msg = (
+                f"Cannot instantiate {instance_name_or_spec!r} because its family {family_name!r} is "
+                f"invalid."
+            )
             msg += "\n\n" + dtu.indent(family.error_if_invalid, "  > ")
             raise dtu.DTConfigException(msg)
 
@@ -72,8 +74,10 @@ class EasyAlgoDB:
             dtu.check_is_in("instance", instance_name, family.instances)
             instance = family.instances[instance_name]
             if not instance.valid:
-                msg = f"Cannot instantiate {instance_name!r} because it is invalid:\n" \
-                      f"{dtu.indent(instance.error_if_invalid, '> ')}"
+                msg = (
+                    f"Cannot instantiate {instance_name!r} because it is invalid:\n"
+                    f"{dtu.indent(instance.error_if_invalid, '> ')}"
+                )
                 raise dtu.DTConfigException(msg)
             res = dtu.instantiate(instance.constructor, instance.parameters)
         elif isinstance(instance_name_or_spec, dict):
@@ -84,8 +88,10 @@ class EasyAlgoDB:
 
         interface = dtu.import_name(family.interface)
         if not isinstance(res, interface):
-            msg = f"I expected that {instance_name_or_spec!r} would be a {interface.__name__} but it is a " \
-                  f"{type(res).__name__}."
+            msg = (
+                f"I expected that {instance_name_or_spec!r} would be a {interface.__name__} but it is a "
+                f"{type(res).__name__}."
+            )
             raise dtu.DTConfigException(msg)
 
         return res
@@ -146,11 +152,11 @@ def name_from_spec(x: Union[str, dict]) -> str:
 
 def load_family_config(all_yaml: dict) -> Dict[str, EasyAlgoFamily]:
     """
-        # now, for each family, we look for configuration files, which are:
-        #
-        #     ![ID].![family_name].yaml
-        #
-        #
+    # now, for each family, we look for configuration files, which are:
+    #
+    #     ![ID].![family_name].yaml
+    #
+    #
     """
     if not isinstance(all_yaml, dict):
         msg = f"Expected a dict, got {type(all_yaml).__name__}"
@@ -277,7 +283,7 @@ def check_validity_family_interface(f):
 
 
 def interpret_easy_algo_config(filename: str, data: dict) -> EasyAlgoFamily:
-    """ Interprets the family config """
+    """Interprets the family config"""
     basename = os.path.basename(filename)
     family_name = dtu.id_from_basename_pattern(basename, EasyAlgoDB.pattern)
     instances_pattern = f"*.{family_name}.yaml"
@@ -300,7 +306,7 @@ def interpret_easy_algo_config(filename: str, data: dict) -> EasyAlgoFamily:
         raise Exception(msg) from e
 
     if data:
-        msg = f'Extra keys in configuration: {list(data)}'
+        msg = f"Extra keys in configuration: {list(data)}"
         raise dtu.DTConfigException(msg)
 
     return EasyAlgoFamily(

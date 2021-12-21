@@ -29,7 +29,7 @@ class TemplateBeforeCurve(LocalizationTemplate):
 
     @dtu.contract(returns="array", pose="SE2")
     def coords_from_pose(self, pose):
-        """ Returns an array with datatype DATATYPE_COORDS """
+        """Returns an array with datatype DATATYPE_COORDS"""
         assert self.direction in ["left"]
 
         self._init_metrics()
@@ -72,7 +72,7 @@ class TemplateBeforeCurve(LocalizationTemplate):
 
     @dtu.contract(returns="SE2", res="array|dict")
     def pose_from_coords(self, res):
-        """ Returns an array with datatype dtu.DATATYPE_XYTHETA """
+        """Returns an array with datatype dtu.DATATYPE_XYTHETA"""
 
         assert self.direction in ["left"]
 

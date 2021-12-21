@@ -4,6 +4,5 @@
 from complete_image_pipeline.calibrate_extrinsics import CalibrateExtrinsics
 from duckietown_code_utils.cli import d8app_run
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     d8app_run(CalibrateExtrinsics)
-

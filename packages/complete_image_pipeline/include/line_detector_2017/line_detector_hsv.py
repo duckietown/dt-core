@@ -10,7 +10,7 @@ __all__ = ["LineDetectorHSV"]
 
 
 class LineDetectorHSV(dtu.Configurable, LineDetectorInterface):
-    """ LineDetectorHSV """
+    """LineDetectorHSV"""
 
     hsv_white1: float
     hsv_white2: float

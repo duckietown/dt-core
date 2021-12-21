@@ -91,7 +91,7 @@ class GroundProjectionGeometry:
         self.Hinv = np.linalg.inv(self.H)
 
     def get_shape(self) -> Tuple[int, int]:
-        """ returns height, width of image """
+        """returns height, width of image"""
         return self.im_height, self.im_width
 
     def vector2pixel(self, vec: ImageSpaceNormalizedPoint) -> ImageSpaceResdepPoint:

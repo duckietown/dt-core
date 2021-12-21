@@ -15,7 +15,7 @@ class AntiInstagram:
 
         resized_image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         H = resized_image.shape[0]
-        cropped_image = resized_image[int(H * 0.3): (H - 1), :, :]
+        cropped_image = resized_image[int(H * 0.3) : (H - 1), :, :]
 
         half_percent = percentage / 2
         channels = cv2.split(cropped_image)

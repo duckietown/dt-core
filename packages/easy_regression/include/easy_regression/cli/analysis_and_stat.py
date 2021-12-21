@@ -54,7 +54,7 @@ def table_for_analyzer(results_all):
 
 def job_merge(results, analyzer):
     """
-        results: log name -> results dict
+    results: log name -> results dict
     """
     easy_algo_db = get_easy_algo_db()
     analyzer_instance = easy_algo_db.create_instance("analyzer", analyzer)

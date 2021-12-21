@@ -13,7 +13,7 @@ from std_msgs.msg import String
 
 
 class LaneFilterNode(DTROS):
-    """ Generates an estimate of the lane pose.
+    """Generates an estimate of the lane pose.
 
     Creates a `lane_filter` to get estimates on `d` and `phi`, the lateral and heading deviation from the
     center of the lane.

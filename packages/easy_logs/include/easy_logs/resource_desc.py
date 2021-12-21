@@ -142,8 +142,8 @@ class NotLocalPath(Exception):
 
 
 def get_local_filepath(uri):
-    """ For a path file://hostPATH it returns PATH if it starts with this host name
-        otherwise raise ValueError()"""
+    """For a path file://hostPATH it returns PATH if it starts with this host name
+    otherwise raise ValueError()"""
     uri_prefix = _file_uri_prefix()
     if uri.startswith(uri_prefix):
         return uri[len(uri_prefix) :]

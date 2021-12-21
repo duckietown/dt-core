@@ -31,9 +31,9 @@ class SignalStats(AnalyzerInterface):
             dict_out[sane] = compute_stats(timestamp, value)
 
     def name_from_topic(self, topic):
-        """ Sanitize the topic:
+        """Sanitize the topic:
 
-            /a/b/c -> a_b_c
+        /a/b/c -> a_b_c
         """
         tokens = topic.split("/")
         tokens = [t for t in tokens if t]

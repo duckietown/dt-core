@@ -19,7 +19,7 @@ __all__ = ["D8AppWithLogs", "download_if_necessary", "get_log_if_not_exists"]
 
 class D8AppWithLogs(D8App, ABC):
     """
-        An app that works with a log database.
+    An app that works with a log database.
 
     """
 
@@ -66,13 +66,13 @@ class D8AppWithLogs(D8App, ABC):
 
 def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
     """
-        Downloads the log if necessary.
+    Downloads the log if necessary.
 
-        Use like this:
+    Use like this:
 
-            log = ...
+        log = ...
 
-            log2 = download_if_necessary(log)
+        log2 = download_if_necessary(log)
 
 
     """
@@ -91,7 +91,7 @@ def download_if_necessary(log: PhysicalLog) -> PhysicalLog:
 
 
 def get_log_if_not_exists(log: PhysicalLog, resource_name: str) -> str:
-    """" Returns the path to the log. """
+    """ " Returns the path to the log."""
     log = copy.deepcopy(log)
     dtu.logger.info(f"Get log if not exists: {log.log_name}")
     downloads = dtu.get_duckietown_local_log_downloads()

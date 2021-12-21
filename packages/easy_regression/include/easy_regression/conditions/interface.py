@@ -6,7 +6,7 @@ from .result_db import ResultDB
 
 
 class RTParseError(dtu.DTConfigException):
-    """ Cannot parse condition """
+    """Cannot parse condition"""
 
 
 CheckResult0 = namedtuple(
@@ -40,45 +40,45 @@ class RTCheck(metaclass=ABCMeta):
     @dtu.contract(returns=CheckResult, result_db=ResultDB)
     def check(self, result_db):
         """
-            Returns a CheckResult.
+        Returns a CheckResult.
         """
 
     @staticmethod
     def from_string(line):
         """
-            Returns a RTCheck object.
+        Returns a RTCheck object.
 
-            Syntaxes allowed:
+        Syntaxes allowed:
 
-            Simple checks:
+        Simple checks:
 
-                v:analyzer/log/statistics == value
-                v:analyzer/log/statistics >= value
-                v:analyzer/log/statistics <= value
-                v:analyzer/log/statistics < value
-                v:analyzer/log/statistics > value
+            v:analyzer/log/statistics == value
+            v:analyzer/log/statistics >= value
+            v:analyzer/log/statistics <= value
+            v:analyzer/log/statistics < value
+            v:analyzer/log/statistics > value
 
-            Check that it is in 10% of the value:
+        Check that it is in 10% of the value:
 
-                v:analyzer/log/statistics ==[10%] value
+            v:analyzer/log/statistics ==[10%] value
 
-            Use `@date` to reference the last value:
+        Use `@date` to reference the last value:
 
-                v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic@date
+            v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic@date
 
-            Use `~branch@date` to reference the value of a branch at a certain date
+        Use `~branch@date` to reference the value of a branch at a certain date
 
-                v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic~branch@date
+            v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic~branch@date
 
-            Use `?commit` to reference the value of a branch at a specific commit:
+        Use `?commit` to reference the value of a branch at a specific commit:
 
-                v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic?commit
+            v:analyzer/log/statistics ==[10%] v:analyzer/log/statistic?commit
 
-            Other checks:
+        Other checks:
 
-                v:analyzer/log/statistics contains ![log name]
+            v:analyzer/log/statistics contains ![log name]
 
-            Raises DTConfigException if the syntax is not valid.
+        Raises DTConfigException if the syntax is not valid.
 
         """
         from .implementation import _parse_regression_test_check

@@ -9,7 +9,7 @@ from easy_logs.app_with_logs import download_if_necessary
 
 
 class Copy(D8AppWithLogs):
-    """ Downloads the bag files for the logs """
+    """Downloads the bag files for the logs"""
 
     cmd = "dt-logs-copy"
 

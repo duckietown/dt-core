@@ -6,8 +6,10 @@ class SearchNode:
         self._cost = cost
 
     def __repr__(self):
-        return f"<SearchNode (id: {id(self)})| state: {self.state}, cost: {self.cost}, parent_id: " \
-               f"{id(self.parent)}>"
+        return (
+            f"<SearchNode (id: {id(self)})| state: {self.state}, cost: {self.cost}, parent_id: "
+            f"{id(self.parent)}>"
+        )
 
     def expand(self, graph):
         """Returns new search nodes pointing to each children state of the state represented by this node."""
@@ -58,8 +60,10 @@ class Path:
         self.cost = search_node.cost
 
     def __repr__(self):
-        return f"Number of nodes: {len(self.path)}\nTotal cost: {self.cost:.3f}\nNodes: " \
-               f"{self.path}\nActions: {self.actions}"
+        return (
+            f"Number of nodes: {len(self.path)}\nTotal cost: {self.cost:.3f}\nNodes: "
+            f"{self.path}\nActions: {self.actions}"
+        )
 
     def edges(self):
         return list(zip(self.path[0:-1], self.path[1:]))

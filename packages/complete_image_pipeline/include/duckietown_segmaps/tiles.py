@@ -79,7 +79,7 @@ def get_map_empty_tile(tile_size, tile_spacing, buffer_black) -> SegmentsMap:
 
 
 def empty_tile(tile_size: float, tile_spacing: float, width_white: float) -> SegmentsMap:
-    """ DT16 Old intersection center """
+    """DT16 Old intersection center"""
     constants = {}
     constants["tile_size"] = tile_size
     constants["tile_spacing"] = tile_spacing
@@ -243,7 +243,6 @@ def get_map_intersection_center(
             points, faces, segments, x, y, theta, length, width, id_frame, color, use_sides_for_loc
         )
 
-
     return SegmentsMap(points=points, segments=segments, faces=faces, constants=constants)
 
 
@@ -402,7 +401,7 @@ def _add_rect(
             # note order is important because it should be counterclockwise
             p0 = names[(i + 1) % 4]
             p1 = names[i]
-            segments.append(SegMapSegment(color=c, points=[p0, p1])) # XXX: fixme
+            segments.append(SegMapSegment(color=c, points=[p0, p1]))  # XXX: fixme
 
 
 def _add_rect_tilted(points, faces, segments, x, y, theta, length, width, id_frame, color, use_sides_for_loc):
@@ -439,7 +438,7 @@ def __add_rect_by_coords(points, faces, segments, coords, id_frame, color, use_s
 
 
 def add_tile(points, faces, segments, tile_size: float, tile_spacing: float):
-    """ Add tile bg at 0,0 """
+    """Add tile bg at 0,0"""
     extra = (tile_spacing - tile_size) / 2
     x1 = -tile_size / 2 - extra
     x2 = +tile_size / 2 + extra
@@ -578,7 +577,18 @@ def add_corner(points, faces, segments, tile_size, extra, width_white, id_frame,
 
 @dtu.contract(lengths="list[N]", colors="list[N](str|None)")
 def add_curved(
-    points, faces, segments, id_frame, center, radius, alpha1, alpha2, width, colors: List[Optional[dtu.ColorString]], lengths: List[float], detect_color
+    points,
+    faces,
+    segments,
+    id_frame,
+    center,
+    radius,
+    alpha1,
+    alpha2,
+    width,
+    colors: List[Optional[dtu.ColorString]],
+    lengths: List[float],
+    detect_color,
 ):
     assert alpha2 > alpha1
     assert len(colors) == len(lengths)

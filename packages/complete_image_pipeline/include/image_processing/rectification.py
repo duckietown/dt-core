@@ -47,8 +47,8 @@ class Rectify:
         self._rectify_inited = True
 
     def rectify(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST):
-        """ Undistort an image.
-            To be more precise, pass interpolation= cv2.INTER_CUBIC
+        """Undistort an image.
+        To be more precise, pass interpolation= cv2.INTER_CUBIC
         """
         if not self._rectify_inited:
             self._init_rectify_maps()
@@ -73,9 +73,9 @@ class Rectify:
 
     def rectify_full(self, cv_image_raw: np.ndarray, interpolation=cv2.INTER_NEAREST, ratio=1):
         """
-            Undistort an image by maintaining the proportions.
-            To be more precise, pass interpolation= cv2.INTER_CUBIC
-            Returns the new camera matrix as well.
+        Undistort an image by maintaining the proportions.
+        To be more precise, pass interpolation= cv2.INTER_CUBIC
+        Returns the new camera matrix as well.
         """
         W = int(self.pcm.width * ratio)
         H = int(self.pcm.height * ratio)

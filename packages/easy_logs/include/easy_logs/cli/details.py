@@ -4,7 +4,7 @@ from easy_logs.cli.generic import GenericLogDisplay
 
 
 class Details(GenericLogDisplay):
-    """ Shows detailed information for the logs. """
+    """Shows detailed information for the logs."""
 
     cmd = "dt-logs-details"
 

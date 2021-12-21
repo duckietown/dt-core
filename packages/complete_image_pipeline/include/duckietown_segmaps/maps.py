@@ -17,8 +17,6 @@ __all__ = [
     "PointName",
     "plot_map_and_segments",
     "get_normal_outward_for_segment",
-
-
 ]
 
 PointName = NewType("PointName", str)
@@ -151,7 +149,7 @@ def plot_map_and_segments(
     ground_truth: Optional[SE2value] = None,
     bgcolor=dtu.ColorConstants.RGB_DUCKIETOWN_YELLOW,
 ):
-    """ Returns a BGR image """
+    """Returns a BGR image"""
     figure_args = dict(facecolor=dtu.matplotlib_01_from_rgb(bgcolor))
     a = dtu.CreateImageFromPylab(dpi=dpi, figure_args=figure_args)
 
@@ -266,7 +264,7 @@ def _plot_map_segments(sm: SegmentsMap, pylab, expect_frame: FrameName, plot_ref
 
 
 def get_normal_outward_for_segment(w1: np.ndarray, w2: np.ndarray) -> np.ndarray:
-    """ Outward points towards black. """
+    """Outward points towards black."""
     d = w2 - w1
     #   w2
     #   |  --->

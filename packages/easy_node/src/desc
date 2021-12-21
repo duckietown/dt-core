@@ -5,11 +5,14 @@ import sys
 
 import duckietown_code_utils as dtu
 
-from easy_node.node_description.configuration import load_configuration_package_node, EasyNodeConfig,\
-    format_enc
+from easy_node.node_description.configuration import (
+    load_configuration_package_node,
+    EasyNodeConfig,
+    format_enc,
+)
 
 
-usage = '''
+usage = """
 Describes the configuration of a node.
 
 Usage:
@@ -21,7 +24,8 @@ For example:
     $ rosrun easy_node desc line_detector2 line_detector_node2
 
 See: http://purl.org/dth/easy_node-desc
-'''
+"""
+
 
 def easy_node_desc():
     args = sys.argv[1:]
@@ -30,7 +34,7 @@ def easy_node_desc():
         print(usage)
 
     if len(args) != 2:
-        msg = 'I expected 2 arguments. (Run without arguments to see usage.)'
+        msg = "I expected 2 arguments. (Run without arguments to see usage.)"
         raise dtu.DTConfigException(msg)
 
     package_name, node_type_name = args
@@ -40,5 +44,5 @@ def easy_node_desc():
     print(s)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dtu.wrap_script_entry_point(easy_node_desc)
