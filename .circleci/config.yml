@@ -4,23 +4,23 @@ workflows:
   version: "2"
   all_of_them:
     jobs:
-    - build-docs-daffy-staging: &staging
+    - build-docs-ente-staging: &staging
         context: pip-staging
         filters:
           branches:
-            only: /daffy-staging.*/
-    - unit-tests-from-parent-daffy-staging: *staging
-    - build-docs-daffy-production: &production
+            only: /ente-staging.*/
+    - unit-tests-from-parent-ente-staging: *staging
+    - build-docs-ente-production: &production
         context: production
         filters:
           branches:
-            ignore: /daffy-staging.*/
-    - unit-tests-from-parent-daffy-production: *production
+            ignore: /ente-staging.*/
+    - unit-tests-from-parent-ente-production: *production
 
 jobs:
   build-docs: &build-docs
     docker:
-    - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:daffy-amd64
+    - image: ${DOCKER_REGISTRY}/duckietown/aido-submission-ci-test:ente-amd64
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -47,12 +47,12 @@ jobs:
     - run:
         name: Pull the image
         command: |
-          dts devel pull --tag daffy
+          dts devel pull --tag ente
 
     - run:
         name: Build the docs
         command: |
-          dts devel docs build --tag daffy -f
+          dts devel docs build --tag ente -f
 
 
     - store_artifacts:
@@ -66,7 +66,7 @@ jobs:
   unit-tests-from-parent: &unit-tests
     resource_class: large
     docker:
-    - image: ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:daffy-amd64
+    - image: ${DOCKER_REGISTRY}/duckietown/dt-ros-commons:ente-amd64
 
     environment:
       DUCKIETOWN_DATA: /data
@@ -98,7 +98,7 @@ jobs:
           ln -s  `pwd` /code/catkin_ws/src/dt-core
           ls -la /code/catkin_ws/src
           . /opt/ros/noetic/setup.sh && catkin build --workspace ${CATKIN_WS_DIR}/
-          python3 -m pip install duckietown-utils-daffy
+          python3 -m pip install duckietown-utils-ente
     - run:
         name: run tests
         command: |
@@ -115,7 +115,7 @@ jobs:
     - store_artifacts:
         path: out
         destination: out
-  unit-tests-from-parent-daffy-staging: *unit-tests
-  unit-tests-from-parent-daffy-production: *unit-tests
-  build-docs-daffy-production: *build-docs
-  build-docs-daffy-staging: *build-docs
+  unit-tests-from-parent-ente-staging: *unit-tests
+  unit-tests-from-parent-ente-production: *unit-tests
+  build-docs-ente-production: *build-docs
+  build-docs-ente-staging: *build-docs
