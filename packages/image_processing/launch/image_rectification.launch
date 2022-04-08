@@ -1,8 +1,9 @@
 <launch>
     <arg name="veh"/>
-    <arg name="param_file_name" default="$(env ROBOT_TYPE)" doc="Specify a param file. ex: duckiebot"/>
     <arg name="pkg_name" value="image_processing"/>
     <arg name="node_name" default="rectifier_node"/>
+    <arg name="param_file_name" default="$(env ROBOT_TYPE)" doc="Specify a param file. ex: duckiebot"/>
+    <arg name="param_file" default="$(find image_processing)/config/$(arg node_name)/$(arg param_file_name).yaml" doc="Param file path"/>
 
     <!-- Subscription -->
     <!-- "~image_in": sensor_msgs/CompressedImage. Input compressed image in JPEG format. -->
@@ -14,7 +15,7 @@
 
     <group ns="$(arg veh)">
         <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" required="true">
-            <rosparam command="load" file="$(find image_processing)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+            <rosparam command="load" file="$(arg param_file)"/>
         </node>
     </group>
 </launch>
