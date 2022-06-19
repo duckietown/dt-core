@@ -7,7 +7,7 @@ from cv_bridge import CvBridge
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from duckietown_msgs.msg import BoolStamped, VehicleCorners
 from geometry_msgs.msg import Point32
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import CompressedImage, Range
 
 
 class VehicleDetectionNode(DTROS):
@@ -45,6 +45,7 @@ class VehicleDetectionNode(DTROS):
         self.blobdetector_min_dist_between_blobs = DTParam(
             "~blobdetector_min_dist_between_blobs", param_type=ParamType.FLOAT
         )
+        self.param_tof_range_obstacle_threshold = DTParam("~tof_range_obstacle_threshold", param_type=ParamType.FLOAT)
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #
@@ -58,6 +59,9 @@ class VehicleDetectionNode(DTROS):
 
         # Subscriber
         self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cb_image, queue_size=1)
+        self.obstacle_img = False
+        self.sub_tof = rospy.Subscriber("~front_center_tof", Range, self.cb_tof_range, queue_size=1)
+        self.obstacle_tof = False
 
         # Publishers
         self.pub_centers = rospy.Publisher("~centers", VehicleCorners, queue_size=1)
@@ -66,6 +70,14 @@ class VehicleDetectionNode(DTROS):
         )
         self.pub_detection_flag = rospy.Publisher("~detection", BoolStamped, queue_size=1)
         self.log("Initialization completed.")
+        self.obstacle_timer = rospy.Timer(rospy.Duration(1.0/10.0), self.cb_timer)
+
+    def cb_timer(self, event=None):
+        obstacle_detected = any([self.obstacle_tof, self.obstacle_img])  # TODO: separate obsacle and vehicle det
+        detection_flag_msg_out = BoolStamped()
+        detection_flag_msg_out.header.stamp = rospy.Time.now()
+        detection_flag_msg_out.data = obstacle_detected
+        self.pub_detection_flag.publish(detection_flag_msg_out)
 
     def cbParametersChanged(self):
 
@@ -75,6 +87,9 @@ class VehicleDetectionNode(DTROS):
         params.minArea = self.blobdetector_min_area.value
         params.minDistBetweenBlobs = self.blobdetector_min_dist_between_blobs.value
         self.simple_blob_detector = cv2.SimpleBlobDetector_create(params)
+
+    def cb_tof_range(self, range_msg):
+        self.obstacle_tof = (0 <= float(range_msg.range) < self.param_tof_range_obstacle_threshold.value)
 
     def cb_image(self, image_msg):
         """
@@ -126,8 +141,8 @@ class VehicleDetectionNode(DTROS):
 
         vehicle_centers_msg_out.header = image_msg.header
         vehicle_centers_msg_out.detection.data = detection > 0
-        detection_flag_msg_out.header = image_msg.header
-        detection_flag_msg_out.data = detection > 0
+        # detection_flag_msg_out.header = image_msg.header
+        # detection_flag_msg_out.data = detection > 0
 
         # if the detection is successful add the information about it,
         # otherwise publish a message saying that it was unsuccessful
@@ -144,7 +159,8 @@ class VehicleDetectionNode(DTROS):
             vehicle_centers_msg_out.W = self.circlepattern_dims.value[0]
 
         self.pub_centers.publish(vehicle_centers_msg_out)
-        self.pub_detection_flag.publish(detection_flag_msg_out)
+        # self.pub_detection_flag.publish(detection_flag_msg_out)
+        self.obstacle_img = detection > 0
         if self.pub_circlepattern_image.get_num_connections() > 0:
             cv2.drawChessboardCorners(image_cv, tuple(self.circlepattern_dims.value), centers, detection)
             image_msg_out = self.bridge.cv2_to_compressed_imgmsg(image_cv)

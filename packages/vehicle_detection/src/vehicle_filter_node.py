@@ -68,6 +68,8 @@ class VehicleFilterNode(DTROS):
         self.state = None
         # subscribers
         self.sub_centers = rospy.Subscriber("~centers", VehicleCorners, self.cb_process_centers, queue_size=1)
+        self.sub_obstacles = rospy.Subscriber("~obstacles", BoolStamped, self.cb_process_obstacles, queue_size=1)
+        self.obstacle_detected = False
         self.sub_info = rospy.Subscriber(
             "~camera_info", CameraInfo, self.cb_process_camera_info, queue_size=1
         )
@@ -95,6 +97,12 @@ class VehicleFilterNode(DTROS):
         """
 
         self.pcm.fromCameraInfo(msg)
+
+    def cb_process_obstacles(self, detection_msg):
+        obs = bool(detection_msg.data)
+        self.logdebug(f"Obs: {obs}")
+        self.obstacle_detected = obs
+        # self.trigger_led_hazard_light(detection=obs, stopped=False)
 
     def cb_process_centers(self, vehicle_centers_msg):
         """
@@ -198,10 +206,10 @@ class VehicleFilterNode(DTROS):
                 self.pub_visualize.publish(marker_msg)
         try:
             self.trigger_led_hazard_light(
-                detection, (distance_to_vehicle <= self.virtual_stop_line_offset.value)
+                (distance_to_vehicle <= self.virtual_stop_line_offset.value)
             )
         except Exception:
-            self.trigger_led_hazard_light(detection, False)
+            self.trigger_led_hazard_light(False)
 
     def calc_circle_pattern(self, height, width):
         """
@@ -226,7 +234,7 @@ class VehicleFilterNode(DTROS):
                         self.circlepattern_dist * j - self.circlepattern_dist * (height - 1) / 2
                     )
 
-    def trigger_led_hazard_light(self, detection, stopped):
+    def trigger_led_hazard_light(self, stopped):
         """
         Publish a service message to trigger the hazard light at the back of the robot
         """
@@ -237,7 +245,7 @@ class VehicleFilterNode(DTROS):
             if msg.data != self.last_led_state:
                 self.changePattern(msg)
             self.last_led_state = msg.data
-        elif detection:
+        elif self.obstacle_detected:
             msg.data = "OBSTACLE_ALERT"
             if msg.data != self.last_led_state:
                 self.changePattern(msg)

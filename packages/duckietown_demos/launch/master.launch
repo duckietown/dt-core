@@ -212,6 +212,7 @@
 
         <!-- Vehicle Avoidance Detection Node -->
         <remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
+        <remap from="vehicle_detection_node/front_center_tof" to="front_center_tof_driver_node/range" />
         <remap from="vehicle_detection_node/detection" to="road_anomaly_watcher/obstacle_exists" />
         <group if="$(arg /vehicle_avoidance/detection)">
             <include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
@@ -224,6 +225,7 @@
         <remap from="vehicle_filter_node/set_pattern" to="led_emitter_node/set_pattern"/>
         <remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
         <remap from="vehicle_filter_node/centers" to="vehicle_detection_node/centers" />
+        <remap from="vehicle_filter_node/obstacles" to="road_anomaly_watcher/obstacle_exists" />
         <!-- Breaking convenction and remapping an output to make the virtual stop line readings look like
         real stop line readings -->
         <remap from="vehicle_filter_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
