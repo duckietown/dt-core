@@ -26,9 +26,9 @@ LP removing for now
 	    <arg name="lane_following" value="true"/>
 	    <arg name="/lane_following/line_detection" value="true"/>
 		<!-- special yellow range -->
-		<arg name="line_detector_param_file_name" default="default" />
+<!--		<arg name="line_detector_param_file_name" default="default" />-->
 <!--	    <arg name="line_detector_param_file_name" default="ev_fos_cutoff" />-->
-<!--		<arg name="line_detector_param_file_name" default="ev_fos_cutoff_ranges" />-->
+		<arg name="line_detector_param_file_name" default="ev_fos_cutoff_ranges" />
 	    <arg name="/lane_following/ground_projection" value="true"/>
 	    <arg name="/lane_following/lane_filter" value="true"/>
 	    <arg name="/lane_following/lane_controller" value="true"/>

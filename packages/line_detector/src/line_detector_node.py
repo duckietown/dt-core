@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 
 import numpy as np
 import cv2
@@ -9,7 +10,7 @@ from duckietown_msgs.msg import Segment, SegmentList, AntiInstagramThresholds
 from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
 from image_processing.anti_instagram import AntiInstagram
 
-from duckietown.dtros import DTROS, NodeType, TopicType
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 
 
 class LineDetectorNode(DTROS):
@@ -55,9 +56,9 @@ class LineDetectorNode(DTROS):
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
-        self._colors = rospy.get_param("~colors", None)
         self._img_size = rospy.get_param("~img_size", None)
         self._top_cutoff = rospy.get_param("~top_cutoff", None)
+        self._colors = DTParam("~colors", None)
 
         self.bridge = CvBridge()
 
@@ -71,8 +72,11 @@ class LineDetectorNode(DTROS):
 
         # Create a new LineDetector object with the parameters from the Parameter Server / config file
         self.detector = LineDetector(**self._line_detector_parameters)
+
         # Update the color ranges objects
-        self.color_ranges = {color: ColorRange.fromDict(d) for color, d in list(self._colors.items())}
+        self.color_ranges = {}
+        self.on_colors_range_change()
+        self._colors.register_update_callback(self.on_colors_range_change)
 
         # Publishers
         self.pub_lines = rospy.Publisher(
@@ -106,6 +110,13 @@ class LineDetectorNode(DTROS):
         self.sub_thresholds = rospy.Subscriber(
             "~thresholds", AntiInstagramThresholds, self.thresholds_cb, queue_size=1
         )
+
+    def on_colors_range_change(self):
+        self.color_ranges = {
+            color: ColorRange.fromDict(d)
+            for color, d in list(self._colors.value.items())
+        }
+        self.loginfo(f"Color range changed to {json.dumps(self._colors.value)}")
 
     def thresholds_cb(self, thresh_msg):
         self.anti_instagram_thresholds["lower"] = thresh_msg.low
@@ -299,7 +310,7 @@ class LineDetectorNode(DTROS):
             # convert HSV color to BGR
             c = color_range.representative
             c = np.uint8([[[c[0], c[1], c[2]]]])
-            color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int)
+            color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
             for i in range(len(color_range.low)):
                 cv2.rectangle(
                     im,
