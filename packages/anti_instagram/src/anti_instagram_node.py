@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import cv2
 from multiprocessing import Lock
 from image_processing.anti_instagram import AntiInstagram
 from cv_bridge import CvBridge
@@ -32,6 +33,8 @@ class AntiInstagramNode(DTROS):
         self._interval = rospy.get_param("~interval")
         self._color_balance_percentage = rospy.get_param("~color_balance_scale")
         self._output_scale = rospy.get_param("~output_scale")
+        self._img_size = rospy.get_param("~img_size", None)
+        self._top_cutoff = rospy.get_param("~top_cutoff", None)
 
         # Construct publisher
         self.pub = rospy.Publisher(
@@ -76,6 +79,17 @@ class AntiInstagramNode(DTROS):
             self.log("Waiting for first image!")
             return
         image = self.decode_image_msg()
+
+        if self._img_size is not None:
+            h_original, w_original = image.shape[0:2]
+            h_requested, w_requested = self._img_size
+            if w_requested != w_original or h_requested != h_original:
+                image = cv2.resize(image, (w_requested, h_requested), interpolation=cv2.INTER_NEAREST)
+        if self._top_cutoff is not None:
+            image = image[self._top_cutoff:, :, :]
+
+        self.logdebug(f"anti-instagram sizes: Exp ({self._img_size}, {self._top_cutoff}) Act ({image.shape})")
+
         (lower_thresholds, higher_thresholds) = self.ai.calculate_color_balance_thresholds(
             image, self._output_scale, self._color_balance_percentage
         )
