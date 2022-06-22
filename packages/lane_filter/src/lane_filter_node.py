@@ -7,9 +7,24 @@ import rospy
 from cv_bridge import CvBridge
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import FSMState, LanePose, SegmentList, Twist2DStamped
-from lane_filter import LaneFilterHistogram
-from sensor_msgs.msg import Image
+from duckietown_msgs.msg import Segment as SegmentMsg
+from sensor_msgs.msg import Image, CompressedImage
 from std_msgs.msg import String
+
+from dt_state_estimation.lane_filter import (
+    LaneFilterHistogram,
+    # ILaneFilter,
+)
+from dt_state_estimation.lane_filter.types import (
+    Segment,
+    SegmentPoint,
+    SegmentColor,
+)
+from dt_state_estimation.lane_filter.rendering import (
+    # plot_belief,
+    plot_d_phi,  # new rendering
+)
+from typing import List
 
 
 class LaneFilterNode(DTROS):
@@ -39,7 +54,7 @@ class LaneFilterNode(DTROS):
 
     Publishers:
         ~lane_pose (:obj:`LanePose`): The computed lane pose estimate
-        ~belief_img (:obj:`Image`): A debug image that shows the filter's internal state
+        ~debug/belief_img/compressed (:obj:`CompressedImage`): A debug image that shows the filter's internal state
         ~seglist_filtered (:obj:``SegmentList): a debug topic to send the filtered list of segments that
         are considered as valid
 
@@ -78,7 +93,7 @@ class LaneFilterNode(DTROS):
         )
 
         self.pub_belief_img = rospy.Publisher(
-            "~belief_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
+            "~debug/belief_img/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
         self.pub_seglist_filtered = rospy.Publisher(
@@ -89,6 +104,24 @@ class LaneFilterNode(DTROS):
         # self.sub_switch = rospy.Subscriber(
         #     "~switch", BoolStamped, self.cbSwitch, queue_size=1)
         self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
+
+    @staticmethod
+    def _seg_msg_to_custom_type(msg: SegmentMsg):
+        color: SegmentColor = SegmentColor.WHITE
+        if msg.color == SegmentMsg.YELLOW:
+            color = SegmentColor.YELLOW
+        elif msg.color == SegmentMsg.RED:
+            color = SegmentColor.RED
+
+        p1, p2 = msg.points
+
+        return Segment(
+            color=color,
+            points=[
+                SegmentPoint(x=p1.x, y=p1.y),
+                SegmentPoint(x=p2.x, y=p2.y),
+            ],
+        )
 
     def cbTemporaryChangeParams(self, msg):
         """Callback that changes temporarily the filter's parameters.
@@ -143,70 +176,44 @@ class LaneFilterNode(DTROS):
         current_time = rospy.get_time()
         if self.currentVelocity:
             dt = current_time - self.t_last_update
-            self.filter.predict(dt=dt, v=self.currentVelocity.v, w=self.currentVelocity.omega)
+            self.filter.predict(delta_t=dt, v=self.currentVelocity.v, w=self.currentVelocity.omega)
 
         self.t_last_update = current_time
 
+        segs: List[Segment] = []
+        s_msg: SegmentMsg
+        for s_msg in segment_list_msg.segments:
+            segs.append(self._seg_msg_to_custom_type(s_msg))
+
         # Step 2: update
-        self.filter.update(segment_list_msg.segments)
+        self.filter.update(segs)
 
         # Step 3: build messages and publish things
-        [d_max, phi_max] = self.filter.getEstimate()
-        # print "d_max = ", d_max
-        # print "phi_max = ", phi_max
+        d_max, phi_max = self.filter.get_estimate()
+        # self.logdebug(f"estimation: {d_max}, {phi_max}")
 
         # Getting the highest belief value from the belief matrix
-        max_val = self.filter.getMax()
+        max_val = self.filter.get_max()
         # Comparing it to a minimum belief threshold to make sure we are certain enough of our estimate
         in_lane = max_val > self.filter.min_max
 
         # build lane pose message to send
-        lanePose = LanePose()
-        lanePose.header.stamp = segment_list_msg.header.stamp
-        lanePose.d = d_max
-        lanePose.phi = phi_max
-        lanePose.in_lane = in_lane
+        lane_pose = LanePose()
+        lane_pose.header.stamp = segment_list_msg.header.stamp
+        lane_pose.d = d_max
+        lane_pose.phi = phi_max
+        lane_pose.in_lane = in_lane
         # XXX: is it always NORMAL?
-        lanePose.status = lanePose.NORMAL
+        lane_pose.status = lane_pose.NORMAL
 
-        self.pub_lane_pose.publish(lanePose)
-        self.debugOutput(segment_list_msg, d_max, phi_max, timestamp_before_processing)
+        self.pub_lane_pose.publish(lane_pose)
 
-    def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_before_processing):
-        """Creates and publishes debug messages
-
-        Args:
-            segment_list_msg (:obj:`SegmentList`): message containing list of filtered segments
-            d_max (:obj:`float`): best estimate for d
-            phi_max (:obj:``float): best estimate for phi
-            timestamp_before_processing (:obj:`float`): timestamp dating from before the processing
-
-        """
-        if self._debug:
-            # Latency of Estimation including curvature estimation
-            estimation_latency_stamp = rospy.Time.now() - timestamp_before_processing
-            estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs / 1e9
-            self.latencyArray.append(estimation_latency)
-
-            if len(self.latencyArray) >= 20:
-                self.latencyArray.pop(0)
-
-            # print "Latency of segment list: ", segment_latency
-            self.loginfo(f"Mean latency of Estimation:................. {np.mean(self.latencyArray)}")
-
-            # Get the segments that agree with the best estimate and publish them
-            inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
-            inlier_segments_msg = SegmentList()
-            inlier_segments_msg.header = segment_list_msg.header
-            inlier_segments_msg.segments = inlier_segments
-            self.pub_seglist_filtered.publish(inlier_segments_msg)
-
-            # Create belief image and publish it
-            belief_img = self.bridge.cv2_to_imgmsg(
-                np.array(255 * self.filter.belief).astype("uint8"), "mono8"
-            )
-            belief_img.header.stamp = segment_list_msg.header.stamp
-            self.pub_belief_img.publish(belief_img)
+        # # old rendering
+        # debug_img_msg = self.bridge.cv2_to_compressed_imgmsg(plot_belief(filter=self.filter))
+        if self.pub_belief_img.get_num_connections() > 0:
+            debug_img_msg = self.bridge.cv2_to_compressed_imgmsg(plot_d_phi(d=d_max, phi=phi_max))
+            debug_img_msg.header = segment_list_msg.header
+            self.pub_belief_img.publish(debug_img_msg)
 
     def cbMode(self, msg):
         return  # TODO adjust self.active
