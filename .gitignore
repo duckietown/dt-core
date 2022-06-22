@@ -9,3 +9,10 @@ out
 
 # otherwise CI thinks index not clean
 *.resolved
+
+# venv
+venv/
+.venv/
+
+# pycharm
+.idea/
