@@ -53,6 +53,8 @@ class LaneControllerNode(DTROS):
         # Initialize the DTROS parent class
         super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
+        self._veh = rospy.get_param("~veh")
+
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
         self.params = dict()
@@ -74,6 +76,8 @@ class LaneControllerNode(DTROS):
         self.params["~omega_ff"] = rospy.get_param("~omega_ff", None)
         self.params["~verbose"] = rospy.get_param("~verbose", None)
         self.params["~stop_line_slowdown"] = rospy.get_param("~stop_line_slowdown", None)
+
+        self._traffic_mode = DTParam(f"/{self._veh}/behavior/traffic_mode", None)
 
         # Need to create controller object before updating parameters, otherwise it will fail
         self.controller = LaneController(self.params)
@@ -232,6 +236,10 @@ class LaneControllerNode(DTROS):
 
             # For feedforward action (i.e. during intersection navigation)
             omega += self.params["~omega_ff"]
+
+        # mirror the control if left-hand traffic mode is set
+        if self._traffic_mode.value == "LHT":
+            omega *= -1.0
 
         # Initialize car control msg, add header from input message
         car_control_msg = Twist2DStamped()
