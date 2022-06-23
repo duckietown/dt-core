@@ -56,9 +56,12 @@ class LineDetectorNode(DTROS):
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
+        self._veh = rospy.get_param("~veh")
         self._img_size = rospy.get_param("~img_size", None)
         self._top_cutoff = rospy.get_param("~top_cutoff", None)
         self._colors = DTParam("~colors", None)
+
+        self._traffic_mode = DTParam(f"/{self._veh}/behavior/traffic_mode", None)
 
         self.bridge = CvBridge()
 
@@ -162,6 +165,10 @@ class LineDetectorNode(DTROS):
             image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
         image = image[self._top_cutoff :, :, :]
 
+        # mirror the image if left-hand traffic mode is set
+        if self._traffic_mode.value == "LHT":
+            image = np.fliplr(image)
+
         # Extract the line segments for every color
         self.detector.setImage(image)
         detections = {
@@ -204,18 +211,28 @@ class LineDetectorNode(DTROS):
         if self.pub_d_segments.get_num_connections() > 0:
             colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
             debug_img = plotSegments(image, colorrange_detections)
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                debug_img = np.fliplr(debug_img)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
             self.pub_d_segments.publish(debug_image_msg)
 
         if self.pub_d_edges.get_num_connections() > 0:
-            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(self.detector.canny_edges)
+            canny_edges = self.detector.canny_edges
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                canny_edges = np.fliplr(canny_edges)
+            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(canny_edges)
             debug_image_msg.header = image_msg.header
             self.pub_d_edges.publish(debug_image_msg)
 
         if self.pub_d_maps.get_num_connections() > 0:
             colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
             debug_img = plotMaps(image, colorrange_detections)
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                debug_img = np.fliplr(debug_img)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
             self.pub_d_maps.publish(debug_image_msg)

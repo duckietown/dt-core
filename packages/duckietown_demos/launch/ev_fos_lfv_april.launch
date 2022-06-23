@@ -38,6 +38,7 @@ LP removing for now
 		<arg name="/vehicle_avoidance/detection" value="true" />
 		<arg name="/vehicle_avoidance/filter" value="true" />
 
+<!--		<arg name="traffic_mode" value="LHT" />-->
   	</include>
 
 	<!-- apriltag node -->
