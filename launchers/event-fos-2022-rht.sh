@@ -13,7 +13,7 @@ dt-launchfile-init
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait duckietown_demos ev_fos_lfv_april.launch
+dt-exec roslaunch --wait duckietown_demos event_fos_2022.launch traffic_mode:=RHT
 
 
 # ----------------------------------------------------------------------------
