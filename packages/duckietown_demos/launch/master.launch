@@ -256,12 +256,17 @@
     <group if="$(arg obstacle_detection)">
 
         <group if="$(arg /obstacle_detection/detection)">
+<!--            publish / set -->
             <remap from="obstacle_detection_node/mode" to="fsm_node/mode" />
-            <remap from="obstacle_detection_node/pedestrian_detection/detection" to="pedestrian_detection/detection"/>
-            <remap from="obstacle_detection_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
-            <remap from="obstacle_detection_node/vehicle_detection/detection" to="road_anomaly_watcher/obstacle_exists"/>
             <remap from="obstacle_detection_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
             <remap from="obstacle_detection_node/stopped" to="road_anomaly_watcher/obstacle_halted_vehicle"/>
+            <remap from="obstacle_detection_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+<!--            pedestrian -->
+            <remap from="obstacle_detection_node/pedestrian_detection/detection" to="pedestrian_detection/detection"/>
+<!--            vehicle -->
+            <remap from="obstacle_detection_node/vehicle_detection/detection" to="road_anomaly_watcher/obstacle_exists"/>
+<!--            tof range -->
+            <remap from="obstacle_detection_node/front_center_tof/range" to="front_center_tof_driver_node/range"/>
             <include file="$(find obstacle_detection)/launch/obstacle_detection_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
             </include>

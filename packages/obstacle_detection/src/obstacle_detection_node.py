@@ -6,6 +6,7 @@ from cv_bridge import CvBridge
 from duckietown.dtros import DTParam, DTROS, NodeType
 from duckietown_msgs.msg import BoolStamped, StopLineReading, LEDPattern, FSMState
 from duckietown_msgs.srv import ChangePattern, SetCustomLEDPattern
+from sensor_msgs.msg import Range
 
 
 class ObstacleDetectionNode(DTROS):
@@ -28,7 +29,9 @@ class ObstacleDetectionNode(DTROS):
         lst_topics = [
             ('~vehicle_detection/detection', BoolStamped, self.cb_bool_stamped_template),
             ('~pedestrian_detection/detection', BoolStamped, self.cb_bool_stamped_template),
+            ('~front_center_tof/range', Range, self.cb_tof_range),
         ]
+        self._tof_threshold = 0.15  # TODO: make parameter
 
         self._subscribers = []
         for topic, topic_type, callback in lst_topics:
@@ -48,6 +51,10 @@ class ObstacleDetectionNode(DTROS):
         )
         self.last_led_state = None
         self.changePattern = rospy.ServiceProxy("~set_custom_pattern", SetCustomLEDPattern)
+
+    def cb_tof_range(self, msg: Range, topic: str):
+        self.topics_state[topic] = (0 <= msg.range < self._tof_threshold)
+        self._header = msg.header
 
     def cb_fsm_mode(self, msg: FSMState):
         self.state = msg.state
