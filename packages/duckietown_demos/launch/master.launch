@@ -48,6 +48,9 @@
     <arg name="/vehicle_avoidance/filter" default="false" />
     <arg name="/vehicle_avoidance/control" default="false"/>
 
+    <arg name="obstacle_detection" default="false"/>
+    <arg name="/obstacle_detection/detection" default="false"/>
+
     <arg name="apriltags" default="false"/>
 
     <arg name="LED" default="false" />
@@ -248,6 +251,23 @@
         </group>-->
     </group>
     <!-- End Vehicle Avoidance -->
+
+    <!-- Start Obstacle Detection -->
+    <group if="$(arg obstacle_detection)">
+
+        <group if="$(arg /obstacle_detection/detection)">
+            <remap from="obstacle_detection_node/mode" to="fsm_node/mode" />
+            <remap from="obstacle_detection_node/pedestrian_detection/detection" to="pedestrian_detection/detection"/>
+            <remap from="obstacle_detection_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+            <remap from="obstacle_detection_node/vehicle_detection/detection" to="road_anomaly_watcher/obstacle_exists"/>
+            <remap from="obstacle_detection_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
+            <remap from="obstacle_detection_node/stopped" to="road_anomaly_watcher/obstacle_halted_vehicle"/>
+            <include file="$(find obstacle_detection)/launch/obstacle_detection_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+            </include>
+        </group>
+    </group>
+    <!-- End Obstacle Detection -->
 
     <!-- Start AprilTags -->
     <group if="$(arg apriltags)">
