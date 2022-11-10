@@ -10,3 +10,9 @@ procgraph-z6
 ros_node_utils>=2.0.0
 duckietown-utils-daffy
 compmake-z6>=6.0.9
+
+# WARNING: as of 11/10/2022, these are the libraries' versions that work on arm32v7
+numpy==1.17.3
+cmake==3.24.3
+scikit-build==0.13.1
+opencv-python==4.4.0.46

@@ -61,7 +61,9 @@ RUN python3 -m pip check
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 COPY ./dependencies-py3.* "${REPO_PATH}/"
-RUN python3 -m pip install -r ${REPO_PATH}/dependencies-py3.txt
+
+# WARNING: this is a good version for opencv-python to build
+RUN python3 -m pip install --upgrade pip==21.3.1
 
 # copy the source code
 COPY ./packages "${REPO_PATH}/packages"
