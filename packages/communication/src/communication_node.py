@@ -21,13 +21,13 @@ class MySubscriberNode(DTROS):
         self.sub = rospy.Subscriber('camera_node/image/compressed', CompressedImage, self.callback)
         self.serv = rospy.ServiceProxy('led_emitter_node/set_custom_pattern', SetCustomLEDPattern)
 
-        self.buffer = ImgBuffer(200)
+        self.buffer = ImgBuffer(60)
 
     def run(self):
         pass
 
     def callback(self, data):
-        new_img = cv2.cvtColor(np.frombuffer(data.data, np.uint8), cv2.COLOR_RGB2GRAY)
+        new_img = cv2.cvtColor(cv2.imdecode(np.frombuffer(data.data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2GRAY)
         self.buffer.push(new_img)
 
         if len(self.buffer.diff_imgs) < 2:
@@ -35,7 +35,8 @@ class MySubscriberNode(DTROS):
 
         sub_images = [(get_sub(self.buffer.raw_imgs, point, 10), point) for point in self.buffer.points]
         frequencies = [(get_frequency(sub), point) for sub, point in sub_images]
-        rospy.loginfo(f"frame {frequencies}")
+        p = '\n'.join([f"{f}" for f in frequencies])
+        rospy.loginfo(f"frame: {p}")
 
 
 if __name__ == '__main__':

@@ -5,10 +5,11 @@ import numpy as np
 import cv2
 
 
-class Point(NamedTuple):
-    coords: Tuple[int, int]
-    last_seen: int = 0
-    weight: int = 1
+class Point:
+    def __init__(self, new_coords: Tuple[int, int], last_seen: int = 0, weight: int = 1):
+        self.coords = new_coords
+        self.last_seen = last_seen
+        self.weight = weight
 
     def __add__(self, other: 'Point'):
         new_weight = other.weight + self.weight
@@ -19,6 +20,9 @@ class Point(NamedTuple):
         new_last_seen = min(other.last_seen, self.last_seen)
 
         return Point(new_coords, new_last_seen, new_weight)
+    
+    def __repr__(self):
+        return f"coords: {self.coords}, last_seen: {self.last_seen}, weight: {self.weight}"
 
     @staticmethod
     def batch(batch: Iterable[Tuple[int, int]]) -> List['Point']:
@@ -33,10 +37,10 @@ def group_point(points: List[Point], size):
         for p2, nb in chain(*groups):
             i2, j2 = p2.coords
             if abs(i2 - i1) < size and abs(j2 - j1) < size:
-                groups[nb].append((Point((i1, j1)), nb))
+                groups[nb].append((p1, nb))
                 break
         else:
-            groups.append([(Point((i1, j1)), group_nb)])
+            groups.append([(p1, group_nb)])
             group_nb += 1
 
     return [sum((e[0] for e in group[1:]), start=group[0][0]) for group in groups]

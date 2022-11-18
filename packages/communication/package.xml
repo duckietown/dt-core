@@ -1,9 +1,8 @@
+<?xml version="1.0"?>
 <package>
   <name>communication</name>
   <version>0.1.0</version>
-  <description>
-  This package is a test for RH3.
-  </description>
+  <description>todo</description>
   <maintainer email="antoine.robillard@umontreal.ca">Antoine R</maintainer>
   <license>None</license>
 

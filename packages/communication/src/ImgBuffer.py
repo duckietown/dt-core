@@ -17,11 +17,15 @@ class ImgBuffer:
             diff[diff < 50] = 0
             self.diff_imgs.append(diff)
 
+        if len(self.diff_imgs) > 0:
+            max_points = get_maxes(self.diff_imgs[-1])
+            self.points = set(group_point([*max_points, *self.points], 6))
+        
+        for point in self.points:
+            point.last_seen += 1
+
         self.raw_imgs.append(new_img)
-
-        max_points = get_maxes(self.diff_imgs[-1])
-        self.points = group_point([*max_points, self.points], 6)
-
+        
         self._trim_size()
 
     def _trim_size(self):
