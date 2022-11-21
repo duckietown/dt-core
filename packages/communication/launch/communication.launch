@@ -1,9 +1,0 @@
-<launch>
-    <group ns="$(arg veh)">
-        <node pkg="communication" type="communication_node.py" name="communication_node" output="screen">
-            <remap from="/$(arg veh)/camera_node/image/compressed" to="camera_node/image/compressed"/>
-            <remap from="/$(arg veh)/led_emitter_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
-        </node>
-    </group>
-</launch>
-

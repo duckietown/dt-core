@@ -27,6 +27,8 @@
     <arg name="/camera/rect" default="false"/>
 
     <arg name="anti_instagram" default="false"/>
+    <arg name="communication" default="false"/>
+
 
     <arg name="visualization" default="false" />
 
@@ -167,6 +169,14 @@
             <include file="$(find lane_filter)/launch/lane_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
+            </include>
+        </group>
+
+        <group if="$(arg communication)">
+            <remap from="/$(arg veh)/camera_node/image/compressed" to="camera_node/image/compressed"/>
+            <remap from="/$(arg veh)/led_emitter_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+            <include file="$(find communication)/launch/communication_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
             </include>
         </group>
 
