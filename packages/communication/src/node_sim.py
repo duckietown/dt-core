@@ -1,32 +1,34 @@
-import numpy as np
 import cv2
-
-from ImgBuffer import ImgBuffer
+from BaseComNode import BaseComNode
+from io import BytesIO
 
 TEST_VIDEO = '/home/sh3mm/Desktop/IFT6757/image/videos/video_1.avi'
 
 
-class NodeSim:
-    def __init__(self):
-        self.buffer = ImgBuffer(60, 40)
-
-    def callback_sim(self, new_img: np.ndarray):
-        self.buffer.push(new_img)
-
-        for i, point in enumerate(self.buffer.points):
-            print(f"{i} -- freq: {point.get_frequency()[0]} -- {point}")
+class Data:
+    def __init__(self, data):
+        self.data = data
 
 
 def main():
-    vid = cv2.VideoCapture('/home/sh3mm/Desktop/IFT6757/image/videos/video_1.avi')
+    vid = cv2.VideoCapture(TEST_VIDEO)
 
-    node = NodeSim()
+    node = BaseComNode()
+    node.state_callback(1)
     while vid.isOpened():
         ret, curr_img = vid.read()
         if not ret:
             break
 
-        node.callback_sim(cv2.cvtColor(curr_img, cv2.COLOR_BGR2GRAY))
+        # data prep to simulate the actual input
+        _, buffer = cv2.imencode(".jpeg", curr_img)
+        io_buf = BytesIO(buffer)
+        data = Data(io_buf.getbuffer())
+
+        # node call
+        node.img_callback(data)
+
+        node.run()
 
 
 if __name__ == '__main__':
