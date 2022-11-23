@@ -1,5 +1,5 @@
 import numpy as np
-from UtilStates import ComState, ActionState
+from UtilStates import ComState, ActionState, TrafficLightState, StopSignState
 from random import choice
 from PointBuffer import PointBuffer
 import cv2
@@ -20,12 +20,23 @@ class BaseComNode:
         # current state of the node. By default, it is inactive
         self.active_state = ComState.Sleeping
 
+        # TODO Debugging counter for tests
+        self.DEBUG_COUNT = 0
+
     def img_callback(self, data):
         """
         This method redirect the image data to the right callback function depending on the current node state
 
         :param data: raw image data given by ROS
         """
+
+        # TODO Debugging camera in
+        if self.DEBUG_COUNT >= 30*10: # 30fps 10 sec
+            print("img_callback")
+            print(data.header)
+            self.DEBUG_COUNT = 0
+        self.DEBUG_COUNT += 1
+
         if self.active_state is ComState.Sleeping:
             return
         elif self.active_state is ComState.StopSign:
@@ -85,5 +96,5 @@ class BaseComNode:
         # TODO: fill
         for i, point in enumerate(self.buffer.points):
             print(f"{i} -- freq: {point.get_frequency()[0]} -- {point}")
-        print()
+        print("BaseComNode->run() call")
         pass
