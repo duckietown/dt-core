@@ -21,8 +21,8 @@ class CommunicationNode(DTROS, BaseComNode):
         DTROS.__init__(self, node_name=node_name, node_type=NodeType.COMMUNICATION)
         BaseComNode.__init__(self, 60, 40)
 
-        self.last_time = rospy.Time.now()
-        self.begin_time = self.last_time
+        self.last_time_sec = rospy.get_time()
+        self.begin_time_sec = self.last_time_sec
 
         # Subscribing
         #self.sub = rospy.Subscriber('camera_node/image/compressed', CompressedImage, self.img_callback)
@@ -83,13 +83,14 @@ class CommunicationNode(DTROS, BaseComNode):
 
     def publish_topics(self):
         
-        current_time = rospy.Time.now()
+        current_time_sec = rospy.get_time()
+        current_time_stamp = rospy.Time.now()
         
         if self.action_state == ActionState.Go:
             # TODO Publish GO
             # ...
             msg = BoolStamped()
-            msg.header.stamp = current_time
+            msg.header.stamp = current_time_sec
             msg.data = True
             self.pub_intersection_go.publish(msg)
             # And Trun off LED
@@ -118,7 +119,7 @@ class CommunicationNode(DTROS, BaseComNode):
             # TODO: Pulish a TIME_OUT message
             # ...
             msg = BoolStamped()
-            msg.header.stamp = current_time
+            msg.header.stamp = current_time_stamp
             msg.data = True
             self.pub_timed_out.publish(msg)
             # And set LED to RED solid color?
@@ -128,19 +129,18 @@ class CommunicationNode(DTROS, BaseComNode):
         
         # TODO Needed to hold the bot still?
         car_cmd_msg = Twist2DStamped(v=0.0, omega=0.0)
-        car_cmd_msg.header.stamp = current_time
+        car_cmd_msg.header.stamp = current_time_stamp
         self.pub_coord_cmd.publish(car_cmd_msg)
 
         # Update last_time
-        self.last_time = current_time
+        self.last_time_sec = current_time_sec
 
         # TODO perhaps should be handled inside BaseComNode?
-        if self.last_time - self.begin_time > self.TIME_OUT_SEC:
+        if self.last_time_sec - self.begin_time_sec > self.TIME_OUT_SEC:
             self.action = ActionState.TimedOut
 
 
     def run(self):
-        self.curr_time = rospy.Time.now()
         rate = rospy.Rate(0.5)  # 1Hz
         while not rospy.is_shutdown():
             # TODO: fill
