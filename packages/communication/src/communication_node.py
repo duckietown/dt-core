@@ -24,9 +24,13 @@ class CommunicationNode(DTROS, BaseComNode):
         self.last_time_sec = rospy.get_time()
         self.begin_time_sec = self.last_time_sec
 
+        # TODO Parameters
+        #self._some_param = rospy.get_param("~some_paramerter", False)
+
         # Subscribing
         #self.sub = rospy.Subscriber('camera_node/image/compressed', CompressedImage, self.img_callback)
         self.sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
+        # TODO subscribe to the intersection type TL or StopSign
 
         # Publishing
         self.pub_intersection_go = rospy.Publisher("~intersection_go", BoolStamped, queue_size=1)
@@ -75,9 +79,9 @@ class CommunicationNode(DTROS, BaseComNode):
 #        self.changeCustomPattern(pattern_msg)
 
         # TEST set_pattern solid color
-#        msg = String()
-#        msg.data = "WHITE"
-#        self.changePattern(msg)
+        msg = String()
+        msg.data = "RED"
+        self.changePattern(msg)
 
         pass
 

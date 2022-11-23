@@ -207,19 +207,7 @@
         </group>
 
     </group>
-    <!-- End Lane Control -->
-    
-    
-    <!-- Start Communication -->
-    <group if="$(arg communication)">
-        <remap from="/$(arg veh)/camera_node/image/compressed" to="camera_node/image/compressed"/>
-        <remap from="/$(arg veh)/led_emitter_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
-        <include file="$(find communication)/launch/communication_node.launch">
-            <arg name="veh" value="$(arg veh)"/>
-        </include>
-    </group>
-    <!-- End Communication -->
-    
+    <!-- End Lane Control -->    
 
     <!-- Start Vehicle Avoidance -->
     <group if="$(arg vehicle_avoidance)">
@@ -336,7 +324,20 @@
 
     <!-- End LEDs Detection -->
 
-
+   
+    <!-- Start Communication (New intersection coorditation) -->
+    <group if="$(arg communication)">
+        <remap from="communication_node/image_in" to="camera_node/image/compressed"/>
+        <remap from="communication_node/current_led_state" to="led_emitter_node/current_led_state"/>
+        <remap from="communication_node/set_pattern" to="led_emitter_node/set_pattern"/>
+        <remap from="communication_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+        <include file="$(find communication)/launch/communication_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <!-- <arg name="param_file_name" value="$(arg param_file_name)"/> -->
+        </include>
+    </group>
+    <!-- End Communication -->
+    
 
     <!-- Start Coordination -->
     <group if="$(arg coordination)">

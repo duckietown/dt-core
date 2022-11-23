@@ -11,8 +11,8 @@
 		<arg name="visualization" value="true" />
 
 	    <!-- Finite state machine -->
-	    <arg name="fsm" value="true"/>
-	    <arg name="/fsm/logic_gate" value="false"/>
+	    <!-- <arg name="fsm" value="true"/> -->
+	    <!-- <arg name="/fsm/logic_gate" value="false"/> -->
 
 		<!-- Camera and anti intagram -->
 		<arg name="/camera/raw" value="true"/>
