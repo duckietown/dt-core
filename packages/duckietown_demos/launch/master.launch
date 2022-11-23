@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-	<!-- start args TODO: most things here should come from node's config files!-->
-	<arg name="veh" default="$(env VEHICLE_NAME)"
+    <!-- start args TODO: most things here should come from node's config files!-->
+        <arg name="veh" default="$(env VEHICLE_NAME)"
          doc="The name of the robot (e.g., autobot01, watchtower02, ...)"/>
-    <arg name="robot_type" default="$(env ROBOT_TYPE)"
+        <arg name="robot_type" default="$(env ROBOT_TYPE)"
          doc="The type of the robot (e.g., duckiebot, watchtower, traffic_light, ...)"/>
-    <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
+        <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
          doc="The configuration of the robot (e.g., DB19, DB20, WT18, ...)"/>
-    <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+        <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -18,7 +18,7 @@
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
-	<!-- end args -->
+    <!-- end args -->
 
     <!-- general convention on remappings is that we remap the "subscribers" -->
 
@@ -106,7 +106,7 @@
         <!-- no remapping for FSM - full topic names specified in params yaml -->
         <include file="$(find fsm)/launch/fsm_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="lane_following.yaml"/>
+            <arg name="param_file_name" value="$(arg fsm_file_name)"/>
         </include>
 
         <!-- car_cmd_switch_node -->
@@ -120,7 +120,7 @@
           <!-- <remap from="coordinator_node/intersection_go" to="logic_gate_node/explicit_intersection_go" /> -->
           <include file="$(find fsm)/launch/logic_gate_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="lane_following.yaml"/>
+            <arg name="param_file_name" value="$(arg fsm_file_name)"/>
           </include>
         </group>
     </group>
@@ -172,14 +172,6 @@
             </include>
         </group>
 
-        <group if="$(arg communication)">
-            <remap from="/$(arg veh)/camera_node/image/compressed" to="camera_node/image/compressed"/>
-            <remap from="/$(arg veh)/led_emitter_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
-            <include file="$(find communication)/launch/communication_node.launch">
-                <arg name="veh" value="$(arg veh)"/>
-            </include>
-        </group>
-
         <!-- Stop Line Filter -->
         <group if="$(arg /lane_following/stop_line_filter)">
             <remap from="stop_line_filter_node/lanewidth" to="lane_filter_node/lanewidth"/>
@@ -216,6 +208,18 @@
 
     </group>
     <!-- End Lane Control -->
+    
+    
+    <!-- Start Communication -->
+    <group if="$(arg communication)">
+        <remap from="/$(arg veh)/camera_node/image/compressed" to="camera_node/image/compressed"/>
+        <remap from="/$(arg veh)/led_emitter_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+        <include file="$(find communication)/launch/communication_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+        </include>
+    </group>
+    <!-- End Communication -->
+    
 
     <!-- Start Vehicle Avoidance -->
     <group if="$(arg vehicle_avoidance)">
