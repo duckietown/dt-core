@@ -57,13 +57,14 @@ RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 # make sure the python environment is consistent before installing new dependencies
 RUN python3 -m pip check
 
+# WARNING: this is a good version for opencv-python to build
+RUN python3 -m pip install --upgrade pip==21.3.1
+
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 COPY ./dependencies-py3.* "${REPO_PATH}/"
-
-# WARNING: this is a good version for opencv-python to build
-RUN python3 -m pip install --upgrade pip==21.3.1
+RUN dt-pip3-install "${REPO_PATH}/dependencies-py3.*"
 
 # copy the source code
 COPY ./packages "${REPO_PATH}/packages"
