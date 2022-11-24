@@ -3,10 +3,9 @@ from enum import Enum
 
 # TODO perhaps merge some states?
 
-# State relative to the intersection types
-# TODO I think we should rename this one "IntersectionType" or State
-class ComState(Enum):
-    Sleeping = 0 # TODO Is this really needed? Perhaps use a more generic name "Unknown"?
+# Intersection types
+class IntersectionType(Enum):
+    Unknown = 0 # TODO Is this really needed? Perhaps use a more generic name "Unknown"?
     StopSign = 1
     TrafficLight = 2
 
@@ -14,7 +13,7 @@ class ComState(Enum):
 # Actions states to handle overall behaviour
 class ActionState(Enum):
     Go = 0         # State where we finally publish the GO signal and trun off LEDs
-    SignalToGo = 1 # State just before the final GO, this is needed to give
+    SignalingToGo = 1 # State just before the final GO, this is needed to give
                    # a visual cue (Can be solid Green for example)
     Solving = 2    # State to continue the solving the intersection priority/TL
     TimedOut = 3   # When we take too much time and no GO was given (duration TODO)
