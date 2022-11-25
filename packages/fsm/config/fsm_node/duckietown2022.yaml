@@ -43,15 +43,28 @@ events: # Maps from subscribing topic to signal ids
 
 # Define nodes
 nodes:
+  # Perceptual Nodes 
   decoder_node: "decoder_node/switch"
   anti_instagram: "anti_instagram_node/switch"
-  static_object_detector_node: "static_object_detector_node/switch"
+  object_detector_node: "object_detection_node/switch"
+  obstacle_detector_node: "obstacle_detector_node/switch" 
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
   framerate_high: "camera_node/framerate_high_switch"
+  april_tag_node: "april_tag_node/switch" 
+  led_detection_node: "led_detection_node/switch" 
   # extras added
 
+  # Other nodes
+  communication_node: "communication_node/switch"
+  deadreckoning_node: "deadreckoning_node/switch"
+  unicorn_intersection_node: "unicorn_intersection_node/switch" 
+
+  # Controller Nodes 
   lane_controller_node: "lane_controller_node/switch"
+  stop_controller_node: "stop_controller_node/switch" 
+  avoiders_controller_node: "avoiders_controller_node/switch"
+  navigators_controller_node: "navigators_controller_node/switch" 
 
   # Some of the nodes we have defined below have not been mapped yet. 
   # object_detection_node: "vehicle_filter_node/switch"
@@ -85,27 +98,23 @@ states:
       - line_detector_node
       - lane_filter_node
       - lane_controller_node
-      ## Placeholders
       - object_detector_node 
-      - object_avoider_node  
-      # - vehicle_filter_node
-      # - vehicle_detection_node
-      # - vehicle_avoidance_control_node
+      - obstacle_detector_node 
     lights: ["lane_following"]
     current_status: "in_progress"
   STOP_AT_INTERSECTION:
     transitions:
       intersection_comm_start: "COMM_AT_INTERSECTION"
     active_nodes:
-      - traffic_det_node 
-      - stop_controller_node # Publish to  
+      - april_tag_node 
+      - stop_controller_node
   COMM_AT_INTERSECTION:
     transitions:
       # intersection_comm_finish: "NAVIGATE_INTERSECTION"
       intersection_nav_start: "NAVIGATE_INTERSECTION"
     active_nodes:
       - led_detection_node 
-      - object_detector_node
+      - object_detector_node 
       - communication_node # Does all the processing required for communication and priority allocation  
       - stop_controller_node 
   NAVIGATE_INTERSECTION: 
@@ -123,6 +132,6 @@ states:
       - lane_filter_node
       - line_detector_node
       - object_detector_node 
-      - avoid_obstacle_controller_node 
+      - avoiders_controller_node 
 
 
