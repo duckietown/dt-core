@@ -29,7 +29,7 @@ LP removing for now
 	    <arg name="/lane_following/ground_projection" value="true"/>
 	    <arg name="/lane_following/lane_filter" value="true"/>
 	    <arg name="/lane_following/lane_controller" value="true"/>
-	    <arg name="/LED/led_emitter" value="true"/>
+	    <arg name="/LED/emitter" value="true"/>
 
   	</include>
 
