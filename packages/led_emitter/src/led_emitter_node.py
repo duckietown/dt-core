@@ -238,7 +238,7 @@ class LEDEmitterNode(DTROS):
             rgba.g = self.LEDspattern[i][1]
             rgba.b = self.LEDspattern[i][2]
             rgba.a = 1.0
-            LEDPattern_msg.rgb_vals.extend(rgba)
+            LEDPattern_msg.rgb_vals.append(rgba)
         self.pub_leds.publish(LEDPattern_msg)
 
     def srvSetPattern(self, msg):
