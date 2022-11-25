@@ -4,7 +4,7 @@ import rospy
 
 from duckietown_msgs.srv import SetCustomLEDPattern, ChangePattern
 from duckietown_msgs.srv import SetCustomLEDPatternResponse, ChangePatternResponse
-from duckietown_msgs.msg import Led, LEDPattern
+from duckietown_msgs.msg import LEDPattern
 from std_msgs.msg import ColorRGBA
 
 from duckietown.dtros import DTROS, TopicType, NodeType
