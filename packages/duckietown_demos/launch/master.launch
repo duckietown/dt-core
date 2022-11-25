@@ -315,7 +315,6 @@
         <group if="$(arg /LED/emitter)">
             <include file="$(find led_emitter)/launch/led_emitter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
-                <arg name="param_file_name" value="$(arg param_file_name)"/>
             </include>
         </group>
 
