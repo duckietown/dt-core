@@ -13,8 +13,8 @@ from duckietown.dtros import DTROS, TopicType, NodeType
 class LEDEmitterNode(DTROS):
     """Node for controlling LEDs.
 
-    Calls the low-level functions of class :obj:`RGB_LED` that creates the PWM
-    signal used to change the color of the LEDs. The desired behavior is specified by
+    Publishes to the `~led_pattern` topic. If the absence of the FIFOs this should be remapped to the
+     `led_driver_node/led_pattern` topic. The desired behavior is specified by
     the LED index (Duckiebots and watchtowers have multiple of these) and a pattern.
     A pattern is a combination of colors and blinking frequency.
 
@@ -77,8 +77,8 @@ class LEDEmitterNode(DTROS):
             for a duckiebot this should be the default `RGB` and for traffic lights should be `GRB`, default is `RGB`.
 
     Publishers:
-        ~current_led_state (:obj:`String` message): Publishes the name of the current pattern used. Published
-            only when the selected pattern changes.
+        ~led_pattern (:obj:`LEDPattern` message): Publishes the 5 LED values to be set by
+        the LED driver
 
     Services:
         ~set_custom_pattern: Allows setting a custom protocol. Will be named `custom`. See an example of a call
