@@ -54,6 +54,7 @@
     <arg name="/LED/detector" default="false" />
     <arg name="/LED/joystick" default="false" />
     <arg name="/LED/interpreter" default="false" />
+    <arg name="/LED/emitter" default="false" />
 
     <arg name="coordination" default="false"/>
     <arg name="/coordination/implicit_coordination" default="false"/>
@@ -311,6 +312,13 @@
         </group>
 
         <!--<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />-->
+        <group if="$(arg /LED/emitter)">
+            <include file="$(find led_emitter)/launch/led_emitter_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+            </include>
+        </group>
+
+                <!--<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />-->
         <group if="$(arg /LED/pattern_switch)">
             <remap from="led_pattern_switch_node/set_pattern" to="led_emitter_node/set_pattern"/>
             <include file="$(find led_pattern_switch)/launch/led_pattern_switch_node.launch">
