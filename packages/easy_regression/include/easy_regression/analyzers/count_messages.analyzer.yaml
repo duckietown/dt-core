@@ -1,4 +1,0 @@
-description: |
-    Counts the number of messages in the bag.
-constructor: easy_regression.CountMessages
-parameters: {}

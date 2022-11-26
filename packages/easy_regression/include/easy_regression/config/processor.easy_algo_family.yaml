@@ -1,3 +1,0 @@
-description: |
-    Log processors
-interface: easy_regression.ProcessorInterface
