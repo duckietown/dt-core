@@ -10,24 +10,25 @@ class IntersectionType(Enum):
     TrafficLight = 2
 
 
-# Actions states to handle overall behaviour
+# Actions states to handle overall behavior
 class ActionState(Enum):
-    Go = 0         # State where we finally publish the GO signal and trun off LEDs
+    Solving = 0       # State when still solving the intersection priority/TL
     SignalingToGo = 1 # State just before the final GO, this is needed to give
-                   # a visual cue (Can be solid Green for example)
-    Solving = 2    # State to continue the solving the intersection priority/TL
-    TimedOut = 3   # When we take too much time and no GO was given (duration TODO)
+                      # a visual cue (Can be solid Green for example)
+    Go = 2            # State where we finally publish the GO signal and turn off LEDs
+    TimedOut = 3      # When we take too much time and no GO was given (duration TODO)
 
 
 # States for TL processing
 class TrafficLightState(Enum):
-    SensingTL = 0   # State where TL is still being decoded
-    RedTL = 1       # State where "Red" (solid) light is read
-    GreenTL = 2     # State "green" (flashing) light is read
+    Sensing = 0   # State where TL is still being decoded
+    Green = 1     # State "green" (flashing) light is read
+    #Red = 2       # State where "Red" (solid) light is read TODO probably not needed
+    
 
 
-# States to be used for Stop Sign intersection nogiciation
+# States to be used for Stop Sign intersection negotiation 
 class StopSignState(Enum):
-    UnknownPriority = 0     # State where no priority has been established (still deconding LED from others)
+    Sensing = 0             # State where no priority has been established (still decoding LED from others)
     LowPriority = 1         # State where Other bot(s) has/have higher priority 
     HasHighestPriority = 2  # State where we have highest priority

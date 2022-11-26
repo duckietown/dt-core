@@ -10,6 +10,7 @@ from duckietown_msgs.srv import SetCustomLEDPattern, SetCustomLEDPatternRequest,
 from duckietown.dtros.utils import apply_namespace
 from std_msgs.msg import String
 
+
 class CommunicationNode(DTROS, BaseComNode):
 
     def __init__(self, node_name):
@@ -21,7 +22,7 @@ class CommunicationNode(DTROS, BaseComNode):
         self.begin_time_sec = self.last_time_sec
 
         # TODO Parameters
-        #self._some_param = rospy.get_param("~some_paramerter", False)
+        #self._some_param = rospy.get_param("~some_parameter", False)
 
         # Subscribing
         #self.sub = rospy.Subscriber('camera_node/image/compressed', CompressedImage, self.img_callback)
@@ -55,8 +56,8 @@ class CommunicationNode(DTROS, BaseComNode):
 
     def blink_at(self, frequency: int = 0, color: str = "white"):
         # TODO : These are some tests to debug the led_emitter_node.
-        # Currently for some obscure reason the led_emitter_node is never acessible
-        # in the container, opposed to the camera_node which is available reargless
+        # Currently for some obscure reason the led_emitter_node is never accessible
+        # in the container, opposed to the camera_node which is available regardless
         # how the node is launched. Both are supposed to be running when the "dt-car_interface"
         # is launched.
 
@@ -64,7 +65,7 @@ class CommunicationNode(DTROS, BaseComNode):
         if frequency == 0:
             msg = String()
             msg.data = color
-            self.changePattern(msg)
+            #self.changePattern(msg)
 
 #        self.serv(SetCustomLEDPatternRequest(pattern=LEDPattern(
 #            frequency=frequency,
@@ -97,29 +98,30 @@ class CommunicationNode(DTROS, BaseComNode):
             msg.header.stamp = current_time_stamp
             msg.data = True
             self.pub_intersection_go.publish(msg)
-            # And Trun off LED
+            # And Turn off LED
             # ...
 
             rospy.loginfo(f"[{self.node_name}] Go!")
 
-            # TODO just for debugging, reset curr_action_state to ActionState.Solving
-            self.curr_action_state = ActionState.Solving
+            # TODO TEST just for debugging, reset() and simulate TL
+            #self.reset()
+            #self.intersection_type_callback(2) # simulate TL
 
         elif self.curr_action_state == ActionState.SignalingToGo:
-            # LED need to be set to the wanted pattern (Solid GEEN?)
+            # LED need to be set to the wanted pattern (Solid GREEN?)
             # ...
 
             rospy.loginfo(f"[{self.node_name}] Signaling intention to Go soon!")
 
         elif self.curr_action_state == ActionState.Solving:
             # TODO: Nothing to do here? We publish nothing when in this state.
-            # Perhas just make sure to reset intermediate counters/time trackers for other
+            # Perhaps just make sure to reset intermediate counters/time trackers for other
             # states? Like SignalToGo
             # ...
             pass
 
         elif self.curr_action_state == ActionState.TimedOut:
-            # TODO: Pulish a TIME_OUT message
+            # TODO: Publish a TIME_OUT message
             # ...
             msg = BoolStamped()
             msg.header.stamp = current_time_stamp
