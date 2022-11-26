@@ -57,13 +57,11 @@ RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 # make sure the python environment is consistent before installing new dependencies
 RUN python3 -m pip check
 
-# WARNING: this is a good version for opencv-python to build
+# WARNING: this is a good version for opencv-python to build on ARM
 RUN python3 -m pip install --upgrade pip==21.3.1
 
-# TODO: numpy 1.17.4 is installed in the base image, try and reuse it by removing this and pinning 1.17.4 in the base image
+# WARNING: these are good versions for opencv-python to build on ARM
 RUN python3 -m pip install --upgrade numpy==1.17.4 cmake==3.24.3 scikit-build==0.13.1
-RUN python3 -m pip install --upgrade opencv-python==4.4.0.46
-
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
