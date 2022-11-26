@@ -24,11 +24,11 @@ class TrafficLightState(Enum):
     Sensing = 0   # State where TL is still being decoded
     Green = 1     # State "green" (flashing) light is read
     #Red = 2       # State where "Red" (solid) light is read TODO probably not needed
-    
 
 
 # States to be used for Stop Sign intersection negotiation 
 class StopSignState(Enum):
-    Sensing = 0             # State where no priority has been established (still decoding LED from others)
-    LowPriority = 1         # State where Other bot(s) has/have higher priority 
-    HasHighestPriority = 2  # State where we have highest priority
+    Sensing = 0              # State where no priority has been established (still decoding LED from others)
+    LowPriority = 1          # State where Other bot(s) has/have higher priority 
+    HasHighestPriority = 2   # State where we have highest priority
+    ConflictingBlinkFreq = 3 # State when we have the same blinking freq as other bots

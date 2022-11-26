@@ -1,6 +1,5 @@
 import numpy as np
 from UtilStates import IntersectionType, ActionState, TrafficLightState, StopSignState
-from random import choice
 import cv2
 from time import time
 from stop_sign_solver import StopSignSolver
@@ -15,17 +14,9 @@ class BaseComNode:
     """
     
     # TODO move these constants somewhere else as params?
-    
     TIME_OUT_SEC = 10*60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
-    # Permitted frequencies that can be used for flashing. We don't use ]5..10[ range since it is too close
-    # to TL (Helps with background stop intersections interference)
-    PERMITTED_FREQ = [2, 4, 5, 10, 15] # [2, 4, 5, 6, 8, 10, 15]
-
-    SOLVING_STOP_LED_COLOR = "white"
-    SOLVING_TL_LED_COLOR = "red"
     SIGNALING_TOGO_DURATION = 2 # Duration in sec of "SignalingToGo" (Solid Green)
-    
-    
+
 
     def __init__(self, buffer_length=60, buffer_forget_time=40):
         # buffers parameters used to keep active points
@@ -41,12 +32,12 @@ class BaseComNode:
         self.curr_action_state = ActionState.Solving
         self.current_blink_freq = 0 # Init as not blinking
         time_now = time()
-        self.begin_blink_time = time_now
         self.last_state_transition_time = time_now
         self.begin_solving_time_sec = time_now
 
         # TODO Debugging counter for tests
         self.DEBUG_COUNT = 0
+
 
     # Reset method to reset everything to initial state
     # Should be used once a "GO" is published just to be ready for next round and avoid undefined states/behaviors
@@ -60,7 +51,6 @@ class BaseComNode:
         self.update_action_state(ActionState.Solving)
         self.current_blink_freq = 0 # Init as not blinking
         time_now = time()
-        self.begin_blink_time = time_now
         self.last_state_transition_time = time_now
         self.begin_solving_time_sec = time_now
 
@@ -73,7 +63,7 @@ class BaseComNode:
         """
 
         # TODO Debugging camera in
-        if self.DEBUG_COUNT >= 30*10: # 30fps 10 sec
+        if self.DEBUG_COUNT >= 30*10: # print every 30fps 10 sec
             print("img_callback")
             #print(data.header)
             self.DEBUG_COUNT = 0
@@ -85,6 +75,7 @@ class BaseComNode:
             self.stop_sign_img_callback(data)
         elif self.curr_intersection_type is IntersectionType.TrafficLight:
             self.traffic_light_img_callback(data)
+
 
     def intersection_type_callback(self, data):
         """
@@ -106,25 +97,23 @@ class BaseComNode:
                 self.ss_solver.reset()
                 self.update_action_state(ActionState.Solving)
                 # Choose a blink freq and reset blink time tracker
-                # TODO move the following StopSignSolver.step_solver()
-                self.current_blink_freq = choice(self.PERMITTED_FREQ)
-                self.blink_at(self.current_blink_freq, self.SOLVING_STOP_LED_COLOR)
-                self.begin_blink_time = time()
+                self.current_blink_freq, self.current_color = self.ss_solver.get_blinkfreq_and_color()
+                self.blink_at(self.current_blink_freq, self.current_color)
             
             elif new_intersection_type is IntersectionType.TrafficLight:
                 self.tl_solver.reset()
                 self.update_action_state(ActionState.Solving)
                 # Stop blinking and set solid color to "red"
-                self.current_blink_freq = 0
+                self.current_blink_freq, self.current_color = self.tl_solver.get_blinkfreq_and_color()
                 # TODO make sure to do this in only one place
-                self.blink_at(self.current_blink_freq, self.SOLVING_TL_LED_COLOR)
+                self.blink_at(self.current_blink_freq, self.current_color)
 
             self.curr_intersection_type = new_intersection_type
+
 
     # Elapsed time in current state (since last transition)
     def elapsed_time_in_curr_state(self):
         return time() - self.last_state_transition_time
-
 
 
     def blink_at(self, frequency: int):
@@ -134,6 +123,7 @@ class BaseComNode:
         :param frequency: frequency of blinking
         """
         pass  # placeholder for inheritance
+
 
     # All state updates should be done here
     def update_action_state(self, new_action_state):
@@ -150,7 +140,6 @@ class BaseComNode:
                 self.tl_solver.reset()
                 self.ss_solver.reset()
 
-            
 
     def stop_sign_img_callback(self, data):
         """
@@ -173,13 +162,14 @@ class BaseComNode:
         new_img = cv2.cvtColor(cv2.imdecode(np.frombuffer(data.data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2GRAY)
         self.tl_solver.push_camera_image(new_img)
 
-    
+
     # Method to handle the transition from the state "SignalingToGo" to the stat "Go"
     def handle_togo_transition(self):
         # Stay in this SignalingToGo state for a certain duration.
         if (self.curr_action_state == ActionState.SignalingToGo
             and self.elapsed_time_in_curr_state() > self.SIGNALING_TOGO_DURATION):
                 self.update_action_state(ActionState.Go)
+
 
     def run(self):
         """
@@ -219,7 +209,6 @@ class BaseComNode:
         else:
             # TODO should never happen?
             pass
-
 
         # Update last_time
         self.last_time_sec = current_time_sec
