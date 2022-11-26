@@ -1,7 +1,7 @@
 # parameters
 ARG REPO_NAME="dt-core"
 ARG DESCRIPTION="Provides high-level autonomy and fleet-coordination capabilities"
-ARG MAINTAINER="Andrea F. Daniele (afdaniele@ttic.edu)"
+ARG MAINTAINER="Andrea F. Daniele (afdaniele@duckietown.com)"
 # pick an icon from: https://fontawesome.com/v4.7.0/icons/
 ARG ICON="diamond"
 
@@ -102,4 +102,3 @@ ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
 
 COPY scripts/send-fsm-state.sh /usr/local/bin
-
