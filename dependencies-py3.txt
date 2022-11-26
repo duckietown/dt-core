@@ -1,5 +1,5 @@
 # LIST YOUR PYTHON3 PACKAGES HERE
-ruamel.yaml==0.16.10
+ruamel.yaml
 
 comptests-z6
 
