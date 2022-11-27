@@ -8,6 +8,3 @@ comptests-z6
 procgraph-z6
 ros_node_utils>=2.0.0
 compmake-z6>=6.0.9
-
-# WARNING: as of 11/10/2022, this is the only version that works on arm32v7
-opencv-python==4.4.0.46

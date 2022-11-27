@@ -54,14 +54,13 @@ ENV DT_MODULE_TYPE="${REPO_NAME}" \
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 
-# make sure the python environment is consistent before installing new dependencies
-RUN python3 -m pip check
-
-# WARNING: this is a good version for opencv-python to build on ARM
-RUN python3 -m pip install --upgrade pip==21.3.1
-
-# WARNING: these are good versions for opencv-python to build on ARM
-RUN python3 -m pip install --upgrade numpy==1.17.4 cmake==3.24.3 scikit-build==0.13.1
+# install opencv
+RUN echo PLATFORM="${TARGETPLATFORM}" ARCH="${ARCH}" \
+    && case ${TARGETPLATFORM} in \
+         "linux/arm/v7") apt-get update && apt-get install -y python3-opencv && apt-get clean && rm -r /var/lib/apt/lists/* ;; \
+         "linux/arm64") python3 -m pip install opencv-python==4.4.0.44 ;; \
+         "linux/amd64") python3 -m pip install opencv-python==4.4.0.44 ;; \
+    esac;
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
