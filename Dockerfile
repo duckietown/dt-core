@@ -57,7 +57,7 @@ RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 # install opencv
 RUN echo PLATFORM="${TARGETPLATFORM}" ARCH="${ARCH}" \
     && case ${TARGETPLATFORM} in \
-         "linux/arm/v7") apt-get update && apt-get install -y python3-opencv && apt-get clean && rm -r /var/lib/apt/lists/* && run python3 -m pip list ;; \
+         "linux/arm/v7") apt-get update && apt-get install -y python3-opencv && apt-get clean && rm -r /var/lib/apt/lists/* && python3 -m pip list ;; \
          "linux/arm64") python3 -m pip install opencv-python ;; \
          "linux/amd64") python3 -m pip install opencv-python ;; \
     esac;
