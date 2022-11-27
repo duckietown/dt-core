@@ -3,7 +3,7 @@
 source /environment.sh
 
 # initialize launch file
-dt-launchfile-init --quiet
+dt-launchfile-init
 
 # YOUR CODE BELOW THIS LINE
 # ----------------------------------------------------------------------------
@@ -13,12 +13,11 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-# dt-launcher-lane_following
-dt-launcher-object-detector
+roslaunch object_detection object_detector_node.launch veh:=$VEHICLE_NAME
 
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE
 
 # wait for app to end
-dt-launchfile-join --quiet
+dt-launchfile-join
