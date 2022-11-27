@@ -13,11 +13,7 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-# ? Un comment for normal behavior
-# dt-launcher-default-${ROBOT_TYPE}
-
-# Test object detection
-roslaunch object_detection object_detector_node.launch veh:=$VEHICLE_NAME
+dt-launcher-default-${ROBOT_TYPE}
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE
