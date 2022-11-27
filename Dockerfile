@@ -55,21 +55,8 @@ COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 
 # install opencv
-RUN echo PLATFORM="${TARGETPLATFORM}" ARCH="${ARCH}" \
-    && case ${TARGETPLATFORM} in \
-         "linux/arm/v7") apt-get update && apt-get install -y python3-matplotlib python3-scipy python3-ruamel.yaml python3-yaml python3-opencv python3-cffi python3-psutil python3-setproctitle && apt-get clean && rm -r /var/lib/apt/lists/* ;; \
-         "linux/arm64") echo nop ;; \
-         "linux/amd64") echo nop ;; \
-    esac;
-
-COPY ./fake-opencv-info /usr/lib/python3.8/opencv_python-4.2.0.dist-info
-RUN python3 -m pip list 
-RUN echo PLATFORM="${TARGETPLATFORM}" ARCH="${ARCH}" \
-    && case ${TARGETPLATFORM} in \
-         "linux/arm/v7") echo nop;; \
-         "linux/arm64") rm -rf /usr/lib/python3.8/opencv_python-4.2.0.dist-info && python3 -m pip install -U opencv-python ;; \
-         "linux/amd64") rm -rf /usr/lib/python3.8/opencv_python-4.2.0.dist-info && python3 -m pip install -U opencv-python ;; \
-    esac;
+COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
+RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
