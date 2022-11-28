@@ -41,7 +41,8 @@ class ObjectDetectorNode(DTROS):
             return
 
         rospy.loginfo("Img receive for processing")
-        
+        # Todo: skip some frame
+
         #* img: ROS -> OpenCV 
         try:
             image = self.bridge.compressed_imgmsg_to_cv2(img_msg)
