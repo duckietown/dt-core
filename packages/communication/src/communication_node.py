@@ -25,7 +25,6 @@ class CommunicationNode(DTROS, BaseComNode):
         #self._some_param = rospy.get_param("~some_parameter", False)
 
         # Subscribing
-        #self.sub = rospy.Subscriber('camera_node/image/compressed', CompressedImage, self.img_callback)
         self.sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
         # TODO subscribe to the intersection type TL or StopSign, use intersection_type_callback()
 
@@ -144,7 +143,6 @@ class CommunicationNode(DTROS, BaseComNode):
         #    car_cmd_msg = Twist2DStamped(v=0.0, omega=0.0)
         #    car_cmd_msg.header.stamp = current_time_stamp
         #    self.pub_coord_cmd.publish(car_cmd_msg)
-        
 
     def run(self):
         rate = rospy.Rate(0.5)  # 1Hz
@@ -153,7 +151,6 @@ class CommunicationNode(DTROS, BaseComNode):
             BaseComNode.run(self)
             self.publish_topics()
             rate.sleep()
-
 
 
 if __name__ == '__main__':

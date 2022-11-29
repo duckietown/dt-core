@@ -16,14 +16,11 @@ class TrafficLightSolver:
     SOLVING_TL_LED_COLOR = "red"
     SOLVING_TL_FREQ = 0
 
-
-
     def __init__(self, buffer_length, buffer_forget_time):
         self.buffer_length = buffer_length
         self.buffer_forget_time = buffer_forget_time
         self.buffer = PointBuffer(self.buffer_length, self.buffer_forget_time)
         self.tl_state = TrafficLightState.Sensing
-
 
     # Verify if the point we have is in the TL green frequency range.
     def is_in_tl_frequency_range(self, point_frequency):
@@ -33,7 +30,6 @@ class TrafficLightSolver:
             return True
         return False
 
-
     # Accumulate the camera images
     def push_camera_image(self, new_img):
         # Only post image when state is Sensing. No need in other states
@@ -42,7 +38,6 @@ class TrafficLightSolver:
             reduced_img = new_img[:self.MAX_TRAFFIC_LIGHT_HEIGHT+1,:].copy()
             self.buffer.push_frame(reduced_img)
 
-
     # Resets the solver to it's initial state. Should be called when ever the solving should be restarted
     # for example when the intersection type is received/change
     def reset(self):
@@ -50,11 +45,9 @@ class TrafficLightSolver:
         self.buffer = PointBuffer(self.buffer_length, self.buffer_forget_time)
         self.update_tl_state(TrafficLightState.Sensing)
 
-
-    def is_clear_to_go(self):
+    def should_go(self):
         # TODO other checks?
         return self.tl_state == TrafficLightState.Green
-
 
     # All state updates should be done here
     def update_tl_state(self, new_tl_state):
@@ -63,11 +56,9 @@ class TrafficLightSolver:
             print(f"TrafficLightSolver: Transition from {self.tl_state} to {new_tl_state}")
             self.tl_state = new_tl_state
 
-
     # Return blinking frequency and color of LED when running this solver
     def get_blinkfreq_and_color(self):
         return self.SOLVING_TL_FREQ, self.SOLVING_TL_LED_COLOR
-
 
     # Step call of the solver to run the analysis on the accumulated images from the camera
     # This method is to be called by the Node run() method continuously
