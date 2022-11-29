@@ -273,7 +273,7 @@ class LEDWindow(QWidget):
                 ) ** 2
                 if (
                     dist < mindist
-                    and dist < self.imagescale ** 2 * self.cell_size[0] ** 2 + self.cell_size[1] ** 2
+                    and dist < self.imagescale**2 * self.cell_size[0] ** 2 + self.cell_size[1] ** 2
                 ):
                     closest = d
                     mindist = dist

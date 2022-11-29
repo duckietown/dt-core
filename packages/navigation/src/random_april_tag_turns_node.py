@@ -62,7 +62,7 @@ class RandomAprilTagTurnsNode:
                 if taginfo.tag_type == taginfo.SIGN:
                     tag_det = (tag_msgs.detections)[idx]
                     pos = tag_det.transform.translation
-                    distance = math.sqrt(pos.x ** 2 + pos.y ** 2 + pos.z ** 2)
+                    distance = math.sqrt(pos.x**2 + pos.y**2 + pos.z**2)
                     if distance < dis_min:
                         dis_min = distance
                         idx_min = idx
