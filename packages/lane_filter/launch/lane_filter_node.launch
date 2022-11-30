@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+<node pkg="lane_filter" type="lane_filter_node.py" name="lane_filter_node" output="screen"/>
+
+</launch>
