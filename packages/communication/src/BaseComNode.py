@@ -12,7 +12,6 @@ class BaseComNode:
     This class is used to define behaviors for the node that do not directly interact with ROS. This makes testing
     easier
     """
-
     # TODO move these constants somewhere else as params?
     TIME_OUT_SEC = 60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
@@ -38,7 +37,6 @@ class BaseComNode:
 
         :param data: raw image data given by ROS
         """
-
         if self.curr_intersection_type is IntersectionType.Unknown:
             return
         elif self.curr_intersection_type is IntersectionType.StopSign:
@@ -101,36 +99,41 @@ class BaseComNode:
         :return: the go or wait signal
         """
         action = ActionState.Solving
+        print(self.curr_intersection_type)
         if self.curr_intersection_type is IntersectionType.Unknown:
             return
         if self.curr_intersection_type is IntersectionType.TrafficLight:
-            action = self.traffic_light_run(action)
+            action = self.traffic_light_run()
         elif self.curr_intersection_type is IntersectionType.StopSign:
-            action = self.stop_sign_run(action)
-        # Final step from state "SignalingToGo" to the stat "Go"
+            action = self.stop_sign_run()
         self.update_action_state(action)
 
         # Check for timeout based on the self.begin_solving_time_sec and TIME_OUT_SEC
         if time() - self.begin_solving_time_sec > self.TIME_OUT_SEC:
             self.update_action_state(ActionState.TimedOut)
 
-    def traffic_light_run(self, action):
+    def traffic_light_run(self):
         # Step the solver
         self.tl_solver.step_solver()
         if self.tl_solver.should_go():
-            action = ActionState.Go
-        return action
+            return ActionState.Go
+        return ActionState.Solving
 
-    def stop_sign_run(self, action):
+    def stop_sign_run(self):
         if self.ss_solver.begin_blink_time + self.ss_solver.SENSING_DURATION <= time():
             if self.ss_solver.should_go():
-                action = ActionState.Go
-                self.ss_solver.reset()
+                self.blink_at(0)
+                return ActionState.Go
+
+            self.ss_solver.reset()
+            self.blink_at(self.ss_solver.blink_freq)
+
+        print('points', len(self.ss_solver.point_buffer.points))
         buffer = self.ss_solver.point_buffer.points
         for i, point in enumerate(buffer):
             freq, spikes = point.get_frequency()
             print(f"{i} -- {freq}: {point}\n{i} -- {spikes}")
-        return action
+        return ActionState.Solving
 
     # OVERWRITTEN SECTION
     def blink_at(self, frequency: int):
@@ -139,7 +142,17 @@ class BaseComNode:
 
         :param frequency: frequency of blinking
         """
-        print('self:', frequency)
+        print('self-freq:', frequency)
+        pass  # placeholder for inheritance
+
+    # OVERWRITTEN SECTION
+    def publish_signal(self, action: ActionState):
+        """
+        This method changes the blinking frequency of the DuckieBot to the one specified in the input
+
+        :param action: the go signal
+        """
+        print('Action:', action)
         pass  # placeholder for inheritance
 
     # INTERNAL SECTION
@@ -150,3 +163,4 @@ class BaseComNode:
         if action_state in [ActionState.Go, ActionState.TimedOut]:
             self.blink_at(0)
             self.intersection_type_callback(IntersectionType.Unknown)
+            self.publish_signal(action_state)
