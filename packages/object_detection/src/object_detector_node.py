@@ -8,10 +8,11 @@ from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage, Image
 from cv_bridge import CvBridge
 from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
+from object_detection.baseline_model import BaseModel
 
 class ObjectDetectorNode(DTROS):
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, model_name="simple_model"):
         #* initialize the DTROS parent class
         super(ObjectDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.GENERIC)
         self.veh = rospy.get_namespace().strip("/")
@@ -33,6 +34,8 @@ class ObjectDetectorNode(DTROS):
         #* Params
         self.bridge = CvBridge()
         # Todo: Load model
+        self.model = BaseModel()
+
         self.initialized = True
         self.first_run = True
     
@@ -41,7 +44,6 @@ class ObjectDetectorNode(DTROS):
         if not self.initialized:
             return
 
-        rospy.loginfo("Img receive for processing")
         # Todo: skip some frame
 
         #* img: ROS -> OpenCV 
@@ -60,15 +62,18 @@ class ObjectDetectorNode(DTROS):
         image = cv2.resize(image, (416,416))
 
         # Todo: Do prediction from the img
-        # ? Add a simple model if Debug is True using only the yellow color
+        contours = self.model.infer(image)
 
         # Todo: Find position of the objects detected
 
         # Todo: Publish detection
 
+        #* Add bounding box
+        for cnt in contours:
+            x,y,w,h = cv2.boundingRect(cnt)
+            old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
 
         #* Publish detection img for demo
-        # Todo: Add bounding box
         obj_det_img = self.bridge.cv2_to_compressed_imgmsg(old_img)
         self.pub_detections_image.publish(obj_det_img)
 
