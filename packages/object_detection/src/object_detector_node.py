@@ -3,12 +3,13 @@
 import os
 import cv2
 import rospy
+import numpy as np
 from duckietown.dtros import DTROS, NodeType, TopicType
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage, Image
 from cv_bridge import CvBridge
 from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
-from object_detection.baseline_model import BaseModel
+from object_detection import BaseModel, find_position
 
 class ObjectDetectorNode(DTROS):
 
@@ -58,20 +59,28 @@ class ObjectDetectorNode(DTROS):
         #* Handle sim
         if get_device_hardware_brand() != DeviceHardwareBrand.JETSON_NANO:  
             image = image[...,::-1].copy()  # image is bgr, flip it to rgb
-        old_img = cv2.resize(old_img, (416,416))
-        image = cv2.resize(image, (416,416))
 
-        # Todo: Do prediction from the img
+        img_size = (416,416)
+        old_img = cv2.resize(old_img, img_size)
+        image = cv2.resize(image, img_size)
+
+        #* Do prediction from the img
         contours = self.model.infer(image)
 
-        # Todo: Find position of the objects detected
+        #* Find position of the objects detected
+        positions = find_position(contours, img_size[0], img_size[1])
 
         # Todo: Publish detection
 
         #* Add bounding box
-        for cnt in contours:
+        for cnt, points in positions:
             x,y,w,h = cv2.boundingRect(cnt)
             old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
+            x_1, y_1 = round(points[0].x, 3), round(points[0].y, 3)
+            x_2, y_2 = round(points[1].x, 3), round(points[1].y, 3)
+            rospy.loginfo(f"point 1: ({x_1}, {y_1}) | point 2: ({x_2}, {y_2})")
+
+            old_img = cv2.putText(old_img, f"({x_1}, {y_1})m | ({x_2}, {y_2})m", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255,10,10),2)
 
         #* Publish detection img for demo
         obj_det_img = self.bridge.cv2_to_compressed_imgmsg(old_img)
