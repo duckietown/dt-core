@@ -133,6 +133,9 @@ class LaneControllerNode(DTROS):
         self.obstacle_stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
         self.obstacle_stop_line_detected = msg.stop_line_detected
         self.at_stop_line = msg.at_stop_line
+        if not self.obstacle_stop_line_detected:
+            self.obstacle_stop_line_distance = None
+
 
     def cbStopLineReading(self, msg):
         """Callback storing current distance to the next stopline, if one is detected.
@@ -143,6 +146,9 @@ class LaneControllerNode(DTROS):
         self.stop_line_distance = np.sqrt(msg.stop_line_point.x ** 2 + msg.stop_line_point.y ** 2)
         self.stop_line_detected = msg.stop_line_detected
         self.at_obstacle_stop_line = msg.at_stop_line
+        if not self.stop_line_detected:
+            self.stop_line_distance = None
+
 
     def cbMode(self, fsm_state_msg):
 
