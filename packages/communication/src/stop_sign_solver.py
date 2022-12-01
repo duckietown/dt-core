@@ -23,7 +23,7 @@ class StopSignSolver:
 
         # Initial blinking frequency
         self.blink_freq = 0
-        self.begin_blink_time: float = 0 # need to compute for how long the same freq is used
+        self.begin_blink_time: float = 0  # need to compute for how long the same freq is used
         self.reset()
 
         # Duration for initial sensing
