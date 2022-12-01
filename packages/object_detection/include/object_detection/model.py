@@ -1,12 +1,7 @@
-
+import numpy as np
+import cv2
 
 class Model():
-    def __init__(self):
-        pass
-    def infer(self, image):
-        raise NotImplementedError()
-
-class SimpleModel():
     def __init__(self):
         pass
     def infer(self, image):
