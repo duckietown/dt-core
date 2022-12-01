@@ -29,6 +29,7 @@ LP removing for now
 	    <arg name="/lane_following/ground_projection" value="true"/>
 	    <arg name="/lane_following/lane_filter" value="true"/>
 	    <arg name="/lane_following/lane_controller" value="true"/>
+	    <arg name="/lane_following/stop_line_filter" value="true"/>
 
   	</include>
 

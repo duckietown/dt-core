@@ -2,7 +2,8 @@
 
 #propagation
 use_propagation: True
-debug : False
+predict_frequency: 30.0 # in Hz
+debug : True
 lane_filter_histogram_configuration:
   mean_d_0: 0
   mean_phi_0: 0
@@ -11,9 +12,9 @@ lane_filter_histogram_configuration:
   delta_d: 0.02
   delta_phi: 0.1
   d_max: 0.3
-  d_min: -0.15
-  phi_min: -1.5
-  phi_max: 1.5
+  d_min: -0.3
+  phi_min: -1.7
+  phi_max: 1.7
   cov_v: 0.5
   linewidth_white: 0.05
   linewidth_yellow: 0.025
@@ -24,3 +25,6 @@ lane_filter_histogram_configuration:
   range_min: 0.2
   range_est: 0.33
   range_max: 0.6
+  encoder_resolution: 135
+  wheel_radius: 0.0318
+  wheel_baseline: 0.1
