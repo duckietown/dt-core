@@ -2,7 +2,8 @@
     
     <group ns="$(arg veh)">
         <node pkg="object_detection" type="object_detector_node.py" name="object_detector_node" output="screen"/>
-        <node pkg="object_detection" type="object_detector_subscriber_node.py" name="object_detector_subscriber_node" output="screen"/>
+
+        <node pkg="object_detection" type="object_detector_debug_node.py" name="object_detector_debug_node" output="screen"/>
     </group>
 
 </launch>
