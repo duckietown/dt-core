@@ -17,8 +17,8 @@ class ObjectDetectorNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
 
         #* construct publishers 
-        self.pub = rospy.Publisher('chatter', String, queue_size=1) # Todo: Remove when not needed anymore
-        self. pub_detections_image = rospy.Publisher("~object_detections_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
+        # self. pub_detections_image = rospy.Publisher("~object_detection/image/debug", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
+        self. pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
         # Todo: Create publisher to publish detection and position
 
         #* Subscribe to the image
@@ -34,6 +34,7 @@ class ObjectDetectorNode(DTROS):
         self.bridge = CvBridge()
         # Todo: Load model
         self.initialized = True
+        self.first_run = True
     
 
     def callback(self, img_msg):
@@ -68,18 +69,15 @@ class ObjectDetectorNode(DTROS):
 
         #* Publish detection img for demo
         # Todo: Add bounding box
-        obj_det_img = self.bridge.cv2_to_imgmsg(old_img, encoding="bgr8")
+        obj_det_img = self.bridge.cv2_to_compressed_imgmsg(old_img)
         self.pub_detections_image.publish(obj_det_img)
 
 
     def run(self):
         # publish message every 1 second
-        rate = rospy.Rate(1) # 1Hz
-        while not rospy.is_shutdown():
-            message = f"{os.environ['VEHICLE_NAME']} is on the moon!"
+        if self.first_run:
+            message = f"{os.environ['VEHICLE_NAME']} is ready for take-off! 3, 2, 1, Brrrrrrrr"
             rospy.loginfo(f"[obj-detector] Publishing message: {message}")
-            self.pub.publish(message)
-            rate.sleep()
 
 if __name__ == '__main__':
     # create the node
