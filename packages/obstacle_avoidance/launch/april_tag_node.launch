@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="obstacle_avoidance" type="april_tag_node.py" name="april_tag_node" output="screen" required="true"/>
+</launch>
