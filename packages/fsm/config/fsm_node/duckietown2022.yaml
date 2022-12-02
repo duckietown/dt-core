@@ -1,6 +1,6 @@
 # Initial state of the FSM
 
-initial_state: "NORMAL_JOYSTICK_CONTROL"
+initial_state: "LANE_FOLLOWING"
 
 
 events: # Maps from subscribing topic to signal ids
