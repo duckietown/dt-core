@@ -9,7 +9,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage, Image
 from cv_bridge import CvBridge
 from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
-from object_detection import BaseModel, find_position
+from object_detection import ModelWrapper, find_position
 
 class ObjectDetectorNode(DTROS):
 
@@ -17,7 +17,7 @@ class ObjectDetectorNode(DTROS):
         #* initialize the DTROS parent class
         super(ObjectDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.GENERIC)
         self.veh = rospy.get_namespace().strip("/")
-
+        self.initialized = False
         #* construct publishers 
         # self. pub_detections_image = rospy.Publisher("~object_detection/image/debug", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
         self. pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
@@ -34,9 +34,20 @@ class ObjectDetectorNode(DTROS):
 
         #* Params
         self.bridge = CvBridge()
-        # Todo: Load model
-        self.model = BaseModel()
+        # Todo: Find why config doesn't load
+        # self.model_name = rospy.get_param('~model_name','.')
+        # self.dt_token = rospy.get_param('~dt_token','.')
+        # self.debug = rospy.get_param('~debug','.')
 
+        self.model_name = "baseline"
+        self.dt_token = "dt1-3nT8KSoxVh4Migd7N6Nsjy5q8BHtzjcsyz57x9FyJbx48ma-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbfR5u27EQqh5HeESXBRegEfB5iyruJUabpt"
+        self.debug = True
+
+        rospy.loginfo(f"Model name: {self.model_name}")
+
+        self.model = ModelWrapper(self.model_name, self.dt_token, self.debug)
+
+        self.frame_id = 0
         self.initialized = True
         self.first_run = True
     

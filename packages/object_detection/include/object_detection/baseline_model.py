@@ -13,10 +13,7 @@ class BaseModel(Model):
     def infer(self, imagebrg, debug=False):    
 
         imghsv = cv2.cvtColor(imagebrg, cv2.COLOR_BGR2HSV)
-        
         img_gaussian_filter = cv2.GaussianBlur(imghsv,(0,0), self.sigma)
-
-        # Todo: Transform the image using the homography
 
         #* Simple yellow color filter
         yellow_lower_hsv = np.array([15, 100, 100])
