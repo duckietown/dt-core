@@ -32,8 +32,8 @@ class Point:
         new_weight = other.weight + self.weight
         # the new coords are a weighted average of both points rounded down for stability
         new_coords = (
-            (other.coords[0] * other.weight + self.coords[0] * self.weight) // new_weight,
-            (other.coords[1] * other.weight + self.coords[1] * self.weight) // new_weight
+            round((other.coords[0] * other.weight + self.coords[0] * self.weight) / new_weight),
+            round((other.coords[1] * other.weight + self.coords[1] * self.weight) / new_weight)
         )
         # the last_seen variable is the min of both values since both points are now the same
         new_last_seen = min(other.last_seen, self.last_seen)
@@ -82,13 +82,19 @@ class Point:
         """
         # if the sum of the whole histogram is too small, probably a false point and should not have a framerate.
         if not np.sum(self.histogram > 5e3):
-            return -1, np.zeros(self.histogram.shape)
+            return -1, np.zeros(self.histogram.shape).astype(int)
 
         spikes = (self.histogram / np.max(self.histogram)) > tolerance
 
         # if there is less than 2 spikes, nothing can be inferred
         if np.sum(spikes) < 2:
             return -1, spikes.astype(int)
+
+        # A frequency of 30 Hz is impossible, so two adjacent spikes are impossible
+        # and mostly mean that the spike happened between two frames
+        for i, v in enumerate(spikes[1:]):
+            if v and spikes[i]:
+                spikes[i] = False
 
         spike_freq = frame_rate / np.median(np.diff(spikes.nonzero()))
         return spike_freq, spikes.astype(int)
