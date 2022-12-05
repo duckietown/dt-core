@@ -11,7 +11,7 @@ colors:
     low: [0,0,150]
     high: [180,100,255]
   YELLOW:
-    low: [16,122,80] #Old Value [25, 140, 100]
+    low: [25, 140, 100] #[16,122,80] #Old Value [25, 140, 100]
     high: [45,255,255] #Already touches the green region potential problem for the sim as the green grass is identified as lane markers (major problem if the lane markers fail to be identified) 
 
 line_detector_parameters:

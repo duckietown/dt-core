@@ -198,8 +198,8 @@ class LaneFilterHistogram(LaneFilterInterface):
             if segment.points[0].x < 0 or segment.points[1].x < 0:
                 continue
             #filter segments over and behind by 20cm
-            if (segment.points[0].y < -0.2 and segment.points[1].y < -0.2) or (segment.points[0].y > 0.2 and segment.points[1].y > 0.2):
-                continue
+            #if (segment.points[0].y < -0.2 and segment.points[1].y < -0.2) or (segment.points[0].y > 0.2 and segment.points[1].y > 0.2):
+            #    continue
 
             self.filtered_segments.append(segment)
             # only consider points in a certain range from the Duckiebot for the position estimation
@@ -289,10 +289,10 @@ class LaneFilterHistogram(LaneFilterInterface):
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
-            if p1[0] > p2[0]:  # right edge of white lane
+            if p1[0] > p2[0]:  # right edge of white lane ACTUALLY IT'S WHITE LANE BEING ON THE LEFT OOF THE ROBOT
                 d_i -= self.linewidth_white #HERE AN IRRATIONAL CHANGE WAS MADE
             else:  # left edge of white lane
-                d_i -= self.linewidth_white*np.random.choice([0, 1])
+                d_i -= self.linewidth_white # *np.random.choice([0, 1])
                 d_i = self.lanewidth * 2 + self.linewidth_yellow - d_i
                 phi_i = -phi_i
             d_i -= self.lanewidth / 2
