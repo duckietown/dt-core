@@ -4,6 +4,7 @@ import copy
 import rospy
 from duckietown_msgs.msg import BoolStamped, FSMState
 from duckietown_msgs.srv import SetFSMState, SetFSMStateResponse
+from std_srvs.srv import SetBool
 
 
 class FSMNode:
@@ -33,13 +34,20 @@ class FSMNode:
         # Provide service
         self.srv_state = rospy.Service("~set_state", SetFSMState, self.cbSrvSetState)
 
-        # Construct publishers
-        self.pub_dict = dict()
+        # Construct service calls
+        self.srv_dict = dict()
         nodes = rospy.get_param("~nodes")
-
+        # rospy.loginfo(nodes)
         self.active_nodes = None
-        for node_name, topic_name in list(nodes.items()):
-            self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
+        
+        # for node_name, topic_name in list(nodes.items()):
+        #     self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
+        
+        for node_name, service_name in list(nodes.items()):
+                rospy.wait_for_service(service_name) #  Not sure if there is a better way to do this
+                self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
+
+
 
         # print self.pub_dict
         # Process events definition
@@ -156,7 +164,8 @@ class FSMNode:
 
     def publishBools(self):
         active_nodes = self._getActiveNodesOfState(self.state_msg.state)
-        for node_name, node_pub in list(self.pub_dict.items()):
+
+        for node_name, srv_pub in list(self.srv_dict.items()):
             msg = BoolStamped()
             msg.header.stamp = self.state_msg.header.stamp
             msg.data = bool(node_name in active_nodes)
@@ -169,7 +178,9 @@ class FSMNode:
             # else:
             #     rospy.logwarn("[%s] self.active_nodes is None!" %(self.node_name))
             # continue
-            node_pub.publish(msg)
+            
+            resp = srv_pub(msg.data)
+
             # rospy.loginfo("[%s] node %s msg %s" %(self.node_name, node_name, msg))
             # rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
         self.active_nodes = copy.deepcopy(active_nodes)
@@ -198,3 +209,4 @@ if __name__ == "__main__":
     rospy.on_shutdown(node.on_shutdown)
     # Keep it spinning to keep the node alive
     rospy.spin()
+
