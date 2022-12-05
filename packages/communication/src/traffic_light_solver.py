@@ -77,6 +77,6 @@ class TrafficLightSolver:
                     break # Break right away, we just detected the TL Green state
 
         # Return the tl green status
-        return self.is_clear_to_go()
+        return self.should_go()
 
 

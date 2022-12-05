@@ -99,7 +99,7 @@ class BaseComNode:
         :return: the go or wait signal
         """
         action = ActionState.Solving
-        print(self.curr_intersection_type)
+        #print(self.curr_intersection_type)
         if self.curr_intersection_type is IntersectionType.Unknown:
             return
         if self.curr_intersection_type is IntersectionType.TrafficLight:
