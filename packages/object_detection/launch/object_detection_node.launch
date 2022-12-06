@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="object_detection" type="object_detection_node.py" name="object_detection_node" output="screen" required="true"/>
+</launch>

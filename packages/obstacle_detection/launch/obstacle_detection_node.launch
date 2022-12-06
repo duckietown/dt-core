@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="obstacle_detection" type="obstacle_detection_node.py" name="obstacle_detection_node" output="screen" required="true"/>
+</launch>

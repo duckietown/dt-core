@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="stop_controller" type="stop_controller_node.py" name="stop_controller_node" output="screen" required="true"/>
+</launch>

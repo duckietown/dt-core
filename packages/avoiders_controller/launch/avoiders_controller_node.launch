@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="avoiders_controller" type="avoiders_controller_node.py" name="avoiders_controller_node" output="screen" required="true"/>
+</launch>

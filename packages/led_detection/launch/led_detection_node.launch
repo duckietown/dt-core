@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="led_detection" type="led_detection_node.py" name="led_detection_node" output="screen" required="true"/>
+</launch>

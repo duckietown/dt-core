@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="framerate_high" type="framerate_high_node.py" name="framerate_high_node" output="screen" required="true"/>
+</launch>

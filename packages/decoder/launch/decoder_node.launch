@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="decoder" type="decoder_node.py" name="decoder_node" output="screen" required="true"/>
+</launch>
