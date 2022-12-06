@@ -11,3 +11,6 @@ python3-tk
 mencoder
 mplayer
 ffmpeg
+
+# needed by cmake when installed via pip
+file
