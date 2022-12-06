@@ -198,7 +198,9 @@ class FSMNode:
     def updateLights(self):
         lights = self._getLightsofState(self.state_msg.state)
         if lights is not None:
-            self.changePattern(lights)
+            msg = String()
+            msg.data = lights
+            self.changePattern(msg)
 
     def cbEvent(self, msg, event_name):
         if msg.data == self.event_trigger_dict[event_name]:
