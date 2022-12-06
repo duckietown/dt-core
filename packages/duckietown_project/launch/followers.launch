@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+<include file="$(find lane_controller)/launch/lane_controller_node.launch"/>
+<include file="$(find lane_filter)/launch/lane_filter_node.launch"/>
+<include file="$(find anti_instagram)/launch/anti_instagram_node.launch"/>
+<include file="$(find line_detection)/launch/line_detection_node.launch"/>
+<include file="$(find decoder)/launch/decoder_node.launch"/>
+<include file="$(find framerate_high)/launch/framerate_high_node.launch"/>
+
+</launch>
