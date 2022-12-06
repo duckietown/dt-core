@@ -45,14 +45,15 @@ events: # Maps from subscribing topic to signal ids
 nodes:
   # Perceptual Nodes 
   decoder_node: "decoder_node/switch"
-  anti_instagram: "anti_instagram_node/switch"
+  anti_instagram_node: "anti_instagram_node/switch"
   object_detector_node: "object_detection_node/switch"
   obstacle_detector_node: "obstacle_detector_node/switch" 
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
-  framerate_high: "camera_node/framerate_high_switch"
+  framerate_high_node: "camera_node/framerate_high_switch"
   april_tag_node: "april_tag_node/switch" 
   led_detection_node: "led_detection_node/switch" 
+  stop_line_filter_node: "stop_line_filter_node/switch" 
   # extras added
 
   # Other nodes
@@ -61,10 +62,10 @@ nodes:
   unicorn_intersection_node: "unicorn_intersection_node/switch" 
 
   # # Controller Nodes 
-  # lane_controller_node: "lane_controller_node/switch"
-  # stop_controller_node: "stop_controller_node/switch" 
-  # avoiders_controller_node: "avoiders_controller_node/switch"
-  # navigators_controller_node: "navigators_controller_node/switch" 
+  lane_controller_node: "lane_controller_node/switch"
+  stop_controller_node: "stop_controller_node/switch" 
+  avoiders_controller_node: "avoiders_controller_node/switch"
+  navigators_controller_node: "navigators_controller_node/switch" 
 
   # Some of the nodes we have defined below have not been mapped yet. 
   # object_detection_node: "vehicle_filter_node/switch"
@@ -84,7 +85,7 @@ states:
       - lane_filter_node
       - line_detector_node
       - stop_line_filter_node
-      - framerate_high
+      - framerate_high_node
       - decoder_node
     lights: ["joystick"]
     current_status: "implemented"
@@ -107,7 +108,7 @@ states:
       intersection_comm_start: "COMM_AT_INTERSECTION"
     active_nodes:
       - april_tag_node 
-      # - stop_controller_node
+      - stop_controller_node
   COMM_AT_INTERSECTION:
     transitions:
       # intersection_comm_finish: "NAVIGATE_INTERSECTION"
@@ -116,7 +117,7 @@ states:
       - led_detection_node 
       - object_detector_node 
       - communication_node # Does all the processing required for communication and priority allocation  
-      # - stop_controller_node 
+      - stop_controller_node 
   NAVIGATE_INTERSECTION: 
     transitions: 
       intersection_nav_finish: "LANE_FOLLOWING"
@@ -124,7 +125,7 @@ states:
       - lane_filter_node 
       - deadreckoning_node
       - unicorn_intersection_node 
-      # - lane_controller_node 
+      - lane_controller_node 
   AVOID_OBSTACLE:
     transitions: 
       obstacle_cleared: "LANE_FOLLOWING"
@@ -132,6 +133,6 @@ states:
       - lane_filter_node
       - line_detector_node
       - object_detector_node 
-      # - avoiders_controller_node 
+      - avoiders_controller_node 
 
 
