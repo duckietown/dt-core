@@ -17,6 +17,10 @@
 		<!-- Camera and anti intagram -->
 		<arg name="/camera/raw" value="true"/>
 
+		<!-- /LED/emitter stack -->
+		<arg name="LED" value="true"/>
+	    <arg name="/LED/emitter" value="true"/>
+
 	    <!-- Communication stack -->
 	    <arg name="communication" value="true"/>
   	</include>

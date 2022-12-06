@@ -136,7 +136,7 @@ class BaseComNode:
         return ActionState.Solving
 
     # OVERWRITTEN SECTION
-    def blink_at(self, frequency: int):
+    def blink_at(self, frequency: int, color: str='white'):
         """
         This method changes the blinking frequency of the DuckieBot to the one specified in the input
 
@@ -161,6 +161,5 @@ class BaseComNode:
         All state updates should be done here
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
-            self.blink_at(0)
             self.intersection_type_callback(IntersectionType.Unknown)
             self.publish_signal(action_state)

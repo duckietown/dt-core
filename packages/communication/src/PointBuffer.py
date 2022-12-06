@@ -7,7 +7,7 @@ class PointBuffer:
     """
     This class encapsulate all the image stream processing
     """
-    def __init__(self, buffer_size: int, forget_time: int):
+    def __init__(self, buffer_size: int, forget_time: int, brightness_threshold=120):
         # the amount of frames to be stored. It should be around twice the lowest frequency and half the framerate
         self.buffer_size = buffer_size
         # the amount of frames where no change of intensity is detected before a point is removed
@@ -17,6 +17,9 @@ class PointBuffer:
         self.prev_raw_img: np.ndarray = None
         # set of active points
         self.points: Set[Point] = set()
+
+        # Minimum brightness value to be considered for it to be a maximum
+        self.brightness_threshold = brightness_threshold
 
     def push_frame(self, new_img: np.ndarray):
         """
@@ -34,7 +37,7 @@ class PointBuffer:
 
         # if a diff exists, calculate points using the local maximums of the diff and merge them to older points
         if diff_img is not None:
-            max_points = get_maxes(diff_img)
+            max_points = get_maxes(diff_img, threshold=self.brightness_threshold)
             self.points = set(Point.group_point([*max_points, *self.points], 6))
 
         # update all points by giving them the frame and updating the last_seen value

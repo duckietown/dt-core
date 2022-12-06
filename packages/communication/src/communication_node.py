@@ -9,6 +9,7 @@ from duckietown_msgs.msg import LEDPattern, BoolStamped, Twist2DStamped
 from duckietown_msgs.srv import SetCustomLEDPattern, SetCustomLEDPatternRequest, ChangePattern
 from duckietown.dtros.utils import apply_namespace
 from std_msgs.msg import String
+import time
 
 
 class CommunicationNode(DTROS, BaseComNode):
@@ -21,27 +22,32 @@ class CommunicationNode(DTROS, BaseComNode):
         # TODO: Parameters -> self._some_param = rospy.get_param("~some_parameter", False)
 
         # Subscribing
-        self.sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
-        # TODO subscribe to the intersection type TL or StopSign, use intersection_type_callback()
+        self.img_sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
+        # TODO Subscribe to the intersection type TL/StopSign. This needs to be mapped accordingly from the FSM/appropriate node (Detectors)
+        self.intersectype_sub = rospy.Subscriber('~intersection_type_in', CompressedImage, self.intersection_type_callback)
 
         # Publishing
         self.pub_intersection_go = rospy.Publisher("~intersection_go", BoolStamped, queue_size=1)
         self.pub_timed_out = rospy.Publisher("~timed_out", BoolStamped, queue_size=1)
-        self.pub_coord_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL)
+        #self.pub_coord_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL)
 
         # Used Services
         self.changeCustomPattern = rospy.ServiceProxy(
-            apply_namespace('~set_custom_pattern', ns_level=1),
+            '~set_custom_pattern',
             SetCustomLEDPattern
         )
 
-    def blink_at(self, frequency: int = 0):
-        # TODO : Replace with new system.
+        # TODO TESTING:
+        time.sleep(5) # Wait for LED emitter to be running.
+        #self.intersection_type_callback(1) # simulate stop sign
+        self.intersection_type_callback(2) # simulate TL
 
-        BaseComNode.blink_at(self, frequency)
+    def blink_at(self, frequency: int = 0, color: str='white'):
+
+
+        BaseComNode.blink_at(self, frequency, color)
 
         # Build LED message
-        color = 'white' if frequency != 0 else 'off'
         pattern_msg = LEDPattern(
             frequency=frequency,
             color_list=[color] * 5,
@@ -55,10 +61,22 @@ class CommunicationNode(DTROS, BaseComNode):
         message.header.stamp = rospy.Time.now()
 
         if action is ActionState.Go:
+            # Set color to solid Green for 1 sec
+            self.blink_at(frequency=0, color='green')
+            time.sleep(1)
+            # Trun the LEDs off
+            self.blink_at(frequency=0, color='switchedoff')
+            
+            # Publish go message
             message.data = True
             self.pub_intersection_go.publish(message)
             rospy.loginfo(f"[{self.node_name}] -> Go")
+
         elif action == ActionState.TimedOut:
+            # Set color to red
+            self.blink_at(frequency=0, color='red')
+
+            # Publish timed-out message
             message.data = True
             self.pub_timed_out.publish(message)
             rospy.loginfo(f"[{self.node_name}] -> Timed-out")
