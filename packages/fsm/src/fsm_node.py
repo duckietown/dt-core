@@ -1,11 +1,11 @@
-
 #!/usr/bin/env python3
 import copy
 
 import rospy
 from duckietown_msgs.msg import BoolStamped, FSMState
-from duckietown_msgs.srv import SetFSMState, SetFSMStateResponse
+from duckietown_msgs.srv import SetFSMState, SetFSMStateResponse, ChangePattern
 from std_srvs.srv import SetBool
+from std_msgs.msg import String
 
 
 class FSMNode:
@@ -40,15 +40,18 @@ class FSMNode:
         nodes = rospy.get_param("~nodes")
         # rospy.loginfo(nodes)
         self.active_nodes = None
-        
+
         # for node_name, topic_name in list(nodes.items()):
         #     self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
-        
+
         for node_name, service_name in list(nodes.items()):
-                rospy.wait_for_service(service_name) #  Not sure if there is a better way to do this
-                self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
+            rospy.loginfo(f"FSM waiting for service {service_name}")
+            rospy.wait_for_service(service_name)  #  Not sure if there is a better way to do this
+            self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
+            rospy.loginfo(f"FSM found service {service_name}")
 
-
+        # to change the LEDs
+        self.changePattern = rospy.ServiceProxy("~set_pattern", ChangePattern)
 
         # print self.pub_dict
         # Process events definition
@@ -143,9 +146,15 @@ class FSMNode:
             active_nodes = []
         return active_nodes
 
+    def _getLightsofState(self, state_name):
+        state_dict = self.states_dict[state_name]
+        lights = state_dict.get("lights")
+        return lights
+
     def publish(self):
         self.publishBools()
         self.publishState()
+        self.updateLights()
 
     def isValidState(self, state):
         return state in list(self.states_dict.keys())
@@ -179,12 +188,17 @@ class FSMNode:
             # else:
             #     rospy.logwarn("[%s] self.active_nodes is None!" %(self.node_name))
             # continue
-            
+
             resp = srv_pub(msg.data)
 
             # rospy.loginfo("[%s] node %s msg %s" %(self.node_name, node_name, msg))
             # rospy.loginfo("[%s] Node %s set to %s." %(self.node_name, node_name, node_state))
         self.active_nodes = copy.deepcopy(active_nodes)
+
+    def updateLights(self):
+        lights = self._getLightsofState(self.state_msg.state)
+        if lights is not None:
+            self.changePattern(lights)
 
     def cbEvent(self, msg, event_name):
         if msg.data == self.event_trigger_dict[event_name]:
