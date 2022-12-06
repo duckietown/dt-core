@@ -8,6 +8,7 @@
 !dependencies-py3.*
 !launchers
 !scripts
+!fake-opencv-info
 
 # YOUR FILES LISTED BELOW THIS LINE (IMPORTANT: PREPEND !)
 # ----------------------------------------------------------------------------
