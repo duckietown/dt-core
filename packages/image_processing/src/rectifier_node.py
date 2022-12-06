@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from typing import Optional, Any
+
 import cv2
 import rospy
 import numpy as np
@@ -25,6 +27,7 @@ class RectifierNode(DTROS):
         self.camera_model = None
         self.rect_camera_info = None
         self.mapx, self.mapy = None, None
+        self._waiting_room: Optional[Any] = None
 
         # subscribers
         self.sub_img = rospy.Subscriber(
@@ -83,6 +86,9 @@ class RectifierNode(DTROS):
             R=np.eye(3).flatten().tolist(),
             P=np.zeros((3, 4)).flatten().tolist(),
         )
+        # process any message waiting
+        if self._waiting_room is not None:
+            self.cb_image(self._waiting_room)
 
     def cb_image(self, msg):
         # make sure this matters to somebody
@@ -90,6 +96,8 @@ class RectifierNode(DTROS):
             return
         # make sure we have a map to use
         if self.mapx is None or self.mapy is None:
+            # make the message wait for the maps to be created
+            self._waiting_room = msg
             return
         # make sure the node is not switched off
         if not self.switch:
@@ -116,6 +124,8 @@ class RectifierNode(DTROS):
         self.pub_img.publish(rect_img_msg)
         # publish camera info
         self.pub_camera_info.publish(self.rect_camera_info)
+        # clear waiting room
+        self._waiting_room = None
 
 
 if __name__ == "__main__":

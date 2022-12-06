@@ -116,7 +116,7 @@ def paint_polygon_world(
         return
 
     shift = 8
-    S = 2 ** shift
+    S = 2**shift
 
     def pixel_from_world(c):
         p = gpg.ground2pixel(GroundPoint(Point(c[0], c[1], c[2])))
@@ -140,7 +140,7 @@ def get_horizon_points(gpg: GroundProjectionGeometry, shift: int):
 
     p_right = gpg.ground2pixel(GroundPoint(Point(x, -y, 0)))
 
-    S = 2 ** shift
+    S = 2**shift
     # XXX
     return (int(p_left.x * S), int(p_left.y * S)), (int(p_right.x * S), int(p_right.y * S))
 
@@ -148,7 +148,7 @@ def get_horizon_points(gpg: GroundProjectionGeometry, shift: int):
 def plot_ground_sky(base: dtu.NPImageBGR, gpg: GroundProjectionGeometry, color_ground, color_sky):
     # XXX: there is a bug somewhere here for shift != 0
     shift = 0
-    S = 2 ** shift
+    S = 2**shift
     H, W = base.shape[:2]
     p1, p2 = get_horizon_points(gpg, shift)
 
@@ -239,7 +239,7 @@ def plot_map(
             uv1 = gpg.vector2pixel(uv1)  # FIXME
             uv2 = gpg.vector2pixel(uv2)  # FIXME
             shift = 8
-            S = 2 ** shift
+            S = 2**shift
             width = 2
             paint = (255, 120, 120)
             #         paint = BGR_WHITE
