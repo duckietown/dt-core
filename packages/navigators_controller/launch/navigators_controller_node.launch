@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <launch>
-<node pkg="navigation_controller" type="navigation_controller_node.py" name="navigation_controller_node" output="screen" required="true"/>
+<node pkg="navigators_controller" type="navigatiors_controller_node.py" name="navigatiors_controller_node" output="screen" required="true"/>
 </launch>

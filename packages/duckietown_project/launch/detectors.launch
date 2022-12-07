@@ -2,6 +2,6 @@
 <launch>
 
 <include file="$(find april_tag)/launch/april_tag_node.launch"/>
-<include file="$(find object_detection_node)/launch/object_detection_node.launch"/>
+<include file="$(find object_detection)/launch/object_detection_node.launch"/>
 
 </launch>

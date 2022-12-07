@@ -47,10 +47,10 @@ nodes:
   decoder_node: "decoder_node/switch"
   anti_instagram_node: "anti_instagram_node/switch"
   object_detector_node: "object_detection_node/switch"
-  obstacle_detector_node: "obstacle_detector_node/switch" 
-  line_detector_node: "line_detector_node/switch"
+  obstacle_detector_node: "obstacle_detection_node/switch" 
+  line_detector_node: "line_detection_node/switch"
   lane_filter_node: "lane_filter_node/switch"
-  framerate_high_node: "camera_node/framerate_high_switch"
+  framerate_high_node: "framerate_high_node/switch"
   april_tag_node: "april_tag_node/switch" 
   led_detection_node: "led_detection_node/switch" 
   stop_line_filter_node: "stop_line_filter_node/switch" 
@@ -94,7 +94,7 @@ states:
       obstacle_exists: "AVOID_OBSTACLE"
       stop_line_detected: "STOP_AT_INTERSECTION" # change name later
     active_nodes:
-      - anti_instagram
+      - anti_instagram_node
       - decoder_node
       - line_detector_node
       - lane_filter_node

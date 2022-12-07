@@ -4,10 +4,9 @@
 <arg name="veh" default="agent"/>
 <arg name="param_file_name" default="duckietown2022"/>
 
-<include file="$(find fsm)/launch/fsm_node.launch">
-            <arg name="veh" value="$(arg veh)"/>
-            <arg name="param_file_name" value="$(arg param_file_name)"/>
-</include>
+<include file="$(find fsm)/launch/fsm_node_duckietown2022.launch">
+    <arg name="param_file_name" value="duckietown2022"/>
+</include> 
 
 <include file="$(find stop_controller)/launch/stop_controller_node.launch"/>
 <include file="$(find stop_line_filter)/launch/stop_line_filter_node.launch"/>

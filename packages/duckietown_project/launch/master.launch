@@ -28,18 +28,3 @@
 
 
 
-
-
-
-
-
-
-
-
-
-<!-- <include file="$(find lane_filter)/launch/lane_filter_node.launch"/>
-<include file="$(find obstacle_avoidance)/launch/april_tag_node.launch"/>
-<include file="$(find fsm)/launch/fsm_node_duckietown2022.launch">
-    <arg name="param_file_name" value="duckietown2022"/>
-</include>  -->
-</launch>

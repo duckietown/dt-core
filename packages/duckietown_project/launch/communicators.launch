@@ -3,7 +3,7 @@
 
 <include file="$(find communication)/launch/communication_node.launch"/>
 <include file="$(find led_detection)/launch/led_detection_node.launch"/>
-
+<include file="$(find led_emitter)/launch/led_emitter_node.launch"/>
 
 
 

@@ -44,7 +44,7 @@ class FSMNode:
         #     self.pub_dict[node_name] = rospy.Publisher(topic_name, BoolStamped, queue_size=1, latch=True)
         
         for node_name, service_name in list(nodes.items()):
-                rospy.wait_for_service(service_name) #  Not sure if there is a better way to do this
+                rospy.wait_for_service(service_name,timeout=2) #  Not sure if there is a better way to do this
                 self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
 
 
