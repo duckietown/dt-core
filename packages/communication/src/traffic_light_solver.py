@@ -18,11 +18,19 @@ class TrafficLightSolver:
     TL_GO_LED_COLOR = 'green'
     TL_SOLVING_FREQ = 0
     TL_BRIGHTNESS_THRESHOLD = 50
+    TL_MAX_DIFF_THRESHOLD = 25
+    TL_G_BLUR_SIGMA_X = 1
+    TL_G_BLUR_SIGMA_Y = 1
 
     def __init__(self, buffer_length, buffer_forget_time):
         self.buffer_length = buffer_length
         self.buffer_forget_time = buffer_forget_time
-        self.buffer = PointBuffer(self.buffer_length, self.buffer_forget_time, self.TL_BRIGHTNESS_THRESHOLD)
+        self.buffer = PointBuffer(buffer_size=self.buffer_length,
+                                  forget_time=self.buffer_forget_time,
+                                  brightness_threshold=self.TL_BRIGHTNESS_THRESHOLD,
+                                  max_diff_threshold=self.TL_MAX_DIFF_THRESHOLD,
+                                  gblur_sigmaX=self.TL_G_BLUR_SIGMA_X,
+                                  gblur_sigmaY=self.TL_G_BLUR_SIGMA_Y)
         self.buffer_lock = Lock()
         self.tl_state = TrafficLightState.Sensing
 
@@ -48,7 +56,12 @@ class TrafficLightSolver:
     def reset(self):
         print("TrafficLightSolver->reset()")
         with self.buffer_lock:
-            self.buffer = PointBuffer(self.buffer_length, self.buffer_forget_time, self.TL_BRIGHTNESS_THRESHOLD)
+            self.buffer = PointBuffer(buffer_size=self.buffer_length,
+                                      forget_time=self.buffer_forget_time,
+                                      brightness_threshold=self.TL_BRIGHTNESS_THRESHOLD,
+                                      max_diff_threshold=self.TL_MAX_DIFF_THRESHOLD,
+                                      gblur_sigmaX=self.TL_G_BLUR_SIGMA_X,
+                                      gblur_sigmaY=self.TL_G_BLUR_SIGMA_Y)
         self.update_tl_state(TrafficLightState.Sensing)
 
     def should_go(self):

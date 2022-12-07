@@ -148,7 +148,7 @@ class Point:
         ]
 
 
-def get_maxes(base_img: np.ndarray, size=9, threshold=120):
+def get_maxes(base_img: np.ndarray, size=9, threshold=120, sigmaX=3, sigmaY=3):
     """
     This function returns a group of points representing the local maximums present in an image. This is used to get
     the points where the rate of change is the highest (potential LEDs in the context of the car).
@@ -156,9 +156,11 @@ def get_maxes(base_img: np.ndarray, size=9, threshold=120):
     :param base_img: the image to be analysed in the form of a ndarray
     :param threshold: the minimum brightness value to be considered for it to be a maximum
     :param size: minimum distance between points
+    :param sigmaX: Gaussian blur kernel standard deviation in X direction.
+    :param sigmaY: Gaussian blur kernel standard deviation in Y direction.
     :return: a List of Points
     """
-    gaussian_blur = cv2.GaussianBlur(src=np.uint8(base_img), ksize=(size, size), sigmaX=3, sigmaY=3)
+    gaussian_blur = cv2.GaussianBlur(src=np.uint8(base_img), ksize=(size, size), sigmaX=sigmaX, sigmaY=sigmaY)
     data_max = filters.maximum_filter(gaussian_blur, size)
 
     maxima = (gaussian_blur == data_max)

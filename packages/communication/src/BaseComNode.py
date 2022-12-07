@@ -13,7 +13,7 @@ class BaseComNode:
     easier
     """
     # TODO move these constants somewhere else as params?
-    TIME_OUT_SEC = 60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
+    TIME_OUT_SEC = 2*60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
     def __init__(self, buffer_length=60, buffer_forget_time=40):
         # buffers parameters used to keep active points
