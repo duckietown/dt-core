@@ -14,7 +14,7 @@ def load_homography():
         filename = f"{dtu.get_duckiefleet_root()}/calibrations/camera_extrinsic/{robot_name}.yaml"
         
         if not os.path.isfile(filename):
-            rospy.logwarb(f"no extrinsic calibration parameters for {robot_name}, trying default")
+            rospy.logwarn(f"no extrinsic calibration parameters for {robot_name}, trying default")
             filename = f"{dtu.get_duckiefleet_root()}/calibrations/camera_extrinsic/default.yaml"
             if not os.path.isfile(filename):
                 rospy.logerr("Can't find default extrinsic parameters")
