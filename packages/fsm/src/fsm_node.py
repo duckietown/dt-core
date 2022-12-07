@@ -46,7 +46,7 @@ class FSMNode:
 
         for node_name, service_name in list(nodes.items()):
             rospy.loginfo(f"FSM waiting for service {service_name}")
-            rospy.wait_for_service(service_name)  #  Not sure if there is a better way to do this
+            rospy.wait_for_service(service_name, timeout=2.0)  #  Not sure if there is a better way to do this
             self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
             rospy.loginfo(f"FSM found service {service_name}")
 
