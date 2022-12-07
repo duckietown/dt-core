@@ -69,7 +69,7 @@ class AprilPostPros(object):
         # ---- end tag info stuff
 
         self.sub_prePros = rospy.Subscriber(
-            "~detections", AprilTagDetectionArray, self.callback, queue_size=1
+            f"apriltag_detector_node/detections", AprilTagDetectionArray, self.callback, queue_size=1
         )
         self.pub_postPros = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
@@ -182,6 +182,7 @@ class AprilPostPros(object):
 
         new_tag_data.infos = tag_infos
         # Publish Message
+        rospy.loginfo(f"APRILTAG, {new_tag_data}")
         self.pub_postPros.publish(new_tag_data)
 
 
