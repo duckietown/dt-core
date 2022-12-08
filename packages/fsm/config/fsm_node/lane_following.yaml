@@ -16,6 +16,8 @@ events: # Maps from subscribing topic to signal ids
     topic: "stop_line_filter_node/at_stop_line"
     msg_type: "BoolStamped"
     trigger: True
+
+# Not required for LF Demos but keeping it for the merge with the avoiders stack if needed within LF 
   obstacle_exists:
     topic: "road_anomaly_watcher/obstacle_exists"
     msg_type: "BoolStamped"
@@ -52,14 +54,14 @@ states:
     active_nodes:
       - lane_filter_node
       - line_detector_node
-      - stop_line_filter_node
+      - stop_line_filter_node # Can be removed as we dont really move or care about stop lines
       - framerate_high
       - decoder_node
-    lights: ["joystick"]
+    lights: ["joystick"] 
     current_status: "implemented"
   LANE_FOLLOWING:
     transitions:
-      obstacle_exists: "OBSTACLE_STOP"
+      obstacle_exists: "OBSTACLE_STOP" #Can be removed as it is not necessary for LF stack can be used if avoiders stack needs to be merged for some reason
       at_stop_line: "NORMAL_JOYSTICK_CONTROL" #Picked from IN changed the state to move
     active_nodes:
       - anti_instagram
@@ -68,11 +70,14 @@ states:
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
+#NOT REUQIRED FOR THE LF DEMOS COULD BE USED IF AVOIDERS STACK NEEDS TO BE ADDED TO THE LF for some reason
       - vehicle_filter_node
       - vehicle_detection_node
       - vehicle_avoidance_control_node
-    lights: ["lane_following"]
-    current_status: "in_progress"
+    lights: ["lane_following"] # Change this to Switch Off the Lights
+    current_status: "in_progress" #Not sure how this works or does, probably gets ripped from what I saw in the new patch
+  
+#NOT REQUIRED FOR LF DEMOS COULD BE USEFUL IF AVOIDERS STACK NEEDS TO BE MERGED HERE 
   OBSTACLE_STOP:
     transitions:
       obstacle_cleared: "LANE_FOLLOWING"

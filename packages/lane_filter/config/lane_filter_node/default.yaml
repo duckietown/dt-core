@@ -28,3 +28,5 @@ lane_filter_histogram_configuration:
   encoder_resolution: 135
   wheel_radius: 0.0318
   wheel_baseline: 0.1
+  weight_yellow: 1.0
+  weight_white: 1.0

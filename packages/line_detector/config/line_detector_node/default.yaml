@@ -11,7 +11,7 @@ colors:
     low: [0,0,150]
     high: [180,100,255]
   YELLOW:
-    low: [18,122,80] #Old Value [25, 140, 100]
+    low: [14,100,80] #Old Value [25, 140, 100]
     high: [35,255,255] #Old Value [45, 255, 255] #Should fix the green regions being detected as yellow
 
 line_detector_parameters:
