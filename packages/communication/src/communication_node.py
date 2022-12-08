@@ -24,7 +24,8 @@ class CommunicationNode(DTROS, BaseComNode):
         # Subscribing
         self.img_sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
         # TODO Subscribe to the intersection type TL/StopSign. This needs to be mapped accordingly from the FSM/appropriate node (Detectors)
-        self.intersectype_sub = rospy.Subscriber('~intersection_type_in', CompressedImage, self.intersection_type_callback)
+        # String: Something like "TL" for TrafficLight or "SS" for StopSign
+        self.intersectype_sub = rospy.Subscriber('~intersection_type_in', String, self.intersection_type_callback)
 
         # Publishing
         self.pub_intersection_go = rospy.Publisher("~intersection_go", BoolStamped, queue_size=1)
