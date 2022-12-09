@@ -46,20 +46,22 @@ class BaseComNode:
             self.traffic_light_img_callback(data)
 
     # CALLBACK SECTION
-    def intersection_type_callback(self, data):
+    def intersection_type_callback(self, msgs):
         """
         This method changes the internal intersection type and initiates / terminates the different values needed
 
         :param data: intersection data given by ROS
         """
         # new_intersection_type = IntersectionType(data.infos)
-        info = TagInfo()
+        tag_info = TagInfo()
         new_intersection_type = IntersectionType.Unknown
-        if(data.infos.tag_type == info.SIGN):
-             if(data.infos.traffic_sign_type == info.STOP):
-                 new_intersection_type = IntersectionType.StopSign
-             elif(data.infos.traffic_sign_type == info.T_LIGHT_AHEAD):
-                 new_intersection_type = IntersectionType.TrafficLight
+        for info in msgs.infos:
+
+            if(info.tag_type == tag_info.SIGN):
+                 if(info.traffic_sign_type == tag_info.STOP):
+                     new_intersection_type = IntersectionType.StopSign
+                 elif(info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
+                     new_intersection_type = IntersectionType.TrafficLight
 
 
         if self.curr_intersection_type == new_intersection_type:
