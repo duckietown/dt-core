@@ -26,7 +26,7 @@ class BaseModel(Model):
         if debug: 
             return contours, mask_yellow
 
-        return contours, 0, 0.50    
+        return contours, [0 for _ in range(len(contours))], 0.50    
 
 
 if __name__=="__main__":
