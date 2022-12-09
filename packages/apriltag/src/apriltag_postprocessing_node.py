@@ -12,7 +12,7 @@ from duckietown_msgs.msg import (
 import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Int32
 
 
 class AprilPostPros(object):
@@ -78,6 +78,9 @@ class AprilPostPros(object):
         self.pub_postPros_parking = rospy.Publisher("~apriltags_parking", BoolStamped, queue_size=1)
         self.pub_postPros_intersection = rospy.Publisher("~apriltags_intersection", BoolStamped, queue_size=1)
 
+        # tag_id
+        self.tag_id_topic = rospy.Publisher("~tag_id", Int32, queue_size=1)   
+
         rospy.loginfo("[%s] has started", self.node_name)
 
     def setupParam(self, param_name, default_value=rospy.client._Unspecified):
@@ -86,7 +89,6 @@ class AprilPostPros(object):
         return value
 
     def callback(self, msg):
-
         tag_infos = []
 
         new_tag_data = AprilTagsWithInfos()
@@ -101,8 +103,15 @@ class AprilPostPros(object):
             new_info.id = int(detection.tag_id)
             id_info = self.tags_dict[new_info.id]
             # rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
+            # self.tag_id_topic.publish(int(new_info.id))
+
             # Check yaml file to fill in ID-specific information
             new_info.tag_type = self.sign_types[id_info["tag_type"]]
+
+            # tag_id publish
+            #rospy.loginfo(f"Subscriber testing DETECT APRILTAGS, {int(detection.tag_id)}")
+            #self.tag_id_topic.publish(int(detection.tag_id))
+
             if new_info.tag_type == self.info.S_NAME:
                 new_info.street_name = id_info["street_name"]
             elif new_info.tag_type == self.info.SIGN:
@@ -182,7 +191,7 @@ class AprilPostPros(object):
 
         new_tag_data.infos = tag_infos
         # Publish Message
-        rospy.loginfo(f"APRILTAG, {new_tag_data}")
+        #rospy.loginfo(f"{new_tag_data}")
         self.pub_postPros.publish(new_tag_data)
 
 
