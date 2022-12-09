@@ -4,6 +4,7 @@ import cv2
 from time import time
 from stop_sign_solver import StopSignSolver
 from traffic_light_solver import TrafficLightSolver
+from duckietown_msgs.msg import TagInfo
 
 
 class BaseComNode:
@@ -51,7 +52,15 @@ class BaseComNode:
 
         :param data: intersection data given by ROS
         """
-        new_intersection_type = IntersectionType(data)
+        # new_intersection_type = IntersectionType(data.infos)
+        info = TagInfo()
+        new_intersection_type = IntersectionType.Unknown
+        if(data.infos.tag_type == info.SIGN):
+             if(data.infos.traffic_sign_type == info.STOP):
+                 new_intersection_type = IntersectionType.StopSign
+             elif(data.infos.traffic_sign_type == info.T_LIGHT_AHEAD):
+                 new_intersection_type = IntersectionType.TrafficLight
+
 
         if self.curr_intersection_type == new_intersection_type:
             return
