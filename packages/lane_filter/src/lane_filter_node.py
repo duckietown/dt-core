@@ -104,7 +104,7 @@ class LaneFilterNode(DTROS):
 
         self.sub_episode_start = rospy.Subscriber(
             f"episode_start", EpisodeStart, self.cbEpisodeStart, queue_size=1
-        )
+        ) #XXX Should this be here, can be probably removed seems related to the episodes the simulator would use to switch between test cases 
 
         # Publishers
         self.pub_lane_pose = rospy.Publisher(
