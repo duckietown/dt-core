@@ -39,8 +39,8 @@ class ObjectDetectorNode(DTROS):
         # self.dt_token = rospy.get_param('~dt_token','.')
         # self.debug = rospy.get_param('~debug','.')
 
-        # self.model_name = "baseline"
-        self.model_name = "yolov5"
+        self.model_name = "baseline"
+        # self.model_name = "yolov5"
         self.dt_token = "dt1-3nT8KSoxVh4Migd7N6Nsjy5q8BHtzjcsyz57x9FyJbx5UhJ-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbfex5eXnmoSTSmB3YdtDmc5tQuXNDk3cQ74"
 
         self.debug = True
@@ -77,44 +77,44 @@ class ObjectDetectorNode(DTROS):
         old_img = cv2.resize(old_img, img_size)
         image = cv2.resize(image, img_size)
 
-        # #* Do prediction from the img
-        # contours = self.model.infer(image)
+        #* Do prediction from the img
+        contours, clases, _ = self.model.infer(image)
 
-        # #* Find position of the objects detected
-        # positions = find_position(contours, img_size[0], img_size[1])
+        #* Find position of the objects detected
+        positions = find_position(contours, img_size[0], img_size[1])
 
-        # # Todo: Publish detection
+        # Todo: Publish detection
 
-        # #* Add bounding box
-        # for cnt, points in positions:
-        #     x,y,w,h = cv2.boundingRect(cnt)
-        #     old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
-        #     x_1, y_1 = round(points[0].x, 3), round(points[0].y, 3)
-        #     x_2, y_2 = round(points[1].x, 3), round(points[1].y, 3)
-        #     rospy.loginfo(f"point 1: ({x_1}, {y_1}) | point 2: ({x_2}, {y_2})")
+        #* Add bounding box
+        for cnt, points in positions:
+            x,y,w,h = cv2.boundingRect(cnt)
+            old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
+            x_1, y_1 = round(points[0].x, 3), round(points[0].y, 3)
+            x_2, y_2 = round(points[1].x, 3), round(points[1].y, 3)
+            # rospy.loginfo(f"point 1: ({x_1}, {y_1}) | point 2: ({x_2}, {y_2})")
 
-        #     old_img = cv2.putText(old_img, f"({x_1}, {y_1})m | ({x_2}, {y_2})m", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255,10,10),2)
+            old_img = cv2.putText(old_img, f"({x_1}, {y_1})m | ({x_2}, {y_2})m", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255,10,10),2)
 
         #* Do prediction from the img
-        bboxes, classes, scores = self.model.infer(image)
+        # bboxes, classes, scores = self.model.infer(image)
 
-        if self.debug:
-            colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
-            names = {0: "duckie", 1: "cone", 2: "truck", 3: "bus"}
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            for clas, box in zip(classes, bboxes):
+        # if self.debug:
+        #     colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
+        #     names = {0: "duckie", 1: "cone", 2: "truck", 3: "bus"}
+        #     font = cv2.FONT_HERSHEY_SIMPLEX
+        #     for clas, box in zip(classes, bboxes):
 
-                rospy.loginfo(f"Detected: {clas} at: {box}")
+        #         rospy.loginfo(f"Detected: {clas} at: {box}")
 
-                pt1 = np.array([int(box[0]), int(box[1])])
-                pt2 = np.array([int(box[2]), int(box[3])])
-                pt1 = tuple(pt1)
-                pt2 = tuple(pt2)
-                color = colors[clas.item()]
-                name = names[clas.item()]
-                old_img = cv2.rectangle(old_img, pt1, pt2, color, 2)
-                text_location = (pt1[0], min(416, pt1[1]+20))
-                old_img = cv2.putText(old_img, name, text_location, font, 1, color, thickness=3)
+        #         pt1 = np.array([int(box[0]), int(box[1])])
+        #         pt2 = np.array([int(box[2]), int(box[3])])
+        #         pt1 = tuple(pt1)
+        #         pt2 = tuple(pt2)
+        #         color = colors[clas.item()]
+        #         name = names[clas.item()]
+        #         old_img = cv2.rectangle(old_img, pt1, pt2, color, 2)
+        #         text_location = (pt1[0], min(416, pt1[1]+20))
+        #         old_img = cv2.putText(old_img, name, text_location, font, 1, color, thickness=3)
 
         #* Publish detection img for demo
         obj_det_img = self.bridge.cv2_to_compressed_imgmsg(old_img)
