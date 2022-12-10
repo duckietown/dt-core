@@ -15,6 +15,7 @@ dt-launchfile-init --quiet
 # launching app
 # dt-launcher-lane_following
 # dt-launcher-apriltag-detector
+dt-launcher-object-detector
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE
