@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import time
 import rospy
-dsvjbfshb 
 from duckietown_msgs.srv import SetCustomLEDPattern, ChangePattern
 from duckietown_msgs.srv import SetCustomLEDPatternResponse, ChangePatternResponse
 from duckietown_msgs.msg import LEDPattern
