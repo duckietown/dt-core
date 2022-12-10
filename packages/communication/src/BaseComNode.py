@@ -14,7 +14,7 @@ class BaseComNode:
     easier
     """
     # TODO move these constants somewhere else as params?
-    TIME_OUT_SEC = 2*60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
+    TIME_OUT_SEC = 2 * 60  # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
     def __init__(self, buffer_length=60, buffer_forget_time=40):
         # buffers parameters used to keep active points
@@ -55,14 +55,15 @@ class BaseComNode:
         # new_intersection_type = IntersectionType(data.infos)
         tag_info = TagInfo()
         new_intersection_type = IntersectionType.Unknown
+
         for info in msgs.infos:
-
-            if(info.tag_type == tag_info.SIGN):
-                 if(info.traffic_sign_type == tag_info.STOP):
-                     new_intersection_type = IntersectionType.StopSign
-                 elif(info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
-                     new_intersection_type = IntersectionType.TrafficLight
-
+            if (info.tag_type == tag_info.SIGN):
+                if (info.traffic_sign_type == tag_info.STOP):
+                    new_intersection_type = IntersectionType.StopSign
+                    break
+                elif (info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
+                    new_intersection_type = IntersectionType.TrafficLight
+                    break
 
         if self.curr_intersection_type == new_intersection_type:
             return
@@ -110,7 +111,7 @@ class BaseComNode:
         :return: the go or wait signal
         """
         action = ActionState.Solving
-        #print(self.curr_intersection_type)
+        # print(self.curr_intersection_type)
         if self.curr_intersection_type is IntersectionType.Unknown:
             return
         if self.curr_intersection_type is IntersectionType.TrafficLight:
@@ -147,7 +148,7 @@ class BaseComNode:
         return ActionState.Solving
 
     # OVERWRITTEN SECTION
-    def blink_at(self, frequency: int, color: str='white'):
+    def blink_at(self, frequency: int, color: str = 'white'):
         """
         This method changes the blinking frequency of the DuckieBot to the one specified in the input
 
