@@ -1,13 +1,24 @@
-import numpy as np
-import cv2
 import os
-import ctypes
+from typing import Tuple
+import numpy as np
+import torch
+from dt_data_api import DataClient
+from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
+import rospy
+
+JETSON_FP16 = True
+ASSETS_DIR = "/code/catkin_ws/src/object-detection/assets"
+IMAGE_SIZE = 416
+
 
 def run(input, exception_on_failure=False):
     print(input)
     try:
         import subprocess
-        program_output = subprocess.check_output(f"{input}", shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
+
+        program_output = subprocess.check_output(
+            f"{input}", shell=True, universal_newlines=True, stderr=subprocess.STDOUT
+        )
     except Exception as e:
         if exception_on_failure:
             print(e.output)
@@ -17,124 +28,110 @@ def run(input, exception_on_failure=False):
     return program_output.strip()
 
 
-class Model():
-    def __init__(self):
-        pass
-    def infer(self, image):
-        raise NotImplementedError()
-
-
 class ModelWrapper():
-    def __init__(self, model_name: str, dt_token: str, debug=False):
+    def __init__(self, model_name: str, dt_token: str, aido_eval=False):
 
-        # For simpler model
-        if model_name == "baseline":
-            from object_detection import BaseModel
-            self.model = BaseModel()
-            return
+        models_path = os.path.join(ASSETS_DIR, "nn_models")
+        dcss_models_path = "project/mooc/objdet/data/nn_models/"
 
-        if 'yolov5' in model_name.lower():
-        
-            cache_path = "/code/solution/nn_models"
+        dcss_weight_file_path = os.path.join(dcss_models_path, f"{model_name}.pt")
+        weight_file_path = os.path.join(models_path, f"{model_name}.pt")
 
-            run("pip install git+https://github.com/duckietown/lib-dt-mooc-2021")
-            from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
-            from dt_mooc.cloud import Storage
+        if aido_eval:
+            assert os.path.exists(weight_file_path)
+        else:
 
             if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
-                cache_path = "/data/config/nn_models"
-            if not os.path.exists(cache_path):
-                os.makedirs(cache_path)
+                # when running on the robot, we store models in the persistent `data` directory
+                models_path = "/data/nn_models"
+                weight_file_path = os.path.join(models_path, f"{model_name}.pt")
 
-            storage = Storage(dt_token)
-            storage.cache_directory = cache_path # todo this is dirty fix upstram in lib
-            file_already_existed = storage.is_hash_found_locally(model_name, cache_path)
-            storage.download_files(model_name, cache_path)
-            weight_file_path = f"{storage.cache_directory}/{model_name}"
+            # make models destination dir if it does not exist
+            if not os.path.exists(models_path):
+                os.makedirs(models_path)
 
+            # open a pointer to the DCSS storage unit
+            client = DataClient(dt_token)
+            storage = client.storage("user")
 
-            if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO and not file_already_existed:
-                print("\n\n\n\nCONVERTING TO ONNX. THIS WILL TAKE A LONG TIME...\n\n\n")
-                # https://github.com/duckietown/tensorrtx/tree/dt-yolov5/yolov5
-                run("git clone https://github.com/guthi1/tensorrtx.git -b dt-obj-det")
-                run(f"cp {weight_file_path}.wts ./tensorrtx/yolov5.wts")
-                run(f"cd tensorrtx && ls && chmod 777 ./do_convert.sh && ./do_convert.sh", exception_on_failure=True)
-                run(f"mv tensorrtx/build/yolov5.engine {weight_file_path}.engine")
-                run(f"mv tensorrtx/build/libmyplugins.so {weight_file_path}.so")
-                run("rm -rf tensorrtx")
-                print("\n\n\n\n...DONE CONVERTING! NEXT TIME YOU RUN USING THE SAME MODEL, WE WON'T NEED TO DO THIS!\n\n\n")
+            # make sure the model exists
+            metadata = None
+            try:
+                metadata = storage.head(dcss_weight_file_path)
+            except FileNotFoundError:
+                print(f"FATAL: Model '{model_name}' not found. It was expected at '{dcss_weight_file_path}'.")
+                exit(1)
 
-                # Install pycuda on Jenson Nano
-                run('sudo pip3 install --global-option=build_ext --global-option="-I/usr/local/cuda-10.0/targets/aarch64-linux/include/" --global-option="-L/usr/local/cuda-10.0/targets/aarch64-linux/lib/" pycuda')
+            # extract current ETag
+            remote_etag = eval(metadata["ETag"])
+            print(f"Remote ETag for model '{model_name}': {remote_etag}")
 
-            if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
-                self.model = TRTModel(weight_file_path)
-            
+            # read local etag
+            local_etag = None
+            etag_file_path = f"{weight_file_path}.etag"
+            if os.path.exists(etag_file_path):
+                with open(etag_file_path, "rt") as fin:
+                    local_etag = fin.read().strip()
+                print(f"Found local ETag for model '{model_name}': {local_etag}")
             else:
-                self.model = AMD64Model(weight_file_path)
+                print(f"No local model found with name '{model_name}'")
 
-            return
-        
-        raise NotImplementedError(f"Model {model_name} is not implemented. Only yolov5 and baseline available")
+            # do not download if already up-to-date
+            print(f"DEBUG: Comparing [{local_etag}] <> [{remote_etag}]")
+            if local_etag != remote_etag:
+                if local_etag:
+                    print(f"Found a different model on DCSS.")
+                print(f"Downloading model '{model_name}' from DCSS...")
+                # download model
+                download = storage.download(dcss_weight_file_path, weight_file_path, force=True)
+                download.join()
+                assert os.path.exists(weight_file_path)
+                # write ETag to file
+                with open(etag_file_path, "wt") as fout:
+                    fout.write(remote_etag)
+                print(f"Model with ETag '{remote_etag}' downloaded!")
+            else:
+                print(f"Local model is up-to-date!")
 
+        # load pytorch model
+        self.model = Model(weight_file_path)
 
-    def infer(self, image):
+    def infer(self, image: np.ndarray) -> Tuple[list, list, list]:
         return self.model.infer(image)
 
 
-class AMD64Model():
-    def __init__(self, weight_file_path):
+
+
+class Model:
+    def __init__(self, weight_file_path: str):
         super().__init__()
 
-        import torch
-        torch.hub.set_dir('/code/solution/nn_models')
-        print(f"\n\n\n\n [DEBUG4GUI] Init model with: {weight_file_path}.pt | {os.path.exists(f'{weight_file_path}.pt')}\n\n\n\n ")
+        rospy.loginfo(f"\n\n\n CUDA : {torch.cuda.is_available()} \n\n\n")
 
-        # Todo: Fix loading custom model
-        # self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=f'{weight_file_path}.pt')
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+        model = torch.hub.load("ultralytics/yolov5", "custom", path=weight_file_path)
+        model.eval()
 
-        print(f"\n\n\n\n [DEBUG4GUI] Model initialized \n\n\n\n ")
-        
-        try:
-            if torch.cuda.is_available():
-                self.model = self.model.cuda()
-            else:
-                self.model = self.model.cpu()
-        except Exception:
-            self.model = self.model.cpu()
+        use_fp16: bool = JETSON_FP16 and get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO
 
-    def infer(self, image):
-        # TODO size should be read from one place
-        det = self.model(image, size=416)
+        if use_fp16:
+            model = model.half()
+
+        if torch.cuda.is_available():
+            self.model = model.cuda()
+        else:
+            self.model = model.cpu()
+
+        del model
+
+    def infer(self, image: np.ndarray) -> Tuple[list, list, list]:
+        det = self.model(image, size=IMAGE_SIZE)
 
         xyxy = det.xyxy[0]  # grabs det of first image (aka the only image we sent to the net)
 
         if xyxy.shape[0] > 0:
-            conf = xyxy[:,-2]
-            clas = xyxy[:,-1]
-            xyxy = xyxy[:,:-2]
+            conf = xyxy[:, -2]
+            clas = xyxy[:, -1]
+            xyxy = xyxy[:, :-2]
 
-            return xyxy, clas, conf
+            return xyxy.tolist(), clas.tolist(), conf.tolist()
         return [], [], []
-
-class TRTModel(Model):
-    def __init__(self, weight_file_path):
-        super().__init__()
-        ctypes.CDLL(weight_file_path+".so")
-        from object_detection.tensorrt_model import YoLov5TRT
-        self.model = YoLov5TRT(weight_file_path+".engine")
-    def infer(self, image):
-        # todo ensure this is in boxes, classes, scores format
-        results = self.model.infer_for_robot([image])
-        boxes = results[0][0]
-        confs = results[0][1]
-        classes = results[0][2]
-
-        if classes.shape[0] > 0:
-            return boxes, classes, confs
-        return [], [], []
-
-
-
-
