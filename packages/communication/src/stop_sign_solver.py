@@ -12,7 +12,9 @@ class StopSignSolver:
     # Permitted frequencies that can be used for flashing (READABLE: [2, 4, 5, 6, 8, 10, 15])
     PERMITTED_FREQ = [2, 4, 5, 8, 10, 15]
     # Sensing duration (in sec) for a sensing step
-    SENSING_DURATION = 5
+    SENSING_DURATION = 10
+
+    DEFAULT_IMG_FPS = 30
 
     def __init__(self, buffer_length, buffer_forget_time):
         self.buffer_length = buffer_length
@@ -31,6 +33,11 @@ class StopSignSolver:
 
         # Wait time when conflicting freq is detected with other bots
         self.conflict_wait_with_same_freq_sec = None
+
+        self.img_avrg_fps = self.DEFAULT_IMG_FPS # Start with default FPS
+
+    def update_fps(self, fps):
+        self.img_avrg_fps = fps
 
     def reset(self):
         """
@@ -60,6 +67,6 @@ class StopSignSolver:
     def should_go(self):
         with self.buffer_lock:
             for point in self.point_buffer.points:
-                if point.get_frequency()[0] >= self.blink_freq:
+                if point.get_frequency(self.img_avrg_fps)[0] >= self.blink_freq:
                     return False
             return True

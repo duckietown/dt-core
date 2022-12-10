@@ -2,6 +2,7 @@ import numpy as np
 from PointBuffer import PointBuffer
 from UtilStates import TrafficLightState
 from threading import Lock
+from time import time
 
 
 class TrafficLightSolver:
@@ -11,7 +12,7 @@ class TrafficLightSolver:
 
     TL_GREEN_BLINK_FREQ = 7.8 # TODO use from yaml file of TL node?
                               # https://github.com/duckietown/dt-duckiebot-interface/blob/daffy/packages/traffic_light/config/traffic_light_node/TL_protocol.yaml
-    TL_TOLERANCE_FREQ_DIFF = 1 # 1Hz of tolerance +/-
+    TL_TOLERANCE_FREQ_DIFF = 1.5 # 1.5Hz of tolerance +/-
     MAX_TRAFFIC_LIGHT_HEIGHT = 200 # Coord starts from top of image. We only account for a partial portion of the top of the image.
                                    # TODO : make it in % instead of absolute pixel 
     TL_SOLVING_LED_COLOR = 'white'
@@ -21,6 +22,8 @@ class TrafficLightSolver:
     TL_MAX_DIFF_THRESHOLD = 25
     TL_G_BLUR_SIGMA_X = 1
     TL_G_BLUR_SIGMA_Y = 1
+
+    DEFAULT_IMG_FPS = 30
 
     def __init__(self, buffer_length, buffer_forget_time):
         self.buffer_length = buffer_length
@@ -33,6 +36,10 @@ class TrafficLightSolver:
                                   gblur_sigmaY=self.TL_G_BLUR_SIGMA_Y)
         self.buffer_lock = Lock()
         self.tl_state = TrafficLightState.Sensing
+        self.img_avrg_fps = self.DEFAULT_IMG_FPS # Start with default FPS
+
+    def update_fps(self, fps):
+        self.img_avrg_fps = fps
 
     # Verify if the point we have is in the TL green frequency range.
     def is_in_tl_frequency_range(self, point_frequency):
@@ -43,13 +50,14 @@ class TrafficLightSolver:
         return False
 
     # Accumulate the camera images
-    def push_camera_image(self, new_img):
+    def push_camera_image(self, new_img):        
         # Only post image when state is Sensing. No need in other states
         if self.tl_state == TrafficLightState.Sensing:
             # TODO perhaps it is better to just crop the image when received instead of analyzing the full image
-            reduced_img = new_img[:self.MAX_TRAFFIC_LIGHT_HEIGHT+1,:].copy()
-            with self.buffer_lock:
-                self.buffer.push_frame(reduced_img)
+            if new_img is not None:
+                reduced_img = new_img[:self.MAX_TRAFFIC_LIGHT_HEIGHT+1,:].copy()
+                with self.buffer_lock:
+                    self.buffer.push_frame(reduced_img)
 
     # Resets the solver to it's initial state. Should be called when ever the solving should be restarted
     # for example when the intersection type is received/change
@@ -86,12 +94,12 @@ class TrafficLightSolver:
             with self.buffer_lock:
                 for tl_led_point in self.buffer.points:
                     if (tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT # coord starts from top of image
-                        and self.is_in_tl_frequency_range(tl_led_point.get_frequency()[0])):
-                        print(f"GREEN Freq : {tl_led_point.get_frequency()[0]}")
+                        and self.is_in_tl_frequency_range(tl_led_point.get_frequency(self.img_avrg_fps)[0])):
+                        print(f"GREEN Freq : {tl_led_point.get_frequency(self.img_avrg_fps)[0]}")
                         self.update_tl_state(TrafficLightState.Green)
                         break # Break right away, we just detected the TL Green state
-                    #elif tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT:
-                    #    print(f"STILL RED Freq : {tl_led_point.get_frequency()[0]}")
+                    elif tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT:
+                        print(f"STILL RED Freq : {tl_led_point.get_frequency(self.img_avrg_fps)[0]}")
 
         # Return the tl green status
         return self.should_go()
