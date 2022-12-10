@@ -324,7 +324,7 @@ class LaneFilterHistogram(LaneFilterInterface):
     def getSegmentDistance(self, segment):
         x_c = (segment.points[0].x + segment.points[1].x) / 2
         y_c = (segment.points[0].y + segment.points[1].y) / 2
-        return sqrt(x_c ** 2 + y_c ** 2)
+        return sqrt(x_c**2 + y_c**2)
 
     #FIXME: Fix Bugs in the Visualization 
     def get_plot_phi_d(self, ground_truth=None) -> dtu.NPImageBGR:

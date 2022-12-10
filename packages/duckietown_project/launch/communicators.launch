@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+<include file="$(find communication)/launch/communication_node.launch"/>
+<include file="$(find led_detection)/launch/led_detection_node.launch"/>
+<include file="$(find led_emitter)/launch/led_emitter_node.launch"/>
+
+
+
+
+</launch>

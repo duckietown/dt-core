@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-	<!-- start args TODO: most things here should come from node's config files!-->
-	<arg name="veh" default="$(env VEHICLE_NAME)"
+    <!-- start args TODO: most things here should come from node's config files!-->
+        <arg name="veh" default="$(env VEHICLE_NAME)"
          doc="The name of the robot (e.g., autobot01, watchtower02, ...)"/>
-    <arg name="robot_type" default="$(env ROBOT_TYPE)"
+        <arg name="robot_type" default="$(env ROBOT_TYPE)"
          doc="The type of the robot (e.g., duckiebot, watchtower, traffic_light, ...)"/>
-    <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
+        <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
          doc="The configuration of the robot (e.g., DB19, DB20, WT18, ...)"/>
-    <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+        <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -18,7 +18,7 @@
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
-	<!-- end args -->
+    <!-- end args -->
 
     <!-- general convention on remappings is that we remap the "subscribers" -->
 
@@ -27,6 +27,8 @@
     <arg name="/camera/rect" default="false"/>
 
     <arg name="anti_instagram" default="false"/>
+    <arg name="communication" default="false"/>
+
 
     <arg name="visualization" default="false" />
 
@@ -54,6 +56,7 @@
     <arg name="/LED/detector" default="false" />
     <arg name="/LED/joystick" default="false" />
     <arg name="/LED/interpreter" default="false" />
+    <arg name="/LED/emitter" default="false" />
 
     <arg name="coordination" default="false"/>
     <arg name="/coordination/implicit_coordination" default="false"/>
@@ -102,6 +105,7 @@
     <group if="$(arg fsm)">
         <!-- FSM -->
         <!-- no remapping for FSM - full topic names specified in params yaml -->
+        <remap from="fsm_node/set_pattern" to="led_emitter_node/set_pattern"/>
         <include file="$(find fsm)/launch/fsm_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg fsm_file_name)"/>
@@ -205,7 +209,7 @@
         </group>
 
     </group>
-    <!-- End Lane Control -->
+    <!-- End Lane Control -->    
 
     <!-- Start Vehicle Avoidance -->
     <group if="$(arg vehicle_avoidance)">
@@ -311,6 +315,13 @@
         </group>
 
         <!--<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />-->
+        <group if="$(arg /LED/emitter)">
+            <include file="$(find led_emitter)/launch/led_emitter_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+            </include>
+        </group>
+
+                <!--<remap from="led_pattern_switch_node/change_color_pattern" to="led_emitter_node/set_pattern" />-->
         <group if="$(arg /LED/pattern_switch)">
             <remap from="led_pattern_switch_node/set_pattern" to="led_emitter_node/set_pattern"/>
             <include file="$(find led_pattern_switch)/launch/led_pattern_switch_node.launch">
@@ -322,7 +333,21 @@
 
     <!-- End LEDs Detection -->
 
-
+   
+    <!-- Start Communication (New intersection coorditation) -->
+    <group if="$(arg communication)">
+        <remap from="communication_node/image_in" to="camera_node/image/compressed"/>
+        <remap from="communication_node/current_led_state" to="led_emitter_node/current_led_state"/>
+        <remap from="communication_node/set_pattern" to="led_emitter_node/set_pattern"/>
+        <remap from="communication_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+        <remap from="communication_node/car_cmd" to="car_cmd_switch_node/cmd"/>
+        <include file="$(find communication)/launch/communication_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <!-- <arg name="param_file_name" value="$(arg param_file_name)"/> -->
+        </include>
+    </group>
+    <!-- End Communication -->
+    
 
     <!-- Start Coordination -->
     <group if="$(arg coordination)">
