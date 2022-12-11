@@ -1,5 +1,5 @@
 #lane_control/lane_controller_node
-v_bar: 0.1 #0.15 #0.19
+v_bar: 0.2 #0.15 #0.19
 k_d: -10.0 #-15.0 #-20.0 #-6.0
 k_theta: -2.5 #-3.0 #-4.0 #-5
 k_Id: 0 #-0.3
@@ -25,7 +25,7 @@ d_resolution: 0.011
 phi_resolution: 0.051
 
 stop_line_slowdown:
-  start: 0.6
-  end: 0.15
+  start: 0.4
+  end: 0.1
 
 verbose: 0

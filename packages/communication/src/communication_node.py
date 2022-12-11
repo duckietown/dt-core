@@ -68,6 +68,7 @@ class CommunicationNode(DTROS, BaseComNode):
             time.sleep(2)
             # Trun the LEDs off
             self.blink_at(frequency=0, color='switchedoff')
+            time.sleep(2)
             
             # Publish go message
             message.data = True
@@ -77,7 +78,7 @@ class CommunicationNode(DTROS, BaseComNode):
         elif action == ActionState.TimedOut:
             # Set color to red
             self.blink_at(frequency=0, color='red')
-
+            time.sleep(2)
             # Publish timed-out message
             message.data = True
             self.pub_timed_out.publish(message)

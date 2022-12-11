@@ -182,7 +182,7 @@ class BaseComNode:
             sleep(2)
             self.blink_at(self.ss_solver.blink_freq)
 
-        print('points', len(self.ss_solver.point_buffer.points))
+        # print('points', len(self.ss_solver.point_buffer.points))
         buffer = self.ss_solver.point_buffer.points.copy()
         #for i, point in enumerate(buffer):
         #    #freq, spikes = point.get_frequency()
@@ -217,7 +217,11 @@ class BaseComNode:
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
             # Set the intersection to unknown so we stop processing
-            self.intersection_type_callback(IntersectionType.Unknown)
+            #self.intersection_type_callback(IntersectionType.Unknown)
+            self.curr_intersection_type = IntersectionType.Unknown
+            self.begin_solving_time_sec = time()
+            self.last_state_transition_time = time()
+            
             # Publish signals and handle LED colors
             self.publish_signal(action_state)
 

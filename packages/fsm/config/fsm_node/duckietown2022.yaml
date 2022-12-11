@@ -24,8 +24,8 @@ events: # Maps from subscribing topic to signal ids
   #   topic: "communicators/comm_status"
   #   msg_type: "BoolStamped"
   #   trigger: True 
-  intersection_comm_start: 
-    topic: "communicators/comm_status"
+  intersection_comm_GO: 
+    topic: "communication_node/intersection_go"
     msg_type: "BoolStamped"
     trigger: True 
   at_stop_line:
@@ -120,8 +120,8 @@ states:
     # lights: "BLUE"
       # - stop_controller_node
   COMM_AT_INTERSECTION:
-    # transitions:
-      # intersection_comm_finish: "NAVIGATE_INTERSECTION"
+    transitions:
+      intersection_comm_GO: "NORMAL_JOYSTICK_CONTROL"
       # intersection_nav_start: "NAVIGATE_INTERSECTION"
     active_nodes:
       - decoder_node 
