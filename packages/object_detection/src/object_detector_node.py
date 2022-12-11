@@ -39,7 +39,8 @@ class ObjectDetectorNode(DTROS):
         # self.dt_token = rospy.get_param('~dt_token','.')
         # self.debug = rospy.get_param('~debug','.')
 
-        self.model_name = "baseline"
+        # self.model_name = "baseline"
+        self.model_name = "yolov5"
         self.dt_token = "dt1-3nT8KSoxVh4Migd7N6Nsjy5q8BHtzjcsyz57x9FyJbx48ma-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbfR5u27EQqh5HeESXBRegEfB5iyruJUabpt"
         self.debug = True
 
