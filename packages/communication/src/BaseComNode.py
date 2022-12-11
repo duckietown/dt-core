@@ -129,8 +129,7 @@ class BaseComNode:
         :param data: raw image data given by ROS
         """
         new_img = cv2.cvtColor(cv2.imdecode(np.frombuffer(data.data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2GRAY)
-        new_time_stamp = data.header.stamp
-        self.tl_solver.push_camera_image(new_img, new_time_stamp)
+        self.tl_solver.push_camera_image(new_img)
 
     # RUN SECTION
     def run(self):

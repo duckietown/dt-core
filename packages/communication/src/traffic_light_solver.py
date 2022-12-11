@@ -93,13 +93,21 @@ class TrafficLightSolver:
             # We go through all the detected points. Since we might have captured others from background
             with self.buffer_lock:
                 for tl_led_point in self.buffer.points:
+
+                    # TODO Based on some testing with the bots, when the computed FPS (self.img_avrg_fps) is > 30 we get good accurate
+                    # results to the real frequencies passing the self.img_avrg_fps to point.get_frequency(). However, for some strange reason
+                    # when the computed FPS is way to low (like 18 FPS) both methods (default 30 vs computed fps) are not accurate but using
+                    # default 30 FPS get's closer results to the true frequencies.
+                    # -> Use max (self.img_avrg_fps, 30).
+                    fps = max(self.img_avrg_fps, self.DEFAULT_IMG_FPS)
+
                     if (tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT # coord starts from top of image
-                        and self.is_in_tl_frequency_range(tl_led_point.get_frequency(self.img_avrg_fps)[0])):
-                        print(f"GREEN Freq : {tl_led_point.get_frequency(self.img_avrg_fps)[0]}")
+                        and self.is_in_tl_frequency_range(tl_led_point.get_frequency(fps)[0])):
+                        print(f"GREEN Freq : {tl_led_point.get_frequency(fps)[0]}")
                         self.update_tl_state(TrafficLightState.Green)
                         break # Break right away, we just detected the TL Green state
                     elif tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT:
-                        print(f"STILL RED Freq : {tl_led_point.get_frequency(self.img_avrg_fps)[0]}")
+                        print(f"STILL RED Freq : {tl_led_point.get_frequency(fps)[0]}")
 
         # Return the tl green status
         return self.should_go()
