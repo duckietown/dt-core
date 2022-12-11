@@ -40,9 +40,9 @@ class CommunicationNode(DTROS, BaseComNode):
         )
 
         # TODO TESTING:
-        # time.sleep(5) # Wait for LED emitter to be running.
-        #self.intersection_type_callback(1) # simulate stop sign
-        # self.intersection_type_callback(2) # simulate TL
+        time.sleep(5) # Wait for LED emitter to be running.
+        self.intersection_type_callback(1) # simulate stop sign
+        #self.intersection_type_callback(2) # simulate TL
 
     def blink_at(self, frequency: int = 0, color: str='white'):
 
@@ -65,7 +65,7 @@ class CommunicationNode(DTROS, BaseComNode):
         if action is ActionState.Go:
             # Set color to solid Green for 1 sec
             self.blink_at(frequency=0, color='green')
-            time.sleep(1)
+            time.sleep(2)
             # Trun the LEDs off
             self.blink_at(frequency=0, color='switchedoff')
             

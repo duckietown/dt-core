@@ -143,8 +143,8 @@ class Point:
         This method simply returns the sub image around the point using a predefined radius
         """
         return np.array(img_buffer)[
-           self.coords[0] - self.RADIUS: self.coords[0] + self.RADIUS + 1,
-           self.coords[1] - self.RADIUS: self.coords[1] + self.RADIUS + 1
+           int(self.coords[0] - self.RADIUS): int(self.coords[0] + self.RADIUS + 1),
+           int(self.coords[1] - self.RADIUS): int(self.coords[1] + self.RADIUS + 1)
         ]
 
 
