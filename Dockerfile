@@ -7,7 +7,11 @@ ARG ICON="diamond"
 
 # ==================================================>
 # ==> Do not change the code below this line
+<<<<<<< HEAD
 ARG ARCH
+=======
+ARG ARCH=arm64v8
+>>>>>>> origin/daffy-project
 ARG DISTRO=daffy
 ARG DOCKER_REGISTRY=docker.io
 ARG BASE_IMAGE=dt-ros-commons
@@ -64,6 +68,16 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all
 
+
+#! ADDED FOR ML PIPELINE: add cuda to path
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+
+#! ADDED FOR ML PIPELINE: nvidia-container-runtime
+# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES all
+
 # install apt dependencies
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
@@ -77,6 +91,24 @@ ARG PIP_INDEX_URL="https://pypi.org/simple/"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 COPY ./dependencies-py3.* "${REPO_PATH}/"
 RUN dt-pip3-install "${REPO_PATH}/dependencies-py3.*"
+
+#! ADDED FOR ML PIPELINE: versionning config
+# this is mainly for AMD64 as on Jetson it comes with the image
+ENV CUDA_VERSION 10.2.89
+ENV CUDA_PKG_VERSION 10-2=$CUDA_VERSION-1
+ENV NCCL_VERSION 2.8.4
+ENV CUDNN_VERSION 8.1.1.33
+ENV PYTORCH_VERSION 1.7.0
+ENV PYTORCHVISION_VERSION 0.8.0a0+2f40a48
+ENV TENSORRT_VERSION 7.1.3.4
+ENV PYCUDA_VERSION 2021.1
+
+#! ADDED FOR ML PIPELINE: Symbolic Link:
+RUN ln -s /usr/local/cuda-10.2 /usr/local/cuda
+
+#! ADDED FOR ML PIPELINE: install ML related stuff
+COPY assets/${ARCH} "${REPO_PATH}/install"
+RUN "${REPO_PATH}/install/install.sh"
 
 #! ADDED FOR ML PIPELINE: versionning config
 # this is mainly for AMD64 as on Jetson it comes with the image
