@@ -93,6 +93,6 @@ class StopSignSolver:
                 fps = max(self.img_avrg_fps, self.DEFAULT_IMG_FPS)
                 freq = point.get_frequency(fps)[0]
 
-                if freq + self.PERMITTED_FREQ >= self.blink_freq:
+                if freq + self.FREQ_ERROR_UPPER_MARGIN >= self.blink_freq:
                     return False
             return True

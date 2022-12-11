@@ -75,7 +75,7 @@ class CommunicationNode(DTROS, BaseComNode):
 
             # Publish go message
             message.data = True
-            #self.pub_intersection_go.publish(message)
+            self.pub_intersection_go.publish(message)
             rospy.loginfo(f"[{self.node_name}] -> Go")
 
 
