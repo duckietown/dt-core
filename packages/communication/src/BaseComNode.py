@@ -1,7 +1,7 @@
 import numpy as np
 from UtilStates import IntersectionType, ActionState
 import cv2
-from time import time
+from time import time, sleep
 from stop_sign_solver import StopSignSolver
 from traffic_light_solver import TrafficLightSolver
 
@@ -15,7 +15,7 @@ class BaseComNode:
     # TODO move these constants somewhere else as params?
     TIME_OUT_SEC = 2*60 # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
-    FPS_HISTORY_DURATION_SEC = 2 # Keep 10sec of images time stamps history
+    FPS_HISTORY_DURATION_SEC = 1.5 # Keep 10sec of images time stamps history
     FPS_UPDATE_PERIOD_SEC = 1 # Period in sec to compute and update fps
     DEFAULT_FPS = 30
 
@@ -67,7 +67,7 @@ class BaseComNode:
                 diffs = self.time_stamps_array[1:] - self.time_stamps_array[:-1]
                 self.img_avrg_fps = 1/diffs.mean()
                 #print(f"History duration: {history_duration_sec}")
-                print(f"Computed FPS from time stamps: {self.img_avrg_fps}")
+                #print(f"Computed FPS from time stamps: {self.img_avrg_fps}")
 
             # Drop the oldest time steps to keep the array with a period around self.FPS_HISTORY_DURATION_SEC
             if history_duration_sec > self.FPS_HISTORY_DURATION_SEC:
@@ -78,9 +78,9 @@ class BaseComNode:
 
         # Update the FPS of the solvers
         if prev_fps != self.img_avrg_fps:
-            #if self.curr_intersection_type is IntersectionType.StopSign:
-            #    self.ss_solver.update_fps(self.img_avrg_fps)
-            #elif self.curr_intersection_type is IntersectionType.TrafficLight:
+            if self.curr_intersection_type is IntersectionType.StopSign:
+                self.ss_solver.update_fps(self.img_avrg_fps)
+            elif self.curr_intersection_type is IntersectionType.TrafficLight:
                 self.tl_solver.update_fps(self.img_avrg_fps)
 
 
@@ -167,15 +167,16 @@ class BaseComNode:
                 return ActionState.Go
 
             self.ss_solver.reset()
-            self.blink_at(0, str="blue")
-            time.sleep(1)
+            self.blink_at(0, color="blue")
+            sleep(2)
             self.blink_at(self.ss_solver.blink_freq)
 
         print('points', len(self.ss_solver.point_buffer.points))
-        buffer = self.ss_solver.point_buffer.points
-        for i, point in enumerate(buffer):
-            freq, spikes = point.get_frequency()
-            print(f"{i} -- {freq}: {point}\n{i} -- {spikes}")
+        buffer = self.ss_solver.point_buffer.points.copy()
+        #for i, point in enumerate(buffer):
+        #    #freq, spikes = point.get_frequency()
+        #    freq, spikes = point.get_frequency(self.img_avrg_fps)
+        #    print(f"{i} -- {freq}: {point}\n{i} -- {spikes}")
         return ActionState.Solving
 
     # OVERWRITTEN SECTION
@@ -185,7 +186,7 @@ class BaseComNode:
 
         :param frequency: frequency of blinking
         """
-        print('self-freq:', frequency)
+        print(' blink_at self-freq:', frequency)
         pass  # placeholder for inheritance
 
     # OVERWRITTEN SECTION
@@ -209,10 +210,9 @@ class BaseComNode:
             # Publish signals and handle LED colors
             self.publish_signal(action_state)
 
-            # TODO just for continuous TL solving: can be used for demo
+            # TODO TESTS and Continuous running. Use for standalone demo
+            # Uncomment to TEST TL solving: 
             #self.intersection_type_callback(IntersectionType.TrafficLight)
-            #self.tl_solver.reset()
 
-            # TODO just for continuous SS solving: can be used for demo
-            #self.intersection_type_callback(IntersectionType.StopSign)
-            #self.ss_solver.reset()
+            # Uncomment to TEST SS solving:
+            self.intersection_type_callback(IntersectionType.StopSign)
