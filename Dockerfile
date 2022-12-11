@@ -7,11 +7,7 @@ ARG ICON="diamond"
 
 # ==================================================>
 # ==> Do not change the code below this line
-<<<<<<< HEAD
 ARG ARCH
-=======
-ARG ARCH=arm64v8
->>>>>>> origin/daffy-project
 ARG DISTRO=daffy
 ARG DOCKER_REGISTRY=docker.io
 ARG BASE_IMAGE=dt-ros-commons
