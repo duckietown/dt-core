@@ -223,7 +223,7 @@ class BaseComNode:
 
             # TODO TESTS and Continuous running. Use for standalone demo
             # Uncomment to TEST TL solving: 
-            self.intersection_type_callback(IntersectionType.TrafficLight)
+            #self.intersection_type_callback(IntersectionType.TrafficLight)
 
             # Uncomment to TEST SS solving:
             #self.intersection_type_callback(IntersectionType.StopSign)
