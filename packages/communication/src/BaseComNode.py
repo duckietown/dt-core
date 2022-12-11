@@ -96,32 +96,40 @@ class BaseComNode:
         tag_info = TagInfo()
         new_intersection_type = IntersectionType.Unknown
 
-        for info in msgs.infos:
-            if (info.tag_type == tag_info.SIGN):
-                if (info.traffic_sign_type == tag_info.STOP):
-                    new_intersection_type = IntersectionType.StopSign
-                    break
-                elif (info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
-                    new_intersection_type = IntersectionType.TrafficLight
-                    break
+        if len(msgs.infos) != 0:
+            for info in msgs.infos:
+                print(info.tag_type)
+                if (info.tag_type == tag_info.SIGN):
+                    if (info.traffic_sign_type == tag_info.STOP):
+                        new_intersection_type = IntersectionType.StopSign
+                        #print(" intersection_type_callback  StopSign")
+                        break
+                    elif (info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
+                        new_intersection_type = IntersectionType.TrafficLight
+                        #print(" intersection_type_callback  TrafficLight")
+                        break
 
-        if self.curr_intersection_type == new_intersection_type:
-            return
+            #print(f" intersection_type_callback  {self.curr_intersection_type}, {new_intersection_type}")
+            if self.curr_intersection_type == new_intersection_type:
+                
+                return
 
-        # TODO: fill the state machine for transitions
-        # Reset all time_trackers since a new intersection means a new cycle
-        self.begin_solving_time_sec = time()
-        self.last_state_transition_time = time()
+            print(" intersection_type_callback  CHANGED")
 
-        # Stop sign
-        if new_intersection_type is IntersectionType.StopSign:
-            self.ss_solver.reset()
-            self.blink_at(self.ss_solver.blink_freq)
+            # TODO: fill the state machine for transitions
+            # Reset all time_trackers since a new intersection means a new cycle
+            self.begin_solving_time_sec = time()
+            self.last_state_transition_time = time()
 
-        elif new_intersection_type is IntersectionType.TrafficLight:
-            self.tl_solver.reset()
+            # Stop sign
+            if new_intersection_type is IntersectionType.StopSign:
+                self.ss_solver.reset()
+                self.blink_at(self.ss_solver.blink_freq)
 
-        self.curr_intersection_type = new_intersection_type
+            elif new_intersection_type is IntersectionType.TrafficLight:
+                self.tl_solver.reset()
+
+            self.curr_intersection_type = new_intersection_type
 
     def stop_sign_img_callback(self, data):
         """
@@ -216,9 +224,9 @@ class BaseComNode:
         All state updates should be done here
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
+            print(" update action state GO | Timeout")
             # Set the intersection to unknown so we stop processing
-            #self.intersection_type_callback(IntersectionType.Unknown)
-            self.curr_intersection_type = IntersectionType.Unknown
+            #self.curr_intersection_type = IntersectionType.Unknown
             self.begin_solving_time_sec = time()
             self.last_state_transition_time = time()
             
@@ -227,7 +235,7 @@ class BaseComNode:
 
             # TODO TESTS and Continuous running. Use for standalone demo
             # Uncomment to TEST TL solving: 
-            #self.intersection_type_callback(IntersectionType.TrafficLight)
+            #self.curr_intersection_type = IntersectionType.TrafficLight
 
             # Uncomment to TEST SS solving:
-            #self.intersection_type_callback(IntersectionType.StopSign)
+            #self.curr_intersection_type = IntersectionType.StopSign

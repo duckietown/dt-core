@@ -2,7 +2,7 @@
 
 import rospy
 from BaseComNode import BaseComNode
-from UtilStates import ActionState
+from UtilStates import ActionState, IntersectionType
 from duckietown.dtros import DTROS, NodeType, TopicType
 from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import LEDPattern, BoolStamped, Twist2DStamped, AprilTagsWithInfos
@@ -70,10 +70,15 @@ class CommunicationNode(DTROS, BaseComNode):
             self.blink_at(frequency=0, color='switchedoff')
             time.sleep(2)
             
+            # Reset the intersection as a last step to avoid early rest by april tag reading
+            self.curr_intersection_type = IntersectionType.Unknown
+
             # Publish go message
             message.data = True
-            self.pub_intersection_go.publish(message)
+            #self.pub_intersection_go.publish(message)
             rospy.loginfo(f"[{self.node_name}] -> Go")
+
+
 
         elif action == ActionState.TimedOut:
             # Set color to red
