@@ -18,6 +18,8 @@
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
+    <!-- <arg name="communication" value="true"/> -->
+
 	<!-- end args -->
 
 <!-- start switch args -->

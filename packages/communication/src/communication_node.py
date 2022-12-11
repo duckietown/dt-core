@@ -40,9 +40,9 @@ class CommunicationNode(DTROS, BaseComNode):
         )
 
         # TODO TESTING:
-        time.sleep(5) # Wait for LED emitter to be running.
+        # time.sleep(5) # Wait for LED emitter to be running.
         #self.intersection_type_callback(1) # simulate stop sign
-        self.intersection_type_callback(2) # simulate TL
+        # self.intersection_type_callback(2) # simulate TL
 
     def blink_at(self, frequency: int = 0, color: str='white'):
 

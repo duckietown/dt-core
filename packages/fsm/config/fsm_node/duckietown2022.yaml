@@ -60,7 +60,7 @@ nodes:
   # extras added
 
   # Other nodes
-  # communication_node: "communication_node/switch"
+  communication_node: "communication_node/switch"
   # deadreckoning_node: "deadreckoning_node/switch"
   # unicorn_intersection_node: "unicorn_intersection_node/switch" 
 
@@ -96,7 +96,7 @@ states:
   LANE_FOLLOWING:
     transitions:
       obstacle_exists: "NORMAL_JOYSTICK_CONTROL" # "AVOID_OBSTACLE"
-      at_stop_line:  "STOP_AT_INTERSECTION" # change name later
+      at_stop_line:  "COMM_AT_INTERSECTION" # change name later
     active_nodes:
       - anti_instagram_node
       - decoder_node
@@ -109,22 +109,27 @@ states:
       - led_emitter_node
       - stop_line_filter_node
     lights: "GREEN"
-  STOP_AT_INTERSECTION:
+  # STOP_AT_INTERSECTION:
+  #   # transitions:
+  # #     not_at_stop_line: "NORMAL_JOYSTICK_"
+  #   active_nodes:
+  #     - decoder_node 
+  #     - april_tag_node 
+  #     - april_tag_postnode
+  #     - led_emitter_node
+    # lights: "BLUE"
+      # - stop_controller_node
+  COMM_AT_INTERSECTION:
     # transitions:
-  #     not_at_stop_line: "NORMAL_JOYSTICK_"
+      # intersection_comm_finish: "NAVIGATE_INTERSECTION"
+      # intersection_nav_start: "NAVIGATE_INTERSECTION"
     active_nodes:
       - decoder_node 
       - april_tag_node 
       - april_tag_postnode
       - led_emitter_node
-
+      - communication_node
     lights: "BLUE"
-      # - stop_controller_node
-  # COMM_AT_INTERSECTION:
-  #   transitions:
-  #     # intersection_comm_finish: "NAVIGATE_INTERSECTION"
-  #     intersection_nav_start: "NAVIGATE_INTERSECTION"
-  #   active_nodes:
   #     - led_detection_node 
   #     - object_detector_node 
   #     - communication_node # Does all the processing required for communication and priority allocation  

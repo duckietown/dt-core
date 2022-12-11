@@ -2,7 +2,7 @@
 
 <launch>
 
-<!-- <include file="$(find duckietown_project)/launch/communicators.launch"/> -->
+<include file="$(find duckietown_project)/launch/communicators.launch"/>
 <include file="$(find duckietown_project)/launch/followers.launch"/> 
 <!-- <include file="$(find duckietown_project)/launch/navigators.launch"/> -->
 <include file="$(find duckietown_project)/launch/integrators.launch"/>
