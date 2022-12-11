@@ -14,13 +14,17 @@ import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
 from std_msgs.msg import Header
 
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
-class AprilPostPros(object):
+class AprilPostPros(DTROS):
     """ """
 
-    def __init__(self):
+    def __init__(self, node_name):
         """ """
-        self.node_name = "apriltag_postprocessing_node"
+        super(AprilPostPros, self).__init__(
+            node_name=node_name, node_type=NodeType.PERCEPTION
+        )
+        self.node_name = node_name
 
         # Load parameters
         self.camera_x = self.setupParam("~camera_x", 0.065)
@@ -186,6 +190,6 @@ class AprilPostPros(object):
 
 
 if __name__ == "__main__":
-    rospy.init_node("AprilPostPros", anonymous=False)
-    node = AprilPostPros()
+    # rospy.init_node("AprilPostPros", anonymous=False)
+    node = AprilPostPros(node_name="apriltag_postprocessing_node")
     rospy.spin()
