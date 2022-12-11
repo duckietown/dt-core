@@ -217,13 +217,15 @@ class BaseComNode:
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
             # Set the intersection to unknown so we stop processing
-            self.intersection_type_callback(IntersectionType.Unknown)
+            self.curr_intersection_type = IntersectionType.Unknown
+            self.begin_solving_time_sec = time()
+            self.last_state_transition_time = time()
             # Publish signals and handle LED colors
             self.publish_signal(action_state)
 
             # TODO TESTS and Continuous running. Use for standalone demo
             # Uncomment to TEST TL solving: 
-            #self.intersection_type_callback(IntersectionType.TrafficLight)
+            #self.curr_intersection_type = IntersectionType.TrafficLight
 
             # Uncomment to TEST SS solving:
-            self.intersection_type_callback(IntersectionType.StopSign)
+            #self.curr_intersection_type = IntersectionType.StopSign
