@@ -36,3 +36,6 @@ pandas>=1.1.4
 seaborn>=0.11.0
 
 aido-protocols-daffy
+gitpython
+
+dt-data-api-daffy>=0.1.8

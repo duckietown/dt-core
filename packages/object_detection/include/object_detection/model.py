@@ -31,6 +31,11 @@ def run(input, exception_on_failure=False):
 class ModelWrapper():
     def __init__(self, model_name: str, dt_token: str, aido_eval=False):
 
+        if model_name == "baseline":
+            from object_detection import BaseModel
+            self.model = BaseModel()
+            return
+
         models_path = os.path.join(ASSETS_DIR, "nn_models")
         dcss_models_path = "project/mooc/objdet/data/nn_models/"
 
@@ -109,6 +114,8 @@ class Model:
         rospy.loginfo(f"\n\n\n CUDA : {torch.cuda.is_available()} \n\n\n")
 
         model = torch.hub.load("ultralytics/yolov5", "custom", path=weight_file_path)
+        # model = torch.hub.load("/yolov5", "custom", path=weight_file_path, source="local")
+        
         model.eval()
 
         use_fp16: bool = JETSON_FP16 and get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO

@@ -7,7 +7,7 @@ ARG ICON="diamond"
 
 # ==================================================>
 # ==> Do not change the code below this line
-ARG ARCH
+ARG ARCH=arm64v8
 ARG DISTRO=daffy
 ARG DOCKER_REGISTRY=docker.io
 ARG BASE_IMAGE=dt-ros-commons
@@ -99,13 +99,6 @@ ENV PYTORCHVISION_VERSION 0.8.0a0+2f40a48
 ENV TENSORRT_VERSION 7.1.3.4
 ENV PYCUDA_VERSION 2021.1
 
-#! ADDED FOR ML PIPELINE: Symbolic Link:
-RUN ln -s /usr/local/cuda-10.2 /usr/local/cuda
-
-#! ADDED FOR ML PIPELINE: install ML related stuff
-COPY assets/${ARCH} "${REPO_PATH}/install"
-RUN "${REPO_PATH}/install/install.sh"
-
 #! ADDED FOR ML PIPELINE: versionning config
 # this is mainly for AMD64 as on Jetson it comes with the image
 ENV CUDA_VERSION 10.2.89
@@ -120,9 +113,12 @@ ENV PYCUDA_VERSION 2021.1
 #! ADDED FOR ML PIPELINE: Symbolic Link:
 RUN ln -s /usr/local/cuda-10.2 /usr/local/cuda
 
-#! ADDED FOR ML PIPELINE: install ML related stuff
-COPY assets/${ARCH} "${REPO_PATH}/install"
-RUN "${REPO_PATH}/install/install.sh"
+# #! ADDED FOR ML PIPELINE: install ML related stuff
+# COPY assets/${ARCH} "${REPO_PATH}/install"
+# RUN "${REPO_PATH}/install/install.sh"
+
+#! ML PIPELINE: Download YOLOv5 model (weights will be downloaded from DCSS)
+RUN git clone -b v7.0 https://github.com/ultralytics/yolov5 "/yolov5"
 
 # copy the source code
 COPY ./packages "${REPO_PATH}/packages"
