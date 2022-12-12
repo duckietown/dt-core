@@ -11,6 +11,6 @@
           file="$(find apriltag)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
         <param name="tags_file" value="$(find apriltag)/config/apriltagsDB.yaml" />
     </node>
-    <!--node pkg="apriltag" type="apriltag_detector_subscriber_node.py" name="apriltag_detector_subscriber_node" output="screen"/-->
+    <node pkg="apriltag" type="apriltag_detector_subscriber_node.py" name="apriltag_detector_subscriber_node" output="screen"/>
   </group>
 </launch>
