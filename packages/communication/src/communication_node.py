@@ -43,13 +43,14 @@ class CommunicationNode(DTROS, BaseComNode):
         # TODO TESTING:
         #time.sleep(5) # Wait for LED emitter to be running.
         #new_info = TagInfo()
-        #new_tag_data = AprilTagsWithInfos()
-        # simulate stop sign
         #new_info.tag_type = new_info.SIGN
+        #new_tag_data = AprilTagsWithInfos()        
+        # simulate stop sign
+        #new_info.traffic_sign_type = new_info.STOP
         #new_tag_data.infos.append(new_info)
         #self.intersection_type_callback(new_tag_data)
         # simulate TL
-        #new_info.tag_type = new_info.T_LIGHT_AHEAD
+        #new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
         #new_tag_data.infos.append(new_info)
         #self.intersection_type_callback(new_tag_data)
 
@@ -90,19 +91,18 @@ class CommunicationNode(DTROS, BaseComNode):
 
             # TODO TESTING:
             #new_info = TagInfo()
+            #new_info.tag_type = new_info.SIGN
             #new_tag_data = AprilTagsWithInfos()
             #new_tag_data.infos.append(new_info)
             #self.intersection_type_callback(new_tag_data) # Unknown
-            #print("intersection_type_callback push empty")
             # simulate stop sign
-            #new_info.tag_type = new_info.SIGN
+            #new_info.traffic_sign_type = new_info.STOP
             #new_tag_data.infos.append(new_info)
             #self.intersection_type_callback(new_tag_data)
             # simulate TL
-            #new_info.tag_type = new_info.T_LIGHT_AHEAD
+            #new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
             #new_tag_data.infos.append(new_info)
             #self.intersection_type_callback(new_tag_data)
-            #print("intersection_type_callback T_LIGHT_AHEAD")
 
         elif action == ActionState.TimedOut:
             # Set color to red

@@ -16,7 +16,7 @@ class BaseComNode:
     # TODO move these constants somewhere else as params?
     TIME_OUT_SEC = 2 * 60  # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
-    FPS_HISTORY_DURATION_SEC = 1.5 # Keep 10sec of images time stamps history
+    FPS_HISTORY_DURATION_SEC = 2 # Keep 2sec of images time stamps history
     FPS_UPDATE_PERIOD_SEC = 1 # Period in sec to compute and update fps
     DEFAULT_FPS = 30
 
@@ -93,7 +93,7 @@ class BaseComNode:
         :param data: intersection data given by ROS
         """
 
-        print(" intersection_type_callback")
+        print("BaseComNode: intersection_type_callback")
 
         # Update only when we have information
         if len(msgs.infos) != 0:
@@ -103,7 +103,7 @@ class BaseComNode:
 
             # Loop over all detected info
             for info in msgs.infos:
-                print(f" info.traffic_sign_type: {info.traffic_sign_type}")
+                print(f"BaseComNode: intersection_type_callback: info.traffic_sign_type: {info.traffic_sign_type}")
                 if (info.tag_type == tag_info.SIGN):
                     if (info.traffic_sign_type == tag_info.STOP):
                         new_intersection_type = IntersectionType.StopSign
@@ -190,7 +190,7 @@ class BaseComNode:
             self.ss_solver.reset()
             self.blink_at(self.ss_solver.blink_freq)
 
-        print('points', len(self.ss_solver.point_buffer.points))
+        print(f'points {len(self.ss_solver.point_buffer.points)}')
         buffer = self.ss_solver.point_buffer.points.copy()
         #for i, point in enumerate(buffer):
         #    #freq, spikes = point.get_frequency()
@@ -205,7 +205,7 @@ class BaseComNode:
 
         :param frequency: frequency of blinking
         """
-        print(' blink_at self-freq:', frequency)
+        print(f' blink_at self-freq: {frequency}')
         pass  # placeholder for inheritance
 
     # OVERWRITTEN SECTION
@@ -215,7 +215,7 @@ class BaseComNode:
 
         :param action: the go signal
         """
-        print('Action:', action)
+        print(f'Action:{action}')
         pass  # placeholder for inheritance
 
     # INTERNAL SECTION
