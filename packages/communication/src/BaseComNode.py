@@ -5,6 +5,7 @@ from time import time, sleep
 from stop_sign_solver import StopSignSolver
 from traffic_light_solver import TrafficLightSolver
 from duckietown_msgs.msg import TagInfo
+import rospy
 
 
 class BaseComNode:
@@ -92,36 +93,43 @@ class BaseComNode:
 
         :param data: intersection data given by ROS
         """
-        # new_intersection_type = IntersectionType(data.infos)
-        tag_info = TagInfo()
-        new_intersection_type = IntersectionType.Unknown
 
-        for info in msgs.infos:   #TagInfo[] infos
-            if (info.tag_type == tag_info.SIGN):
-                if (info.traffic_sign_type == tag_info.STOP):
-                    new_intersection_type = IntersectionType.StopSign
-                    break
-                elif (info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
-                    new_intersection_type = IntersectionType.TrafficLight
-                    break
+        print("BaseComNode: intersection_type_callback")
 
-        if self.curr_intersection_type == new_intersection_type:
-            return
+        # Update only when we have information
+        if len(msgs.infos) != 0:
+            # new_intersection_type = IntersectionType(data.infos)
+            tag_info = TagInfo()
+            new_intersection_type = IntersectionType.Unknown
 
-        # TODO: fill the state machine for transitions
-        # Reset all time_trackers since a new intersection means a new cycle
-        self.begin_solving_time_sec = time()
-        self.last_state_transition_time = time()
+            # Loop over all detected info
+            for info in msgs.infos:
+                print(f"BaseComNode: intersection_type_callback: info.traffic_sign_type: {info.traffic_sign_type}")
+                if (info.tag_type == tag_info.SIGN):
+                    if (info.traffic_sign_type == tag_info.STOP):
+                        new_intersection_type = IntersectionType.StopSign
+                        break
+                    elif (info.traffic_sign_type == tag_info.T_LIGHT_AHEAD):
+                        new_intersection_type = IntersectionType.TrafficLight
+                        break
 
-        # Stop sign
-        if new_intersection_type is IntersectionType.StopSign:
-            self.ss_solver.reset()
-            self.blink_at(self.ss_solver.blink_freq)
+            if self.curr_intersection_type == new_intersection_type:
+                return
 
-        elif new_intersection_type is IntersectionType.TrafficLight:
-            self.tl_solver.reset()
+            # TODO: fill the state machine for transitions
+            # Reset all time_trackers since a new intersection means a new cycle
+            self.begin_solving_time_sec = time()
+            self.last_state_transition_time = time()
 
-        self.curr_intersection_type = new_intersection_type
+            # Stop sign
+            if new_intersection_type is IntersectionType.StopSign:
+                self.ss_solver.reset()
+                self.blink_at(self.ss_solver.blink_freq)
+
+            elif new_intersection_type is IntersectionType.TrafficLight:
+                self.tl_solver.reset()
+
+            self.curr_intersection_type = new_intersection_type
 
     def stop_sign_img_callback(self, data):
         """
@@ -182,7 +190,7 @@ class BaseComNode:
             sleep(2)
             self.blink_at(self.ss_solver.blink_freq)
 
-        print('points', len(self.ss_solver.point_buffer.points))
+        print(f'points {len(self.ss_solver.point_buffer.points)}')
         buffer = self.ss_solver.point_buffer.points.copy()
         #for i, point in enumerate(buffer):
         #    #freq, spikes = point.get_frequency()
@@ -197,7 +205,7 @@ class BaseComNode:
 
         :param frequency: frequency of blinking
         """
-        print(' blink_at self-freq:', frequency)
+        print(f' blink_at self-freq: {frequency}')
         pass  # placeholder for inheritance
 
     # OVERWRITTEN SECTION
@@ -207,7 +215,7 @@ class BaseComNode:
 
         :param action: the go signal
         """
-        print('Action:', action)
+        print(f'Action:{action}')
         pass  # placeholder for inheritance
 
     # INTERNAL SECTION
@@ -217,14 +225,8 @@ class BaseComNode:
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
             # Set the intersection to unknown so we stop processing
-            self.curr_intersection_type = IntersectionType.Unknown
+            self.begin_solving_time_sec = time()
+            self.last_state_transition_time = time()
+
             # Publish signals and handle LED colors
             self.publish_signal(action_state)
-
-            # TODO TESTS and Continuous running. Use for standalone demo
-            # Uncomment to TEST TL solving: 
-            self.curr_intersection_type = IntersectionType.TrafficLight
-
-            # Uncomment to TEST SS solving:
-            #self.curr_intersection_type = IntersectionType.StopSign
-

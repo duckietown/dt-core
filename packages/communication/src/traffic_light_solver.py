@@ -12,7 +12,7 @@ class TrafficLightSolver:
 
     TL_GREEN_BLINK_FREQ = 7.8 # TODO use from yaml file of TL node?
                               # https://github.com/duckietown/dt-duckiebot-interface/blob/daffy/packages/traffic_light/config/traffic_light_node/TL_protocol.yaml
-    TL_TOLERANCE_FREQ_DIFF = 1.5 # 1.5Hz of tolerance +/-
+    TL_TOLERANCE_FREQ_DIFF = 3 # 3Hz of tolerance +/-
     MAX_TRAFFIC_LIGHT_HEIGHT = 200 # Coord starts from top of image. We only account for a partial portion of the top of the image.
                                    # TODO : make it in % instead of absolute pixel 
     TL_SOLVING_LED_COLOR = 'white'
@@ -102,12 +102,13 @@ class TrafficLightSolver:
                     fps = max(self.img_avrg_fps, self.DEFAULT_IMG_FPS)
 
                     if (tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT # coord starts from top of image
-                        and self.is_in_tl_frequency_range(tl_led_point.get_frequency(fps)[0])):
-                        print(f"GREEN Freq : {tl_led_point.get_frequency(fps)[0]}")
+                        and (self.is_in_tl_frequency_range(tl_led_point.get_frequency(fps)[0]) # test both fps and self.img_avrg_fps
+                        or self.is_in_tl_frequency_range(tl_led_point.get_frequency(self.img_avrg_fps)[0]))):
+                        print(f"GREEN Freq : {tl_led_point.get_frequency(fps)[0]}, using avg fps {tl_led_point.get_frequency(self.img_avrg_fps)[0]}, IMG AVG FPS: {self.img_avrg_fps}")
                         self.update_tl_state(TrafficLightState.Green)
                         break # Break right away, we just detected the TL Green state
                     elif tl_led_point.coords[0] <= self.MAX_TRAFFIC_LIGHT_HEIGHT:
-                        print(f"STILL RED Freq : {tl_led_point.get_frequency(fps)[0]}")
+                        print(f"STILL RED Freq : {tl_led_point.get_frequency(fps)[0]}, using avg fps {tl_led_point.get_frequency(self.img_avrg_fps)[0]}, IMG AVG FPS: {self.img_avrg_fps}")
 
         # Return the tl green status
         return self.should_go()
