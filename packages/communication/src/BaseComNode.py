@@ -224,6 +224,7 @@ class BaseComNode:
         All state updates should be done here
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
+            print(" update action state GO | Timeout")
             # Set the intersection to unknown so we stop processing
             self.begin_solving_time_sec = time()
             self.last_state_transition_time = time()

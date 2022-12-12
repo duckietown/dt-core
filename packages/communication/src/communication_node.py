@@ -79,7 +79,6 @@ class CommunicationNode(DTROS, BaseComNode):
             # Trun the LEDs off
             self.blink_at(frequency=0, color='switchedoff')
             time.sleep(2)
-
             # Reset the intersection as a last step to avoid early rest by april tag reading
             self.curr_intersection_type = IntersectionType.Unknown
 
@@ -108,7 +107,6 @@ class CommunicationNode(DTROS, BaseComNode):
             # Set color to red
             self.blink_at(frequency=0, color='red')
             time.sleep(2)
-
             # Publish timed-out message
             message.data = True
             self.pub_timed_out.publish(message)

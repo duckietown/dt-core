@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+<include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch"/>
+<include file="$(find navigators_controller)/launch/navigators_controller_node.launch"/>
+<include file="$(find deadreckoning)/launch/deadreckoning_node.launch"/>
+
+
+</launch>
