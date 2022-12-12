@@ -17,7 +17,7 @@ class BaseComNode:
     # TODO move these constants somewhere else as params?
     TIME_OUT_SEC = 2 * 60  # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
-    FPS_HISTORY_DURATION_SEC = 1.5 # Keep 10sec of images time stamps history
+    FPS_HISTORY_DURATION_SEC = 2 # Keep 2sec of images time stamps history
     FPS_UPDATE_PERIOD_SEC = 1 # Period in sec to compute and update fps
     DEFAULT_FPS = 30
 

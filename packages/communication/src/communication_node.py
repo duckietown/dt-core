@@ -46,13 +46,13 @@ class CommunicationNode(DTROS, BaseComNode):
         new_info.tag_type = new_info.SIGN
         new_tag_data = AprilTagsWithInfos()        
         # simulate stop sign
-        #new_info.traffic_sign_type = new_info.STOP
-        #new_tag_data.infos.append(new_info)
-        #self.intersection_type_callback(new_tag_data)
-        # simulate TL
-        new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
+        new_info.traffic_sign_type = new_info.STOP
         new_tag_data.infos.append(new_info)
         self.intersection_type_callback(new_tag_data)
+        # simulate TL
+        #new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
+        #new_tag_data.infos.append(new_info)
+        #self.intersection_type_callback(new_tag_data)
 
     def blink_at(self, frequency: int = 0, color: str='white'):
 
@@ -96,13 +96,13 @@ class CommunicationNode(DTROS, BaseComNode):
             new_tag_data.infos.append(new_info)
             self.intersection_type_callback(new_tag_data) # Unknown
             # simulate stop sign
-            #new_info.traffic_sign_type = new_info.STOP
-            #new_tag_data.infos.append(new_info)
-            #self.intersection_type_callback(new_tag_data)
-            # simulate TL
-            new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
+            new_info.traffic_sign_type = new_info.STOP
             new_tag_data.infos.append(new_info)
             self.intersection_type_callback(new_tag_data)
+            # simulate TL
+            #new_info.traffic_sign_type = new_info.T_LIGHT_AHEAD
+            #new_tag_data.infos.append(new_info)
+            #self.intersection_type_callback(new_tag_data)
 
         elif action == ActionState.TimedOut:
             # Set color to red

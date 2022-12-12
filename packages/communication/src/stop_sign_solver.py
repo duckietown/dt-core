@@ -83,7 +83,7 @@ class StopSignSolver:
                 freq = point.get_frequency(self.img_avrg_fps)[0]
                 fps = max(self.img_avrg_fps, self.DEFAULT_IMG_FPS)
                 freq_to_use = point.get_frequency(fps)[0]
-                print(f" ***** OTHERS freq: {freq}, OTHERS freq_30pfs: {freq_30pfs}, OTHERS freq_to_use: {freq_to_use}, SELF freq: {self.blink_freq}, IMG AVG FPS: {self.img_avrg_fps}")
+                print(f"  ***** OTHERS freq: {freq}, OTHERS freq_30pfs: {freq_30pfs}, OTHERS freq_to_use: {freq_to_use}, SELF freq: {self.blink_freq}, IMG AVG FPS: {self.img_avrg_fps}")
 
                 # TODO Based on some testing with the bots, when the computed FPS (self.img_avrg_fps) is > 30 we get good accurate
                 # results to the real frequencies passing the self.img_avrg_fps to point.get_frequency(). However, for some strange reason
