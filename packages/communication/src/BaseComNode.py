@@ -93,7 +93,7 @@ class BaseComNode:
         :param data: intersection data given by ROS
         """
 
-        print("BaseComNode: intersection_type_callback")
+        #print("BaseComNode: intersection_type_callback")
 
         # Update only when we have information
         if len(msgs.infos) != 0:
@@ -103,7 +103,7 @@ class BaseComNode:
 
             # Loop over all detected info
             for info in msgs.infos:
-                print(f"BaseComNode: intersection_type_callback: info.traffic_sign_type: {info.traffic_sign_type}")
+                #print(f"BaseComNode: intersection_type_callback: info.traffic_sign_type: {info.traffic_sign_type}")
                 if (info.tag_type == tag_info.SIGN):
                     if (info.traffic_sign_type == tag_info.STOP):
                         new_intersection_type = IntersectionType.StopSign
@@ -125,6 +125,7 @@ class BaseComNode:
                 self.ss_solver.reset()
                 self.blink_at(self.ss_solver.blink_freq)
 
+            # TL
             elif new_intersection_type is IntersectionType.TrafficLight:
                 self.tl_solver.reset()
 

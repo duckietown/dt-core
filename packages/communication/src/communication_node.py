@@ -26,7 +26,8 @@ class CommunicationNode(DTROS, BaseComNode):
         self.img_sub = rospy.Subscriber('~image_in', CompressedImage, self.img_callback)
         # TODO Subscribe to the intersection type TL/StopSign. This needs to be mapped accordingly from the FSM/appropriate node (Detectors)
         # String: Something like "TL" for TrafficLight or "SS" for StopSign
-        self.intersectype_sub = rospy.Subscriber('~intersection_type_in', AprilTagsWithInfos, self.intersection_type_callback,queue_size=1)
+        # Done in on_switch_on(self) now
+        #self.intersectype_sub = rospy.Subscriber('~intersection_type_in', AprilTagsWithInfos, self.intersection_type_callback,queue_size=1)
 
 
         # Publishing
@@ -54,6 +55,15 @@ class CommunicationNode(DTROS, BaseComNode):
         #new_tag_data.infos.append(new_info)
         #self.intersection_type_callback(new_tag_data)
 
+    def on_switch_on(self):
+        # We do it here because we disable it just before we pulish GO to avoid picking wrong
+        # april tags and keep running when our node is disconnected
+        print("on_switch_on")
+        self.intersectype_sub = rospy.Subscriber('~intersection_type_in', AprilTagsWithInfos, self.intersection_type_callback,queue_size=1)
+        print("on_switch_on: self.intersectype_sub")
+
+    def on_switch_off(self):
+        print("on_switch_off")
 
     def blink_at(self, frequency: int = 0, color: str='white'):
 
@@ -73,6 +83,10 @@ class CommunicationNode(DTROS, BaseComNode):
         message.header.stamp = rospy.Time.now()
 
         if action is ActionState.Go:
+            # No more need for the tag information -> unsubscribe
+            self.intersectype_sub.unregister()
+            print("BaseComNode: intersection_type_callback: intersectype_sub.unregister()")
+
             # Set color to solid Green for 1 sec
             self.blink_at(frequency=0, color='green')
             time.sleep(2)
