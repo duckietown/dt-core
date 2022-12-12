@@ -14,7 +14,7 @@ class StopSignSolver:
     #  1 is not readable
     #  7 and 8 are too fast to be emitted consistently (Perhaps with some adjustment of the fifo update rate it gets better?)
     #  For now Best are 2, 3, 4, 5 and 6. We use [2, 4, 6] to keep a margin.
-    PERMITTED_FREQ = [2, 4, 6] #[2, 4, 5, 8, 10, 15]
+    PERMITTED_FREQ = [1.3, 2.5, 4, 6] #[2, 4, 6] #[2, 4, 5, 8, 10, 15]
     FREQ_ERROR_UPPER_MARGIN = 1 # This is used (Added to the read freq) as an upper error margin to account for reading higher freq
                                 # than what the other bot is really flashing at. It avoids mistakenly deciding a GO. We prefer it
                                 # to wait for another cycle in this case.
@@ -83,7 +83,7 @@ class StopSignSolver:
                 freq = point.get_frequency(self.img_avrg_fps)[0]
                 fps = max(self.img_avrg_fps, self.DEFAULT_IMG_FPS)
                 freq_to_use = point.get_frequency(fps)[0]
-                print(f" ***** OTHERS freq: {freq}, OTHERS freq_30pfs: {freq_30pfs}, OTHERS freq_to_use: {freq_to_use}, SELF freq: {self.blink_freq}, IMG AVG FPS: {self.img_avrg_fps}")
+                print(f"  ***** OTHERS freq: {freq}, OTHERS freq_30pfs: {freq_30pfs}, OTHERS freq_to_use: {freq_to_use}, SELF freq: {self.blink_freq}, IMG AVG FPS: {self.img_avrg_fps}")
 
                 # TODO Based on some testing with the bots, when the computed FPS (self.img_avrg_fps) is > 30 we get good accurate
                 # results to the real frequencies passing the self.img_avrg_fps to point.get_frequency(). However, for some strange reason
