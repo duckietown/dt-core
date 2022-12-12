@@ -14,7 +14,7 @@ class StopSignSolver:
     #  1 is not readable
     #  7 and 8 are too fast to be emitted consistently (Perhaps with some adjustment of the fifo update rate it gets better?)
     #  For now Best are 2, 3, 4, 5 and 6. We use [2, 4, 6] to keep a margin.
-    PERMITTED_FREQ = [2, 4, 6] #[2, 4, 5, 8, 10, 15]
+    PERMITTED_FREQ = [1.3, 2.5, 4, 6] #[2, 4, 6] #[2, 4, 5, 8, 10, 15]
     FREQ_ERROR_UPPER_MARGIN = 1 # This is used (Added to the read freq) as an upper error margin to account for reading higher freq
                                 # than what the other bot is really flashing at. It avoids mistakenly deciding a GO. We prefer it
                                 # to wait for another cycle in this case.
