@@ -104,18 +104,18 @@ class ModelWrapper():
     def infer(self, image: np.ndarray) -> Tuple[list, list, list]:
         return self.model.infer(image)
 
-
+import subprocess
 
 
 class Model:
     def __init__(self, weight_file_path: str):
         super().__init__()
 
-        rospy.loginfo(f"\n\n\n CUDA : {torch.cuda.is_available()} \n\n\n")
-
+        # Todo: Dirty hack to not trigger the hole rebuilt, -> switch to normal installation
+        process = subprocess.Popen(['pip', 'install', 'torchvision'])
+        process.wait()
         model = torch.hub.load("ultralytics/yolov5", "custom", path=weight_file_path)
         # model = torch.hub.load("/yolov5", "custom", path=weight_file_path, source="local")
-        
         model.eval()
 
         use_fp16: bool = JETSON_FP16 and get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO

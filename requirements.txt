@@ -1,0 +1,8 @@
+# List duckietown common package only,
+# do not include tensorflow or pytorch or arch specific package.
+
+aido-protocols-daffy
+zuper-nodes-z6
+zuper-typing-z6
+zuper-ipce-z6
+zuper-commons-z6
