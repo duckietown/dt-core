@@ -16,11 +16,11 @@ class BaseComNode:
     # TODO move these constants somewhere else as params?
     TIME_OUT_SEC = 2 * 60  # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
-    FPS_HISTORY_DURATION_SEC = 2 # Keep 2sec of images time stamps history
+    FPS_HISTORY_DURATION_SEC = 3 # Keep 3sec of images time stamps history
     FPS_UPDATE_PERIOD_SEC = 1 # Period in sec to compute and update fps
     DEFAULT_FPS = 30
 
-    def __init__(self, buffer_length=60, buffer_forget_time=40):
+    def __init__(self, buffer_length=120, buffer_forget_time=40):
         # buffers parameters used to keep active points
         self.buffer_length = buffer_length
         self.buffer_forget_time = buffer_forget_time
