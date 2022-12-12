@@ -41,6 +41,7 @@ class ObjectDetectorNode(DTROS):
         # self.model_name = rospy.get_param('~model_name','.')
         # self.dt_token = rospy.get_param('~dt_token','.')
         # self.debug = rospy.get_param('~debug','.')
+        self.debug = True
 
         # self.model_name = "baseline"
         self.model_name = "yolov5n"
@@ -115,8 +116,8 @@ class ObjectDetectorNode(DTROS):
                 pt2 = np.array([int(box[2]), int(box[3])])
                 pt1 = tuple(pt1)
                 pt2 = tuple(pt2)
-                color = colors[clas.item()]
-                name = names[clas.item()]
+                color = colors[int(clas)]
+                name = names[int(clas)]
                 old_img = cv2.rectangle(old_img, pt1, pt2, color, 2)
                 text_location = (pt1[0], min(416, pt1[1]+20))
                 old_img = cv2.putText(old_img, name, text_location, font, 1, color, thickness=3)

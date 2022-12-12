@@ -49,7 +49,7 @@ dt-launchfile-init --quiet
 # launching app
 # dt-launcher-lane_following
 # dt-launcher-apriltag-detector
-dt-exec python3 "${DT_LAUNCH_PATH}/pytorchTest.py"
+# dt-exec python3 "${DT_LAUNCH_PATH}/pytorchTest.py"
 dt-launcher-object-detector
 
 # ----------------------------------------------------------------------------
