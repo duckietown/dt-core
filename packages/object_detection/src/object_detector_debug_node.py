@@ -11,7 +11,7 @@ from duckietown.dtros import DTROS, NodeType
 from std_msgs.msg import String
 
 class ObjectDetectorDebugNode(DTROS):
-    FILE_NAME = "/data/object-detection-log-debug.avi"
+    FILE_NAME = "/data/object-detection-log-debug.mp4"
     FRAME_NB = 200
 
     def __init__(self, node_name):
@@ -38,7 +38,7 @@ class ObjectDetectorDebugNode(DTROS):
             height, width, layer = self.buffer[0].shape
             size = (width, height)
             
-            out = cv2.VideoWriter(self.FILE_NAME, cv2.VideoWriter_fourcc(*'DIVX'), 30, size)
+            out = cv2.VideoWriter(self.FILE_NAME, cv2.VideoWriter_fourcc(*'MP4V'), 30, size)
 
             for i in range(len(self.buffer)):
                 out.write(self.buffer[i])

@@ -106,7 +106,7 @@ class ObjectDetectorNode(DTROS):
 
         if self.debug:
             colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
-            names = {0: "duckie", 1: "cone", 2: "truck", 3: "bus"}
+            names = {0: "duckie", 1: "duckiebot", 2: "cone", 3: "bus"}
             font = cv2.FONT_HERSHEY_SIMPLEX
             for clas, box in zip(classes, bboxes):
 
