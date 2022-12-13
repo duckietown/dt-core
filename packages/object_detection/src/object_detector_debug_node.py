@@ -4,7 +4,7 @@ import os
 import numpy as np
 import cv2
 import rospy
-from duckietown_msgs.msg import LEDPattern
+from duckietown_msgs.msg import LEDPattern, ObstacleProjectedDetectionList
 from duckietown_msgs.srv import SetCustomLEDPattern, SetCustomLEDPatternRequest
 from sensor_msgs.msg import CompressedImage, Image
 from duckietown.dtros import DTROS, NodeType
@@ -20,8 +20,8 @@ class ObjectDetectorDebugNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
         # construct publishers | subscribers | services
         # self.sub = rospy.Subscriber(f"/{self.veh}/object_detection/image/debug", Image, self.callback)
-        self.sub = rospy.Subscriber(f"object_detection/image/compressed", CompressedImage, self.callback)
-
+        #self.sub = rospy.Subscriber(f"object_detection/image/compressed", CompressedImage, self.callback)
+        self.obs_detect_info = rospy.Subscriber(f"object_detection/detections", ObstacleProjectedDetectionList, self.callback)
         self.is_first = True
         self.on_finish = True
         self.buffer = []
@@ -30,6 +30,8 @@ class ObjectDetectorDebugNode(DTROS):
         return
 
     def callback(self, data):
+        rospy.loginfo(f"Subscriber testing DETECT OBSTACLES INFO, {data}")
+        '''
         if len(self.buffer) < self.FRAME_NB:
             rospy.loginfo(f"frame {len(self.buffer)}")
             self.buffer.append(cv2.imdecode(np.frombuffer(data.data, np.uint8), cv2.IMREAD_COLOR))
@@ -43,10 +45,12 @@ class ObjectDetectorDebugNode(DTROS):
             for i in range(len(self.buffer)):
                 out.write(self.buffer[i])
             out.release()
+
             rospy.loginfo("finished!")
             rospy.loginfo(os.path.abspath(self.FILE_NAME))
             self.on_finish = False
         pass
+        '''
 
 
 if __name__ == '__main__':

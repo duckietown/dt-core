@@ -6,7 +6,9 @@ import rospy
 import numpy as np
 from duckietown.dtros import DTROS, NodeType, TopicType
 from std_msgs.msg import String
-from sensor_msgs.msg import CompressedImage, Image, Point
+from sensor_msgs.msg import CompressedImage, Image
+from geometry_msgs.msg import Point
+from duckietown_msgs.msg import ObstacleProjectedDetectionList, ObstacleProjectedDetection, ObstacleType
 from cv_bridge import CvBridge
 from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
 from object_detection import ModelWrapper, find_position
@@ -22,13 +24,14 @@ class ObjectDetectorNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
         self.initialized = False
         #* construct publishers 
-        # self. pub_detections_image = rospy.Publisher("~object_detection/image/debug", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
-        self. pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
+        # self.pub_detections_image = rospy.Publisher("~object_detection/image/debug", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
+        self.pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
         # Todo: Create publisher to publish detection and position
         """ 
         from duckietown_msg import ObstacleProjectedDetectionList, ...
         can be found at github.com/duckietown/dt-ros-commons/tree/daffy/packages/duckietown_msgs/msg
         """
+        self.pub_obs_list = rospy.Publisher("object_detection/detections", ObstacleProjectedDetectionList, queue_size=1)
 
         #* Subscribe to the image
         self.sub_img = rospy.Subscriber(
@@ -99,12 +102,29 @@ class ObjectDetectorNode(DTROS):
         """ Position is:
         ((cnt, [point, point]), ...)
         where point.x and point.y is the projected position of the botton of the bounding box
+        """
+        obs_list = ObstacleProjectedDetectionList()
+        obs_list.list = list()
+
         for cnt_points, clas in zip(positions, classes):
             cnt, points = cnt_points
             x,y,w,h = cv2.boundingRect(cnt)
-            # TODO: Publish
-        
-        """
+            obsType = ObstacleType()
+            obsType.type = clas
+            obs = ObstacleProjectedDetection()
+            ptx_mean = points[0].x + points[1].x
+            pty_mean = points[0].y + points[1].y
+            pt_mean = Point()
+            pt_mean.x = ptx_mean
+            pt_mean.y = pty_mean
+            pt_mean.z = 0
+            obs.location = pt_mean
+            obs.type = obsType
+            obs.distance = np.sqrt(obs.location.x**2 + obs.location.y**2)
+            obs_list.list.append(obs)
+
+        # TODO: Publish
+        self.pub_obs_list.publish(obs_list)
 
         #* Add bounding box
         for cnt, points in positions:
