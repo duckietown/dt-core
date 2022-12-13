@@ -28,17 +28,15 @@ def load_homography():
         return np.array(data[b'homography']).reshape((3,3))
 
 
-def find_position(contours, norm_x, norm_y):
+def find_position(bboxes, norm_x, norm_y):
         H = load_homography()
         y_err = 0.075 # Todo: Find why their is a 5cm gap
 
         positions = []
 
-        for cnt in contours:
-            # Extract x, y, width, height
-            x,y,w,h = cv2.boundingRect(cnt)
-            x_arr, y_arr = np.array([x, x+w]), np.array([y, y+h])
-
+        for box in bboxes:
+            x_arr = np.array([int(box[0]), int(box[2])])
+            y_arr = np.array([int(box[1]), int(box[3])])
             points = []
 
             for i in range(len(x_arr)):
@@ -62,7 +60,7 @@ def find_position(contours, norm_x, norm_y):
 
                 points.append(point)
             
-            positions.append((cnt, points))
+            positions.append((box, points))
 
         return positions
     

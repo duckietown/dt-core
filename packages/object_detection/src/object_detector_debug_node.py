@@ -20,8 +20,8 @@ class ObjectDetectorDebugNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
         # construct publishers | subscribers | services
         # self.sub = rospy.Subscriber(f"/{self.veh}/object_detection/image/debug", Image, self.callback)
-        #self.sub = rospy.Subscriber(f"object_detection/image/compressed", CompressedImage, self.callback)
-        self.obs_detect_info = rospy.Subscriber(f"object_detection/detections", ObstacleProjectedDetectionList, self.callback)
+        self.sub = rospy.Subscriber(f"object_detection/image/compressed", CompressedImage, self.callback)
+        self.obs_detect_info = rospy.Subscriber(f"object_detection/detections", ObstacleProjectedDetectionList, self.read_topic_detection)
         self.is_first = True
         self.on_finish = True
         self.buffer = []
@@ -29,9 +29,10 @@ class ObjectDetectorDebugNode(DTROS):
     def run(self):
         return
 
-    def callback(self, data):
+    def read_topic_detection(self, data):
         rospy.loginfo(f"Subscriber testing DETECT OBSTACLES INFO, {data}")
-        '''
+
+    def callback(self, data):
         if len(self.buffer) < self.FRAME_NB:
             rospy.loginfo(f"frame {len(self.buffer)}")
             self.buffer.append(cv2.imdecode(np.frombuffer(data.data, np.uint8), cv2.IMREAD_COLOR))
@@ -49,8 +50,6 @@ class ObjectDetectorDebugNode(DTROS):
             rospy.loginfo("finished!")
             rospy.loginfo(os.path.abspath(self.FILE_NAME))
             self.on_finish = False
-        pass
-        '''
 
 
 if __name__ == '__main__':

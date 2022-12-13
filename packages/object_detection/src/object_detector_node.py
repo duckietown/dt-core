@@ -24,13 +24,7 @@ class ObjectDetectorNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
         self.initialized = False
         #* construct publishers 
-        # self.pub_detections_image = rospy.Publisher("~object_detection/image/debug", Image, queue_size=1, dt_topic_type=TopicType.DEBUG)
         self.pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
-        # Todo: Create publisher to publish detection and position
-        """ 
-        from duckietown_msg import ObstacleProjectedDetectionList, ...
-        can be found at github.com/duckietown/dt-ros-commons/tree/daffy/packages/duckietown_msgs/msg
-        """
         self.pub_obs_list = rospy.Publisher("object_detection/detections", ObstacleProjectedDetectionList, queue_size=1)
 
         #* Subscribe to the image
@@ -44,16 +38,10 @@ class ObjectDetectorNode(DTROS):
 
         #* Params
         self.bridge = CvBridge()
-        # Todo: Find why config doesn't load
-        # self.model_name = rospy.get_param('~model_name','.')
-        # self.dt_token = rospy.get_param('~dt_token','.')
-        # self.debug = rospy.get_param('~debug','.')
         self.debug = True
-
-        self.model_name = "baseline"
-        # self.model_name = "yolov5n"
+        # self.model_name = "baseline"
+        self.model_name = "yolov5n"
         self.dt_token = "dt1-3nT8KSoxVh4Migd7N6Nsjy5q8BHtzjcsyz57x9FyJbx5UhJ-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbfex5eXnmoSTSmB3YdtDmc5tQuXNDk3cQ74"
-
         rospy.loginfo(f"Model name: {self.model_name}")
 
         self.model = ModelWrapper(self.model_name, self.dt_token)
@@ -67,7 +55,6 @@ class ObjectDetectorNode(DTROS):
         if not self.initialized:
             return
 
-        # Todo: skip some frame
         if self.frame_id < SKIPED_FRAME:
             self.frame_id += 1
             return
@@ -99,19 +86,13 @@ class ObjectDetectorNode(DTROS):
         #* Find position of the objects detected
         positions = find_position(bboxes, img_size[0], img_size[1])
 
-        # Todo: Publish detection
-        """ Position is:
-        ((cnt, [point, point]), ...)
-        where point.x and point.y is the projected position of the botton of the bounding box
-        """
+        #* Publish detected obstacle
         obs_list = ObstacleProjectedDetectionList()
         obs_list.list = list()
-
-        for cnt_points, clas in zip(positions, classes):
-            cnt, points = cnt_points
-            x,y,w,h = cv2.boundingRect(cnt)
+        for box_points, clas in zip(positions, classes):
+            cnt, points = box_points
             obsType = ObstacleType()
-            obsType.type = clas
+            obsType.type = int(clas)
             obs = ObstacleProjectedDetection()
             ptx_mean = points[0].x + points[1].x
             pty_mean = points[0].y + points[1].y
@@ -123,37 +104,36 @@ class ObjectDetectorNode(DTROS):
             obs.type = obsType
             obs.distance = np.sqrt(obs.location.x**2 + obs.location.y**2)
             obs_list.list.append(obs)
+        if len(obs_list.list) != 0:
+            self.pub_obs_list.publish(obs_list)
 
-        # TODO: Publish
-        self.pub_obs_list.publish(obs_list)
+        # #* Add bounding box
+        # for cnt, points in positions:
+        #     x,y,w,h = cv2.boundingRect(cnt)
+        #     old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
+        #     x_1, y_1 = round(points[0].x, 3), round(points[0].y, 3)
+        #     x_2, y_2 = round(points[1].x, 3), round(points[1].y, 3)
+        #     # rospy.loginfo(f"point 1: ({x_1}, {y_1}) | point 2: ({x_2}, {y_2})")
 
-        #* Add bounding box
-        for cnt, points in positions:
-            x,y,w,h = cv2.boundingRect(cnt)
-            old_img = cv2.rectangle(old_img,(x,y),(x+w,y+h),(255,10,10),2)
-            x_1, y_1 = round(points[0].x, 3), round(points[0].y, 3)
-            x_2, y_2 = round(points[1].x, 3), round(points[1].y, 3)
-            # rospy.loginfo(f"point 1: ({x_1}, {y_1}) | point 2: ({x_2}, {y_2})")
+        #     old_img = cv2.putText(old_img, f"({x_1}, {y_1})m | ({x_2}, {y_2})m", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255,10,10),2)
 
-            old_img = cv2.putText(old_img, f"({x_1}, {y_1})m | ({x_2}, {y_2})m", (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255,10,10),2)
+        if self.debug:
+            colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
+            names = {0: "duckie", 1: "duckiebot", 2: "truck", 3: "bus"}
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            for clas, box in zip(classes, bboxes):
 
-        # if self.debug:
-        #     colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
-        #     names = {0: "duckie", 1: "cone", 2: "truck", 3: "bus"}
-        #     font = cv2.FONT_HERSHEY_SIMPLEX
-        #     for clas, box in zip(classes, bboxes):
+                rospy.loginfo(f"Detected: {clas} at: {box}")
 
-        #         rospy.loginfo(f"Detected: {clas} at: {box}")
-
-        #         pt1 = np.array([int(box[0]), int(box[1])])
-        #         pt2 = np.array([int(box[2]), int(box[3])])
-        #         pt1 = tuple(pt1)
-        #         pt2 = tuple(pt2)
-        #         color = colors[clas.item()]
-        #         name = names[clas.item()]
-        #         old_img = cv2.rectangle(old_img, pt1, pt2, color, 2)
-        #         text_location = (pt1[0], min(416, pt1[1]+20))
-        #         old_img = cv2.putText(old_img, name, text_location, font, 1, color, thickness=3)
+                pt1 = np.array([int(box[0]), int(box[1])])
+                pt2 = np.array([int(box[2]), int(box[3])])
+                pt1 = tuple(pt1)
+                pt2 = tuple(pt2)
+                color = colors[int(clas)]
+                name = names[int(clas)]
+                old_img = cv2.rectangle(old_img, pt1, pt2, color, 2)
+                text_location = (pt1[0], min(416, pt1[1]+20))
+                old_img = cv2.putText(old_img, name, text_location, font, 1, color, thickness=3)
 
         #* Publish detection img for demo
         obj_det_img = self.bridge.cv2_to_compressed_imgmsg(old_img)
