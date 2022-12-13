@@ -46,9 +46,13 @@ class GroundProjectionNode(DTROS):
     ground_projector: Optional[GroundProjectionGeometry]
     rectifier: Optional[Rectify]
 
-    def __init__(self, node_name: str):
+    def __init__(self, node_name: str, pkg_name=None):
         # Initialize the DTROS parent class
-        super(GroundProjectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(GroundProjectionNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            pkg_name=pkg_name,
+        )
 
         self.bridge = CvBridge()
         self.ground_projector = None
@@ -339,5 +343,7 @@ class GroundProjectionNode(DTROS):
 
 
 if __name__ == "__main__":
-    ground_projection_node = GroundProjectionNode(node_name="ground_projection")
+    ground_projection_node = GroundProjectionNode(
+        node_name="ground_projection_node", pkg_name="ground_projection"
+    )
     rospy.spin()
