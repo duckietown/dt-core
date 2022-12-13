@@ -14,7 +14,3 @@ ffmpeg
 
 # needed by cmake when installed via pip
 file
-
-libopenblas-base 
-libopenmpi-dev 
-libomp-dev

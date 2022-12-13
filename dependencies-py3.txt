@@ -5,30 +5,3 @@ comptests-z6
 procgraph-z6
 ros_node_utils>=2.0.0
 compmake-z6>=6.0.9
-duckietown-utils-daffy
-compmake-z6>=6.0.9
-
-## Object-detection
-# Base ------------------------------------------------------------------------
-gitpython
-ipython  # interactive notebook
-matplotlib>=3.2.2
-numpy>=1.18.5
-opencv-python>=4.1.1
-Pillow>=7.1.2
-psutil  # system resources
-PyYAML>=5.3.1
-requests>=2.23.0
-scipy>=1.4.1
-# thop>=0.1.1  
-tqdm>=4.64.0
-
-# Logging ---------------------------------------------------------------------
-tensorboard>=2.4.1
-
-# Plotting --------------------------------------------------------------------
-pandas>=1.1.4
-seaborn>=0.11.0
-# aido-protocols-daffy
-gitpython
-dt-data-api-daffy>=0.1.8

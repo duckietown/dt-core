@@ -6,7 +6,6 @@
 !packages
 !dependencies-apt.txt
 !dependencies-py3.*
-!requirements.txt
 !launchers
 !scripts
 !fake-opencv-info
