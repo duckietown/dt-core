@@ -7,14 +7,12 @@ ARG ICON="diamond"
 
 # ==================================================>
 # ==> Do not change the code below this line
-ARG ARCH=arm64v8
+ARG ARCH
 ARG DISTRO=daffy
 ARG DOCKER_REGISTRY=docker.io
 ARG BASE_IMAGE=dt-ros-commons
 ARG BASE_TAG=${DISTRO}-${ARCH}
 ARG LAUNCHER=default
-# #! ADDED FOR ML PIPELINE:
-ARG CUDA_VERSION=10.2
 
 # define base image
 FROM ${DOCKER_REGISTRY}/duckietown/${BASE_IMAGE}:${BASE_TAG} as base
@@ -33,8 +31,6 @@ ARG TARGETPLATFORM
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
-#! ADDED FOR ML PIPELINE:
-ARG CUDA_VERSION
 
 # check build arguments
 RUN dt-build-env-check "${REPO_NAME}" "${MAINTAINER}" "${DESCRIPTION}"
@@ -54,25 +50,6 @@ ENV DT_MODULE_TYPE="${REPO_NAME}" \
     DT_LAUNCH_PATH="${LAUNCH_PATH}" \
     DT_LAUNCHER="${LAUNCHER}"
 
-
-#! ADDED FOR ML PIPELINE: add cuda to path
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
-
-#! ADDED FOR ML PIPELINE: nvidia-container-runtime
-# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES all
-
-#! ADDED FOR ML PIPELINE: add cuda to path
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
-
-#! ADDED FOR ML PIPELINE: nvidia-container-runtime
-# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES all
-
 # install apt dependencies
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
@@ -81,39 +58,11 @@ RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
 RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
 
-#! ADDED FOR ML PIPELINE: versionning config
-ENV CUDA_VERSION 10.2.89
-ENV CUDA_PKG_VERSION 10-2=$CUDA_VERSION-1
-ENV NCCL_VERSION 2.8.4
-ENV CUDNN_VERSION 8.1.1.33
-ENV PYTORCH_VERSION 1.7.0
-ENV TORCHVISION_VERSION 0.8.1
-ENV TENSORRT_VERSION 7.1.3.4
-ENV PYCUDA_VERSION 2021.1
-
-#! ADDED FOR ML PIPELINE: Symbolic Link:
-RUN ln -s /usr/local/cuda-10.2 /usr/local/cuda
-
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple/"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 COPY ./dependencies-py3.* "${REPO_PATH}/"
 RUN dt-pip3-install "${REPO_PATH}/dependencies-py3.*"
-
-# #! ADDED FOR ML PIPELINE: install ML related stuff
-RUN echo "${ARCH}"
-COPY assets/arm64v8 "${REPO_PATH}/install"
-RUN "${REPO_PATH}/install/install.sh"
-
-
-#! install Zuper dependencies
-ARG PIP_INDEX_URL="https://pypi.org/simple/"
-ENV PIP_INDEX_URL=${PIP_INDEX_URL}
-COPY ./requirements.txt "${REPO_PATH}/"
-RUN python3 -m pip install  -r ${REPO_PATH}/requirements.txt
-
-# #! ML PIPELINE: Download YOLOv5 model (weights will be downloaded from DCSS)
-RUN git clone -b v7.0 https://github.com/ultralytics/yolov5 "/yolov5"
 
 # copy the source code
 COPY ./packages "${REPO_PATH}/packages"
