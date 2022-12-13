@@ -93,7 +93,7 @@ states:
       # # - framerate_high_node
       - decoder_node
       - led_emitter_node
-    lights: "RED"
+    lights: "JOYFULL"
   LANE_FOLLOWING:
     transitions:
       obstacle_exists: "NORMAL_JOYSTICK_CONTROL" # "AVOID_OBSTACLE"
