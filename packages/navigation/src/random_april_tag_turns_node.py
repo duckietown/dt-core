@@ -8,14 +8,17 @@ import numpy
 import rospy
 from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TurnIDandType
 from std_msgs.msg import Int16  # Imports msg
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
 
-class RandomAprilTagTurnsNode:
-    def __init__(self):
+class RandomAprilTagTurnsNode(DTROS):
+    def __init__(self, node_name):
+        super(RandomAprilTagTurnsNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+
         # Save the name of the node
-        self.node_name = rospy.get_name()
+        self.node_name = node_name
         self.turn_type = -1
-
+        self.fsm_mode = "INTERSECTION_PLANNING"
         rospy.loginfo(f"[{self.node_name}] Initializing.")
 
         # Setup publishers
@@ -42,6 +45,7 @@ class RandomAprilTagTurnsNode:
         # print mode_msg
         # TODO PUBLISH JUST ONCE
         self.fsm_mode = mode_msg.state
+        print(self.fsm_mode)
         if self.fsm_mode != mode_msg.INTERSECTION_CONTROL:
             self.turn_type = -1
             self.pub_turn_type.publish(self.turn_type)
@@ -52,6 +56,7 @@ class RandomAprilTagTurnsNode:
             self.fsm_mode == "INTERSECTION_CONTROL"
             or self.fsm_mode == "INTERSECTION_COORDINATION"
             or self.fsm_mode == "INTERSECTION_PLANNING"
+            or self.fsm_mode == "NAVIGATE_INTERSECTION"
         ):
             # loop through list of april tags
 
@@ -84,7 +89,7 @@ class RandomAprilTagTurnsNode:
                     availableTurns = [0, 1, 2]
                 elif signType == taginfo.T_INTERSECTION:
                     availableTurns = [0, 2]
-                rospy.loginfo(f"[{self.node_name}] reports Available turns are: [{availableTurns}]")
+                # rospy.loginfo(f"[{self.node_name}] reports Available turns are: [{availableTurns}]")
                 # now randomly choose a possible direction
                 if len(availableTurns) > 0:
                     randomIndex = numpy.random.randint(len(availableTurns))
@@ -112,10 +117,10 @@ class RandomAprilTagTurnsNode:
 
 if __name__ == "__main__":
     # Initialize the node with rospy
-    rospy.init_node("random_april_tag_turns_node", anonymous=False)
+    # rospy.init_node("random_april_tag_turns_node", anonymous=False)
 
     # Create the NodeName object
-    node = RandomAprilTagTurnsNode()
+    node = RandomAprilTagTurnsNode(node_name="random_april_tag_turns_node")
 
     # Setup proper shutdown behavior
     rospy.on_shutdown(node.on_shutdown)

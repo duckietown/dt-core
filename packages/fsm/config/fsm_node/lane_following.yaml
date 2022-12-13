@@ -12,6 +12,36 @@ events: # Maps from subscribing topic to signal ids
     topic: "joy_mapper_node/joystick_override"
     msg_type: "BoolStamped"
     trigger: False
+  at_stop_line: #Picked from IndefiniteNavigation aka IN
+    topic: "stop_line_filter_node/at_stop_line"
+    msg_type: "BoolStamped"
+    trigger: True
+
+# Not required for LF Demos but keeping it for the merge with the avoiders stack if needed within LF 
+  # obstacle_exists:
+  #   topic: "road_anomaly_watcher/obstacle_exists"
+  #   msg_type: "BoolStamped"
+  #   trigger: True
+  # obstacle_cleared:
+  #   topic: "road_anomaly_watcher/obstacle_exists"
+  #   msg_type: "BoolStamped"
+  #   trigger: False
+
+# Define nodes
+nodes:
+  # decoder_node: "decoder_node/switch"
+  anti_instagram: "anti_instagram_node/switch"
+  # static_object_detector_node: "static_object_detector_node/switch"
+  line_detector_node: "line_detector_node/switch"
+  lane_filter_node: "lane_filter_node/switch"
+  stop_line_filter_node: "stop_line_filter_node/switch" #Picked from IN
+  # framerate_high: "camera_node/framerate_high_switch"
+  # extras added
+
+  lane_controller_node: "lane_controller_node/switch"
+  # vehicle_filter_node: "vehicle_filter_node/switch"
+  # vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
+  # vehicle_detection_node : "vehicle_detection_node/switch"
 
 # Define nodes
 nodes:
@@ -20,7 +50,6 @@ nodes:
   lane_filter_node: "lane_filter_node/switch"
   ground_projection_node: "ground_projection_node/switch"
   # extras added
-
 
 # Define state transitions
 
@@ -34,6 +63,46 @@ states:
       - anti_instagram
       - lane_filter_node
       - line_detector_node
+      # - stop_line_filter_node # Can be removed as we dont really move or care about stop lines
+      # - framerate_high
+      # - decoder_node
+    lights: ["joystick"] 
+    current_status: "implemented"
+  LANE_FOLLOWING:
+    transitions:
+      # obstacle_exists: "OBSTACLE_STOP" #Can be removed as it is not necessary for LF stack can be used if avoiders stack needs to be merged for some reason
+      at_stop_line: "NORMAL_JOYSTICK_CONTROL" #Picked from IN changed the state to move
+    active_nodes:
+      - anti_instagram
+      # - decoder_node
+      - line_detector_node
+      - lane_filter_node
+      - lane_controller_node
+      - stop_line_filter_node
+#NOT REUQIRED FOR THE LF DEMOS COULD BE USED IF AVOIDERS STACK NEEDS TO BE ADDED TO THE LF for some reason
+      # - vehicle_filter_node
+      # - vehicle_detection_node
+      # - vehicle_avoidance_control_node
+    lights: ["lane_following"] # Change this to Switch Off the Lights
+    current_status: "in_progress" #Not sure how this works or does, probably gets ripped from what I saw in the new patch
+  
+#NOT REQUIRED FOR LF DEMOS COULD BE USEFUL IF AVOIDERS STACK NEEDS TO BE MERGED HERE 
+  # OBSTACLE_STOP:
+  #   transitions:
+  #     obstacle_cleared: "LANE_FOLLOWING"
+      
+  #   active_nodes:
+  #     - anti_instagram
+  #     - decoder_node
+  #     - line_detector_node
+  #     - lane_filter_node
+  #     - lane_controller_node
+  #     - stop_line_filter_node
+  #     - vehicle_filter_node
+  #     - vehicle_detection_node
+  #     - vehicle_avoidance_control_node
+  #   lights: ["lane_following"] #TODO: Add abonormal halt indicator state
+  #   current_status: "in_progress"
       - ground_projection_node
     lights: "GREEN"
   LANE_FOLLOWING:

@@ -1,0 +1,19 @@
+<launch>
+    <arg name="veh" default="$(env VEHICLE_NAME)" doc="Name of vehicle. ex: megaman"/>
+    <arg name="pkg_name" value="communication"/>
+    <arg name="node_name" default="communication_node"/>
+    <!-- <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman." /> -->
+    <!-- <arg name="testing" default="false" doc="using for test purposes." /> -->
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/image_in" to="camera_node/image/compressed"/>
+        <remap from="$(arg node_name)/current_led_state" to="led_emitter_node/current_led_state"/>
+        <remap from="$(arg node_name)/set_pattern" to="led_emitter_node/set_pattern"/>
+        <remap from="$(arg node_name)/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+        <remap from="$(arg node_name)/car_cmd" to="car_cmd_switch_node/cmd"/>
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+        <!-- <rosparam command="load" file="$(find pkg_name)/config/$(arg node_name)/$(arg param_file_name).yaml"/> -->
+        </node>
+    </group>
+
+</launch>
