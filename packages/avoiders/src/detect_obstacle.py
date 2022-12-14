@@ -99,11 +99,11 @@ class Avoider(DTROS): #comment here
     def get_object(self, msg):
 
 
-        y = -msg.detections[0].location.x * 100
-        x = msg.detections[0].location.y * 100
+        y = msg.detections[0].location.x * 100
+        x = (msg.detections[0].location.y * 100) + 13
         self.obstacle = [x,y]
         # while(1):
-            # print("here ")
+        print(self.obstacle)
         if self.get_to_avoid(self.obstacle,[self.pose_d * (-100),self.pose_phi]):
                 print(" making path ")
                 self.plan(self.obstacle,[self.pose_d * (-100),self.pose_phi])

@@ -24,8 +24,8 @@ class ObjectDetectorNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
         self.initialized = False
         #* construct publishers 
-        self.pub_detections_image = rospy.Publisher("object_detection/image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
-        self.pub_obs_list = rospy.Publisher("object_detection/detections", ObstacleProjectedDetectionList, queue_size=1)
+        self.pub_detections_image = rospy.Publisher("~image/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG)
+        self.pub_obs_list = rospy.Publisher("~detections", ObstacleProjectedDetectionList, queue_size=1)
 
         #* Subscribe to the image
         self.sub_img = rospy.Subscriber(
@@ -148,7 +148,7 @@ class ObjectDetectorNode(DTROS):
 
 if __name__ == '__main__':
     # create the node
-    node = ObjectDetectorNode(node_name='object_detection_node')
+    node = ObjectDetectorNode(node_name='object_detector_node')
     # run node
     node.run()
     # keep spinning
