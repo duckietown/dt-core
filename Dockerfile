@@ -69,7 +69,7 @@ COPY ./packages "${REPO_PATH}/packages"
 
 # build packages
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-  catkin build \
+    catkin build \
     --workspace ${CATKIN_WS_DIR}/
 
 # install launcher scripts
