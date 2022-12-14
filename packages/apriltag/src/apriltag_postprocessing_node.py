@@ -12,19 +12,15 @@ from duckietown_msgs.msg import (
 import numpy as np
 import tf.transformations as tr
 from geometry_msgs.msg import PoseStamped, Pose
-from std_msgs.msg import Header, Int32
+from std_msgs.msg import Header
 
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
-class AprilPostPros(DTROS):
+class AprilPostPros(object):
     """ """
 
-    def __init__(self, node_name):
+    def __init__(self):
         """ """
-        super(AprilPostPros, self).__init__(
-            node_name=node_name, node_type=NodeType.PERCEPTION
-        )
-        self.node_name = node_name
+        self.node_name = "apriltag_postprocessing_node"
 
         # Load parameters
         self.camera_x = self.setupParam("~camera_x", 0.065)
@@ -73,7 +69,7 @@ class AprilPostPros(DTROS):
         # ---- end tag info stuff
 
         self.sub_prePros = rospy.Subscriber(
-            f"apriltag_detector_node/detections", AprilTagDetectionArray, self.callback, queue_size=1
+            "~detections", AprilTagDetectionArray, self.callback, queue_size=1
         )
         self.pub_postPros = rospy.Publisher("~apriltags_out", AprilTagsWithInfos, queue_size=1)
         self.pub_visualize = rospy.Publisher("~tag_pose", PoseStamped, queue_size=1)
@@ -81,9 +77,6 @@ class AprilPostPros(DTROS):
         # topics for state machine
         self.pub_postPros_parking = rospy.Publisher("~apriltags_parking", BoolStamped, queue_size=1)
         self.pub_postPros_intersection = rospy.Publisher("~apriltags_intersection", BoolStamped, queue_size=1)
-
-        # tag_id
-        self.tag_id_topic = rospy.Publisher("~tag_id", Int32, queue_size=1)   
 
         rospy.loginfo("[%s] has started", self.node_name)
 
@@ -93,6 +86,7 @@ class AprilPostPros(DTROS):
         return value
 
     def callback(self, msg):
+
         tag_infos = []
 
         new_tag_data = AprilTagsWithInfos()
@@ -106,13 +100,9 @@ class AprilPostPros(DTROS):
             # Can use id 1 as long as no bundles are used
             new_info.id = int(detection.tag_id)
             id_info = self.tags_dict[new_info.id]
-            #rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
-            self.tag_id_topic.publish(int(new_info.id))
-
+            # rospy.loginfo("[%s] report detected id=[%s] for april tag!",self.node_name,new_info.id)
             # Check yaml file to fill in ID-specific information
             new_info.tag_type = self.sign_types[id_info["tag_type"]]
-
-            # tag_id publish
             if new_info.tag_type == self.info.S_NAME:
                 new_info.street_name = id_info["street_name"]
             elif new_info.tag_type == self.info.SIGN:
@@ -192,11 +182,10 @@ class AprilPostPros(DTROS):
 
         new_tag_data.infos = tag_infos
         # Publish Message
-        #rospy.loginfo(f"{new_tag_data}")
         self.pub_postPros.publish(new_tag_data)
 
 
 if __name__ == "__main__":
-    # rospy.init_node("AprilPostPros", anonymous=False)
-    node = AprilPostPros(node_name="apriltag_postprocessing_node")
+    rospy.init_node("AprilPostPros", anonymous=False)
+    node = AprilPostPros()
     rospy.spin()

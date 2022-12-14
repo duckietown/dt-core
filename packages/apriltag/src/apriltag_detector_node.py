@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-from std_msgs.msg import String
 import cv2
 import rospy
 import tf
 import numpy as np
-import os
+
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from turbojpeg import TurboJPEG, TJPF_GRAY
@@ -25,7 +24,6 @@ class AprilTagDetector(DTROS):
         super(AprilTagDetector, self).__init__(
             node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION
         )
-        self.veh = rospy.get_namespace().strip("/")
         # get static parameters
         self.family = rospy.get_param("~family", "tag36h11")
         self.ndetectors = rospy.get_param("~ndetectors", 1)
@@ -60,16 +58,10 @@ class AprilTagDetector(DTROS):
         # create a CV bridge object
         self._jpeg = TurboJPEG()
         # create subscribers
-
         self._img_sub = rospy.Subscriber(
-            f"camera_node/image/compressed",
-            CompressedImage,
-            self._img_cb,
-            buff_size=10000000,
-            queue_size=1
+            "~image", CompressedImage, self._img_cb, queue_size=1, buff_size="20MB"
         )
-
-        self._cinfo_sub = rospy.Subscriber(f"camera_node/camera_info", CameraInfo, self._cinfo_cb, queue_size=1, buff_size=10000000)
+        self._cinfo_sub = rospy.Subscriber("~camera_info", CameraInfo, self._cinfo_cb, queue_size=1)
         # create publisher
         self._tag_pub = rospy.Publisher(
             "~detections",
@@ -83,7 +75,7 @@ class AprilTagDetector(DTROS):
             CompressedImage,
             queue_size=1,
             dt_topic_type=TopicType.VISUALIZATION,
-            dt_help="Camera image with tag publishs superimposed"
+            dt_help="Camera image with tag publishs superimposed",
         )
         # create thread pool
         self._workers = ThreadPoolExecutor(self.ndetectors)
@@ -166,7 +158,6 @@ class AprilTagDetector(DTROS):
             )
         # publish detections
         self._tag_pub.publish(tags_msg)
-
         # update healthy frequency metadata
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
@@ -231,6 +222,7 @@ class AprilTagDetector(DTROS):
         self._img_pub.publish(img_msg)
         self._renderer_busy = False
 
+
 def _matrix_to_quaternion(r):
     T = np.array(((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 1)), dtype=np.float64)
     T[0:3, 0:3] = r
@@ -239,6 +231,5 @@ def _matrix_to_quaternion(r):
 
 if __name__ == "__main__":
     node = AprilTagDetector()
-
     # spin forever
     rospy.spin()
