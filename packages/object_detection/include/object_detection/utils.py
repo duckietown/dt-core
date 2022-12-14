@@ -30,7 +30,7 @@ def load_homography():
 
 def find_position(bboxes, norm_x, norm_y):
         H = load_homography()
-        y_err = 0.075 # Todo: Find why their is a 5cm gap
+        y_err = 0 #0.075 # Todo: Find why their is a 5cm gap
 
         positions = []
 
