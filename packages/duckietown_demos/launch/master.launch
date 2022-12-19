@@ -105,6 +105,7 @@
     <group if="$(arg fsm)">
         <!-- FSM -->
         <!-- no remapping for FSM - full topic names specified in params yaml -->
+        <remap from="fsm_node/set_pattern" to="led_emitter_node/set_pattern"/>
         <include file="$(find fsm)/launch/fsm_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg fsm_file_name)"/>
