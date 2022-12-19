@@ -18,6 +18,13 @@
     <arg name="veh" value="$(arg veh)"/>
 </include>
 
+
+
+
+<!-- <include file="$(find navigation)/launch/random_april_tag_turns_node.launch">
+    <arg name="veh" value="$(env VEHICLE_NAME)"/>
+    <arg name="param_file_name" value="default"/>
+</include> -->
 <!-- car_cmd_switch_node -->
 <!-- no remappings for car_cmd_switch - full topic names specified in params yaml -->
 <!-- <remap from="car_cmd_switch_node/cmd_lane_following" to="lane_controller_node/lane_control"/>

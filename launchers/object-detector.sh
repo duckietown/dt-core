@@ -13,7 +13,8 @@ dt-launchfile-init
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch navigation random_april_tag_turns_node.launch veh:=$VEHICLE_NAME
+roslaunch object_detection object_detector_node.launch veh:=$VEHICLE_NAME
+
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

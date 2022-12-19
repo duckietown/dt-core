@@ -1,6 +1,6 @@
 # Initial state of the FSM
 
-initial_state: "LANE_FOLLOWING"
+initial_state: "NORMAL_JOYSTICK_CONTROL"
 
 
 events: # Maps from subscribing topic to signal ids
@@ -20,10 +20,7 @@ events: # Maps from subscribing topic to signal ids
     topic: "avoiders/obstacle_exists"
     msg_type: "BoolStamped"
     trigger: False
-  # intersection_comm_finish: 
-  #   topic: "communicators/comm_status"
-  #   msg_type: "BoolStamped"
-  #   trigger: True 
+
   intersection_comm_GO: 
     topic: "communication_node/intersection_go"
     msg_type: "BoolStamped"
@@ -37,24 +34,31 @@ events: # Maps from subscribing topic to signal ids
     msg_type: "BoolStamped"
     trigger: True
   intersection_nav_finish:
-    topic: "navigators/intersection_nav_status"
+    topic: "unicorn_intersection_node/intersection_done"
     msg_type: "BoolStamped"
-    trigger: False
-  
+    trigger: True
+  obstacle_exists: 
+    topic: "detect_obstacle/object_detected"
+    msg_type: "BoolStamped"
+    trigger: True
+  obstacle_cleared:
+    topic: avoidance_controller_node/avoidance_done
+    msg_type: "BoolStamped"
+    trigger: True
 
 # Define nodes
 nodes:
   # Perceptual Nodes 
   decoder_node: "decoder_node/switch"
   anti_instagram_node: "anti_instagram_node/switch"
-  # object_detector_node: "object_detection_node/switch"
+  object_detector_node: "object_detector_node/switch"
   # obstacle_detector_node: "obstacle_detection_node/switch" 
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
   # framerate_high_node: "framerate_high_node/switch"
   april_tag_node: "apriltag_detector_node/switch"
   april_tag_postnode: "apriltag_postprocessing_node/switch" 
-  # led_detection_node: "led_detection_node/switch" 
+  led_detection_node: "led_detection_node/switch" 
   led_emitter_node: "led_emitter_node/switch"
   stop_line_filter_node: "stop_line_filter_node/switch" 
   # extras added
@@ -62,19 +66,15 @@ nodes:
   # Other nodes
   communication_node: "communication_node/switch"
   # deadreckoning_node: "deadreckoning_node/switch"
-  # unicorn_intersection_node: "unicorn_intersection_node/switch" 
+  unicorn_intersection_node: "unicorn_intersection_node/switch" 
+  ground_projection_node: "ground_projection_node/switch"
+  random_april_tag_node: "random_april_tag_turns_node/switch"
 
   # # Controller Nodes 
   lane_controller_node: "lane_controller_node/switch"
-  ground_projection_node: "ground_projection_node/switch"
-  # stop_controller_node: "stop_controller_node/switch" 
-  # avoiders_controller_node: "avoiders_controller_node/switch"
-  # navigators_controller_node: "navigators_controller_node/switch" 
+  avoiders_controller_node: "avoiders_controller_node/switch"
+  obstacle_detection_node: "detect_obstacle/switch"
 
-  # Some of the nodes we have defined below have not been mapped yet. 
-  # object_detection_node: "vehicle_filter_node/switch"
-  # vehicle_avoidance_control_node: "vehicle_avoidance_control_node/switch"
-  # vehicle_detection_node : "vehicle_detection_node/switch"
 
 # Define state transitions
 
@@ -84,45 +84,34 @@ global_transitions:
 
 
 states:
+  
   NORMAL_JOYSTICK_CONTROL:
     active_nodes:
-      # - lane_filter_node
-      # - line_detector_node
-      # - stop_line_filter_node
-      # # - framerate_high_node
       - decoder_node
       - led_emitter_node
     lights: "JOYFULL"
+  
   LANE_FOLLOWING:
     transitions:
-      obstacle_exists: "NORMAL_JOYSTICK_CONTROL" # "AVOID_OBSTACLE"
+      obstacle_exists: "AVOID_OBSTACLE" 
       at_stop_line:  "COMM_AT_INTERSECTION" # change name later
     active_nodes:
       - anti_instagram_node
       - decoder_node
       - line_detector_node
       - lane_filter_node
-      # - object_detector_node 
-      # - obstacle_detector_node
+      - object_detector_node 
+      - obstacle_detection_node
       - lane_controller_node 
       - ground_projection_node
       - led_emitter_node
       - stop_line_filter_node
-    lights: "GREEN"
-  # STOP_AT_INTERSECTION:
-  #   # transitions:
-  # #     not_at_stop_line: "NORMAL_JOYSTICK_"
-  #   active_nodes:
-  #     - decoder_node 
-  #     - april_tag_node 
-  #     - april_tag_postnode
-  #     - led_emitter_node
-    # lights: "BLUE"
-      # - stop_controller_node
+    lights: "LIGHT_OFF"
+
   COMM_AT_INTERSECTION:
     transitions:
-      intersection_comm_GO: "NORMAL_JOYSTICK_CONTROL"
-      # intersection_nav_start: "NAVIGATE_INTERSECTION"
+      # intersection_comm_GO: "NORMAL_JOYSTICK_CONTROL"
+      intersection_comm_GO: "NAVIGATE_INTERSECTION"
     active_nodes:
       - decoder_node 
       - april_tag_node 
@@ -130,25 +119,32 @@ states:
       - led_emitter_node
       - communication_node
     lights: "BLUE"
-  #     - led_detection_node 
-  #     - object_detector_node 
-  #     - communication_node # Does all the processing required for communication and priority allocation  
-  #     - stop_controller_node 
-  # NAVIGATE_INTERSECTION: 
-  #   transitions: 
-  #     intersection_nav_finish: "LANE_FOLLOWING"
-  #   active_nodes:
-  #     - lane_filter_node 
-  #     - deadreckoning_node
-  #     - unicorn_intersection_node 
-  #     - lane_controller_node 
-  # AVOID_OBSTACLE:
-  #   transitions: 
-  #     obstacle_cleared: "LANE_FOLLOWING"
-  #   active_nodes: 
-  #     - lane_filter_node
-  #     - line_detector_node
-  #     - object_detector_node 
-  #     - avoiders_controller_node 
 
+  NAVIGATE_INTERSECTION: 
+    transitions: 
+      intersection_nav_finish: "NORMAL_JOYSTICK_CONTROL"
+    active_nodes:
+      - decoder_node 
+      - april_tag_node 
+      - april_tag_postnode
+      - led_emitter_node
+      - random_april_tag_node
+      - unicorn_intersection_node
+    lights: "GREEN"
+
+  AVOID_OBSTACLE:
+    transitions: 
+      obstacle_cleared: "LANE_FOLLOWING"
+    active_nodes: 
+      - anti_instagram_node
+      - decoder_node
+      - line_detector_node
+      - lane_filter_node
+      # - object_detector_node 
+      - obstacle_detection_node
+      # - lane_controller_node 
+      - ground_projection_node
+      - led_emitter_node
+      - avoiders_controller_node 
+    lights: "RED"
 
