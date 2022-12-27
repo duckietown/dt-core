@@ -13,21 +13,14 @@ class BaseComNode:
     This class is used to define behaviors for the node that do not directly interact with ROS. This makes testing
     easier
     """
-    # TODO move these constants somewhere else as params?
-    TIME_OUT_SEC = 2 * 60  # Duration after which the node times out and a time_out flag is published. TODO 10min for the moment
 
-    FPS_HISTORY_DURATION_SEC = 3 # Keep 3sec of images time stamps history
-    FPS_UPDATE_PERIOD_SEC = 1 # Period in sec to compute and update fps
-    DEFAULT_FPS = 30
+    def __init__(self, params):
 
-    def __init__(self, buffer_length=120, buffer_forget_time=40):
-        # buffers parameters used to keep active points
-        self.buffer_length = buffer_length
-        self.buffer_forget_time = buffer_forget_time
+        self.params = params
 
         # Define TL and SS solvers
-        self.tl_solver = TrafficLightSolver(buffer_length, buffer_forget_time)
-        self.ss_solver = StopSignSolver(buffer_length, buffer_forget_time)
+        self.tl_solver = TrafficLightSolver(self.params)
+        self.ss_solver = StopSignSolver(self.params)
 
         # Current state of the node. By default, it starts as Unknown and intersection type Unknown
         self.curr_intersection_type = IntersectionType.Unknown
@@ -38,7 +31,7 @@ class BaseComNode:
 
         # For estimating current average FPS
         self.time_stamps_array = np.array([])
-        self.img_avrg_fps = self.DEFAULT_FPS # Start with default FPS
+        self.img_avrg_fps = self.params["~default_img_fps"] # Start with default FPS
         self.last_drop_time = time()
 
     def img_callback(self, data):
@@ -59,20 +52,19 @@ class BaseComNode:
         # Add current time_stamp
         self.time_stamps_array = np.append(self.time_stamps_array, new_time_stamp_sec)
         # Compute FPS
-        if (time() - self.last_drop_time > self.FPS_UPDATE_PERIOD_SEC):
+        if (time() - self.last_drop_time > self.params["~fps_update_period_sec"]):
             self.last_drop_time = time()
             history_duration_sec = self.time_stamps_array[-1] - self.time_stamps_array[0]
             # Compute the average diff between the times stamps and FPS
-            #if history_duration_sec > self.FPS_UPDATE_PERIOD_SEC:
             if len(self.time_stamps_array) > 1:
                 diffs = self.time_stamps_array[1:] - self.time_stamps_array[:-1]
                 self.img_avrg_fps = 1/diffs.mean()
                 #print(f"History duration: {history_duration_sec}")
                 #print(f"Computed FPS from time stamps: {self.img_avrg_fps}")
 
-            # Drop the oldest time steps to keep the array with a period around self.FPS_HISTORY_DURATION_SEC
-            if history_duration_sec > self.FPS_HISTORY_DURATION_SEC:
-                num_samples_tokeep = int(np.floor(self.img_avrg_fps * self.FPS_HISTORY_DURATION_SEC))
+            # Drop the oldest time steps to keep the array with a period around self.params["~fps_history_duration_sec"] 
+            if history_duration_sec > self.params["~fps_history_duration_sec"] :
+                num_samples_tokeep = int(np.floor(self.img_avrg_fps * self.params["~fps_history_duration_sec"]))
                 number_of_samples_to_drop = len(self.time_stamps_array) - num_samples_tokeep
                 if number_of_samples_to_drop > 0:
                     self.time_stamps_array = self.time_stamps_array[number_of_samples_to_drop:]
@@ -166,11 +158,11 @@ class BaseComNode:
             action = self.traffic_light_run()
         elif self.curr_intersection_type is IntersectionType.StopSign:
             action = self.stop_sign_run()
-        self.update_action_state(action)
+        self.check_action_state(action)
 
-        # Check for timeout based on the self.begin_solving_time_sec and TIME_OUT_SEC
-        if time() - self.begin_solving_time_sec > self.TIME_OUT_SEC:
-            self.update_action_state(ActionState.TimedOut)
+        # Check for timeout based on the self.begin_solving_time_sec and self.params["~time_out_sec"]
+        if time() - self.begin_solving_time_sec > self.params["~time_out_sec"]:
+            self.check_action_state(ActionState.TimedOut)
 
     def traffic_light_run(self):
         # Step the solver
@@ -180,19 +172,20 @@ class BaseComNode:
         return ActionState.Solving
 
     def stop_sign_run(self):
-        if self.ss_solver.begin_blink_time + self.ss_solver.SENSING_DURATION <= time():
+        # TODO change to step calls
+        if self.ss_solver.begin_blink_time + self.ss_solver.params["~sensing_duration_sec"] <= time():
             if self.ss_solver.should_go():
                 self.blink_at(0)
                 return ActionState.Go
 
-            # Just before resetting we turn blue light for a moment
+            # Turn blue light for a moment and reset
+            self.ss_solver.reset()
             self.blink_at(0, color="blue")
             sleep(2)
-            self.ss_solver.reset()
             self.blink_at(self.ss_solver.blink_freq)
 
         print(f'points {len(self.ss_solver.point_buffer.points)}')
-        buffer = self.ss_solver.point_buffer.points.copy()
+        #buffer = self.ss_solver.point_buffer.points.copy()
         #for i, point in enumerate(buffer):
         #    #freq, spikes = point.get_frequency()
         #    freq, spikes = point.get_frequency(self.img_avrg_fps)
@@ -220,12 +213,11 @@ class BaseComNode:
         pass  # placeholder for inheritance
 
     # INTERNAL SECTION
-    def update_action_state(self, action_state):
+    def check_action_state(self, action_state):
         """
-        All state updates should be done here
+        Checks action state and handle publishing accordingly
         """
         if action_state in [ActionState.Go, ActionState.TimedOut]:
-            print(" update action state GO | Timeout")
             # Set the intersection to unknown so we stop processing
             self.begin_solving_time_sec = time()
             self.last_state_transition_time = time()
