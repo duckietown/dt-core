@@ -54,6 +54,8 @@ The bot will start flashing its LEDs and the negotiation will run indefinitely. 
 
 
 ### b) Stop Sign standalone using usual dts devel run (Best)  
+Note: This config was tested with the code in `korra141/dt-core` repo and `daffy-project-standalone` branch. In case the merged code in the `duckietown/dt-core` repo does not work using `dts devel` command, you can try the former.   
+
 **IMPORTANT** Using `dts devel` the code needs to be build and run from the `dt-core` root folder. You also need to modify the `dt-core/launchers/default.sh` file to launch the communication_node. Just replace the `dt-launcher-default-${ROBOT_TYPE}` line by `dt-exec roslaunch --wait duckietown_demos communication.launch`.  
 
 Then you need to build it on the bot  
