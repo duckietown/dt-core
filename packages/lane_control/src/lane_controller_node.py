@@ -48,12 +48,10 @@ class LaneControllerNode(DTROS):
         ~obstacle_distance_reading (:obj:`stop_line_reading`): Distancefrom obstacle virtual stopline, to reduce speed
     """
 
-    def __init__(self, node_name, pkg_name=None):
+    def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(LaneControllerNode, self).__init__(
-            node_name=node_name, node_type=NodeType.PERCEPTION, pkg_name=pkg_name
-        )
+        super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
@@ -254,6 +252,6 @@ class LaneControllerNode(DTROS):
 
 if __name__ == "__main__":
     # Initialize the node
-    lane_controller_node = LaneControllerNode(node_name="lane_controller_node", pkg_name="lane_control")
+    lane_controller_node = LaneControllerNode(node_name="lane_controller_node")
     # Keep it spinning
     rospy.spin()
