@@ -73,7 +73,7 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
         grad_y *= edge_color == 255
 
         # compute gradient and thresholding
-        grad = np.sqrt(grad_x ** 2 + grad_y ** 2)
+        grad = np.sqrt(grad_x**2 + grad_y**2)
         roi = grad > self.sobel_threshold
 
         # print np.unique(grad)
@@ -83,7 +83,7 @@ class LineDetector2Dense(dtu.Configurable, LineDetectorInterface):
         roi_y, roi_x = np.nonzero(roi)
         centers = np.vstack((roi_x, roi_y)).transpose()
         normals = np.vstack((grad_x[roi], grad_y[roi])).transpose()
-        normals /= np.sqrt(np.sum(normals ** 2, axis=1, keepdims=True))
+        normals /= np.sqrt(np.sum(normals**2, axis=1, keepdims=True))
 
         lines = self._synthesizeLines(centers, normals)
 
