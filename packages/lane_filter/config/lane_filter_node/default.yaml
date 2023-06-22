@@ -25,8 +25,5 @@ lane_filter_histogram_configuration:
   range_min: 0.2
   range_est: 0.45 #0.33
   range_max: 0.6
-  encoder_resolution: 135
-  wheel_radius: 0.0318
-  wheel_baseline: 0.1
   weight_yellow: 1.0
   weight_white: 1.0

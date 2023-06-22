@@ -58,8 +58,8 @@ class LaneFilterHistogram(LaneFilterInterface):
 
     def __init__(self, **kwargs):
         param_names = [
-            "mean_d_0",
-            "mean_phi_0",
+            "mean_d_0", # the initial mean lateral offset (probably 0)
+            "mean_phi_0", # the initial mean angular offset (probably 0)
             "sigma_d_0",
             "sigma_phi_0",
             "delta_d",
@@ -123,21 +123,14 @@ class LaneFilterHistogram(LaneFilterInterface):
     def getStatus(self):
         return LaneFilterInterface.GOOD
 
-    ### DEFINED BUT NEVER USED
     def get_entropy(self):
         belief = self.belief
         s = entropy(belief.flatten())
         return s
 
-    #def predict(self, dt, v, w):
-    def predict(self, dt, left_encoder_ticks, right_encoder_ticks):
+    def predict(self, left_encoder_ticks, right_encoder_ticks):
         if not self.initialized:
             return
-        
-        #delta_t = dt #NOT USEFUL ANYMORE AS WHEEL ENCODER DATA IS USED 
-        # d_t = self.d + v * delta_t * np.sin(self.phi)
-        # phi_t = self.phi + w * delta_t
-
         # Calculate v and w from ticks using kinematics
         R = self.wheel_radius
         alpha = 2 * np.pi / self.encoder_resolution

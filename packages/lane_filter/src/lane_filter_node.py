@@ -31,30 +31,13 @@ class LaneFilterNode(DTROS):
         ~debug (:obj:`bool`): A parameter to enable/disable the publishing of debug topics and images
 
     Subscribers:
-        ### OLD METHODS NOT USED ANYMORE
-        ~segment_list (:obj:`SegmentList`): The detected line segments from the line detector
-        ~car_cmd (:obj:`Twist2DStamped`): The car commands executed. Used for the predict step of the filter
-        ~change_params (:obj:`String`): A topic to temporarily changes filter parameters for a finite time
-        only
-        ~switch (:obj:``BoolStamped): A topic to turn on and off the node. WARNING : to be replaced with a
-        service call to the provided mother node switch service
-        ~fsm_mode (:obj:`FSMState`): A topic to change the state of the node. WARNING : currently not
-        implemented
-        ###
-
         ~segment_list (:obj:`SegmentList`): The detected line segments from the line detector
         ~(left/right)_wheel_encoder_node/tick (:obj: `WheelEncoderStamped`): Information from the wheel encoders\
-        ~episode_start (:obj: `EpisodeStart`): The signal that a new episode has started
+        ~episode_start (:obj: `EpisodeStart`): The signal that a new episode has started - used to reset the filter
 
     Publishers:
         ~lane_pose (:obj:`LanePose`): The computed lane pose estimate
         ~belief_img (:obj:`Image`): A debug image that shows the filter's internal state
-        
-        ### OLD METHODS NOT USED ANYMORE
-        ~seglist_filtered (:obj:``SegmentList): a debug topic to send the filtered list of segments that
-        are considered as valid
-        ###
-
     """
 
     filter: LaneFilterHistogram
@@ -69,26 +52,24 @@ class LaneFilterNode(DTROS):
 
         # Create the filter
         self.filter = LaneFilterHistogram(**self._filter)
-        self.t_last_update = rospy.get_time()
+
+        # Load the needed filter parameters defined elsewhere need here
+        try:
+            self.filter.encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution")
+            self.filter.wheel_baseline = rospy.get_param("kinematics_node/baseline")
+            self.filter.wheel_radius = rospy.get_param("kinematics_node/radius")
+        except rospy.KeyError as e:
+            rospy.logerror(f"[Lane filter] Unable to load required param: {e}")
+
+        # this is only used for the timestamp of the first publication
         self.last_update_stamp = rospy.Time.now()
+
 
         # Creating cvBridge
         self.bridge = CvBridge()
 
-        # self.t_last_update = rospy.get_time()
-        # self.currentVelocity = None
-
-        # self.latencyArray = []
 
         # Subscribers
-        
-        ### OLD METHODS NOT USED ANYMORE
-        # self.sub = rospy.Subscriber("~segment_list", SegmentList, self.cbProcessSegments, queue_size=1)
-
-        # self.sub_velocity = rospy.Subscriber("~car_cmd", Twist2DStamped, self.updateVelocity)
-
-        # self.sub_change_params = rospy.Subscriber("~change_params", String, self.cbTemporaryChangeParams)
-        ###
 
         self.sub_segment_list = rospy.Subscriber(
             "~segment_list", SegmentList, self.cbProcessSegments, queue_size=1
@@ -104,7 +85,7 @@ class LaneFilterNode(DTROS):
 
         self.sub_episode_start = rospy.Subscriber(
             f"episode_start", EpisodeStart, self.cbEpisodeStart, queue_size=1
-        ) #XXX Should this be here, can be probably removed seems related to the episodes the simulator would use to switch between test cases 
+        )
 
         # Publishers
         self.pub_lane_pose = rospy.Publisher(
@@ -115,17 +96,6 @@ class LaneFilterNode(DTROS):
             "~belief_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
-        ### OLD METHDOS NOT USED ANYMORE
-        # self.pub_seglist_filtered = rospy.Publisher(
-        #     "~seglist_filtered", SegmentList, queue_size=1, dt_topic_type=TopicType.DEBUG
-        # )
-        ####
-
-        # FSM
-        # self.sub_switch = rospy.Subscriber(
-        #     "~switch", BoolStamped, self.cbSwitch, queue_size=1)
-        self.sub_fsm_mode = rospy.Subscriber("~fsm_mode", FSMState, self.cbMode, queue_size=1)
-
         #Enocder Init
         self.right_encoder_ticks = 0
         self.left_encoder_ticks = 0
@@ -134,49 +104,6 @@ class LaneFilterNode(DTROS):
 
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
         rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
-
-
-    ### OLD METHODS NOT USED ANYMORE
-    # def cbTemporaryChangeParams(self, msg):
-    #     """Callback that changes temporarily the filter's parameters.
-
-    #     Args:
-    #         msg (:obj:`String`): list of the new parameters
-
-    #     """
-    #     # This weird callback changes parameters only temporarily - used in the unicorn intersection.
-    #     # comment from 03/2020
-    #     data = json.loads(msg.data)
-    #     params = data["params"]
-    #     reset_time = data["time"]
-    #     # Set all paramters which need to be updated
-    #     for param_name in list(params.keys()):
-    #         param_val = params[param_name]
-    #         params[param_name] = eval("self.filter." + str(param_name))  # FIXME: really?
-    #         exec("self.filter." + str(param_name) + "=" + str(param_val))  # FIXME: really?
-
-    #     # Sleep for reset time
-    #     rospy.sleep(reset_time)
-
-    #     # Reset parameters to old values
-    #     for param_name in list(params.keys()):
-    #         param_val = params[param_name]
-
-    #         exec("self.filter." + str(param_name) + "=" + str(param_val))  # FIXME: really?
-
-    #    def nbSwitch(self, switch_msg):
-    #        """Callback to turn on/off the node
-    #
-    #        Args:
-    #            switch_msg (:obj:`BoolStamped`): message containing the on or off command
-    #
-    #        """
-    #        # All calls to this message should be replaced directly by the srvSwitch
-    #        request = SetBool()
-    #        request.data = switch_msg.data
-    #        eelf.nub_switch(request)
-    
-    ###
 
     def cbEpisodeStart(self, msg):
         rospy.loginfo("Lane Filter Resetting")
@@ -195,15 +122,12 @@ class LaneFilterNode(DTROS):
         self.right_encoder_ticks_delta = right_encoder_msg.data - self.right_encoder_ticks
 
     def cbPredict(self, event):
-        current_time = rospy.get_time()
-        dt = current_time - self.t_last_update
-        self.t_last_update = current_time
 
         # first let's check if we moved at all, if not abort
         if self.right_encoder_ticks_delta == 0 and self.left_encoder_ticks_delta == 0:
             return
 
-        self.filter.predict(dt, self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
+        self.filter.predict(self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
         self.left_encoder_ticks += self.left_encoder_ticks_delta
         self.right_encoder_ticks += self.right_encoder_ticks_delta
         self.left_encoder_ticks_delta = 0
@@ -220,48 +144,13 @@ class LaneFilterNode(DTROS):
         """
         self.last_update_stamp = segment_list_msg.header.stamp
 
-        # Get actual timestamp for latency measurement
-        # timestamp_before_processing = rospy.Time.now() ## NOT USEFUL ANYMORE AS WAY TO MEASURE LATENCY AS ALL FUNCTIONS ARE DECOUPLED
-    
-        # Step 1: predict # NOW HANDLED BY 'cbPredict'
-        # current_time = rospy.get_time()
-        # if self.currentVelocity:
-        #     dt = current_time - self.t_last_update
-        #     self.filter.predict(dt=dt, v=self.currentVelocity.v, w=self.currentVelocity.omega)
-
-        # self.t_last_update = current_time0
-
-        # Step 2: update
         self.filter.update(segment_list_msg.segments)
 
-        # Step 3: build messages and publish things
         self.publishEstimate(segment_list_msg.header.stamp)
-        # [d_max, phi_max] = self.filter.getEstimate()
-        # # print "d_max = ", d_max
-        # # print "phi_max = ", phi_max
-
-        # # Getting the highest belief value from the belief matrix
-        # max_val = self.filter.getMax()
-        # # Comparing it to a minimum belief threshold to make sure we are certain enough of our estimate
-        # in_lane = max_val > self.filter.min_max
-
-        # # build lane pose message to send
-        # lanePose = LanePose()
-        # lanePose.header.stamp = segment_list_msg.header.stamp
-        # lanePose.d = d_max
-        # lanePose.phi = phi_max
-        # lanePose.in_lane = in_lane
-        # # XXX: is it always NORMAL?
-        # lanePose.status = lanePose.NORMAL
-
-        # self.pub_lane_pose.publish(lanePose)
-        # self.debugOutput(segment_list_msg, d_max, phi_max, timestamp_before_processing)
 
     def publishEstimate(self, timestamp):
 
         [d_max, phi_max] = self.filter.getEstimate()
-        # print "d_max = ", d_max
-        # print "phi_max = ", phi_max
 
         # Getting the highest belief value from the belief matrix
         max_val = self.filter.getMax()
