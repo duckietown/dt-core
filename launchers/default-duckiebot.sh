@@ -47,10 +47,10 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-# dt-launcher-lane_following
+dt-launcher-lane_following
 # dt-launcher-apriltag-detector
 # dt-exec python3 "${DT_LAUNCH_PATH}/pytorchTest.py"
-dt-launcher-object-detector
+# dt-launcher-object-detector
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

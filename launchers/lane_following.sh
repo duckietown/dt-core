@@ -13,7 +13,7 @@ dt-launchfile-init
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait duckietown_project followers.launch
+dt-exec roslaunch --wait duckietown_demos lane_following.launch
 
 
 # ----------------------------------------------------------------------------
