@@ -73,6 +73,8 @@
 
     <arg name="unicorn_intersection" default="false"/>
 
+    <arg name="intersection_type_detector" default="false"/>
+
     <arg name="statistics" default="false"/>
     <arg name="enable_statistics" default="$(arg statistics)"/>
     <arg name="maintenance_control" default="false"/>
@@ -263,7 +265,6 @@
         <remap from="apriltag_postprocessing_node/detections" to="apriltag_detector_node/detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
     </group>
@@ -392,6 +393,16 @@
         </include>
     </group>
     <!-- End Unicorn intersection -->
+
+    <!-- Start intersection type detection -->
+    <group if="$(arg intersection_type_detector)">
+        <remap from="intersection_type_detector_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
+        <include file="$(find navigation)/launch/intersection_type_detector_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>
+        </include>
+    </group>
+    <!-- End intersection type detection -->
 
 
     <!-- Start Random Apriltag -->

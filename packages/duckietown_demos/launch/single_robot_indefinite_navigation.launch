@@ -36,6 +36,7 @@
 		<arg name="unicorn_intersection" value="true"/>
 		<arg name="apriltags" value="true" />
 		<arg name="apriltags_random" value="true" />
+		<arg name="intersection_type_detector" value="true"/>
 		<arg name="intersectionType" value="trafficLight"/>
 
 		<!-- TODO traffic lights -->
