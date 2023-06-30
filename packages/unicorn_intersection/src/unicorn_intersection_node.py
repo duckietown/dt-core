@@ -2,44 +2,62 @@
 import json
 import numpy as np
 import rospy
-from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, TurnIDandType, WheelEncoderStamped, Twist2DStamped
-from std_msgs.msg import String
+from duckietown_msgs.msg import BoolStamped, \
+    TurnIDandType, \
+    WheelEncoderStamped, \
+    Twist2DStamped, \
+    StopLineReading
+
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 import math 
+from geometry_msgs.msg import Quaternion, Twist, Pose2D, Point, Vector3, TransformStamped, Transform
+
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Quaternion, Twist, Pose, Point, Vector3, TransformStamped, Transform
-# from duckietown_msgs.msg import WheelEncoderStamped
+
 import message_filters
-from tf2_ros import TransformBroadcaster
 from tf import transformations as tr
 
+import geometry as g
 
 class UnicornIntersectionNode(DTROS):
     def __init__(self, node_name):
         super(UnicornIntersectionNode, self).__init__(node_name=node_name, node_type=NodeType.CONTROL)
 
         self.node_name = node_name
+        self.internal_state = "READY"
+        self.turn_type_received = False
+        self.stop_line_pose_received = False
 
         ## setup Parameters
         self.setupParams()
 
+        self.goal_poses = {
+            "left": self.dictionary_pose_to_geometry(self.canonical_goal_pose_left),
+            "right": self.dictionary_pose_to_geometry(self.canonical_goal_pose_right),
+            "straight": self.dictionary_pose_to_geometry(self.canonical_goal_pose_straight)
+        }
+
+        self.robot_frame_goal_pose = g.SE2.identity()
+
         ## Internal variables
-        self.state = "JOYSTICK_CONTROL"
-        self.active = False
         self.turn_type = -1
-        self.tag_id = -1
-        self.forward_pose = False
+        self.stop_line_pose = Pose2D()
 
         ## Subscribers
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
-        self.sub_fsm = rospy.Subscriber("~fsm_state", FSMState, self.cbFSMState)
-        self.car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL)
+        self.sub_encoder_left = message_filters.Subscriber("~left_wheel_encoder_node/tick", WheelEncoderStamped)
+        self.sub_encoder_right = message_filters.Subscriber("~right_wheel_encoder_node/tick", WheelEncoderStamped)
+        self.sub_stop_line_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbStopLineReading)
 
         ## Publisher
         self.pub_int_done = rospy.Publisher("~intersection_done", BoolStamped, queue_size=1)
-        self.sub_encoder_left = message_filters.Subscriber("~left_wheel_encoder_node/tick", WheelEncoderStamped)
-        self.sub_encoder_right = message_filters.Subscriber("~right_wheel_encoder_node/tick", WheelEncoderStamped)
+        self.car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL)
+        self.reference_trajectory_pub = rospy.Publisher(
+            "~reference_trajectory",
+            Odometry,
+            queue_size=self.num_waypoints,
+        )
 
         self.ts_encoders = message_filters.ApproximateTimeSynchronizer(
             [self.sub_encoder_left, self.sub_encoder_right], 1, 1
@@ -84,6 +102,84 @@ class UnicornIntersectionNode(DTROS):
         self.beta = 0.0
 
         self.log("Initialized controller")
+
+    def cbStopLineReading(self, msg):
+        self.stop_line_pose = msg.stop_pose
+        self.stop_line_pose_received = True
+        rospy.loginfo(f"[unicorn_intersection_node] Received stop line pose: {self.stop_line_pose}")
+        self.check_if_go()
+
+    def check_if_go(self):
+        if (self.stop_line_pose_received and self.turn_type_received and self.internal_state == "READY"):
+            rospy.loginfo("[unicorn_intersection_node] We have what we need, calculating reference trajectory")
+            self.reference_trajectory = self.calculate_goal_trajectory()
+            rospy.loginfo(f"[unicorn_intersection_node] Reference trajectory calculated: {self.reference_trajectory}")
+            self.internal_state = "EXECTUTING"
+            #self.intersection_navigation()
+        else:
+            rospy.loginfo(f"[unicorn_intersection_node] We don't have what we need yet: "
+                      f"stop_line received: {self.stop_line_pose_received} " 
+                      f"turn_type_received: {self.turn_type_received} "
+                      f"internal_state:{self.internal_state} ")
+
+    # Calculate the pose that we want to navigate to relative to where we are. If we are using
+    # the stop line pose then we need to calculate the stop line relative to the robot, and then the
+    # goal pose relative to the stop line. If not using the stop line then we can use some fixed offset based on the
+    # stop line distance? TODO
+    def calculate_goal_trajectory(self):
+        g_stop_pose = self.ros_pose_to_geometry(self.stop_line_pose)
+        # TODO what if we don't want to use the stop_pose?
+
+        # TODO this should really be turned into an enum
+        # Step 1 - calculate the goal pose in the robot frame
+        if self.turn_type == 0:
+            canonical_goal_pose = self.goal_poses['left']
+        elif self.turn_type == 1:
+            canonical_goal_pose = self.goal_poses['straight']
+        elif self.turn_type == 2:
+            canonical_goal_pose = self.goal_poses['right']
+        else:
+            rospy.logerr("[unicorn_intersection_node] Something went wrong, invalid turn type")
+
+        self.robot_frame_goal_pose = g.SE2.multiply( g.SE2.inverse(g_stop_pose), canonical_goal_pose)
+
+        p, d = g.translation_angle_from_SE2(self.robot_frame_goal_pose)
+        print(f"goal_pose in robot frame: position {p}, angle  {d}")
+
+        # Step 2: Interpolate along the trajectory to generate waypoints
+        vel = g.SE2.algebra_from_group(self.robot_frame_goal_pose)
+        alphas = [x/self.num_waypoints for x in range(1, self.num_waypoints+1)]
+        waypoints = []
+        directions = []
+        for alpha in alphas:
+            rel = g.SE2.group_from_algebra(vel * alpha)
+            inter_pose = g.SE2.multiply(g_stop_pose, rel)
+            position, direction = g.translation_angle_from_SE2(inter_pose)
+            print(f"Adding waypoint:  position {position}, angle {direction}")
+            waypoints.append(position)
+            directions.append(direction)
+
+        # Step 3 (optional): Publish the trajectory for visualization in RVIZ
+        if self.visualization:
+            self.visualize_trajectory(waypoints,directions)
+        return waypoints
+
+    def visualize_trajectory(self,waypoints,directions):
+        for i in range(len(waypoints)):
+            p = Odometry()
+            p.header.frame_id = "map"
+            p.header.stamp = rospy.Time.now()
+
+            p.pose.pose.position.x = waypoints[i][0]
+            p.pose.pose.position.y = waypoints[i][1]
+            p.pose.pose.position.z = 0
+
+            p.pose.pose.orientation.x = 0
+            p.pose.pose.orientation.y = 0
+            p.pose.pose.orientation.z = np.sin(directions[i] / 2)
+            p.pose.pose.orientation.w = np.cos(directions[i] / 2)
+
+            self.reference_trajectory_pub.publish(p)
 
     def reset_odometry(self):
         self.state = 0
@@ -208,7 +304,7 @@ class UnicornIntersectionNode(DTROS):
             print("cur state ",self.x,self.y,self.yaw)
             self.state = 1
 
-    def cbIntersectionGo(self):
+    def start_navigation(self):
         rospy.loginfo("[%s] Recieved intersection go message from coordinator", self.node_name)
 
         while self.turn_type == -1:
@@ -233,32 +329,32 @@ class UnicornIntersectionNode(DTROS):
         self.pub_int_done.publish(msg_done)
         self.reset_odometry()
 
+    @staticmethod
+    def dictionary_pose_to_geometry(dict_param):
+        return g.SE2_from_xytheta([dict_param['x'], dict_param['y'], dict_param['theta']])
 
-    def cbFSMState(self, msg):
-        if self.state != msg.state and msg.state == "NAVIGATE_INTERSECTION":
-            self.turn_type = -1
-            self.cbIntersectionGo()
-
-        self.state = msg.state
+    @staticmethod
+    def ros_pose_to_geometry(ros_pose):
+        return g.SE2_from_xytheta([ros_pose.x, ros_pose.y, ros_pose.theta])
 
     def cbTurnType(self, msg):
-        self.tag_id = msg.tag_id
-        if self.turn_type == -1:
-            self.turn_type = msg.turn_type
-        if self.debug_dir != -1:
-            self.turn_type = self.debug_dir
+        self.turn_type = msg.turn_type
+        self.turn_type_received = True
+        rospy.loginfo(f"[unicorn_intersection_node] Received turn type: {self.turn_type} ")
+        self.check_if_go()
 
     def setupParams(self):
-        self.time_left_turn = self.setupParam("~time_left_turn", 2)
-        self.time_straight_turn = self.setupParam("~time_straight_turn", 2)
-        self.time_right_turn = self.setupParam("~time_right_turn", 2)
-        self.debug_dir = self.setupParam("~debug_dir", -1)
+        self.use_stop_pose = self.setupParam("~use_stop_pose", False)
+        self.num_waypoints = self.setupParam("~num_waypoints", 2)
+        self.visualization = self.setupParam("~visualization", True)
+        default_pose = {'x': 0.0, 'y': 0.0, 'theta': 0.0 }
+        self.canonical_goal_pose_right = self.setupParam("~canonical_goal_pose_right", default_pose)
+        self.canonical_goal_pose_left = self.setupParam("~canonical_goal_pose_left", default_pose)
+        self.canonical_goal_pose_straight = self.setupParam("~canonical_goal_pose_straight", default_pose)
+
 
     def updateParams(self, event):
-        self.time_left_turn = rospy.get_param("~time_left_turn")
-        self.time_straight_turn = rospy.get_param("~time_straight_turn")
-        self.time_right_turn = rospy.get_param("~time_right_turn")
-        self.debug_dir = rospy.get_param("~debug_dir")
+        pass
 
     def setupParam(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)

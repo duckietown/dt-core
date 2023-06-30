@@ -21,7 +21,7 @@
 		<arg name="/camera/raw" value="true"/>
 		<arg name="/camera/rect" value="true"/>
 		<arg name="LED" value="true"/>
-		<arg name="/LED/detector" value="true"/>
+		<arg name="/LED/detector" value="false"/> <!-- for now -->
 		<arg name="/LED/emitter" value="true"/>
 
         <!-- Lane Following stack -->

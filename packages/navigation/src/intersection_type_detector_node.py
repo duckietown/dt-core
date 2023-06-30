@@ -24,9 +24,15 @@ class IntersectionTypeDetectorNode(DTROS):
             "~stop_sign_intersection_detected",
             BoolStamped,
             queue_size=1,
-            dt_topic_type=TopicType.PERCEPTION
+            latch=True
         )
-        self.pub_traffic_light = rospy.Publisher("~traffic_light_intersection_detected", BoolStamped, queue_size=1)
+
+        self.pub_traffic_light = rospy.Publisher(
+            "~traffic_light_intersection_detected",
+            BoolStamped,
+            queue_size=1,
+            latch=True
+        )
 
         # Setup subscribers
         self.sub_topic_tag = rospy.Subscriber("~tag", AprilTagsWithInfos, self.cbTag, queue_size=1)
