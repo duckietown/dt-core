@@ -38,11 +38,14 @@ class UnicornIntersectionNode(DTROS):
             "straight": self.dictionary_pose_to_geometry(self.canonical_goal_pose_straight)
         }
 
-        self.robot_frame_goal_pose = g.SE2.identity()
+        self.reference_trajectory = []
 
         ## Internal variables
         self.turn_type = -1
         self.stop_line_pose = Pose2D()
+
+        self.debug = False
+
 
         ## Subscribers
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
@@ -62,6 +65,7 @@ class UnicornIntersectionNode(DTROS):
         self.ts_encoders = message_filters.ApproximateTimeSynchronizer(
             [self.sub_encoder_left, self.sub_encoder_right], 1, 1
         )
+        self.ts_encoders.registerCallback(self.cb_ts_encoders)
 
         ## update Parameters timer
         self.params_update = rospy.Timer(rospy.Duration.from_sec(1.0), self.updateParams)
@@ -69,53 +73,25 @@ class UnicornIntersectionNode(DTROS):
         ## Deadreckoning 
 
         # introducing deadreckoning
-        self.state = 0
-        self.left_encoder_last = None
-        self.right_encoder_last = None
-        self.encoders_timestamp_last = None
-        self.encoders_timestamp_last_local = None
-        self.timestamp = None
-        self.x = 0.0
-        self.y = 0.0
-        self.z = 0.0
-        self.yaw = 0.0
-        self.q = [0.0, 0.0, 0.0, 1.0]
-        self.tv = 0.0
-        self.rv = 0.0
-
-        self.ticks_per_meter = 656.0
-        self.debug = False
-        self.wierd = True
-        self.wheelbase = 0.108
-        self.iter_ = 0
-
-        # NOTE
-        self.target_states = {-1: np.array([  [0.0,0.0], [0.0,0.0], [0.0,0.0]  ]),\
-                              0: np.array([  [0.15,0.0], [0.3,0.0], [0.3,0.4]  ]),\
-                              1: np.array([[0.15, 0.0], [0.3, 0.0], [0.4, 0.0]]),\
-                              2: np.array([  [0.12,0.0], [0.12,-0.3], [0.12,-0.4]  ])
-                              }
-        self.len_states = len(self.target_states[self.turn_type])
-        self.final_state = 0 
+        self.reset_odometry()
 
         self.alpha = 0.0
-        self.beta = 0.0
 
-        self.log("Initialized controller")
+        self.log("Initialialized unicorn intersection node")
 
     def cbStopLineReading(self, msg):
-        self.stop_line_pose = msg.stop_pose
-        self.stop_line_pose_received = True
-        rospy.loginfo(f"[unicorn_intersection_node] Received stop line pose: {self.stop_line_pose}")
-        self.check_if_go()
+        if msg.at_stop_line:
+            self.stop_line_pose = msg.stop_pose
+            self.stop_line_pose_received = True
+            rospy.loginfo(f"[unicorn_intersection_node] Received stop line pose: {self.stop_line_pose}")
+            self.check_if_go()
 
     def check_if_go(self):
         if (self.stop_line_pose_received and self.turn_type_received and self.internal_state == "READY"):
             rospy.loginfo("[unicorn_intersection_node] We have what we need, calculating reference trajectory")
             self.reference_trajectory = self.calculate_goal_trajectory()
             rospy.loginfo(f"[unicorn_intersection_node] Reference trajectory calculated: {self.reference_trajectory}")
-            self.internal_state = "EXECTUTING"
-            #self.intersection_navigation()
+            self.internal_state = "EXECUTING"
         else:
             rospy.loginfo(f"[unicorn_intersection_node] We don't have what we need yet: "
                       f"stop_line received: {self.stop_line_pose_received} " 
@@ -141,13 +117,13 @@ class UnicornIntersectionNode(DTROS):
         else:
             rospy.logerr("[unicorn_intersection_node] Something went wrong, invalid turn type")
 
-        self.robot_frame_goal_pose = g.SE2.multiply( g.SE2.inverse(g_stop_pose), canonical_goal_pose)
+        robot_frame_goal_pose = g.SE2.multiply( g.SE2.inverse(g_stop_pose), canonical_goal_pose)
 
-        p, d = g.translation_angle_from_SE2(self.robot_frame_goal_pose)
+        p, d = g.translation_angle_from_SE2(robot_frame_goal_pose)
         print(f"goal_pose in robot frame: position {p}, angle  {d}")
 
         # Step 2: Interpolate along the trajectory to generate waypoints
-        vel = g.SE2.algebra_from_group(self.robot_frame_goal_pose)
+        vel = g.SE2.algebra_from_group(robot_frame_goal_pose)
         alphas = [x/self.num_waypoints for x in range(1, self.num_waypoints+1)]
         waypoints = []
         directions = []
@@ -161,13 +137,12 @@ class UnicornIntersectionNode(DTROS):
 
         # Step 3 (optional): Publish the trajectory for visualization in RVIZ
         if self.visualization:
-            self.visualize_trajectory(waypoints,directions)
+            self.visualize_trajectory(waypoints, directions)
         return waypoints
 
-    def visualize_trajectory(self,waypoints,directions):
+    def visualize_trajectory(self,waypoints, directions):
         for i in range(len(waypoints)):
             p = Odometry()
-            p.header.frame_id = "map"
             p.header.stamp = rospy.Time.now()
 
             p.pose.pose.position.x = waypoints[i][0]
@@ -182,7 +157,6 @@ class UnicornIntersectionNode(DTROS):
             self.reference_trajectory_pub.publish(p)
 
     def reset_odometry(self):
-        self.state = 0
         self.left_encoder_last = None
         self.right_encoder_last = None
         self.encoders_timestamp_last = None
@@ -197,13 +171,14 @@ class UnicornIntersectionNode(DTROS):
         self.rv = 0.0
 
         self.ticks_per_meter = 656.0
-        self.debug = False
-        self.wierd = True
         self.wheelbase = 0.108
         self.iter_ = 0
         self.final_state = 0
 
     def cb_ts_encoders(self, left_encoder, right_encoder):
+        if self.internal_state != "EXECUTING":
+            return
+
         timestamp_now = rospy.get_time()
 
         # Use the average of the two encoder times as the timestamp
@@ -274,60 +249,33 @@ class UnicornIntersectionNode(DTROS):
         self.encoders_timestamp_last = timestamp
         self.encoders_timestamp_last_local = timestamp_now
 
-        if self.wierd and self.final_state == 0:
-            print("iterator ",self.iter_)
-            start_time = rospy.Time.now()
+        print("iterator ", self.iter_)
 
-            self.state = 0
-
-            car_control_msg = Twist2DStamped()
-            car_control_msg.header.stamp = rospy.Time.now()
-            car_control_msg.header.seq = 0
+        car_control_msg = Twist2DStamped()
+        #TODO
+        car_control_msg.header.stamp = rospy.Time.now()
+        car_control_msg.header.seq = 0
 
         # Add commands to car message
-            car_control_msg.v = 0.2
-            car_control_msg.omega = self.compute_omega(self.target_states[self.turn_type][self.iter_],self.x,self.y,self.yaw,dt)
+        car_control_msg.v = 0.2
+        car_control_msg.omega = self.compute_omega(self.reference_trajectory[self.iter_],self.x,self.y,self.yaw,dt)
+        print("target_state_ ", self.reference_trajectory[self.iter_])
+        self.car_cmd.publish(car_control_msg)
+        print("cur state ",self.x,self.y,self.yaw)
 
-            if self.check_point( np.array([self.x,self.y]),self.target_states[self.turn_type][self.iter_] ):
-                    self.iter_ += 1
-                    car_control_msg.v = 0.0
+        if self.check_point( np.array([self.x,self.y]),self.reference_trajectory[self.iter_] ):
+            self.iter_ += 1
+            if self.iter_ == self.num_waypoints:
+                self.internal_state = "READY"
+                # Publish intersection done
+                msg_done = BoolStamped()
+                msg_done.data = True
+                self.pub_int_done.publish(msg_done)
+                self.reset_odometry()
+                rospy.loginfo("[unicorn intersection node] intersection navigation complete")
 
-                    if self.iter_ == len(self.target_states[self.turn_type]):
-                        self.final_state = 1 # DONE
-                        car_control_msg.v = 0
-                        car_control_msg.omega = 0
-                        self.car_cmd.publish(car_control_msg)
-                        return 
 
-            print("target_state_ ",self.target_states[self.turn_type][self.iter_])
-            self.car_cmd.publish(car_control_msg)
-            print("cur state ",self.x,self.y,self.yaw)
-            self.state = 1
 
-    def start_navigation(self):
-        rospy.loginfo("[%s] Recieved intersection go message from coordinator", self.node_name)
-
-        while self.turn_type == -1:
-
-            rospy.loginfo(
-                "[%s] Requested to start intersection, but we do not see an april tag yet.", self.node_name
-            )
-            rospy.sleep(2)
-
-        tag_id = self.tag_id
-        turn_type = self.turn_type
-
-        sleeptimes = [self.time_left_turn, self.time_straight_turn, self.time_right_turn]
-
-        rospy.loginfo("Starting intersection control - driving to " + str(turn_type))
-        self.ts_encoders.registerCallback(self.cb_ts_encoders)
-        rospy.sleep(sleeptimes[turn_type])
-
-        # Publish intersection done
-        msg_done = BoolStamped()
-        msg_done.data = True
-        self.pub_int_done.publish(msg_done)
-        self.reset_odometry()
 
     @staticmethod
     def dictionary_pose_to_geometry(dict_param):
@@ -384,14 +332,14 @@ class UnicornIntersectionNode(DTROS):
 
         return omega
 
-    def check_point(self,current_point,target_point):
+    def check_point(self, current_point, target_point):
         threshold = 0.1
         threshold_x = 0.08
         dist_x = np.zeros((1,2))
-        dist_x[0,0] = (current_point[0]-self.alpha) - target_point[0]
-        dist_x[0,1] = (current_point[1]) - target_point[1]
-        if self.iter_ == (self.len_states - 1):
-            if abs(dist_x[0,1]) < threshold_x:
+        dist_x[0, 0] = (current_point[0] - self.alpha) - target_point[0]
+        dist_x[0, 1] = (current_point[1]) - target_point[1]
+        if self.iter_ == (self.num_waypoints - 1):
+            if abs(dist_x[0, 1]) < threshold_x:
                 return True
 
             return False
@@ -399,8 +347,8 @@ class UnicornIntersectionNode(DTROS):
         else:
             dist = np.sqrt(((current_point[0]-self.alpha) - target_point[0])**2 + ((current_point[1]-self.alpha) - target_point[1])**2 )
             print("check if we reached ")
-            print("dist ",dist)
-            print(" current and target point",current_point,target_point)
+            print("dist ", dist)
+            print(" current and target point", current_point, target_point)
             print("-"*10)
 
             if (abs(dist_x[0,0])) > threshold_x or (dist) < threshold:

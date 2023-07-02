@@ -58,26 +58,8 @@ class StopLineFilterNode(DTROS):
         ## publishers and subscribers
         self.sub_segs = rospy.Subscriber("~segment_list", SegmentList, self.cb_segments)
         self.sub_lane = rospy.Subscriber("~lane_pose", LanePose, self.cb_lane_pose)
-        self.sub_mode = rospy.Subscriber("fsm_node/mode", FSMState, self.cb_state_change)
         self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1, latch=True)
         self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
-
-
-    def cb_state_change(self, msg):
-        if (self.state == "INTERSECTION_CONTROL") and (msg.state == "LANE_FOLLOWING"):
-            self.after_intersection_work()
-        self.state = msg.state
-
-    def after_intersection_work(self):
-        self.loginfo("Blocking stop line detection after the intersection")
-        stop_line_reading_msg = StopLineReading()
-        stop_line_reading_msg.stop_line_detected = False
-        stop_line_reading_msg.at_stop_line = False
-        self.pub_stop_line_reading.publish(stop_line_reading_msg)
-        self.sleep = True
-        rospy.sleep(self.off_time.value)
-        self.sleep = False
-        self.loginfo("Resuming stop line detection after the intersection")
 
     def cb_lane_pose(self, lane_pose_msg):
         self.lane_pose = lane_pose_msg
