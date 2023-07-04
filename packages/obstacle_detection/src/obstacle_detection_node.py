@@ -15,7 +15,8 @@ class ObstacleDetectionNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(ObstacleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(ObstacleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                    fsm_controlled=True)
 
         self.bridge = CvBridge()
         self._interval = 1. / 20  # Seconds

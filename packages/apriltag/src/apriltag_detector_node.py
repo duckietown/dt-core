@@ -22,7 +22,7 @@ from geometry_msgs.msg import Transform, Vector3, Quaternion
 class AprilTagDetector(DTROS):
     def __init__(self):
         super(AprilTagDetector, self).__init__(
-            node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION
+            node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION, fsm_controlled=True
         )
         # get static parameters
         self.family = rospy.get_param("~family", "tag36h11")

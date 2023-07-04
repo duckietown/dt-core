@@ -51,7 +51,8 @@ class LaneControllerNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                 fsm_controlled=True)
 
         self._veh = rospy.get_param("~veh")
 

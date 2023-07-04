@@ -46,9 +46,9 @@ class VehicleFilterNode(DTROS):
     """
 
     def __init__(self, node_name):
-
         # Initialize the DTROS parent class
-        super(VehicleFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(VehicleFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                fsm_controlled=True)
 
         # Add the node parameters to the parameters dictionary and load their default values
         self.distance_between_centers = DTParam("~distance_between_centers", param_type=ParamType.FLOAT)

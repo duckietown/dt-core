@@ -40,7 +40,8 @@ class DeadReckoningNode(DTROS):
     """
 
     def __init__(self, node_name):
-        super(DeadReckoningNode, self).__init__(node_name=node_name, node_type=NodeType.LOCALIZATION)
+        super(DeadReckoningNode, self).__init__(node_name=node_name, node_type=NodeType.LOCALIZATION,
+                                                fsm_controlled=True)
         self.node_name = node_name
 
         self.veh = rospy.get_param("~veh")

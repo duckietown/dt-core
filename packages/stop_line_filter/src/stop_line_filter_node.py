@@ -13,7 +13,8 @@ from geometry_msgs.msg import Point
 class StopLineFilterNode(DTROS):
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(StopLineFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(StopLineFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                 fsm_controlled=True)
 
         # Initialize the parameters
         self.stop_distance = DTParam("~stop_distance", param_type=ParamType.FLOAT)

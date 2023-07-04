@@ -36,7 +36,8 @@ class VehicleDetectionNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(VehicleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(VehicleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                   fsm_controlled=True)
 
         # Initialize the parameters
         self.process_frequency = DTParam("~process_frequency", param_type=ParamType.FLOAT)
