@@ -52,9 +52,6 @@ class LaneFilterHistogram(LaneFilterInterface):
     range_min: float
     range_est: float
     range_max: float
-    encoder_resolution: float
-    wheel_radius: float
-    wheel_baseline: float
 
     def __init__(self, **kwargs):
         param_names = [
@@ -78,9 +75,6 @@ class LaneFilterHistogram(LaneFilterInterface):
             "range_min",
             "range_est",
             "range_max",
-            "encoder_resolution",
-            "wheel_radius",
-            "wheel_baseline",
         ]
 
         for p_name in param_names:
