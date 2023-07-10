@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
+from concurrent.futures import ThreadPoolExecutor
+from queue import Queue, Empty
+from threading import Thread
 
 import cv2
+import numpy as np
 import rospy
 import tf
-import numpy as np
-
-from threading import Thread
-from concurrent.futures import ThreadPoolExecutor
-from turbojpeg import TurboJPEG, TJPF_GRAY
-from image_geometry import PinholeCameraModel
 from dt_apriltags import Detector
-
 from dt_class_utils import DTReminder
-from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-
 from duckietown_msgs.msg import AprilTagDetectionArray, AprilTagDetection
-from sensor_msgs.msg import CameraInfo, CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
+from image_geometry import PinholeCameraModel
+from sensor_msgs.msg import CameraInfo, CompressedImage
+from turbojpeg import TurboJPEG, TJPF_GRAY
+
+from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
 
 class AprilTagDetector(DTROS):
@@ -28,7 +27,7 @@ class AprilTagDetector(DTROS):
         self.family = rospy.get_param("~family", "tag36h11")
         self.ndetectors = rospy.get_param("~ndetectors", 1)
         self.nthreads = rospy.get_param("~nthreads", 1)
-        self.quad_decimate = rospy.get_param("~quad_decimate", 1.0)
+        self.quad_decimate = rospy.get_param("~quad_decimate", [1.0])
         self.quad_sigma = rospy.get_param("~quad_sigma", 0.0)
         self.refine_edges = rospy.get_param("~refine_edges", 1)
         self.decode_sharpening = rospy.get_param("~decode_sharpening", 0.25)
@@ -47,12 +46,12 @@ class AprilTagDetector(DTROS):
             Detector(
                 families=self.family,
                 nthreads=self.nthreads,
-                quad_decimate=self.quad_decimate,
+                quad_decimate=self.quad_decimate[i],
                 quad_sigma=self.quad_sigma,
                 refine_edges=self.refine_edges,
                 decode_sharpening=self.decode_sharpening,
             )
-            for _ in range(self.ndetectors)
+            for i in range(self.ndetectors)
         ]
         self._renderer_busy = False
         # create a CV bridge object
@@ -77,9 +76,12 @@ class AprilTagDetector(DTROS):
             dt_topic_type=TopicType.VISUALIZATION,
             dt_help="Camera image with tag publishs superimposed",
         )
+        # create queue of detectors
+        self._detectors_queue = Queue(self.ndetectors)
+        for i in range(self.ndetectors):
+            self._detectors_queue.put(i)
         # create thread pool
         self._workers = ThreadPoolExecutor(self.ndetectors)
-        self._tasks = [None] * self.ndetectors
         # create TF broadcaster
         self._tf_bcaster = tf.TransformBroadcaster()
 
@@ -119,7 +121,7 @@ class AprilTagDetector(DTROS):
             img = self._jpeg.decode(msg.data, pixel_format=TJPF_GRAY)
         # run input image through the rectification map
         with self.profiler("/cb/image/rectify"):
-            img = cv2.remap(img, self._mapx, self._mapy, cv2.INTER_NEAREST)
+            img = cv2.remap(img, self._mapx, self._mapy, cv2.INTER_LINEAR)
         # detect tags
         with self.profiler("/cb/image/detection"):
             tags = self._detectors[detector_id].detect(img, True, self._camera_parameters, self.tag_size)
@@ -161,6 +163,8 @@ class AprilTagDetector(DTROS):
         # update healthy frequency metadata
         self._tag_pub.set_healthy_freq(self._img_sub.get_frequency())
         self._img_pub.set_healthy_freq(self._img_sub.get_frequency())
+        # put detector back in queue
+        self._detectors_queue.put(detector_id)
         # render visualization (if needed)
         if self._img_pub.anybody_listening() and not self._renderer_busy:
             self._renderer_busy = True
@@ -184,11 +188,12 @@ class AprilTagDetector(DTROS):
             return
         # ---
         # find the first available worker (if any)
-        for i in range(self.ndetectors):
-            if self._tasks[i] is None or self._tasks[i].done():
-                # submit this image to the pool
-                self._tasks[i] = self._workers.submit(self._detect, i, msg)
-                break
+        try:
+            i = self._detectors_queue.get(block=False)
+            # submit this image to the pool
+            self._workers.submit(self._detect, i, msg)
+        except Empty:
+            pass
 
     def _render_detections(self, msg, img, detections):
         with self.profiler("/publishs_image"):
