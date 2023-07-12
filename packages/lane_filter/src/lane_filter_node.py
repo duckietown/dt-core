@@ -49,6 +49,11 @@ class LaneFilterNode(DTROS):
         self._filter = rospy.get_param("~lane_filter_histogram_configuration", None)
         self._debug = rospy.get_param("~debug", False)
         self._predict_freq = rospy.get_param("~predict_frequency", 30.0)
+        #Enocder Init
+        self.right_encoder_ticks = 0
+        self.left_encoder_ticks = 0
+        self.right_encoder_ticks_delta = 0
+        self.left_encoder_ticks_delta = 0
 
         # Create the filter
         self.filter = LaneFilterHistogram(**self._filter)
@@ -96,11 +101,6 @@ class LaneFilterNode(DTROS):
             "~belief_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
-        #Enocder Init
-        self.right_encoder_ticks = 0
-        self.left_encoder_ticks = 0
-        self.right_encoder_ticks_delta = 0
-        self.left_encoder_ticks_delta = 0
 
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
         rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)

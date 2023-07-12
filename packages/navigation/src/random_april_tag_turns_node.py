@@ -44,7 +44,8 @@ class RandomAprilTagTurnsNode(DTROS):
                         taginfo.LEFT_T_INTERSECT,
                         taginfo.NO_LEFT_TURN,
                         taginfo.RIGHT_T_INTERSECT,
-                        taginfo.T_INTERSECTION
+                        taginfo.T_INTERSECTION,
+                        taginfo.FOUR_WAY
                     }:
                         tag_det = (tag_msgs.detections)[idx]
                         pos = tag_det.transform.translation
