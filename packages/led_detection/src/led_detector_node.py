@@ -37,7 +37,11 @@ class LEDDetectorNode(DTROS):
 
     def __init__(self, node_name, node_type):
         # Initialize the DTROS parent class
-        super(LEDDetectorNode, self).__init__(node_name=node_name, node_type=node_type)
+        super(LEDDetectorNode, self).__init__(
+            node_name=node_name,
+            node_type=node_type,
+            fsm_controlled=True
+        )
 
         self.node_name = "LED_DETECTOR_NODE"
         # Needed to publish images

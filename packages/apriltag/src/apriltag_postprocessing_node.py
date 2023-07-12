@@ -22,7 +22,9 @@ class AprilPostPros(DTROS):
     def __init__(self, node_name):
         """ """
         super(AprilPostPros, self).__init__(
-            node_name=node_name, node_type=NodeType.PERCEPTION
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
         )
         self.node_name = node_name
 

@@ -44,7 +44,11 @@ class LaneFilterNode(DTROS):
     bridge: CvBridge
 
     def __init__(self, node_name):
-        super(LaneFilterNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(LaneFilterNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
+        )
 
         self._filter = rospy.get_param("~lane_filter_histogram_configuration", None)
         self._debug = rospy.get_param("~debug", False)

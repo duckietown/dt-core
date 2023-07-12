@@ -13,7 +13,10 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
 class RandomAprilTagTurnsNode(DTROS):
     def __init__(self, node_name):
-        super(RandomAprilTagTurnsNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(RandomAprilTagTurnsNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True)
 
         # Save the name of the node
         self.node_name = node_name

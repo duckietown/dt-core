@@ -22,7 +22,10 @@ import geometry as g
 
 class UnicornIntersectionNode(DTROS):
     def __init__(self, node_name):
-        super(UnicornIntersectionNode, self).__init__(node_name=node_name, node_type=NodeType.CONTROL)
+        super(UnicornIntersectionNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.CONTROL,
+            fsm_controlled=True)
 
         self.node_name = node_name
         self.internal_state = "READY"

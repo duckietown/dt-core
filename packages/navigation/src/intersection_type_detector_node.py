@@ -12,7 +12,11 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 
 class IntersectionTypeDetectorNode(DTROS):
     def __init__(self, node_name):
-        super(IntersectionTypeDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(IntersectionTypeDetectorNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
+        )
 
         # Save the name of the node
         self.node_name = node_name
