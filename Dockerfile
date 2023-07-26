@@ -50,13 +50,23 @@ ENV DT_MODULE_TYPE="${REPO_NAME}" \
     DT_LAUNCH_PATH="${LAUNCH_PATH}" \
     DT_LAUNCHER="${LAUNCHER}"
 
+# configure environment for CUDA
+ENV CUDA_VERSION 10.2 \
+    CUDNN_VERSION 8.0 \
+    PATH /usr/local/cuda-${CUDA_VERSION}/bin:${PATH} \
+    LD_LIBRARY_PATH /usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
+    LIBRARY_PATH /usr/local/cuda/lib64/stubs:${LIBRARY_PATH} \
+    CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-${CUDA_VERSION}/ \
+    NVIDIA_REQUIRE_CUDA "cuda>=${CUDA_VERSION} brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441"
+
 # install apt dependencies
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 
 # install opencv
-COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
-RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
+COPY scripts/send-fsm-state.sh /usr/local/bin
+ADD https://duckietown-public-storage.s3.amazonaws.com/assets/opencv-cuda/opencv-4.5.0-cuda-10.2.tar.gz /tmp
+RUN tar -xzvf /tmp/opencv-4.5.0-cuda-10.2.tar.gz -C /usr/local
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple/"
@@ -98,5 +108,3 @@ ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
 # used for downloads
 ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
-
-COPY scripts/send-fsm-state.sh /usr/local/bin
