@@ -14,3 +14,13 @@ ffmpeg
 
 # needed by cmake when installed via pip
 file
+
+# OpenCV Dependencies
+pkg-config
+libcanberra-gtk*
+libtbb2
+gstreamer1.0-tools
+v4l-utils
+gfortran
+protobuf-compiler
+libgoogle-glog-dev

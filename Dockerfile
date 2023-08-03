@@ -50,13 +50,16 @@ ENV DT_MODULE_TYPE="${REPO_NAME}" \
     DT_LAUNCH_PATH="${LAUNCH_PATH}" \
     DT_LAUNCHER="${LAUNCHER}"
 
+# configure environment for CUDA
+ENV CUDA_VERSION 10.2
+ENV CUDNN_VERSION 8.0
+ENV NVIDIA_REQUIRE_CUDA "cuda>=$CUDA_VERSION brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441"
+
 # install apt dependencies
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
 RUN dt-apt-install ${REPO_PATH}/dependencies-apt.txt
 
-# install opencv
-COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
-RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
+
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple/"
@@ -64,12 +67,18 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 COPY ./dependencies-py3.* "${REPO_PATH}/"
 RUN dt-pip3-install "${REPO_PATH}/dependencies-py3.*"
 
+# install opencv
+RUN pip uninstall -y opencv-python opencv-contrib-python
+RUN wget -P /tmp https://duckietown-public-storage.s3.amazonaws.com/assets/opencv-cuda/opencv-4.5.0-cuda-10.2.tar.gz && \
+    tar -xzvf /tmp/opencv-4.5.0-cuda-10.2.tar.gz -C /usr/local && \
+    rm /tmp/opencv-4.5.0-cuda-10.2.tar.gz
+    
 # copy the source code
 COPY ./packages "${REPO_PATH}/packages"
 
 # build packages
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-  catkin build \
+    catkin build \
     --workspace ${CATKIN_WS_DIR}/
 
 # install launcher scripts
@@ -99,4 +108,4 @@ ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
 ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
 
-COPY scripts/send-fsm-state.sh /usr/local/bin
+COPY assets/bin/send-fsm-state.sh /usr/local/bin
