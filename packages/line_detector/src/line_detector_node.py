@@ -52,8 +52,7 @@ class LineDetectorNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LineDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
-                                               fsm_controlled=True)
+        super(LineDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
@@ -115,6 +114,14 @@ class LineDetectorNode(DTROS):
             "~thresholds", AntiInstagramThresholds, self.thresholds_cb, queue_size=1
         )
 
+        # Check if CUDA is available
+        if cv2.cuda.getCudaEnabledDeviceCount() > 0:
+            self.loginfo("Using CUDA GPU for line detection.")
+            self.cuda_enabled = True
+        else:
+            self.loginfo("Using the CPU for line detection.")
+            self.cuda_enabled = False
+
     def on_colors_range_change(self):
         self.color_ranges = {
             color: ColorRange.fromDict(d)
@@ -148,30 +155,40 @@ class LineDetectorNode(DTROS):
 
         # Decode from compressed image with OpenCV
         try:
-            image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
+            obtained_image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
         except ValueError as e:
             self.logerr(f"Could not decode image: {e}")
             return
-
+        
         # Perform color correction
         if self.ai_thresholds_received:
-            image = self.ai.apply_color_balance(
-                self.anti_instagram_thresholds["lower"], self.anti_instagram_thresholds["higher"], image
+            obtained_image = self.ai.apply_color_balance(
+                self.anti_instagram_thresholds["lower"], self.anti_instagram_thresholds["higher"], obtained_image
             )
 
-        # Resize the image to the desired dimensions
-        height_original, width_original = image.shape[0:2]
+        if self.cuda_enabled:
+            gpu_image = cv2.cuda_GpuMat()
+            gpu_image.upload(obtained_image)
+        else:
+            gpu_image = obtained_image
+
+        # Resize the gpu_image to the desired dimensions
+        height_original, width_original = gpu_image.shape[0:2]
         img_size = (self._img_size[1], self._img_size[0])
         if img_size[0] != width_original or img_size[1] != height_original:
-            image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
-        image = image[self._top_cutoff :, :, :]
+            if self.cuda_enabled:
+                gpu_image = cv2.cuda.resize(gpu_image, img_size, interpolation=cv2.INTER_NEAREST)
+            else:
+                gpu_image = cv2.resize(gpu_image, img_size, interpolation=cv2.INTER_NEAREST)
 
-        # mirror the image if left-hand traffic mode is set
+        gpu_image = gpu_image[self._top_cutoff :, :, :]
+
+        # mirror the gpu_image if left-hand traffic mode is set
         if self._traffic_mode.value == "LHT":
-            image = np.fliplr(image)
+            gpu_image = np.fliplr(gpu_image)
 
         # Extract the line segments for every color
-        self.detector.setImage(image)
+        self.detector.setImage(gpu_image)
         detections = {
             color: self.detector.detectLines(ranges) for color, ranges in list(self.color_ranges.items())
         }
@@ -207,6 +224,13 @@ class LineDetectorNode(DTROS):
 
         # Publish the message
         self.pub_lines.publish(segment_list)
+        
+        if self.cuda_enabled:
+            # Download the image from gpu memory
+            image = gpu_image.download()
+        else:
+            # Just rename appropriately the image variable
+            image = gpu_image
 
         # If there are any subscribers to the debug topics, generate a debug image and publish it
         if self.pub_d_segments.get_num_connections() > 0:
@@ -317,10 +341,18 @@ class LineDetectorNode(DTROS):
             self.colormaps[channels] = np.stack(
                 [channel_to_map["H"], channel_to_map["S"], channel_to_map["V"]], axis=-1
             ).astype(np.uint8)
-            self.colormaps[channels] = cv2.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
+
+            if self.cuda_enabled:
+                self.colormaps[channels] = cv2.cuda.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
+            else:
+                self.colormaps[channels] = cv2.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
 
         # resulting histogram image as a blend of the two images
-        im = cv2.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
+        if self.cuda_enabled:
+            im = cv2.cuda.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
+        else:
+            im = cv2.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
+            
         im = cv2.addWeighted(im, 0.5, self.colormaps[channels], 1 - 0.5, 0.0)
 
         # now plot the color ranges on top
@@ -328,7 +360,11 @@ class LineDetectorNode(DTROS):
             # convert HSV color to BGR
             c = color_range.representative
             c = np.uint8([[[c[0], c[1], c[2]]]])
-            color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
+            if self.cuda_enabled:
+                color = cv2.cuda.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
+            else:
+                color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
+
             for i in range(len(color_range.low)):
                 cv2.rectangle(
                     im,
