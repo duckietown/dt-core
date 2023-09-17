@@ -7,8 +7,7 @@
 !dependencies-apt.txt
 !dependencies-py3.*
 !launchers
-!scripts
-!fake-opencv-info
+!tests
 
 # YOUR FILES LISTED BELOW THIS LINE (IMPORTANT: PREPEND !)
 # ----------------------------------------------------------------------------
