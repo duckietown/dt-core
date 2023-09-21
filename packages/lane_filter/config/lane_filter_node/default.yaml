@@ -2,7 +2,7 @@
 
 #propagation
 use_propagation: True
-debug : False
+debug : Truec
 lane_filter_histogram_configuration:
   mean_d_0: 0
   mean_phi_0: 0
