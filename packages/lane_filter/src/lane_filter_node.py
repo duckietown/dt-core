@@ -60,7 +60,7 @@ class LaneFilterNode(DTROS):
 
         # Load the needed filter parameters defined elsewhere need here
         try:
-            self.filter.encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution")
+            self.filter.encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution", 135)
             self.filter.wheel_baseline = rospy.get_param("kinematics_node/baseline")
             self.filter.wheel_radius = rospy.get_param("kinematics_node/radius")
         except rospy.KeyError as e:
