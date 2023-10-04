@@ -38,7 +38,6 @@ events: # Maps from subscribing topic to signal ids
 
 # Define nodes
 nodes:
-  decoder_node: "decoder_node/switch"
   anti_instagram: "anti_instagram_node/switch"
   apriltag_detector_node: "apriltag_detector_node/switch"
   apriltag_postprocessing_node: "apriltag_postprocessing_node/switch"
@@ -47,7 +46,7 @@ nodes:
   line_detector_node: "line_detector_node/switch"
   lane_filter_node: "lane_filter_node/switch"
   stop_line_filter_node: "stop_line_filter_node/switch"
-  coordinator_node: "coordinator_node/switch" #NOTE explicit coordination
+  coordinator_node: "coordinator_node/switch"
   unicorn_intersection_node: "unicorn_intersection_node/switch" #NOTE a.k.a. semi closed loop intersection navigation
   lane_controller_node: "lane_controller_node/switch"
   random_april_tag_turns_node: "random_april_tag_turns_node/switch"
@@ -68,7 +67,6 @@ states:
       - stop_line_filter_node
       - ground_projection_node
       - anti_instagram
-      - decoder_node
     lights: "GREEN"
 
   LANE_FOLLOWING:
@@ -76,7 +74,6 @@ states:
       at_stop_line: "DETECT_INTERSECTION_TYPE"
     active_nodes:
       - anti_instagram
-      - decoder_node
       - line_detector_node
       - ground_projection_node
       - lane_filter_node
@@ -90,7 +87,6 @@ states:
       traffic_light_detected: "TRAFFIC_LIGHT_INTERSECTION"
     active_nodes:
       - anti_instagram
-      - decoder_node
       - apriltag_detector_node
       - apriltag_postprocessing_node
       - intersection_type_detector_node
@@ -101,7 +97,6 @@ states:
       stop_sign_intersection_go: "INTERSECTION_CONTROL"
     active_nodes:
       - anti_instagram
-      - decoder_node
       - apriltag_detector_node
       - apriltag_postprocessing_node
       - random_april_tag_turns_node
@@ -114,7 +109,6 @@ states:
       - apriltag_detector_node
       - lane_filter_node
       - lane_controller_node
-      - decoder_node
       - led_detector_node
       - coordinator_node
     lights: "WHITE"
@@ -123,7 +117,6 @@ states:
     transitions:
       intersection_done: "LANE_FOLLOWING"
     active_nodes:
-      - decoder_node
       - line_detector_node
       - lane_filter_node
       - lane_controller_node
