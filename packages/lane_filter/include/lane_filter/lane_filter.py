@@ -1,4 +1,5 @@
 from math import floor, sqrt
+from math import floor, sqrt
 
 import numpy as np
 import duckietown_code_utils as dtu
