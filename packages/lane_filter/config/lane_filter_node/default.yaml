@@ -2,8 +2,12 @@
 
 #propagation
 use_propagation: True
+<<<<<<< HEAD
 predict_frequency: 30.0 # in Hz
 debug : True
+=======
+debug: False
+>>>>>>> origin
 lane_filter_histogram_configuration:
   mean_d_0: 0
   mean_phi_0: 0
