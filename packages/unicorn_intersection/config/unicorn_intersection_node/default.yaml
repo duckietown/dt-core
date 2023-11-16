@@ -1,6 +1,7 @@
 use_stop_pose: True
 num_waypoints: 5
 visualization: True
+speed: 0.3
 
 canonical_goal_pose_right: {
   x: 0.2,

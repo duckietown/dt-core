@@ -260,7 +260,7 @@ class UnicornIntersectionNode(DTROS):
         car_control_msg.header.seq = 0
 
         # Add commands to car message
-        car_control_msg.v = 0.2
+        car_control_msg.v = self.speed
         car_control_msg.omega = self.compute_omega(self.reference_trajectory[self.iter_],self.x,self.y,self.yaw,dt)
         print("target_state_ ", self.reference_trajectory[self.iter_])
         self.car_cmd.publish(car_control_msg)
@@ -302,7 +302,7 @@ class UnicornIntersectionNode(DTROS):
         self.canonical_goal_pose_right = self.setupParam("~canonical_goal_pose_right", default_pose)
         self.canonical_goal_pose_left = self.setupParam("~canonical_goal_pose_left", default_pose)
         self.canonical_goal_pose_straight = self.setupParam("~canonical_goal_pose_straight", default_pose)
-
+        self.speed = self.setupParam("~speed", 0.30)
 
     def updateParams(self, event):
         pass

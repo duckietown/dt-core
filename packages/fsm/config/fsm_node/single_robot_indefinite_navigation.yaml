@@ -51,6 +51,9 @@ nodes:
   lane_controller_node: "lane_controller_node/switch"
   random_april_tag_turns_node: "random_april_tag_turns_node/switch"
   intersection_type_detector_node: "intersection_type_detector_node/switch"
+  decoder_node: "decoder_node/switch"
+  rectifier_node: "rectifier_node/switch"
+
 
 # Define state transitions
 
@@ -67,6 +70,8 @@ states:
       - stop_line_filter_node
       - ground_projection_node
       - anti_instagram
+      - apriltag_detector_node
+      - apriltag_postprocessing_node
     lights: "GREEN"
 
   LANE_FOLLOWING:
@@ -79,6 +84,7 @@ states:
       - lane_filter_node
       - lane_controller_node
       - stop_line_filter_node
+      - unicorn_intersection_node
     lights: "RED"
 
   DETECT_INTERSECTION_TYPE:
@@ -90,6 +96,7 @@ states:
       - apriltag_detector_node
       - apriltag_postprocessing_node
       - intersection_type_detector_node
+      - unicorn_intersection_node
     lights: "YELLOW"
 
   STOP_SIGN_INTERSECTION:
@@ -100,6 +107,7 @@ states:
       - apriltag_detector_node
       - apriltag_postprocessing_node
       - random_april_tag_turns_node
+      - unicorn_intersection_node
     lights: "WHITE"
 
   TRAFFIC_LIGHT_INTERSECTION:
