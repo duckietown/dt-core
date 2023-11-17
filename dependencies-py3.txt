@@ -7,10 +7,4 @@ comptests-z6
 
 procgraph-z6
 ros_node_utils>=2.0.0
-duckietown-utils-ente
 compmake-z6>=6.0.9
-
-lib-dt-computer-vision>=0.0.7
-lib-dt-state-estimation>=0.0.6
-lib-dt-modeling>=0.0.5
-lib-dt-motion-planning>=0.0.1
