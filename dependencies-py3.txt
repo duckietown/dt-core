@@ -8,3 +8,7 @@ comptests-z6==6.0.4
 procgraph-z6==6.1.9
 ros-node-utils==2.0.0
 compmake-z6==6.1.5
+
+# duckiedrone state estimator
+filterpy
+simple_pid

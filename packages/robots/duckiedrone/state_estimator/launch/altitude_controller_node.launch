@@ -1,0 +1,13 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex megaman"/>
+    <arg name="robot_type" default="duckiedrone"
+         doc="The type of the robot: should be duckiebot,
+		watchtower, duckiedrone or traffic_light"/>
+    <arg name="pkg_name" value="state_estimator"/>
+    <group ns="$(arg veh)">
+
+        <node pkg="$(arg pkg_name)" type="altitude_controller_node.py"
+              name="altitude_controller_node" output="screen"></node>
+
+    </group>
+</launch>
