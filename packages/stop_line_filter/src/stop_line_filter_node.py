@@ -55,8 +55,6 @@ class StopLineFilterNode(DTROS):
         ## state vars
         self.lane_pose = LanePose()
 
-        self.state = "JOYSTICK_CONTROL"
-        self.sleep = False
 
         ## publishers and subscribers
         self.sub_segs = rospy.Subscriber("~segment_list", SegmentList, self.cb_segments)
@@ -69,8 +67,6 @@ class StopLineFilterNode(DTROS):
 
     def cb_segments(self, segment_list_msg):
 
-        if not self.switch or self.sleep:
-            return
 
         good_seg_count = 0
         stop_line_x_accumulator = 0.0

@@ -121,6 +121,7 @@ states:
       - coordinator_node
     lights: "WHITE"
 
+
   INTERSECTION_CONTROL:
     transitions:
       intersection_done: "LANE_FOLLOWING"

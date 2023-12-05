@@ -95,9 +95,6 @@ class RandomAprilTagTurnsNode(DTROS):
                     intersection_go_msg.data = True
                     self.pub_intersection_go.publish(intersection_go_msg)
 
-                    rospy.loginfo("possible turns %s." %(availableTurns))
-                    rospy.loginfo("Turn type now: %i" %(self.turn_type))
-
     def setupParameter(self, param_name, default_value):
         value = rospy.get_param(param_name, default_value)
         rospy.set_param(param_name, value)  # Write to parameter server for transparancy

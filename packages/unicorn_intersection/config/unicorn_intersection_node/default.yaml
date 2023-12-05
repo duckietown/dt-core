@@ -16,8 +16,8 @@ canonical_goal_pose_left: {
 }
 
 canonical_goal_pose_straight: {
-  x: 0.0,
-  y: 0.6,
+  x: 0.6,
+  y: 0.0,
   theta: 0.0,
 }
 
