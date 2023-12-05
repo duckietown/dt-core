@@ -51,7 +51,11 @@ class LaneControllerNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(LaneControllerNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(LaneControllerNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
+        )
 
         # Add the node parameters to the parameters dictionary
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
@@ -133,9 +137,12 @@ class LaneControllerNode(DTROS):
         Args:
             msg(:obj:`StopLineReading`): Message containing information about the virtual obstacle stopline.
         """
-        self.obstacle_stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2)
+        self.obstacle_stop_line_distance = np.sqrt(msg.stop_pose.x**2 + msg.stop_pose.y**2)
         self.obstacle_stop_line_detected = msg.stop_line_detected
         self.at_stop_line = msg.at_stop_line
+        if not self.obstacle_stop_line_detected:
+            self.obstacle_stop_line_distance = None
+
 
     def cbStopLineReading(self, msg):
         """Callback storing current distance to the next stopline, if one is detected.
@@ -143,9 +150,12 @@ class LaneControllerNode(DTROS):
         Args:
             msg (:obj:`StopLineReading`): Message containing information about the next stop line.
         """
-        self.stop_line_distance = np.sqrt(msg.stop_line_point.x**2 + msg.stop_line_point.y**2)
+        self.stop_line_distance = -msg.stop_pose.x
         self.stop_line_detected = msg.stop_line_detected
         self.at_obstacle_stop_line = msg.at_stop_line
+        if not self.stop_line_detected:
+            self.stop_line_distance = None
+
 
     def cbMode(self, fsm_state_msg):
 

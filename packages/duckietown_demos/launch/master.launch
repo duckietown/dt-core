@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-	<!-- start args TODO: most things here should come from node's config files!-->
-	<arg name="veh" default="$(env VEHICLE_NAME)"
+    <!-- start args TODO: most things here should come from node's config files!-->
+        <arg name="veh" default="$(env VEHICLE_NAME)"
          doc="The name of the robot (e.g., autobot01, watchtower02, ...)"/>
-    <arg name="robot_type" default="$(env ROBOT_TYPE)"
+        <arg name="robot_type" default="$(env ROBOT_TYPE)"
          doc="The type of the robot (e.g., duckiebot, watchtower, traffic_light, ...)"/>
-    <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
+        <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
          doc="The configuration of the robot (e.g., DB19, DB20, WT18, ...)"/>
-    <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+        <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -18,7 +18,7 @@
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
-	<!-- end args -->
+    <!-- end args -->
 
     <!-- general convention on remappings is that we remap the "subscribers" -->
 
@@ -27,6 +27,8 @@
     <arg name="/camera/rect" default="false"/>
 
     <arg name="anti_instagram" default="false"/>
+    <arg name="communication" default="false"/>
+
 
     <arg name="visualization" default="false" />
 
@@ -70,6 +72,8 @@
     <arg name="apriltags_random" default="false"/>
 
     <arg name="unicorn_intersection" default="false"/>
+
+    <arg name="intersection_type_detector" default="false"/>
 
     <arg name="statistics" default="false"/>
     <arg name="enable_statistics" default="$(arg statistics)"/>
@@ -207,7 +211,7 @@
         </group>
 
     </group>
-    <!-- End Lane Control -->
+    <!-- End Lane Control -->    
 
     <!-- Start Vehicle Avoidance -->
     <group if="$(arg vehicle_avoidance)">
@@ -261,7 +265,6 @@
         <remap from="apriltag_postprocessing_node/detections" to="apriltag_detector_node/detections" />
         <include file="$(find apriltag)/launch/apriltag_postprocessing_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-            <arg name="config" value="$(arg config)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
     </group>
@@ -331,7 +334,19 @@
 
     <!-- End LEDs Detection -->
 
-
+   
+    <!-- Start Communication (New intersection coorditation) -->
+    <group if="$(arg communication)">
+        <remap from="communication_node/image_in" to="camera_node/image/compressed"/>
+        <remap from="communication_node/intersection_type_in" to="apriltag_postprocessing_node/apriltags_out"/>
+        <remap from="communication_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+        <include file="$(find communication)/launch/communication_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>
+        </include>
+    </group>
+    <!-- End Communication -->
+    
 
     <!-- Start Coordination -->
     <group if="$(arg coordination)">
@@ -358,26 +373,28 @@
     <!-- Start Unicorn intersection -->
     <group if="$(arg unicorn_intersection)">
         <remap from="unicorn_intersection_node/fsm_state" to="fsm_node/mode"/>
-        <remap from="unicorn_intersection_node/turn_type" to="intersection_navigation_node/turn_type"/>
         <remap from="unicorn_intersection_node/intersection_go" to="coordinator_node/intersection_go"/>
         <remap from="unicorn_intersection_node/intersection_done" to="intersection_navigation_node/intersection_done"/>
-        <remap from="unicorn_intersection_node/lane_filter_params" to="lane_filter_node/change_params"/>
-        <remap from="unicorn_intersection_node/lane_controller/omega_ff" to="lane_controller_node/omega_ff"/>
-        <remap from="unicorn_intersection_node/lane_controller/omega_min" to="lane_controller_node/omega_min"/>
-        <remap from="unicorn_intersection_node/lane_controller/omega_max" to="lane_controller_node/omega_max"/>
-        <remap from="unicorn_intersection_node/lane_pose_in" to="lane_filter_node/lane_pose"/>
-        <remap from="unicorn_intersection_node/lane_pose_out" to="lane_controller_node/intersection_navigation_pose"/>
-        <remap from="unicorn_intersection_node/intersection_done_detailed" to="intersection_navigation_node/intersection_done_detailed"/>
-
-        <remap if="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="maintenance_control_node/turn_id_and_type_out"/>
-        <remap unless="$(arg maintenance_control)" from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
-
+        <remap from="unicorn_intersection_node/turn_id_and_type" to="random_april_tag_turns_node/turn_id_and_type"/>
+        <remap from="unicorn_intersection_node/stop_line_reading" to="stop_line_filter_node/stop_line_reading"/>
+        <remap from="unicorn_intersection_node/left_wheel_encoder_node/tick" to="left_wheel_encoder_node/tick"/>
+        <remap from="unicorn_intersection_node/right_wheel_encoder_node/tick" to="right_wheel_encoder_node/tick"/>
         <include file="$(find unicorn_intersection)/launch/unicorn_intersection_node.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
         </include>
     </group>
     <!-- End Unicorn intersection -->
+
+    <!-- Start intersection type detection -->
+    <group if="$(arg intersection_type_detector)">
+        <remap from="intersection_type_detector_node/tag" to="apriltag_postprocessing_node/apriltags_out"/>
+        <include file="$(find navigation)/launch/intersection_type_detector_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="param_file_name" value="$(arg param_file_name)"/>
+        </include>
+    </group>
+    <!-- End intersection type detection -->
 
 
     <!-- Start Random Apriltag -->
