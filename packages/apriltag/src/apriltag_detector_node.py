@@ -22,7 +22,9 @@ from geometry_msgs.msg import Transform, Vector3, Quaternion
 class AprilTagDetector(DTROS):
     def __init__(self):
         super(AprilTagDetector, self).__init__(
-            node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION
+            node_name="apriltag_detector_node",
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
         )
         # get static parameters
         self.family = rospy.get_param("~family", "tag36h11")
@@ -106,7 +108,8 @@ class AprilTagDetector(DTROS):
                 self.camera_model.K, self.camera_model.D, None, rect_K, (W, H), cv2.CV_32FC1
             )
         # once we got the camera info, we can stop the subscriber
-        self.loginfo("Camera info message received. Unsubscribing from camera_info topic.")
+        # LP: commenting this out for now since it doesn't work properly and is flooding the terminal
+        # self.loginfo("Camera info message received. Unsubscribing from camera_info topic.")
         # noinspection PyBroadException
         try:
             self._cinfo_sub.shutdown()

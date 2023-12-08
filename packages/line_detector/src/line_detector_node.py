@@ -51,7 +51,11 @@ class LineDetectorNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LineDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(LineDetectorNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=True
+        )
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
