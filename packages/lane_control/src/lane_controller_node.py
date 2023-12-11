@@ -82,8 +82,6 @@ class LaneControllerNode(DTROS):
         self.params["~verbose"] = rospy.get_param("~verbose", None)
         self.params["~stop_line_slowdown"] = rospy.get_param("~stop_line_slowdown", None)
 
-        self._traffic_mode = DTParam(f"/{self._veh}/behavior/traffic_mode", None)
-
         # Need to create controller object before updating parameters, otherwise it will fail
         self.controller = LaneController(self.params)
         # self.updateParameters() # TODO: This needs be replaced by the new DTROS callback when it is implemented
@@ -251,10 +249,6 @@ class LaneControllerNode(DTROS):
 
             # For feedforward action (i.e. during intersection navigation)
             omega += self.params["~omega_ff"]
-
-        # mirror the control if left-hand traffic mode is set
-        if self._traffic_mode.value == "LHT":
-            omega *= -1.0
 
         # Initialize car control msg, add header from input message
         car_control_msg = Twist2DStamped()
