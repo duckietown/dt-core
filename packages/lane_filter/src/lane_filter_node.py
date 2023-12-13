@@ -5,10 +5,7 @@
 import numpy as np
 import rospy
 from cv_bridge import CvBridge
-from dt_state_estimation.lane_filter import (
-    LaneFilterHistogram,
-    # ILaneFilter,
-)
+
 from dt_state_estimation.lane_filter.types import (
     Segment,
     SegmentPoint,
@@ -18,6 +15,8 @@ from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import LanePose, SegmentList, WheelEncoderStamped, EpisodeStart
 from duckietown_msgs.msg import Segment as SegmentMsg
 from sensor_msgs.msg import Image
+
+from lane_filter import LaneFilterHistogram
 
 
 class LaneFilterNode(DTROS):
