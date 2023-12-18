@@ -13,7 +13,7 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait car_interface default.launch \
+dt-exec roslaunch --wait drone_interface default.launch \
     veh:="${VEHICLE_NAME}"
 
 

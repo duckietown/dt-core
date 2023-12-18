@@ -1,0 +1,17 @@
+<launch>
+    <arg name="veh"/>
+    <arg name="pkg_name" value="pid_controller"/>
+    <arg name="node_name" default="pid_controller_node"/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:default." />
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/mode" to="flight_controller_node/mode/current" />
+        <remap from="$(arg node_name)/commands" to="fly_commands_mux_node/commands/autonomous" />
+        <remap from="$(arg node_name)/state" to="state_estimator_node/state" />
+
+        <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <rosparam command="load" file="$(find pid_controller)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+        </node>
+    </group>
+</launch>
+

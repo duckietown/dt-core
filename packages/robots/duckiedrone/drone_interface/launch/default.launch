@@ -1,0 +1,11 @@
+<launch>
+    <arg name="veh" doc="Specify a vehicle name"/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+
+    <!-- Fly Commands Mux: a multiplexer that combines manual and autonomous control signals according to a dynamic mask -->
+    <include file="$(find fly_commands_mux)/launch/fly_commands_mux_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="param_file_name" value="$(arg param_file_name)"/>
+    </include>
+
+</launch>

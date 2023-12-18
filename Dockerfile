@@ -70,6 +70,10 @@ ENV DT_PROJECT_NAME="${PROJECT_NAME}" \
 COPY ./dependencies-apt.txt "${PROJECT_PATH}/"
 RUN dt-apt-install ${PROJECT_PATH}/dependencies-apt.txt
 
+# install opencv
+COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
+RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
+
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
