@@ -5,16 +5,18 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import yaml
-
 import rospy
 from cv_bridge import CvBridge
-from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import Segment, SegmentList
 from geometry_msgs.msg import Point as PointMsg
 from image_processing.ground_projection_geometry import GroundProjectionGeometry, Point
 from image_processing.rectification import Rectify
 from sensor_msgs.msg import CameraInfo, CompressedImage
+
+from dt_computer_vision.camera import CameraModel
+from dt_computer_vision.camera.homography import HomographyToolkit, ResolutionIndependentHomography, \
+    ResolutionDependentHomography
+from duckietown.dtros import DTROS, NodeType, TopicType
 
 
 class GroundProjectionNode(DTROS):
@@ -52,14 +54,17 @@ class GroundProjectionNode(DTROS):
                                                    fsm_controlled=True)
 
         self.bridge = CvBridge()
-        self.ground_projector = None
-        self.rectifier = None
-        self.homography = self.load_extrinsics()
+        self.ground_projector: Optional[GroundProjectionGeometry] = None
+        self.rectifier: Optional[Rectify] = None
+        self.camera: Optional[CameraModel] = None
+        self.homography: Optional[np.ndarray] = None
         self.first_processing_done = False
         self.camera_info_received = False
 
         # subscribers
-        self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
+        self.sub_camera_info = rospy.Subscriber(
+            "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
+        )
         self.sub_lineseglist_ = rospy.Subscriber(
             "~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1
         )
@@ -97,9 +102,19 @@ class GroundProjectionNode(DTROS):
 
         """
         if not self.camera_info_received:
+            self.log("Received camera info message")
+            # create camera object
+            self.camera = CameraModel(
+                width=msg.width,
+                height=msg.height,
+                K=np.reshape(msg.K, (3, 3)),
+                D=msg.D,
+                P=np.reshape(msg.P, (3, 4)),
+            )
+            self.homography = self.load_extrinsics(self.camera)
             self.rectifier = Rectify(msg)
             self.ground_projector = GroundProjectionGeometry(
-                im_width=msg.width, im_height=msg.height, homography=np.array(self.homography).reshape((3, 3))
+                im_width=msg.width, im_height=msg.height, homography=self.homography
             )
         self.camera_info_received = True
 
@@ -187,7 +202,7 @@ class GroundProjectionNode(DTROS):
     #     rospy.loginfo("wrote homography")
     #     return EstimateHomographyResponse()
 
-    def load_extrinsics(self):
+    def load_extrinsics(self, camera: CameraModel) -> np.ndarray:
         """
         Loads the homography matrix from the extrinsic calibration file.
 
@@ -213,14 +228,13 @@ class GroundProjectionNode(DTROS):
             rospy.signal_shutdown(msg)
 
         try:
-            with open(cali_file, "r") as stream:
-                calib_data = yaml.load(stream, Loader=yaml.Loader)
-        except yaml.YAMLError:
-            msg = f"Error in parsing calibration file {cali_file} ... aborting"
+            Hindep: ResolutionIndependentHomography = HomographyToolkit.load_from_disk(cali_file)
+            H: ResolutionDependentHomography = Hindep.camera_specific(camera)
+            return H.reshape((3, 3))
+        except Exception as e:
+            msg = f"Error in parsing calibration file {cali_file}:\n{e}"
             self.logerr(msg)
             rospy.signal_shutdown(msg)
-
-        return calib_data["homography"]
 
     def debug_image(self, seg_list):
         """
