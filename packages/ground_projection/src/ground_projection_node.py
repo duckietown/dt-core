@@ -13,9 +13,12 @@ from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import Segment, SegmentList
 from geometry_msgs.msg import Point as PointMsg
 from image_processing.ground_projection_geometry import GroundProjectionGeometry, Point
-from image_processing.rectification import Rectify
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
+from dt_computer_vision.camera import CameraModel, Pixel
+from dt_computer_vision.camera.homography import ResolutionIndependentHomography, \
+    ResolutionDependentHomography
+from dt_computer_vision.ground_projection import GroundProjector
 
 class GroundProjectionNode(DTROS):
     """
@@ -43,8 +46,7 @@ class GroundProjectionNode(DTROS):
     """
 
     bridge: CvBridge
-    ground_projector: Optional[GroundProjectionGeometry]
-    rectifier: Optional[Rectify]
+    ground_projector: Optional[GroundProjector]
 
     def __init__(self, node_name: str):
         # Initialize the DTROS parent class
@@ -52,8 +54,6 @@ class GroundProjectionNode(DTROS):
 
         self.bridge = CvBridge()
         self.ground_projector = None
-        self.rectifier = None
-        self.homography = self.load_extrinsics()
         self.first_processing_done = False
         self.camera_info_received = False
 
@@ -96,10 +96,24 @@ class GroundProjectionNode(DTROS):
 
         """
         if not self.camera_info_received:
-            self.rectifier = Rectify(msg)
-            self.ground_projector = GroundProjectionGeometry(
-                im_width=msg.width, im_height=msg.height, homography=np.array(self.homography).reshape((3, 3))
+            self.log("Received camera info message")
+            # create camera object
+            self.camera = CameraModel(
+                width=msg.width,
+                height=msg.height,
+                K=np.reshape(msg.K, (3, 3)),
+                D=msg.D,
+                P=np.reshape(msg.P, (3, 4)),
             )
+
+            self.homography = self.load_extrinsics(self.camera)
+            self.camera.H = self.homography
+            self.ground_projector = GroundProjector(self.camera,)
+
+            self.legacy_ground_projector = GroundProjectionGeometry(
+                im_width=self.camera.width, im_height=self.camera.height, homography=np.array(self.homography).reshape((3, 3))
+            )
+
         self.camera_info_received = True
 
     def pixel_msg_to_ground_msg(self, point_msg) -> PointMsg:
@@ -119,18 +133,20 @@ class GroundProjectionNode(DTROS):
         """
         # normalized coordinates to pixel:
         norm_pt = Point.from_message(point_msg)
-        pixel = self.ground_projector.vector2pixel(norm_pt)
+        point_in_image_coords = self.legacy_ground_projector.vector2pixel(norm_pt) #``[0,1] X [0,1]`` to ``[0, W] X [0, H]``
+        pixel = Pixel(point_in_image_coords.x, point_in_image_coords.y)
         # rectify
-        rect = self.rectifier.rectify_point(pixel)
-        # convert to Point
-        rect_pt = Point.from_message(rect)
+        rectified_pixel = self.camera.rectifier.rectify_pixel(pixel)
+        # normalize [0,W] X [0,H] to [0, 1] X [0, 1]
+        normalized_rectified_pixel = self.camera.pixel2vector(rectified_pixel)
         # project on ground
-        ground_pt = self.ground_projector.pixel2ground(rect_pt)
-        # point to message
+        ground_pt = self.ground_projector.vector2ground(normalized_rectified_pixel)
+        
+        # create a Point ROS message
         ground_pt_msg = PointMsg()
         ground_pt_msg.x = ground_pt.x
         ground_pt_msg.y = ground_pt.y
-        ground_pt_msg.z = ground_pt.z
+        ground_pt_msg.z = 0
 
         return ground_pt_msg
 
@@ -186,7 +202,7 @@ class GroundProjectionNode(DTROS):
     #     rospy.loginfo("wrote homography")
     #     return EstimateHomographyResponse()
 
-    def load_extrinsics(self):
+    def load_extrinsics(self, camera: CameraModel) -> np.ndarray:
         """
         Loads the homography matrix from the extrinsic calibration file.
 
@@ -200,9 +216,9 @@ class GroundProjectionNode(DTROS):
 
         # Locate calibration yaml file or use the default otherwise
         if not os.path.isfile(cali_file):
-            self.log(
-                f"Can't find calibration file: {cali_file}.\n Using default calibration instead.", "warn"
-            )
+            self.logwarn(
+                f"Can't find calibration file: {cali_file}.\n Using default calibration instead."
+                )
             cali_file = os.path.join(cali_file_folder, "default.yaml")
 
         # Shutdown if no calibration file not found
@@ -219,7 +235,19 @@ class GroundProjectionNode(DTROS):
             self.logerr(msg)
             rospy.signal_shutdown(msg)
 
-        return calib_data["homography"]
+        try:
+            Hindep: ResolutionIndependentHomography = ResolutionIndependentHomography.read(
+            np.array(calib_data["homography"]).reshape((3, 3)))
+            self.logdebug(f"Loaded homography independent matrix {Hindep}")
+            
+            H: ResolutionDependentHomography = Hindep.camera_specific(camera)
+            self.logdebug(f"Loaded homography dependent matrix {H}")
+            
+            return H.reshape((3, 3))
+        except Exception as e:
+            msg = f"Error in parsing calibration file {cali_file}:\n{e}"
+            self.logerr(msg)
+            rospy.signal_shutdown(msg)
 
     def debug_image(self, seg_list):
         """
