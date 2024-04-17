@@ -134,7 +134,7 @@ class LaneFilterHistogram(LaneFilterInterface):
         d_right = R * alpha * right_encoder_ticks
         d_A = (d_left + d_right) / 2
         w = (d_right - d_left) / self.wheel_baseline 
-        v = d_A * np.sin(w + self.phi) #MAYBE THERE IS A BETTER WAY OF COMBINING 'w' and 'phi'
+        v = d_A * np.sin(w + self.phi)
 
         # Propagate each centroid forward using the kinematic function
         d_t = self.d + v 
