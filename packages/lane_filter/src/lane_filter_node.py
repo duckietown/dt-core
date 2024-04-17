@@ -192,7 +192,7 @@ class LaneFilterNode(DTROS):
                 self.latencyArray.pop(0)
 
             # print "Latency of segment list: ", segment_latency
-            self.loginfo(f"Mean latency of Estimation:................. {np.mean(self.latencyArray)}")
+            # self.loginfo(f"Mean latency of Estimation:................. {np.mean(self.latencyArray)}")
 
             # Get the segments that agree with the best estimate and publish them
             inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
