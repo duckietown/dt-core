@@ -278,21 +278,21 @@ class LaneFilterHistogram(LaneFilterInterface):
         d_i = (d1 + d2) / 2
         phi_i = np.arcsin(t_hat[1])
         if segment.color == segment.WHITE:  # right lane is white
-            if p1[0] > p2[0]:  # right edge of white lane ACTUALLY IT'S WHITE LANE BEING ON THE LEFT OOF THE ROBOT
-                d_i -= self.linewidth_white #HERE AN IRRATIONAL CHANGE WAS MADE
+            if p1[0] > p2[0]:  # right edge of white lane
+                d_i -= self.linewidth_white
             else:  # left edge of white lane
-                d_i -= self.linewidth_white # *np.random.choice([0, 1])
+                d_i -= self.linewidth_white
                 d_i = self.lanewidth * 2 + self.linewidth_yellow - d_i
                 phi_i = -phi_i
             d_i -= self.lanewidth / 2
 
         elif segment.color == segment.YELLOW:  # left lane is yellow
             if p2[0] > p1[0]:  # left edge of yellow lane
-                d_i -= self.linewidth_yellow #*np.random.choice([0, 1]) SAME IRRATIONAL CHANGE
+                d_i -= self.linewidth_yellow
                 d_i = self.lanewidth/2 - d_i
                 phi_i = -phi_i
             else:  # right edge of yellow lane
-                d_i += self.linewidth_yellow*np.random.choice([0, 1])
+                d_i += self.linewidth_yellow
                 d_i -= self.lanewidth/2
 
         # weight = distance
