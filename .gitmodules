@@ -1,3 +1,0 @@
-[submodule "libraries/lib-dt-computer-vision"]
-	path = libraries/lib-dt-computer-vision
-	url = git@github.com:duckietown/lib-dt-computer-vision
