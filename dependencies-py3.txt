@@ -9,7 +9,7 @@ ros-node-utils==2.0.0
 compmake-z6==6.1.5
 
 # duckiedrone state estimator
-filterpy
+filterpy==1.4.5
 
 
 # -- Duckietown --
