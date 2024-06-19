@@ -158,10 +158,6 @@ class LaneFilterNode(DTROS):
 
     def cbPredict(self, event):
 
-        # first let's check if we moved at all, if not abort
-        if self.right_encoder_ticks_delta == 0 and self.left_encoder_ticks_delta == 0:
-            return
-
         self.filter.predict(self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
         self.left_encoder_ticks += self.left_encoder_ticks_delta
         self.right_encoder_ticks += self.right_encoder_ticks_delta
@@ -177,6 +173,7 @@ class LaneFilterNode(DTROS):
             segment_list_msg (:obj:`SegmentList`): message containing list of processed segments
 
         """
+
         self.last_update_stamp = segment_list_msg.header.stamp
 
         self.filter.update(segment_list_msg.segments)
@@ -255,14 +252,6 @@ class LaneFilterNode(DTROS):
 
             #FIXME: USE THE Visualization of the lane filter
             #self.filter.get_plot_phi_d()
-
-    def cbMode(self, msg):
-        return  # TODO adjust self.active
-
-    ### NOT USED ANYMORE
-    # def updateVelocity(self, twist_msg):
-    #     self.currentVelocity = twist_msg
-    ###
 
     def loginfo(self, s):
         rospy.loginfo("[%s] %s" % (self.node_name, s))
