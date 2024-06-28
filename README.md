@@ -1,47 +1,33 @@
-# Template: template-ros
+# dt-core
 
-This template provides a boilerplate repository
-for developing ROS-based software in Duckietown.
+This node contains the software for the core of the Duckietown stack, enabling autonomous driving on the Duckiebot and autonomous flight on the Duckiedrone.
 
-**NOTE:** If you want to develop software that does not use
-ROS, check out [this template](https://github.com/duckietown/template-basic).
+## Workflow
 
+* power on your robot, check can `ping` and can `docker -H [hostname].local ps`
 
-## How to use it
+---
+* ***Note: the code is always cloned to the local computer, not the Pi on the robot***
+* ***`[hostname]` is the hostname of the robot in the following context***
+### dt-duckiebot-interface
+* Actions:
+    * Clone repo to local machine
+    * To disable (some/all) heartbeat checks:
+      * In file `packages/flight_controller_driver/config/flight_controller_node/default.yaml`, change the values in "heartbeats" section to `false`.
+    * (*Optional, see below*) `dts devel build -f -H [hostname]`
+      * in `ente` branch, if no error occur in the following command(s), the above step can be skipped
+    * `dts devel run -f -s -M -H [hostname] -- --privileged`
+* Expected outcome:
+  * In the terminal the last above command is run, one should wait until the following message appears: `published the first image`
+  * Verify the various drivers work properly with rqt:
+    * `dts start_gui_tools --name db-iface [hostname]`
+      * `rqt &`, then in the rqt window popped up, choose the plugin from the menu bar and select the topics
+        * Check IMU reading: `Plugins->Visualization->Plot`. Set Topic: `/[hostname]/flight_controller_node/imu/linear_acceleration` and click the `+` sign
+        * Check motors: `Plugins->Visualization->Plot`. Set Topic: `/[hostname]/flight_controller_node/motors/m1` (and `m2`, `m3`, `m4`) and click the `+` sign
+        * ToF: `Plugins->Visualization->Plot`. Set Topic: `/[hostname]/bottom_tof_driver_node/range/range` (yes, range twice) and click the `+` sign.
+        * Calibrate IMU: `Plugins->Services->Service Caller`. Select Service: `/[hostname]/flight_controller_node/calibrate_imu`. Click `Call` button and wait for the Response. The response should show `success - bool - True`
+        * Arming and disarming: in the same window as IMU Calibration, select the Service: `/ing autonomous driving and 
 
-### 1. Fork this repository
+### dt-drone-interface
 
-Use the fork button in the top-right corner of the github page to fork this template repository.
-
-
-### 2. Create a new repository
-
-Create a new repository on github.com while
-specifying the newly forked template repository as
-a template for your new repository.
-
-
-### 3. Define dependencies
-
-List the dependencies in the files `dependencies-apt.txt` and
-`dependencies-py3.txt` (apt packages and pip packages respectively).
-
-
-### 4. Place your code
-
-Place your code in the directory `/packages/` of
-your new repository.
-
-
-### 5. Setup launchers
-
-The directory `/launchers` can contain as many launchers (launching scripts)
-as you want. A default launcher called `default.sh` must always be present.
-
-If you create an executable script (i.e., a file with a valid shebang statement)
-a launcher will be created for it. For example, the script file 
-`/launchers/my-launcher.sh` will be available inside the Docker image as the binary
-`dt-launcher-my-launcher`.
-
-When launching a new container, you can simply provide `dt-launcher-my-launcher` as
-command.
+See the readme in the [drone stack](packages/robots/duckiedrone/README.md)
