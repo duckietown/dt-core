@@ -70,8 +70,8 @@ states:
       - stop_line_filter_node
       - ground_projection_node
       - anti_instagram
-      - apriltag_detector_node
-      - apriltag_postprocessing_node
+#      - apriltag_detector_node
+#      - apriltag_postprocessing_node
     lights: "GREEN"
 
   LANE_FOLLOWING:

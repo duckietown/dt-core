@@ -56,20 +56,27 @@ class LaneFilterNode(DTROS):
         self._predict_freq = rospy.get_param("~predict_frequency", 30.0)
         #Enocder Init
         self.right_encoder_ticks = 0
+        self.right_encoder_initialized = False
         self.left_encoder_ticks = 0
+        self.left_encoder_initialized = False
         self.right_encoder_ticks_delta = 0
         self.left_encoder_ticks_delta = 0
 
-        # Create the filter
-        self.filter = LaneFilterHistogram(**self._filter)
 
         # Load the needed filter parameters defined elsewhere need here
         try:
-            self.filter.encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution", 135)
-            self.filter.wheel_baseline = rospy.get_param("kinematics_node/baseline")
-            self.filter.wheel_radius = rospy.get_param("kinematics_node/radius")
+            encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution", 135)
+            wheel_baseline = rospy.get_param("kinematics_node/baseline")
+            wheel_radius = rospy.get_param("kinematics_node/radius")
         except rospy.KeyError as e:
             rospy.logerror(f"[Lane filter] Unable to load required param: {e}")
+
+        # Create the filter
+        self.filter = LaneFilterHistogram(encoder_resolution,
+                                          wheel_baseline,
+                                          wheel_radius,
+                                          **self._filter)
+
 
         # this is only used for the timestamp of the first publication
         self.last_update_stamp = rospy.Time.now()
@@ -108,26 +115,32 @@ class LaneFilterNode(DTROS):
 
 
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
-        rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
+  #      rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
+        self.publishEstimate(self.last_update_stamp)
+
 
     def cbEpisodeStart(self, msg):
         rospy.loginfo("Lane Filter Resetting")
-        self.filter.initialize()
+        self.filter.initialize_belief()
 
     def cbProcessLeftEncoder(self, left_encoder_msg):
-        if not self.filter.initialized:
-            self.filter.encoder_resolution = left_encoder_msg.resolution
-            self.filter.initialized = True
+        # we need to account for the possibility that the encoder is not reading
+        # 0 at startup
+        if not self.left_encoder_initialized:
+            self.left_encoder_ticks = left_encoder_msg.data
+            self.left_encoder_initialized = True
         self.left_encoder_ticks_delta = left_encoder_msg.data - self.left_encoder_ticks
 
     def cbProcessRightEncoder(self, right_encoder_msg):
-        if not self.filter.initialized:
-            self.filter.encoder_resolution = right_encoder_msg.resolution
-            self.filter.initialized = True
+        if not self.right_encoder_initialized:
+            self.right_encoder_ticks = right_encoder_msg.data
+            self.right_encoder_initialized = True
         self.right_encoder_ticks_delta = right_encoder_msg.data - self.right_encoder_ticks
 
-    def cbPredict(self, event):
-
+    def cbPredict(self):
+        if self.left_encoder_ticks_delta == 0 or self.right_encoder_ticks_delta == 0:
+            self.publishEstimate(self.last_update_stamp)
+            return
         self.filter.predict(self.left_encoder_ticks_delta, self.right_encoder_ticks_delta)
         self.left_encoder_ticks += self.left_encoder_ticks_delta
         self.right_encoder_ticks += self.right_encoder_ticks_delta
@@ -143,7 +156,7 @@ class LaneFilterNode(DTROS):
             segment_list_msg (:obj:`SegmentList`): message containing list of processed segments
 
         """
-
+        self.cbPredict()
         self.last_update_stamp = segment_list_msg.header.stamp
 
         self.filter.update(segment_list_msg.segments)
@@ -176,45 +189,13 @@ class LaneFilterNode(DTROS):
     def debugOutput(self):
         """Creates and publishes debug messages
 
-        OLD METHOD Args NOT USED ANYMORE:
-            segment_list_msg (:obj:`SegmentList`): message containing list of filtered segments
-            d_max (:obj:`float`): best estimate for d
-            phi_max (:obj:``float): best estimate for phi
-            timestamp_before_processing (:obj:`float`): timestamp dating from before the processing
-
         """
         if self._debug:
-            ### NOT USEFUL ANYMORE AS ALL FUNCTIONS ARE DECOUPLED
-            # Latency of Estimation including curvature estimation
-            # estimation_latency_stamp = rospy.Time.now() - timestamp_before_processing
-            # estimation_latency = estimation_latency_stamp.secs + estimation_latency_stamp.nsecs / 1e9
-            # self.latencyArray.append(estimation_latency)
-
-            # if len(self.latencyArray) >= 20:
-            #     self.latencyArray.pop(0)
-
-            # # print "Latency of segment list: ", segment_latency
-            # self.loginfo(f"Mean latency of Estimation:................. {np.mean(self.latencyArray)}")
-            ###
-
-            ### NOT USEFUL ANYMORE AS SEGMENT LISTS ARE NO MORE PROPOGATED TO THE FUNCTION CALLING THIS
-            # Get the segments that agree with the best estimate and publish them
-            # inlier_segments = self.filter.get_inlier_segments(segment_list_msg.segments, d_max, phi_max)
-            # inlier_segments_msg = SegmentList()
-            # inlier_segments_msg.header = segment_list_msg.header
-            # inlier_segments_msg.segments = inlier_segments
-            # self.pub_seglist_filtered.publish(inlier_segments_msg)
-            ###
-
             # Create belief image and publish it
             belief_img = self.bridge.cv2_to_imgmsg(
                 np.array(255 * self.filter.belief).astype("uint8"), "mono8"
             )
-            #belief_img.header.stamp = segment_list_msg.header.stamp # FIXME: REPLACE WITH ENCODER TIMESTAMPS MAYBE 
             self.pub_belief_img.publish(belief_img)
-
-            #FIXME: USE THE Visualization of the lane filter
-            #self.filter.get_plot_phi_d()
 
     def loginfo(self, s):
         rospy.loginfo("[%s] %s" % (self.node_name, s))
