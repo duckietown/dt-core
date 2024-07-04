@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
 import os
 from typing import Optional
 
 import cv2
+from dt_computer_vision.camera.calibration.extrinsics.boards import CalibrationBoard8by6
+from dt_computer_vision.camera.calibration.extrinsics.chessboard import compute_homography_maps
+from dt_computer_vision.camera.types import RegionOfInterest, Size
 import numpy as np
 import rospy
 from cv_bridge import CvBridge
@@ -13,11 +17,16 @@ from image_processing.ground_projection_geometry import GroundProjectionGeometry
 from image_processing.rectification import Rectify
 from sensor_msgs.msg import CameraInfo, CompressedImage
 
-from dt_computer_vision.camera import CameraModel
-from dt_computer_vision.camera.homography import HomographyToolkit, ResolutionIndependentHomography, \
-    ResolutionDependentHomography
+from dt_computer_vision.camera import CameraModel, BGRImage
+from dt_computer_vision.ground_projection import GroundProjector
+
+from dt_computer_vision.camera.homography import HomographyToolkit, ResolutionIndependentHomography
 from duckietown.dtros import DTROS, NodeType, TopicType
 
+@dataclass
+class ImageProjectorConfig:
+    roi : RegionOfInterest
+    ppm : int
 
 class GroundProjectionNode(DTROS):
     """
@@ -35,6 +44,8 @@ class GroundProjectionNode(DTROS):
         rectifying the segments.
         ~lineseglist_in (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in pixel space from
         unrectified images
+        ~image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Compressed image from the camera. 
+        Only needed if you want to visualize the debug image (i.e. the image with the homography applied).
 
     Publishers:
         ~lineseglist_out (:obj:`duckietown_msgs.msg.SegmentList`): Line segments in the ground plane
@@ -42,6 +53,10 @@ class GroundProjectionNode(DTROS):
         ~debug/ground_projection_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image
         that shows the robot relative to the projected segments. Useful to check if the extrinsic
         calibration is accurate.
+        ~debug/projected_image/rectified/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image
+        that shows the rectified image. Useful to check if the rectification is accurate.
+        ~debug/projected_image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug image that shows
+        the projected image. Useful to check if the homography is accurate.
     """
 
     bridge: CvBridge
@@ -57,9 +72,15 @@ class GroundProjectionNode(DTROS):
         self.ground_projector: Optional[GroundProjectionGeometry] = None
         self.rectifier: Optional[Rectify] = None
         self.camera: Optional[CameraModel] = None
-        self.homography: Optional[np.ndarray] = None
+        self.homography: ResolutionIndependentHomography = None
         self.first_processing_done = False
         self.camera_info_received = False
+
+        self._image_projector_config: dict = rospy.get_param(
+            "~image_projector_configuration", None, type=dict
+        )
+
+        self.image_projector = ImageProjectorConfig(**self._image_projector_config)
 
         # subscribers
         self.sub_camera_info = rospy.Subscriber(
@@ -68,17 +89,33 @@ class GroundProjectionNode(DTROS):
         self.sub_lineseglist_ = rospy.Subscriber(
             "~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1
         )
+        self.sub_image = rospy.Subscriber("~image/compressed", CompressedImage, self.cb_process_image, queue_size=1)
 
         # publishers
         self.pub_lineseglist = rospy.Publisher(
             "~lineseglist_out", SegmentList, queue_size=1, dt_topic_type=TopicType.PERCEPTION
         )
-        self.pub_debug_img = rospy.Publisher(
+        self.pub_debug_road_view_img = rospy.Publisher(
             "~debug/ground_projection_image/compressed",
             CompressedImage,
             queue_size=1,
             dt_topic_type=TopicType.DEBUG,
         )
+        
+        self.pub_debug_rectified_img = rospy.Publisher(
+            "~debug/projected_image/rectified/compressed",
+            CompressedImage,
+            queue_size=1,
+            dt_topic_type=TopicType.DEBUG,
+        )
+        
+        self.pub_debug_projected_img = rospy.Publisher(
+            "~debug/projected_image/compressed",
+            CompressedImage,
+            queue_size=1,
+            dt_topic_type=TopicType.DEBUG,
+        )
+
 
         self.bridge = CvBridge()
 
@@ -112,10 +149,25 @@ class GroundProjectionNode(DTROS):
                 P=np.reshape(msg.P, (3, 4)),
             )
             self.homography = self.load_extrinsics(self.camera)
+            self.camera.H = self.homography
             self.rectifier = Rectify(msg)
             self.ground_projector = GroundProjectionGeometry(
                 im_width=msg.width, im_height=msg.height, homography=self.homography
             )
+            self.projector = GroundProjector(self.camera)
+            
+            self.loginfo("Computing virtual camera maps using the homography")
+            
+            roi = RegionOfInterest(
+                origin=Point(self.roi.origin.x, self.roi.origin.y),
+                size=Size(self.roi.size.x, self.roi.size.y),
+            )
+
+            self.mapx, self.mapy, self.mask, self.virtual_camera_shape = (
+                compute_homography_maps(self.camera, self.camera.H, self.image_projector.ppm, roi)
+            )
+            self.loginfo("Virtual camera maps computed")
+
         self.camera_info_received = True
 
     def pixel_msg_to_ground_msg(self, point_msg) -> PointMsg:
@@ -176,33 +228,14 @@ class GroundProjectionNode(DTROS):
                 self.log("First projected segments published.")
                 self.first_processing_done = True
 
-            if self.pub_debug_img.get_num_connections() > 0:
+            if self.pub_debug_road_view_img.get_num_connections() > 0:
                 debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(self.debug_image(seglist_out))
                 debug_image_msg.header = seglist_out.header
-                self.pub_debug_img.publish(debug_image_msg)
+                self.pub_debug_road_view_img.publish(debug_image_msg)
         else:
             self.log("Waiting for a CameraInfo message", "warn")
 
-    # def get_ground_coordinate_cb(self, req):
-    #     return GetGroundCoordResponse(self.pixel_msg_to_ground_msg(req.uv))
-    #
-    # def get_image_coordinate_cb(self, req):
-    #     return GetImageCoordResponse(self.gpg.ground2pixel(req.gp))
-    #
-    # def estimate_homography_cb(self, req):
-    #     rospy.loginfo("Estimating homography")
-    #     rospy.loginfo("Waiting for raw image")
-    #     img_msg = rospy.wait_for_message("/" + self.robot_name + "/camera_node/image/raw", Image)
-    #     rospy.loginfo("Got raw image")
-    #     try:
-    #         cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
-    #     except CvBridgeError as e:
-    #         rospy.logerr(e)
-    #     self.gp.estimate_homography(cv_image)
-    #     rospy.loginfo("wrote homography")
-    #     return EstimateHomographyResponse()
-
-    def load_extrinsics(self, camera: CameraModel) -> np.ndarray:
+    def load_extrinsics(self, camera: CameraModel) -> ResolutionIndependentHomography:
         """
         Loads the homography matrix from the extrinsic calibration file.
 
@@ -210,14 +243,14 @@ class GroundProjectionNode(DTROS):
             :obj:`numpy array`: the loaded homography matrix
 
         """
-        # load intrinsic calibration
+        # load extrinsic calibration
         cali_file_folder = "/data/config/calibrations/camera_extrinsic/"
         cali_file = cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
 
         # Locate calibration yaml file or use the default otherwise
         if not os.path.isfile(cali_file):
             self.log(
-                f"Can't find calibration file: {cali_file}.\n Using default calibration instead.", "warn"
+                f"Can't find calibration file: {cali_file}\n Using default calibration instead.", "warn"
             )
             cali_file = os.path.join(cali_file_folder, "default.yaml")
 
@@ -229,8 +262,7 @@ class GroundProjectionNode(DTROS):
 
         try:
             Hindep: ResolutionIndependentHomography = HomographyToolkit.load_from_disk(cali_file)
-            H: ResolutionDependentHomography = Hindep.camera_specific(camera)
-            return H.reshape((3, 3))
+            return Hindep.reshape((3, 3))
         except Exception as e:
             msg = f"Error in parsing calibration file {cali_file}:\n{e}"
             self.logerr(msg)
@@ -351,6 +383,46 @@ class GroundProjectionNode(DTROS):
                 )
 
         return image
+
+    def cb_process_image(self, msg: CompressedImage):
+        """
+        Rectifies and projects the image to the ground plane and publishes it as a debug image.
+
+        Args:
+            msg (:obj:`sensor_msgs.msg.CompressedImage`): Compressed image from the camera
+
+        """
+        if self.camera_info_received:
+            bgr_image = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            rectified_image = self.camera.rectifier.rectify(bgr_image)
+
+            projected_image = self.project_image(
+                rectified_image, self.mapx, self.mapy, self.mask
+            )
+
+            if self.pub_debug_rectified_img.get_num_connections() > 0:
+                self.pub_debug_rectified_img.publish(self.bridge.cv2_to_compressed_imgmsg(rectified_image))
+
+            self.pub_debug_projected_img.publish(self.bridge.cv2_to_compressed_imgmsg(projected_image))
+        else:
+            self.log("Waiting for a CameraInfo message", "warn")
+
+    @staticmethod
+    def project_image(
+        rectified_image: BGRImage, mapx: np.ndarray, mapy: np.ndarray, mask: np.ndarray
+    ) -> BGRImage:
+        """
+        Projects a rectified image using the maps generated from the homography matrix.
+        """
+        img = cv2.remap(rectified_image, mapx, mapy, cv2.INTER_CUBIC)
+
+        img = cv2.inpaint(img, mask, 3, cv2.INPAINT_NS)
+
+        # flip and rotate the image so that it appears as it is seen from the camera
+        img = cv2.flip(img, 0)
+        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
 if __name__ == "__main__":
