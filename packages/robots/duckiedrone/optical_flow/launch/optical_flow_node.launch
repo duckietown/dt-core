@@ -1,0 +1,19 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+    <arg name="pkg_name" value="optical_flow"/>
+    <arg name="node_name" default="optical_flow_node"/>
+
+    <!-- PubSub -->
+    <remap from="optical_flow_node/image" to="camera_node/image/compressed" />
+
+    <group ns="$(arg veh)">
+        <!-- Node and param -->
+        <node  name="optical_flow_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
+            <!-- Params -->
+			<rosparam command="load" file="$(find optical_flow)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+		</node>
+        <!-- PubSub -->
+<!--        <remap from="optical_flow_node/image" to="camera_node/image/compressed" />-->
+    </group>
+</launch>
