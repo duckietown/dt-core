@@ -75,6 +75,7 @@ class PIDController(DTROS):
         self.pid_error = Error()
 
         # Initialize the 'position error to velocity error' PIDs:
+        # TODO: read the PID gains from a config file and allow them to be set via parameter server or a service
         # left/right (roll) pid
         self.lr_pid = PIDaxis(kp=20.0, ki=5.0, kd=10.0, midpoint=0, control_range=(-10.0, 10.0))
         # front/back (pitch) pid
@@ -107,6 +108,7 @@ class PIDController(DTROS):
         # determines if the desired poses are aboslute or relative to the drone
         self.absolute_desired_position = False
 
+        # TODO: refactor path_planning into a service
         # determines whether to use open loop velocity path planning which is
         # accomplished by calculate_travel_time
         self.path_planning = True
@@ -137,12 +139,12 @@ class PIDController(DTROS):
         # subscribers
         rospy.Subscriber("~mode", Mode, self.current_mode_callback, queue_size=1)
         rospy.Subscriber("~state", Odometry, self.current_state_callback, queue_size=1)
-        # TODO: to be refactored
+        # TODO: refactor callbacks
         rospy.Subscriber("desired/pose", Pose, self.desired_pose_callback, queue_size=1)
         rospy.Subscriber("desired/twist", Twist, self.desired_twist_callback, queue_size=1)
         rospy.Subscriber("camera_node/lost", Bool, self.lost_callback, queue_size=1)
 
-        # TODO: these should be services
+        # TODO: transform reset_transform and position_control switch into services
         rospy.Subscriber("reset_transform", Empty, self.reset_callback, queue_size=1)
         rospy.Subscriber("position_control", Bool, self.position_control_callback, queue_size=1)
 
@@ -151,7 +153,7 @@ class PIDController(DTROS):
 
     # ROS SUBSCRIBER CALLBACK METHODS
     #################################
-    def current_state_callback(self, state):
+    def current_state_callback(self, state : Odometry):
         """ Store the drone's current state for calculations """
         self.previous_state = self.current_state
         self.current_state = state
@@ -307,6 +309,7 @@ class PIDController(DTROS):
         else:
             self.desired_yaw_velocity_start_time = curr_time
 
+    # TODO: refactor error computation method
     def calc_error(self):
         """
         Calculate the error in velocity, and if in position hold, add the
@@ -327,7 +330,7 @@ class PIDController(DTROS):
         self.pid_error.y = self.velocity_error.y
         self.pid_error.z = dz
         # multiply by 100 to account for the fact that code was originally written using cm
-        self.pid_error = self.pid_error * 100
+        self.pid_error = self.pid_error * 100 # TODO: remove magic constants
         if self.position_control:
             # calculate the position error
             self.position_error = self.desired_position - self.current_position
@@ -377,13 +380,12 @@ class PIDController(DTROS):
         msg.throttle = cmd[3]
         self.cmd_pub.publish(msg)
 
-
-def main(controller_class):
+def main(controller_class : PIDController):
     # Verbosity between 0 and 2, 2 is most verbose
     verbose = 2
 
     # create the PIDController object
-    pid = controller_class()
+    pid : PIDController = controller_class()
 
     # set the loop rate (Hz)
     loop_rate = rospy.Rate(pid.frequency)
@@ -445,6 +447,9 @@ def main(controller_class):
                 pid.loginfo("Detected state change: FLYING -> DISARMED")
                 pid.previous_mode = pid.current_mode
 
+        # TODO: improve diagnostics:
+        # - publish these to a diagnostic topic
+        # - add pid output to the diagnostic topic
         if verbose >= 2:
             if pid.position_control:
                 print('current position:', pid.current_position)
