@@ -1,0 +1,9 @@
+image_projector_configuration:
+  ppm: 800
+  roi:
+    origin:
+      x: 0.216
+      y: -0.077
+    size:
+      x: 0.12
+      y: 0.16
