@@ -6,6 +6,7 @@
 
     <!-- PubSub -->
     <remap from="optical_flow_node/image" to="camera_node/image/compressed" />
+    <remap from="optical_flow_node/camera_info" to="camera_node/camera_info" />
 
     <group ns="$(arg veh)">
         <!-- Node and param -->

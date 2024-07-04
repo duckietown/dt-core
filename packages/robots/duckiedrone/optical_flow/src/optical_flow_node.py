@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
 import cv2
+from dt_computer_vision.camera.types import CameraModel
 import numpy as np
 
 import rospy
 from cv_bridge import CvBridge
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from geometry_msgs.msg import Vector3
-from sensor_msgs.msg import CompressedImage
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import CompressedImage, Range, CameraInfo
 
 
 class OpticalFlowNode(DTROS):
     def __init__(self, node_name):
+        """
+        """
         # Initialize the DTROS parent class
         super(OpticalFlowNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
@@ -19,10 +23,25 @@ class OpticalFlowNode(DTROS):
         self.process_frequency = DTParam("~process_frequency", param_type=ParamType.INT)
         self.track_len = DTParam("~track_len", param_type=ParamType.INT)
         self.detect_interval = DTParam("~detect_interval", param_type=ParamType.INT)
+        self.resize_scale = DTParam(
+            "~img_scale",
+            default=1.0,
+            help="Scale the input image to the optical flow algorithm by this factor.",
+            param_type=ParamType.FLOAT,
+            max_value=1.0,
+            min_value=0.0
+        )
+        
+        self.scaled_height : float = 1.0
+        self.scaled_width : float = 1.0
 
         # obj attrs
         self.bridge = CvBridge()
         self.last_stamp = rospy.Time.now()
+        
+        self.camera : CameraModel = None
+        self._camera_info_initialized = False
+        self._computed_new_image_properties = False
 
         # optical flow setup
         self.tracks = []
@@ -30,7 +49,13 @@ class OpticalFlowNode(DTROS):
         self.prev_gray = None
         self._last_dx = 0.0
         self._last_dy = 0.0
-        # todo: make param
+        
+        # TODO: these should be determined dynamically
+        self.h_cropped, self.w_cropped = 240, 320
+        self.pixels_to_meters = {'x' : None, 'y': None}
+        self._pixel_to_meters_initialized = False
+
+        # TODO: make param
         # params for ShiTomasi corner detection
         self.feature_params = dict(
             maxCorners=5,
@@ -45,12 +70,19 @@ class OpticalFlowNode(DTROS):
             criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03),
         )
 
-        # Subscriber
-        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cb_image, queue_size=1)
+        # TODO: fix race condition with `~/flow` pub/sub. Should split node in two?
 
         # Publishers
         self.pub_debug_image = rospy.Publisher("~debug/image/compressed", CompressedImage, queue_size=1)
         self.pub_flow = rospy.Publisher("~flow", Vector3, queue_size=1)
+        self.pub_odometry = rospy.Publisher("~visual_odometry", Odometry, queue_size=1)
+
+        # Subscriber
+        self.sub_image = rospy.Subscriber("~image", CompressedImage, self.cb_image, queue_size=1)
+        self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
+        self.sub_flow = rospy.Subscriber("~flow", Vector3, self.cb_flow, queue_size=1)
+        self.sub_height = rospy.Subscriber("~height", Range, self.cb_pixels_to_meters, queue_size=1)
+
 
         self.log("Initialization completed.")
 
@@ -60,7 +92,20 @@ class OpticalFlowNode(DTROS):
         cv2.putText(dst, s, (x + 1, y + 1), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
         cv2.putText(dst, s, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=cv2.LINE_AA)
 
-    def cb_image(self, image_msg):
+    def cb_camera_info(self, msg: CameraInfo):
+        if not self._camera_info_initialized:
+            self.camera = CameraModel(
+                height=msg.height,
+                width=msg.width,
+                K=msg.K,
+                D=msg.D,
+                R=msg.R,
+                P=msg.P
+            )
+            
+        self._camera_info_initialized = True
+        
+    def cb_image(self, image_msg : CompressedImage):
         # process at configured frequency
         now = rospy.Time.now()
         if now - self.last_stamp < rospy.Duration.from_sec(1.0 / self.process_frequency.value):
@@ -73,16 +118,20 @@ class OpticalFlowNode(DTROS):
 
         image = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
 
-        # # crop top 1.0 / 4
-        # crop_ratio = 1.0 / 4
-        # h_original = image.shape[0]
-        # image = image[int(h_original * crop_ratio):, :, :]
+        if self._computed_new_image_properties is False:
+            # # crop top 1.0 / 4
+            # crop_ratio = 1.0 / 4
+            # h_original = image.shape[0]
+            # image = image[int(h_original * crop_ratio):, :, :]
 
-        # resize by 1.0 / 4
-        resize_scale = 1.0 / 4.0
-        h_cropped, w_cropped = image.shape[:2]
-        new_w_h = (int(resize_scale * w_cropped), int(resize_scale * h_cropped))
-        image_cv = cv2.resize(image, new_w_h, interpolation=cv2.INTER_NEAREST)
+            # resize by 1.0 / 4
+            self.h_cropped, self.w_cropped = image.shape[:2]
+
+            new_w_h = (int(self.resize_scale.value * self.w_cropped), int(self.resize_scale.value * self.h_cropped))
+            
+            self.scaled_height , self.scaled_width = new_w_h
+
+        image_cv = cv2.resize(image, (self.scaled_height, self.scaled_width), interpolation=cv2.INTER_NEAREST)
 
         # should perform debug visualization?
         debug_viz_on = self.pub_debug_image.get_num_connections() > 0
@@ -143,7 +192,7 @@ class OpticalFlowNode(DTROS):
                 has_published_flow = True
 
             if debug_str != "":
-                print(debug_str)
+                rospy.logdebug(debug_str)
 
             if debug_viz_on:
                 cv2.polylines(vis, [np.int32(tr) for tr in self.tracks], False, (0, 255, 0))
@@ -176,23 +225,53 @@ class OpticalFlowNode(DTROS):
 
 
     def cb_pixels_to_meters(self, msg : Range):
-    def cb_flow(self, flow_msg):
-        # Convert velocity from pixels/s to m/s
-        vx_m_s = flow_msg.x * self.pixels_to_meters.value
-        vy_m_s = flow_msg.y * self.pixels_to_meters.value
-        vz_m_s = 0  # Assuming z is also in pixels/s and needs conversion
+        """This callback functions computes the scaling factor
+        from pixels to meters, depending on the height of the drone.
 
-        # Create a new Vector3 message for the converted velocity
-        velocity_m_s_msg = Vector3()
-        velocity_m_s_msg.x = vx_m_s
-        velocity_m_s_msg.y = vy_m_s
-        velocity_m_s_msg.z = vz_m_s
+        TODO: Move this from Range to state message.
 
-        # Publish the converted velocity
-        self.pub_velocity_m_s.publish(velocity_m_s_msg)
+        Args:
+            msg (Range): Range message containing the height of the drone.
+        """
+        if self._camera_info_initialized:
+            f_x_pixels : float = 0 # Use here the SCALED focal length from the projected camera model
+            f_y_pixels : float = 0 # Use here the SCALED focal length from the projected camera model
+            
+            image_width = self.scaled_width
+            image_height = self.scaled_height
+            
+            # Compute the scaling factor from pixels to meters
+            self.pixels_to_meters['x'] = msg.range * image_width / f_x_pixels
+            self.pixels_to_meters['y'] = msg.range * image_height / f_y_pixels
 
-        # Optionally, log the conversion for debugging
-        rospy.loginfo(f"Converted velocity to m/s: ({vx_m_s}, {vy_m_s}, {vz_m_s})")
+            # Log the scaling factor for debugging
+            rospy.logdebug(f"Pixels to meters scaling factor: {self.pixels_to_meters}")
+            self._pixel_to_meters_initialized = True
+        
+        else:
+            self.logwarn("Camera info not yet received")
+        
+    def cb_flow(self, flow_msg : Vector3):
+        """This callback function converts the optical flow message from pixels/s to m/s
+
+        Args:
+            flow_msg (Vector3): optical flow vector in pixels/s
+        """
+        if self._pixel_to_meters_initialized:
+            # Convert velocity from pixels/s to m/s
+            vx_m_s = flow_msg.x * self.pixels_to_meters['x']
+            vy_m_s = flow_msg.y * self.pixels_to_meters['y']
+
+            # Create a new Odometry message for the converted velocity
+            velocity_m_s_msg = Odometry()
+            velocity_m_s_msg.twist.twist.linear.x = vx_m_s
+            velocity_m_s_msg.twist.twist.linear.y = vy_m_s
+
+            # Publish the odometry message
+            self.pub_odometry.publish(velocity_m_s_msg)
+
+            # Optionally, log the conversion for debugging
+            rospy.loginfo(f"Converted velocity to m/s: ({vx_m_s}, {vy_m_s})")
 
     def publish_flow_msg(self, dx: float, dy: float):
         flow_msg = Vector3()
