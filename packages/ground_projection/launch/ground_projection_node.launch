@@ -4,7 +4,9 @@
 
     <arg name="pkg_name" value="ground_projection"/>
     <arg name="node_name" default="ground_projection_node"/>
-
+    
+    <remap from="ground_projection_node/image/compressed" to="camera_node/image/compressed"/>
+    <remap from="ground_projection_node/camera_info" to="camera_node/camera_info"/>
     <group ns="$(arg veh)">
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
             <rosparam command="load" file="$(find ground_projection)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
