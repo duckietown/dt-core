@@ -234,15 +234,9 @@ class OpticalFlowNode(DTROS):
             msg (Range): Range message containing the height of the drone.
         """
         if self._camera_info_initialized:
-            f_x_pixels : float = 0 # Use here the SCALED focal length from the projected camera model
-            f_y_pixels : float = 0 # Use here the SCALED focal length from the projected camera model
-            
-            image_width = self.scaled_width
-            image_height = self.scaled_height
-            
             # Compute the scaling factor from pixels to meters
-            self.pixels_to_meters['x'] = msg.range * image_width / f_x_pixels
-            self.pixels_to_meters['y'] = msg.range * image_height / f_y_pixels
+            self.pixels_to_meters['x'] = msg.range * self.scaled_width / self.camera.fx
+            self.pixels_to_meters['y'] = msg.range * self.scaled_height / self.camera.fy
 
             # Log the scaling factor for debugging
             rospy.logdebug(f"Pixels to meters scaling factor: {self.pixels_to_meters}")
@@ -270,8 +264,6 @@ class OpticalFlowNode(DTROS):
             # Publish the odometry message
             self.pub_odometry.publish(velocity_m_s_msg)
 
-            # Optionally, log the conversion for debugging
-            rospy.loginfo(f"Converted velocity to m/s: ({vx_m_s}, {vy_m_s})")
 
     def publish_flow_msg(self, dx: float, dy: float):
         flow_msg = Vector3()
