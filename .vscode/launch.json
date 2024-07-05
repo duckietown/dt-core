@@ -5,7 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "ROS: Launch",
+            "name": "Optical Flow Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/optical_flow/launch/optical_flow_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
+        {
+            "name": "Ground Projection Node",
             "request": "launch",
             "target": "/code/src/dt-core/packages/ground_projection/launch/ground_projection_node.launch",
             "launch": [
