@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import rospy
 
 
@@ -191,54 +192,51 @@ class PID:
         # Compute roll command
         ######################
         # if the x velocity error is within the threshold
-        if abs(error.x) < self.trim_controller_thresh_plane:
-            # pass the high rate i term off to the low rate pid
-            self.roll_low.integral += self.roll.integral
-            self.roll.integral = 0
-            # set the roll value to just the output of the low rate pid
-            cmd_r = self.roll_low.step(error.x, time_elapsed)
-        else:
-            if error.x > self.trim_controller_cap_plane:
-                self.roll_low.step(self.trim_controller_cap_plane, time_elapsed)
-            elif error.x < -self.trim_controller_cap_plane:
-                self.roll_low.step(-self.trim_controller_cap_plane, time_elapsed)
-            else:
-                self.roll_low.step(error.x, time_elapsed)
-            cmd_r = self.roll_low.integral + self.roll.step(error.x, time_elapsed)
+        cmd_r = self.compute_axis_command(
+            error.x,
+            time_elapsed,
+            pid_low=self.roll_low,
+            pid=self.roll,
+            trim_controller=self.trim_controller_cap_plane
+            )
 
         # Compute pitch command
-        if abs(error.y) < self.trim_controller_thresh_plane:
-            self.pitch_low.integral += self.pitch.integral
-            self.pitch.integral = 0
-            cmd_p = self.pitch_low.step(error.y, time_elapsed)
-        else:
-            if error.y > self.trim_controller_cap_plane:
-                self.pitch_low.step(self.trim_controller_cap_plane, time_elapsed)
-            elif error.y < -self.trim_controller_cap_plane:
-                self.pitch_low.step(-self.trim_controller_cap_plane, time_elapsed)
-            else:
-                self.pitch_low.step(error.y, time_elapsed)
-            cmd_p = self.pitch_low.integral + self.pitch.step(error.y, time_elapsed)
-
+        cmd_p = self.compute_axis_command(
+            error.y,
+            time_elapsed,
+            pid_low=self.pitch_low,
+            pid=self.pitch,
+            trim_controller=self.trim_controller_cap_plane
+            )
         # Compute yaw command
         cmd_y = 1500 + cmd_yaw_velocity
 
-        if abs(error.z) < self.trim_controller_thresh_throttle:
-            self.throttle_low.integral += self.throttle.integral
-            self.throttle.integral = 0
-            cmd_t = self.throttle_low.step(error.z, time_elapsed)
-        else:
-            if error.z > self.trim_controller_cap_throttle:
-                self.throttle_low.step(self.trim_controller_cap_throttle, time_elapsed)
-            elif error.z < -self.trim_controller_cap_throttle:
-                self.throttle_low.step(-self.trim_controller_cap_throttle, time_elapsed)
-            else:
-                self.throttle_low.step(error.z, time_elapsed)
-
-            cmd_t = self.throttle_low.integral + self.throttle.step(error.z, time_elapsed)
-
+        cmd_t = self.compute_axis_command(
+            error.z,
+            time_elapsed,
+            pid_low=self.throttle_low,
+            pid=self.throttle,
+            trim_controller=self.trim_controller_cap_throttle
+        )
         # Print statements for the low and high i components
-        # print "Roll  low, hi:", self.roll_low._i, self.roll._i
-        # print "Pitch low, hi:", self.pitch_low._i, self.pitch._i
-        # print "Throttle low, hi:", self.throttle_low._i, self.throttle._i
+        logging.logdebug("Roll  low, hi:", self.roll_low._i, self.roll._i)
+        logging.logdebug("Pitch low, hi:", self.pitch_low._i, self.pitch._i)
+        logging.logdebug("Throttle low, hi:", self.throttle_low._i, self.throttle._i)
         return [cmd_r, cmd_p, cmd_y, cmd_t]
+
+    def compute_axis_command(self, error : float, time_elapsed : float, pid : PIDaxis, pid_low : PIDaxis, trim_controller : float):
+        if abs(error) < self.trim_controller_thresh_plane:
+            # pass the high rate i term off to the low rate pid
+            pid_low.integral += pid.integral
+            pid.integral = 0
+            # set the roll value to just the output of the low rate pid
+            cmd_r = pid_low.step(error, time_elapsed)
+        else:
+            if error > trim_controller:
+                pid_low.step(trim_controller, time_elapsed)
+            elif error < -trim_controller:
+                pid_low.step(-trim_controller, time_elapsed)
+            else:
+                pid_low.step(error, time_elapsed)
+            cmd_r = pid_low.integral + pid.step(error, time_elapsed)
+        return cmd_r
