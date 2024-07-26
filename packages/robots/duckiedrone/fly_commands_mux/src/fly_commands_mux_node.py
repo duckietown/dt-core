@@ -7,6 +7,16 @@ from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 
 
 class FlyCommandsMuxNode(DTROS):
+    """
+    Fly Commands Mux: a multiplexer that combines manual and autonomous control signals according to a dynamic mask.
+    
+    Subscribers:
+         - ~commands/manual (duckietown_msgs/DroneControl): Manual control commands.
+         - ~commands/autonomous (duckietown_msgs/DroneControl): Autonomous control commands.
+         
+    Publishers:
+        - ~commands/output (duckietown_msgs/DroneControl): Muxed control commands.
+    """
     def __init__(self, node_name):
         # Initialize the DTROS parent class
         super(FlyCommandsMuxNode, self).__init__(node_name=node_name, node_type=NodeType.CONTROL)
