@@ -12,7 +12,8 @@ dt-launchfile-init
 # NOTE: Use the variable DT_REPO_PATH to know the absolute path to your code
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
-sudo chown -R duckie /tmp
+sudo mkdir -p /tmp/test_results/optical_flow /tmp/log
+sudo chown -R duckie /tmp/
 sudo chown duckie /data/config/calibrations/camera_extrinsic/
 
 # launching app
