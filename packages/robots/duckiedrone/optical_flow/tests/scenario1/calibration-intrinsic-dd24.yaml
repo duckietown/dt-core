@@ -1,0 +1,57 @@
+image_width: 240
+image_height: 320
+camera_name: /porsche911/rosberrypi_cam
+camera_matrix:
+  rows: 3
+  cols: 3
+  data:
+  - 154.58959977779696
+  - 0
+  - 110.33748015007073
+  - 0
+  - 154.9461701932946
+  - 161.14078959627585
+  - 0
+  - 0
+  - 1
+
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data:
+  - -0.3543517592168695
+  - 0.16442205538110652
+  - 0.0019406748564795508
+  - -0.0028917796204922853
+  - -0.04067351040366832
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data:
+  - 1
+  - 0
+  - 0
+  - 0
+  - 1
+  - 0
+  - 0
+  - 0
+  - 1
+projection_matrix:
+  rows: 3
+  cols: 4
+  data:
+  - 154.58959977779696
+  - 0
+  - 110.33748015007073
+  - 0
+  - 0
+  - 154.9461701932946
+  - 161.14078959627585
+  - 0
+  - 0
+  - 0
+  - 1
+  - 0

@@ -8,6 +8,12 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
 )
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest(tests/optical_flow.test)
+endif()
+
+
 catkin_python_setup()
 
 catkin_package()
