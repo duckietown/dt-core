@@ -44,4 +44,4 @@ states:
       - lane_filter_node
       - ground_projection_node
       - lane_controller_node
-    lights: "RED"
+    lights: "CAR_DRIVING"

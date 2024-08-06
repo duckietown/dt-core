@@ -1,7 +1,18 @@
 # LIST YOUR PYTHON3 PACKAGES HERE
 # NOTE: only place non-Duckietown libraries here; pin versions only if necessary
+<<<<<<< HEAD
 ruamel.yaml
 comptests-z6
 procgraph-z6
 ros_node_utils>=2.0.0
 compmake-z6>=6.0.9
+=======
+
+ruamel.yaml==0.18.0
+comptests-z6==6.0.4
+procgraph-z6==6.1.9
+ros-node-utils==2.0.0
+
+# constraints: >= 6.0.9
+compmake-z6==6.1.5
+>>>>>>> origin

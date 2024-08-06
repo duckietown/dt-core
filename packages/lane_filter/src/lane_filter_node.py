@@ -185,7 +185,6 @@ class LaneFilterNode(DTROS):
         if self._debug:
             self.debugOutput()
     
-    #def debugOutput(self, segment_list_msg, d_max, phi_max, timestamp_before_processing):
     def debugOutput(self):
         """Creates and publishes debug messages
 
