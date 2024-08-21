@@ -1,4 +1,4 @@
 process_frequency: 20
 track_len: 10
 detect_interval: 5
-img_scale: 0.25
+img_scale: 1.0

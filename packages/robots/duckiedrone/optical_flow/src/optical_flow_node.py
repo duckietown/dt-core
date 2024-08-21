@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-from dt_computer_vision.camera.homography import HomographyToolkit, ResolutionIndependentHomography
+from typing import Union
+
+import cv2
+from dt_computer_vision.camera.homography import HomographyToolkit, Homography
 from dt_computer_vision.camera.types import CameraModel
 from dt_computer_vision.ground_projection.ground_projector import GroundProjector
 import numpy as np
@@ -41,8 +44,7 @@ class OpticalFlowNode(DTROS):
         
         self.camera : CameraModel = None
         self._camera_info_initialized = False
-        self._homography_to_ground_initialized = False
-        self.homography: ResolutionIndependentHomography = None
+        self.homography: Homography = None
         self.projector: GroundProjector = None
 
         # optical flow setup
@@ -75,12 +77,32 @@ class OpticalFlowNode(DTROS):
                 R=np.array(msg.R).reshape((3, 3)),
                 P=np.array(msg.P).reshape((3, 4)),
             )
-            self.homography = self.load_homography()
-            self._H_inv = np.linalg.inv(self.homography.camera_specific(self.camera))
+            
+            # TODO: remove this hardcoded homography, fix the homography loading
+            self.homography = Homography([[7.68649577e-02, 4.80407934e-02, 4.79735399e-02],
+                                [2.35921238e-04, 1.98051018e-01, 1.04001771e-01],
+                                [3.19667170e-02, 9.15595543e-01, 1.00000000e+00]])
+
+            from dt_computer_vision.camera.homography import interpolate_homography
+
+            VIRTUAL_CAMERA_HEIGHT = 0.3
+
+            R2 = np.eye(3)
+            tvec2 = np.array([0, 0.0, VIRTUAL_CAMERA_HEIGHT]).reshape(3, 1)
+
+            self.camera.H =  interpolate_homography(self.homography, tvec2, R2, self.camera)
+
+            self.loginfo(f"Camera model initialized: {self.camera}")
+            self.projector = GroundProjector(self.camera)
+
 
         self._camera_info_initialized = True
 
     def cb_image(self, image_msg : CompressedImage):
+        if not self._camera_info_initialized:
+            rospy.logdebug("Cannot process image, camera info not initialized.")
+            return
+
         now = rospy.Time.now()
         if now - self.last_stamp < rospy.Duration.from_sec(1.0 / self.process_frequency.value):
             return
@@ -93,13 +115,27 @@ class OpticalFlowNode(DTROS):
         image = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
         delta_t = float(t_now - self.last_stamp.to_sec())
 
-        displacements_array, velocities_arr, locations, vis, debug_str = self.optical_flow.compute_motion_vectors(
-            image,
-            delta_t,
-            debug_viz_on=self.pub_debug_image.get_num_connections() > 0
+        image = self.camera.rectifier.rectify(image)
+        
+        # Compute the optical flow
+        displacements_array, motion_vectors, locations_px, debug_str = (
+            self.optical_flow.compute_motion_vectors(image, delta_t)
         )
 
-        if vis is not None:
+        projected_motion_vectors, projected_locations = self.optical_flow.project_motion_vectors(
+            motion_vectors, locations_px, self.camera, self.camera.H
+        )
+        
+        if self.pub_debug_image.get_num_connections() > 0:
+            projected_image = cv2.warpPerspective(image, self.camera.H, (self.camera.width, self.camera.height))
+            
+            vis = self.optical_flow.create_debug_visualization(
+                        projected_image,
+                        projected_locations,
+                        debug_str,
+                        1,
+                        motion_vectors=projected_motion_vectors,
+                    )
             self.pub_debug_image.publish(self.bridge.cv2_to_compressed_imgmsg(vis))
         
         if debug_str:
@@ -107,16 +143,12 @@ class OpticalFlowNode(DTROS):
 
         # TODO: publish the motion vectors, useful for debugging
         
-        # We need to compute the optical flow vector in the ground frame,
-        # so we need to project the optical flow vector to the ground
-        if not self._homography_to_ground_initialized:
-            rospy.logdebug("Cannot compute ground velocity vector, homography to ground not initialized.")
 
-            return
-
-        velocity = self.optical_flow.compute_velocity_vector(velocities_arr, locations, self.projector, self.camera)
+        velocity = self.optical_flow.compute_velocity_vector(projected_motion_vectors)
+        
+        # Remove one dimension in the array
         assert velocity.shape == (2,) , f"Velocity: {velocity}"
-        print(f"Computed velocity vector: {velocity}")
+        print(f"Computed velocity vector [px/s]: {velocity}")
 
         # Publish the optical flow vector as odometry
         odometry_msg = Odometry()
@@ -132,7 +164,7 @@ class OpticalFlowNode(DTROS):
         self.last_stamp = now
 
     def cb_new_range(self, msg : Range):
-        
+        return
         if self._camera_info_initialized:
             self._range = msg.range
             self._update_projector_homography(self._range)
@@ -141,23 +173,22 @@ class OpticalFlowNode(DTROS):
             rospy.logdebug("Received new range but cannot update projector homography, camera info not initialized.")
         
     def _update_projector_homography(self, range: float):
+        return
         # Modify the camera's homography to account for the height of the drone
         H_floor = np.linalg.inv(
-            self._H_inv
-            + range
+            range
             * np.array([[0, 0, self.camera.cx], [0, 0, self.camera.cy], [0, 0, 1]])
         )
 
         self.camera.H = H_floor
-        self.projector = GroundProjector(self.camera)
         
     ##########################
-    def load_homography(self) -> ResolutionIndependentHomography:
+    def load_homography(self) -> Union[Homography, None]:
         """
         Loads the homography matrix from the extrinsic calibration file.
 
         Returns:
-            :obj:`ResolutionIndependentHomography`: the loaded homography matrix
+            :obj:`Homography`: the loaded homography matrix
 
         """
         # load extrinsic calibration
@@ -178,8 +209,8 @@ class OpticalFlowNode(DTROS):
             rospy.signal_shutdown(msg)
 
         try:
-            Hindep: ResolutionIndependentHomography = HomographyToolkit.load_from_disk(cali_file)
-            return Hindep.reshape((3, 3))
+            H : Homography = HomographyToolkit.load_from_disk(cali_file, return_date=False) # type: ignore
+            return H.reshape((3, 3))
         except Exception as e:
             msg = f"Error in parsing calibration file {cali_file}:\n{e}"
             self.logerr(msg)
