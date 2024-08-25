@@ -1,23 +1,18 @@
-image_width: 240
-image_height: 320
-camera_name: /porsche911/rosberrypi_cam
 camera_matrix:
-  rows: 3
   cols: 3
   data:
-  - 154.58959977779696
-  - 0
-  - 110.33748015007073
-  - 0
-  - 154.9461701932946
-  - 161.14078959627585
-  - 0
-  - 0
-  - 1
-
-distortion_model: plumb_bob
+  - 309.1791995555939
+  - 0.0
+  - 220.67496030014146
+  - 0.0
+  - 309.8923403865892
+  - 322.2815791925517
+  - 0.0
+  - 0.0
+  - 1.0
+  rows: 3
+camera_name: dd24_480_640
 distortion_coefficients:
-  rows: 1
   cols: 5
   data:
   - -0.3543517592168695
@@ -25,33 +20,36 @@ distortion_coefficients:
   - 0.0019406748564795508
   - -0.0028917796204922853
   - -0.04067351040366832
-
-rectification_matrix:
-  rows: 3
-  cols: 3
-  data:
-  - 1
-  - 0
-  - 0
-  - 0
-  - 1
-  - 0
-  - 0
-  - 0
-  - 1
+  rows: 1
+distortion_model: plumb_bob
+image_height: 640
+image_width: 480
 projection_matrix:
-  rows: 3
   cols: 4
   data:
-  - 154.58959977779696
-  - 0
-  - 110.33748015007073
-  - 0
-  - 0
-  - 154.9461701932946
-  - 161.14078959627585
-  - 0
-  - 0
-  - 0
-  - 1
-  - 0
+  - 309.179199555594
+  - 0.0
+  - 220.67496030014152
+  - 0.0
+  - 0.0
+  - 309.8923403865892
+  - 322.2815791925517
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 1.0
+  rows: 3
+rectification_matrix:
+  cols: 3
+  data:
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+  rows: 3

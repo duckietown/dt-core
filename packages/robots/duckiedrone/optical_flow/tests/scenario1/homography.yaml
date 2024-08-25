@@ -1,14 +1,19 @@
-version: "2"
-format: "resolution-independent"
-date: "2021-01-01T12:00:00"
-homography: [
-  0.005453421128060058,
-  0.044599781197580186,
-  0.17557654548449209,
-  -0.07867737362730311,
-  0.0003581087851342888,
-  0.0020481805070481675,
-  0.02350974507608566,
-  0.8687761415465534,
-  1.0
-  ]
+
+# IMPORTANT: Do not use this homography directly with your images. The homography in this file is stored
+#            in a resolution-independent format. Use the proper APIs to read this file and extract a 
+#            resolution-dependent homography that is specific to your camera. 
+# ------------------------------------------------------------------------------------------------------
+
+version: '2'
+date: '2024-08-18T18:29:27.204792'
+homography:
+- - 0.076864957720595
+  - 0.04804079335448343
+  - 0.047973539918674216
+- - 0.0002359212384708009
+  - 0.19805101798373
+  - 0.10400177075273405
+- - 0.03196671701892474
+  - 0.915595543029602
+  - 1.0
+
