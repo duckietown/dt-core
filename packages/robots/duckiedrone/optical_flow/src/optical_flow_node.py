@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import os
-from typing import Union
+from typing import Optional, Union
 
 import cv2
 from dt_computer_vision.camera.homography import HomographyToolkit, Homography
-from dt_computer_vision.camera.types import CameraModel
+from dt_computer_vision.camera.types import CameraModel, Pixel, NormalizedImagePoint
 from dt_computer_vision.ground_projection.ground_projector import GroundProjector
+from dt_computer_vision.ground_projection.types import GroundPoint
+
 import numpy as np
 
 from dt_computer_vision.optical_flow.optical_flow import OpticalFlow
@@ -15,7 +17,7 @@ from cv_bridge import CvBridge
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage, Range, CameraInfo
-
+from dt_computer_vision.ground_projection.rendering import debug_image
 
 class OpticalFlowNode(DTROS):
     def __init__(self, node_name):
@@ -26,8 +28,7 @@ class OpticalFlowNode(DTROS):
         self.process_frequency = DTParam("~process_frequency", param_type=ParamType.INT)
         self.track_len = DTParam("~track_len", param_type=ParamType.INT)
         self.detect_interval = DTParam("~detect_interval", param_type=ParamType.INT)
-        self.base_homography_pixel_per_meter = DTParam("~base_homography_pixel_per_meter", param_type=ParamType.INT)
-        self.virtual_camera_height = DTParam("~virtual_camera_height", param_type=ParamType.FLOAT)
+        self.base_homography_height = DTParam("~base_homography_height", param_type=ParamType.FLOAT)
 
         self.resize_scale = DTParam(
             "~img_scale",
@@ -45,19 +46,17 @@ class OpticalFlowNode(DTROS):
         self.bridge = CvBridge()
         self.last_stamp = rospy.Time.now()
         
-        self.camera : CameraModel = None
+        self.camera : Optional[CameraModel] = None
         self._camera_info_initialized = False
-        self.homography: Homography = None
-        self.projector: GroundProjector = None
+        self.homography: Optional[Homography] = None
+        self.projector: Optional[GroundProjector] = None
 
         # optical flow setup
         self.optical_flow = OpticalFlow(
             self.track_len.value, self.detect_interval.value, self.resize_scale.value
         )
         self._range : float = 0.0
-
-        # TODO: these should be determined dynamically
-        self.h_cropped, self.w_cropped = 240, 320
+        self._scale : float = self._range / self.base_homography_height.value
 
         # Publishers
         self.pub_debug_image = rospy.Publisher("~debug/image/compressed", CompressedImage, queue_size=1)
@@ -83,16 +82,9 @@ class OpticalFlowNode(DTROS):
             )
             
             # TODO: remove this hardcoded homography, fix the homography loading
-            self.homography = Homography([[7.68649577e-02, 4.80407934e-02, 4.79735399e-02],
+            self.camera.H = Homography([[7.68649577e-02, 4.80407934e-02, 4.79735399e-02],
                                 [2.35921238e-04, 1.98051018e-01, 1.04001771e-01],
                                 [3.19667170e-02, 9.15595543e-01, 1.00000000e+00]])
-
-            from dt_computer_vision.camera.homography import interpolate_homography
-
-            R2 = np.eye(3)
-            tvec2 = np.array([0, 0.0, self.virtual_camera_height.value]).reshape(3, 1)
-
-            self.camera.H =  interpolate_homography(self.homography, tvec2, R2, self.camera)
 
             self.loginfo(f"Camera model initialized: {self.camera}")
             self.projector = GroundProjector(self.camera)
@@ -130,35 +122,45 @@ class OpticalFlowNode(DTROS):
             )
             self.pub_debug_image.publish(self.bridge.cv2_to_compressed_imgmsg(vis))
 
-        projected_motion_vectors, projected_locations = self.optical_flow.project_motion_vectors(
-            motion_vectors, locations_px, self.camera, self.camera.H
-        )
-        
-        if self.pub_debug_projected_image.get_num_connections() > 0:
-            projected_image = cv2.warpPerspective(image, self.camera.H, (self.camera.width, self.camera.height))
+####################### TODO: Separate projection from Optical Flow node to Ground Projection node
+
+        colored_segments = {(255, 255, 255): []}
+
+        for loc, mo_vec in zip(locations_px, motion_vectors):
+            # distorted pixels
+            p0: Pixel = loc * self.resize_scale.value
+            p1: Pixel = (loc + mo_vec) * self.resize_scale.value
             
-            vis = self.optical_flow.create_debug_visualization(
-                        projected_image,
-                        projected_locations,
-                        debug_str,
-                        motion_vectors=projected_motion_vectors,
-                    )
-            self.pub_debug_projected_image.publish(self.bridge.cv2_to_compressed_imgmsg(vis))
+            # rectified pixel to normalized coordinates
+            p0_norm: NormalizedImagePoint = self.camera.pixel2vector(p0)
+            p1_norm: NormalizedImagePoint = self.camera.pixel2vector(p1)
+
+            #print(p0_norm)
+            # project image point onto the ground plane
+            p0_ground: GroundPoint = self.projector.vector2ground(p0_norm)
+            p1_ground: GroundPoint = self.projector.vector2ground(p1_norm)
+            
+            
+            # add grounded segment to output
+            colored_segments[(255, 255, 255)].append((p0_ground, p1_ground))
+
+        if self.pub_debug_projected_image.get_num_connections() > 0:
+            image_w_projected_segments = debug_image(colored_segments, (300, 300), grid_size=2, s_segment_thickness=2, resolution=0.1,start_y = 0.2)
+            image_w_projected_segments = cv2.cvtColor(image_w_projected_segments, cv2.COLOR_BGR2RGB)
+            self.pub_debug_projected_image.publish(
+                self.bridge.cv2_to_compressed_imgmsg(image_w_projected_segments)
+                )
+#######################
+
 
         if debug_str:
             rospy.logdebug(debug_str)
 
-        # TODO: publish the motion vectors, useful for debugging
-        
+        velocity = self.optical_flow.compute_velocity_vector(motion_vectors) * self._scale
 
-        velocity = self.optical_flow.compute_velocity_vector(projected_motion_vectors)
-        
-        # TODO: is this the correct way to handle the velocity vector?
-        if velocity.shape == (2,1):
-            velocity = velocity.squeeze()
-        else:
-            velocity = np.array([0, 0])
-        
+        # Rotate the velocity vector 90 degrees clockwise to match the odometry frame
+        velocity = np.array([velocity[1], velocity[0]])
+
         # Remove one dimension in the array
         assert velocity.shape == (2,) , f"Velocity: {velocity}"
         self.logdebug(f"Computed velocity vector [px/s]: {velocity}")
@@ -169,31 +171,16 @@ class OpticalFlowNode(DTROS):
 
         # TODO: change this to the correct frame
         odometry_msg.child_frame_id = "base_link"
-        odometry_msg.twist.twist.linear.x = velocity[0] / self.base_homography_pixel_per_meter.value
-        odometry_msg.twist.twist.linear.y = velocity[1] / self.base_homography_pixel_per_meter.value 
+        odometry_msg.twist.twist.linear.x = velocity[0]
+        odometry_msg.twist.twist.linear.y = velocity[1] 
 
         self.pub_odometry.publish(odometry_msg)
 
         self.last_stamp = now
 
     def cb_new_range(self, msg : Range):
-        return
-        if self._camera_info_initialized:
-            self._range = msg.range
-            self._update_projector_homography(self._range)
-            self._homography_to_ground_initialized = True
-        else:
-            rospy.logdebug("Received new range but cannot update projector homography, camera info not initialized.")
-        
-    def _update_projector_homography(self, range: float):
-        return
-        # Modify the camera's homography to account for the height of the drone
-        H_floor = np.linalg.inv(
-            range
-            * np.array([[0, 0, self.camera.cx], [0, 0, self.camera.cy], [0, 0, 1]])
-        )
-
-        self.camera.H = H_floor
+        self._range = msg.range
+        self._scale = self._range / self.base_homography_height.value
         
     ##########################
     def load_homography(self) -> Union[Homography, None]:
