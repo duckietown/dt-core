@@ -152,18 +152,19 @@ class OpticalFlowNode(DTROS):
                 )
 #######################
 
+        projected_motion_vectors = [p1-p0 for p0, p1 in colored_segments[(255, 255, 255)]]
 
         if debug_str:
             rospy.logdebug(debug_str)
 
-        velocity = self.optical_flow.compute_velocity_vector(motion_vectors) * self._scale
+        velocity = self.optical_flow.compute_velocity_vector(projected_motion_vectors) * self._scale
 
         # Rotate the velocity vector 90 degrees clockwise to match the odometry frame
         velocity = np.array([velocity[1], velocity[0]])
 
         # Remove one dimension in the array
         assert velocity.shape == (2,) , f"Velocity: {velocity}"
-        self.logdebug(f"Computed velocity vector [px/s]: {velocity}")
+        self.logdebug(f"Computed velocity vector [m/s]: {velocity}")
 
         # Publish the optical flow vector as odometry
         odometry_msg = Odometry()
