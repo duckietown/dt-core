@@ -1,0 +1,29 @@
+<launch>
+
+<arg name="veh"/>
+<arg name="input_image_topic" default="/$(arg veh)/camera_node/image"/>
+<arg name="output_image_topic" default="$(arg input_image_topic)_raw"/>
+
+    <!-- Raw image publisher -->
+    <node pkg="image_transport" type="republish" name="republish_node" output="screen" args="compressed in:=$(arg input_image_topic) raw out:=$(arg output_image_topic)">
+    </node>
+
+
+    <!-- Crop image -->
+    <node name="resized" pkg="nodelet" type="nodelet"
+        args="standalone image_proc/resize"
+        output="screen">
+
+        <!-- remap input topics -->
+        <remap from="image" to="$(arg output_image_topic)" />
+        <remap from="camera_info" to="/$(arg veh)/camera_node/camera_info" />
+    
+        <param name="scale_width" value="0.0625" />
+        <param name="scale_height" value="0.0625" />
+    </node>
+
+    <node pkg="opencv_apps" type="fback_flow" name="fback_flow_node">
+        <remap from="/camera/camera_info" to="/resized/camera_info" />
+        <remap from="/image" to="/resized/image" />
+    </node>
+</launch>

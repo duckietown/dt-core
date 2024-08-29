@@ -18,6 +18,7 @@ file
 # duckiedrone
 python3-scipy
 ros-noetic-tf-conversions
+ros-noetic-opencv-apps
 
 # OpenCV Dependencies
 pkg-config
