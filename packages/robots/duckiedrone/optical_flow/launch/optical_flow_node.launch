@@ -1,21 +1,26 @@
 <launch>
     <arg name="veh" doc="Name of vehicle. ex: megaman"/>
-	<arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
     <arg name="pkg_name" value="optical_flow"/>
     <arg name="node_name" default="optical_flow_node"/>
 
     <!-- PubSub -->
-    <remap from="optical_flow_node/image" to="camera_node/image/compressed" />
-    <remap from="optical_flow_node/camera_info" to="camera_node/camera_info" />
+    <!-- TODO: remap these topics -->
+    <remap from="optical_flow_node/motion_vectors" to="/fback_flow_node/flows" />
     <remap from="optical_flow_node/range" to="bottom_tof_driver_node/range" />
+    <remap from="optical_flow_node/projected_motion_vectors" to="ground_projection_node/lineseglist_out"/>
+    <remap from="optical_flow_node/lineseglist_out" to="ground_projection_node/lineseglist_in"/>
 
     <group ns="$(arg veh)">
         <!-- Node and param -->
         <node  name="optical_flow_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
             <!-- Params -->
-			<rosparam command="load" file="$(find optical_flow)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
-		</node>
-        <!-- PubSub -->
-<!--        <remap from="optical_flow_node/image" to="camera_node/image/compressed" />-->
+            <rosparam command="load" file="$(find optical_flow)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+        </node>
     </group>
+
+    <!-- Also start the motion vectors generator -->
+    <include file="$(find optical_flow)/launch/motion_vectors.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
 </launch>
