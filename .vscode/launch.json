@@ -27,6 +27,15 @@
             "arguments": [
                 "veh:=${env:VEHICLE_NAME}",
             ]
-        }
+        },
+        {
+            "name": "Fly Mux Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/fly_commands_mux/launch/fly_commands_mux_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
     ]
 }

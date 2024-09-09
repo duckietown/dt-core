@@ -5,7 +5,7 @@
     <arg name="node_name" default="fly_commands_mux_node"/>
 
     <group ns="$(arg veh)">
-        <remap from="fly_commands_mux_node/commands/output" to="flight_controller_node/commands" />
+        <remap from="fly_commands_mux_node/commands/output" to="/mavros/rc/override" />
 
         <!-- Node and param -->
         <node  name="fly_commands_mux_node" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">

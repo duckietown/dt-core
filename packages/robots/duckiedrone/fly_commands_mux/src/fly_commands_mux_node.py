@@ -2,6 +2,7 @@
 
 import rospy
 from duckietown_msgs.msg import DroneControl
+from mavros_msgs.msg import OverrideRCIn
 
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 
@@ -41,7 +42,7 @@ class FlyCommandsMuxNode(DTROS):
         rospy.Subscriber("~commands/autonomous", DroneControl, self.cb_autonomous, queue_size=1)
 
         # publishers
-        self.pub_cmds = rospy.Publisher("~commands/output", DroneControl, queue_size=1)
+        self.pub_cmds = rospy.Publisher("~commands/output", OverrideRCIn, queue_size=1)
 
         # timer
         self._timer = rospy.Timer(
@@ -72,12 +73,22 @@ class FlyCommandsMuxNode(DTROS):
                 # no valid input, do not publish
                 return
             else:  # only auto commands
-                self.pub_cmds.publish(self.autonomous_commands)
+                msg = OverrideRCIn()
+                msg.channels[0] = int(self.autonomous_commands.roll)
+                msg.channels[1] = int(self.autonomous_commands.pitch)
+                msg.channels[3] = int(self.autonomous_commands.yaw)
+                msg.channels[2] = int(self.autonomous_commands.throttle)
+                self.pub_cmds.publish(msg)
         else:
             if self.autonomous_commands is None:
-                self.pub_cmds.publish(self.manual_commands)
+                msg = OverrideRCIn()
+                msg.channels[0] = int(self.manual_commands.roll)
+                msg.channels[1] = int(self.manual_commands.pitch)
+                msg.channels[3] = int(self.manual_commands.yaw)
+                msg.channels[2] = int(self.manual_commands.throttle)
+                self.pub_cmds.publish(msg)
             else:  # when both are valid
-                msg = DroneControl()
+                msg = OverrideRCIn()
                 self.logdebug((
                     "Masks (r p y t): "
                     f"{self.r_override.value} "
@@ -85,14 +96,14 @@ class FlyCommandsMuxNode(DTROS):
                     f"{self.y_override.value} "
                     f"{self.t_override.value}"
                 ))
-                msg.roll = self.manual_commands.roll if self.r_override.value \
-                    else self.autonomous_commands.roll
-                msg.pitch = self.manual_commands.pitch if self.p_override.value \
-                    else self.autonomous_commands.pitch
-                msg.yaw = self.manual_commands.yaw if self.y_override.value \
-                    else self.autonomous_commands.yaw
-                msg.throttle = self.manual_commands.throttle if self.t_override.value \
-                    else self.autonomous_commands.throttle
+                msg.channels[0] = int(self.manual_commands.roll) if self.r_override.value \
+                    else int(self.autonomous_commands).roll
+                msg.channels[1] = int(self.manual_commands.pitch) if self.p_override.value \
+                    else int(self.autonomous_commands).pitch
+                msg.channels[3] = int(self.manual_commands.yaw) if self.y_override.value \
+                    else int(self.autonomous_commands).yaw
+                msg.channels[2] = int(self.manual_commands.throttle) if self.t_override.value \
+                    else int(self.autonomous_commands).throttle
                 self.pub_cmds.publish(msg)
 
 

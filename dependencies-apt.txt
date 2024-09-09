@@ -19,6 +19,7 @@ file
 python3-scipy
 ros-noetic-tf-conversions
 ros-noetic-opencv-apps
+ros-noetic-mavros-msgs
 
 # OpenCV Dependencies
 pkg-config
