@@ -29,6 +29,15 @@
             ]
         },
         {
+            "name": "State Estimator Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/state_estimator/launch/state_estimator_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
+        {
             "name": "Fly Mux Node",
             "type": "ros",
             "request": "launch",
