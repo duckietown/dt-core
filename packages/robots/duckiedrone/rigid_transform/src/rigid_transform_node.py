@@ -6,7 +6,8 @@ import tf
 import cv2
 import rospy
 import numpy as np
-from std_msgs.msg import Empty, Bool
+from std_msgs.msg import Bool
+from std_srvs.srv import SetBool, Trigger, SetBoolRequest, SetBoolResponse, TriggerRequest, TriggerResponse
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage
@@ -66,9 +67,8 @@ class RigidTransformNode(DTROS):
         # Subscribers
         self._isub = rospy.Subscriber("~image/compressed", CompressedImage, self.image_callback, queue_size=1)
 
-        # TODO: these should be services
-        self._rtsub = rospy.Subscriber("~reset_transform", Empty, self.reset_callback, queue_size=1)
-        self._pcsub = rospy.Subscriber("~position_control", Bool, self.position_control_callback, queue_size=1)
+        self._reset_transform_srv = rospy.Service("~reset_transform", Trigger, self.reset_callback)
+        self._pcsub = rospy.Service("~position_control", SetBool, self.position_control_callback)
         
         # TODO: the _sub_alt should not take the range from the ToF sensor but from the state
         # In here we use two different sources of altitude information (which is not ideal), we should
@@ -231,9 +231,7 @@ class RigidTransformNode(DTROS):
 
         return translation_x_y, yaw
 
-    # subscribe ~reset_transform
-    # TODO: this should really be a service
-    def reset_callback(self, _):
+    def reset_callback(self, req : TriggerRequest):
         """ Reset the current position and orientation """
         self.loginfo("Resetting Pose")
 
@@ -250,13 +248,19 @@ class RigidTransformNode(DTROS):
 
         self._lostpub.publish(False)
         self.loginfo("Pose reset complete")
+        return TriggerResponse(success=True, message="Pose reset complete")
 
-    # subscribe /pidrone/position_control
-    # TODO: this should really be a service
-    def position_control_callback(self, msg : Bool):
+    def position_control_callback(self, msg : SetBoolRequest):
         ''' Set whether the pose is calculated and published '''
         self.position_control = msg.data
         self.loginfo(f"Position Control {self.position_control}")
+        
+        if msg.data is True:
+            reply_message = "Position control enabled"
+        else:
+            reply_message = "Position control disabled"
+
+        return SetBoolResponse(success=True, message=reply_message)
 
     def state_callback(self, msg : Odometry):
         """
