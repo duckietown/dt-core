@@ -210,13 +210,17 @@ class RigidTransformNode(DTROS):
     # normalize image
     def translation_and_yaw(self, transform: np.ndarray):
         #######################################
-        # TODO: we are using a hardcoded value of 320 and 240, we should use the actual image size retrieved from the `camera_info` topic
+        # TODO: we are using a hardcoded value of 640 and 480, we should use the actual image size retrieved from the `camera_info` topic
         # also the image is now rotated so the x and y are swapped
         # BASICALLY figure out what this thing is doing and adapt it to the new camera setup (or rather make it camera agnostic)
         #######################################
+        
+        tx = float(transform[0, 2])
+        ty = float(transform[1, 2])
+        
         translation_x_y = [
-            0 - float(transform[0, 2]) / 480,
-            float(transform[1, 2]) / 640,
+            ty / 640,
+            tx / 480,
         ]
 
         # yaw jumps can be up to ~ 20 deg
