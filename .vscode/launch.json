@@ -37,5 +37,15 @@
                 "veh:=${env:VEHICLE_NAME}",
             ]
         },
+        {
+            "name": "Rigid Transform Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/rigid_transform/launch/rigid_transfrom_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ],
+            "env": {"DEBUG": "1"}
+        },
     ]
 }
