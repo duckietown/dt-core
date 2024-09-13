@@ -47,5 +47,14 @@
             ],
             "env": {"DEBUG": "1"}
         },
+        {
+            "name": "DD24 Velocity Estimation Stack",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/duckiedrone_computer_vision/launch/computer_vision.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
     ]
 }
