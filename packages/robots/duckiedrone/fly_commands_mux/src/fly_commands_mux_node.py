@@ -74,7 +74,6 @@ class FlyCommandsMuxNode(DTROS):
                 return
             else:  # only auto commands
                 msg = OverrideRCIn()
-                msg.channels = [OverrideRCIn.CHAN_NOCHANGE] * len(OverrideRCIn.channels)
                 msg.channels[0] = int(self.autonomous_commands.roll)
                 msg.channels[1] = int(self.autonomous_commands.pitch)
                 msg.channels[3] = int(self.autonomous_commands.yaw)
@@ -83,7 +82,6 @@ class FlyCommandsMuxNode(DTROS):
         else:
             if self.autonomous_commands is None:
                 msg = OverrideRCIn()
-                msg.channels = [OverrideRCIn.CHAN_NOCHANGE] * len(OverrideRCIn.channels)
                 msg.channels[0] = int(self.manual_commands.roll)
                 msg.channels[1] = int(self.manual_commands.pitch)
                 msg.channels[3] = int(self.manual_commands.yaw)
@@ -91,7 +89,6 @@ class FlyCommandsMuxNode(DTROS):
                 self.pub_cmds.publish(msg)
             else:  # when both are valid
                 msg = OverrideRCIn()
-                msg.channels = [OverrideRCIn.CHAN_NOCHANGE] * len(OverrideRCIn.channels)
                 self.logdebug((
                     "Masks (r p y t): "
                     f"{self.r_override.value} "
