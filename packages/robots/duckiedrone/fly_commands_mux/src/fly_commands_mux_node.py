@@ -16,7 +16,7 @@ class FlyCommandsMuxNode(DTROS):
          - ~commands/autonomous (duckietown_msgs/DroneControl): Autonomous control commands.
          
     Publishers:
-        - ~commands/output (duckietown_msgs/DroneControl): Muxed control commands.
+        - ~commands/output (mavros_msgs/OverrideRCIn): Muxed control commands.
     """
     def __init__(self, node_name):
         # Initialize the DTROS parent class
