@@ -3,8 +3,8 @@ PyQt5==5.14.1
 image-geometry==1.16.2
 joblib==0.14.0
 junit-xml==1.9
-opencv-python-headless==4.10.0.82
-opencv-python==4.10.0.82
+opencv-python-headless==4.9.0.80
+opencv-python==4.9.0.80
 pycairo==1.16.2
 pydot==1.4.1
 python-qt-binding==0.4.4
