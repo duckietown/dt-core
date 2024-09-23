@@ -35,7 +35,7 @@ class OpticalFlowNode(DTROS):
 
         # TODO: make sure this parameter gets loaded at the right time
         # Retrieve the resize scale from the ROS parameter service
-        self.resize_scale = rospy.get_param("/resized/scale_width")
+        self.resize_scale = 0.0625 #rospy.get_param("~resized/scale_width")
 
         # obj attrs
         self.bridge = CvBridge()
@@ -129,10 +129,9 @@ class OpticalFlowNode(DTROS):
             rospy.logwarn_throttle(period=1, msg="Empty motion vectors array received.")
             return
 
-        if self.motion_vectors is None:
-            num_motion_vectors = len(msg.segments)
-            self.motion_vectors = np.zeros((2, num_motion_vectors))
-            self.locations_px = np.zeros((2, num_motion_vectors))
+        num_motion_vectors = len(msg.segments)
+        self.motion_vectors = np.zeros((2, num_motion_vectors))
+        self.locations_px = np.zeros((2, num_motion_vectors))
 
         for i, flow in enumerate(msg.segments):
             flow: Segment
