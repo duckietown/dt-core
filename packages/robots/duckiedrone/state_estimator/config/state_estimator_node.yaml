@@ -1,10 +1,10 @@
 # Configuration for the StateEstimatorNode
 
 # Primary state estimation method
-primary: 'ema'  # Default: 'ukf7d'
-# Choices: ['ema', 'ukf2d', 'ukf7d', 'ukf12d', 'mocap', 'simulator']
+primary: 'ukf7d'  # Default: 'ukf7d'
+# Choices: ['ema', 'ukf2d', 'ukf7d', 'ukf12d']
 
-# Other state estimation methods to run alongside the primary one
+# Other state estimation methods to run alongside the primary one (DEPRECATED, DO NOT USE)
 others: 
   - 'ema'
   - 'mocap'
