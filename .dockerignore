@@ -9,6 +9,7 @@
 !launchers
 !scripts
 !fake-opencv-info
+!tests
 
 # YOUR FILES LISTED BELOW THIS LINE (IMPORTANT: PREPEND !)
 # ----------------------------------------------------------------------------

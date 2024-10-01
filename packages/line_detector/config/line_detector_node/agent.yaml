@@ -1,4 +1,4 @@
-img_size: [120,160]
+scale: 0.25
 top_cutoff: 40
 
 colors:

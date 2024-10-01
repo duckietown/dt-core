@@ -5,7 +5,8 @@
 
 	<group ns="$(arg veh)">
 	    <node pkg="line_detector" type="line_detector_node.py"  name="$(arg node_name)" output="screen" required="true">
-			<rosparam command="load" file="$(find line_detector)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+			<param name="veh" value="$(arg veh)" />
+			<rosparam command="load" file="$(find line_detector)/config/$(arg node_name)/$(arg param_file_name).yaml" />
 		</node>
 	</group>
 

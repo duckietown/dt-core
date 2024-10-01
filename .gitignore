@@ -3,9 +3,10 @@ docs/build
 
 # documentation artifacts
 html/*
-!html/HTML_DOCS_WILL_BE_GENERATED_HEREout
-*.bak
-out
+!html/HTML_DOCS_WILL_BE_GENERATED_HERE
 
 # otherwise CI thinks index not clean
 *.resolved
+
+# IDE specific files
+**/.idea

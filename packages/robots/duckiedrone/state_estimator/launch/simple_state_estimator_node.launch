@@ -1,0 +1,12 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex megaman"/>
+
+    <arg name="pkg_name" value="state_estimator"/>
+    <arg name="node_name" value="state_estimator_node"/>
+    <arg name="node_flavor" value="simple"/>
+
+    <group ns="$(arg veh)">
+        <remap from="$(arg node_name)/altitude" to="altitude_node/altitude" />
+        <node pkg="$(arg pkg_name)" type="$(arg node_flavor)_$(arg node_name).py" name="$(arg node_name)" output="screen" />
+    </group>
+</launch>

@@ -14,3 +14,7 @@ ffmpeg
 
 # needed by cmake when installed via pip
 file
+
+# duckiedrone
+python3-scipy
+ros-noetic-tf-conversions
