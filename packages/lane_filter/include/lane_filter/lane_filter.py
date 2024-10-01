@@ -14,7 +14,7 @@ from .visualization import plot_phi_d_diagram_bgr
 __all__ = ["LaneFilterHistogram"]
 
 
-class LaneFilterHistogram(LaneFilterInterface):
+class LaneFilterHistogram():
     """Generates an estimate of the lane pose.
 
 
@@ -44,7 +44,6 @@ class LaneFilterHistogram(LaneFilterInterface):
     d_min: float
     phi_max: float
     phi_min: float
-    cov_v: float
     linewidth_white: float
     linewidth_yellow: float
     lanewidth: float
@@ -55,7 +54,11 @@ class LaneFilterHistogram(LaneFilterInterface):
     range_est: float
     range_max: float
 
-    def __init__(self, **kwargs):
+    def __init__(self, encoder_resolution, wheel_baseline, wheel_radius, **kwargs):
+        self.encoder_resolution = encoder_resolution
+        self.wheel_baseline = wheel_baseline
+        self.wheel_radius = wheel_radius
+
         param_names = [
             "mean_d_0", # the initial mean lateral offset (probably 0)
             "mean_phi_0", # the initial mean angular offset (probably 0)
@@ -105,15 +108,16 @@ class LaneFilterHistogram(LaneFilterInterface):
         self.filtered_segments = []
         self.initialized = False
 
-        self.initialize()
+        self.initialize_belief()
 
-    def initialize(self):
+    def initialize_belief(self):
         pos = np.empty(self.d.shape + (2,))
         pos[:, :, 0] = self.d
         pos[:, :, 1] = self.phi
         RV = multivariate_normal(self.mean_0, self.cov_0)
-
         self.belief = RV.pdf(pos)
+        self.belief = self.belief/np.sum(self.belief)
+
         self.initialized = True
 
     def getStatus(self):
@@ -127,14 +131,22 @@ class LaneFilterHistogram(LaneFilterInterface):
     def predict(self, left_encoder_ticks, right_encoder_ticks):
         if not self.initialized:
             return
+        print(f"doing predict with left encoder ticks {left_encoder_ticks}"
+              f"and right encoder ticks {right_encoder_ticks}")
         # Calculate v and w from ticks using kinematics
         R = self.wheel_radius
         alpha = 2 * np.pi / self.encoder_resolution
         d_left = R * alpha * left_encoder_ticks 
         d_right = R * alpha * right_encoder_ticks
+        print(f"calculated d_left {d_left} and d_right {d_right}")
         d_A = (d_left + d_right) / 2
-        w = (d_right - d_left) / self.wheel_baseline 
-        v = d_A * np.sin(w + self.phi)
+        print(f"calculated d_A {d_A}")
+        w = (d_right - d_left) / self.wheel_baseline
+        print(f"calculated w {w}")
+        [d_t, phi_t] = self.getEstimate()
+        print(f"current estimate d_t {d_t} and phi_t {phi_t}")
+        v = d_A * np.sin(w + phi_t)
+        print(f"calculated v of {v}")
 
         # Propagate each centroid forward using the kinematic function
         d_t = self.d + v 
@@ -165,7 +177,11 @@ class LaneFilterHistogram(LaneFilterInterface):
 
         if np.sum(s_belief) == 0:
             return
+        print(f"sum of s_belief {np.sum(s_belief)}")
+        print(f"sum of self.belief before {np.sum(self.belief)}")
+
         self.belief = s_belief / np.sum(s_belief)
+        print(f"sum of self.belief after {np.sum(self.belief)}")
 
     # prepare the segments for the creation of the belief arrays
     def prepareSegments(self, segments):

@@ -1,0 +1,32 @@
+# LIST YOUR MOCKED PYTHON3 PACKAGES HERE
+# NOTE: Mocked packages are not installed, but are available in the environment. Usually installed via APT.
+
+image-geometry==1.16.2
+python-qt-binding==0.4.4
+qt-dotgraph==0.4.2
+qt-gui-cpp==0.4.2
+qt-gui-py-common==0.4.2
+qt-gui==0.4.2
+rqt-console==0.4.12
+rqt-image-view==0.4.17
+rqt-logger-level==0.4.12
+rqt-reconfigure==0.5.5
+rqt_action==0.4.9
+rqt_bag==0.5.1
+rqt_bag_plugins==0.5.1
+rqt_dep==0.4.12
+rqt_graph==0.4.14
+rqt_gui==0.5.3
+rqt_gui_py==0.5.3
+rqt_launch==0.4.9
+rqt_msg==0.4.10
+rqt_plot==0.4.13
+rqt_publisher==0.4.10
+rqt_py_common==0.5.3
+rqt_py_console==0.4.10
+rqt_service_caller==0.4.10
+rqt_shell==0.4.11
+rqt_srv==0.4.9
+rqt_top==0.4.10
+rqt_topic==0.4.13
+rqt_web==0.4.10
