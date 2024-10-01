@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-import json
 
 # USES THE NEW WHEEL ENCODERS DATA
 
-import json
-import os
 import numpy as np
-
 import rospy
 from cv_bridge import CvBridge
+
+from dt_state_estimation.lane_filter.types import (
+    Segment,
+    SegmentPoint,
+    SegmentColor,
+)
 from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown_msgs.msg import FSMState, LanePose, SegmentList, Twist2DStamped, BoolStamped, WheelEncoderStamped, EpisodeStart
-from lane_filter import LaneFilterHistogram
+from duckietown_msgs.msg import LanePose, SegmentList, WheelEncoderStamped, EpisodeStart
+from duckietown_msgs.msg import Segment as SegmentMsg
 from sensor_msgs.msg import Image
-from std_msgs.msg import String
+
+from lane_filter import LaneFilterHistogram
 
 
 class LaneFilterNode(DTROS):
@@ -38,7 +41,10 @@ class LaneFilterNode(DTROS):
 
     Publishers:
         ~lane_pose (:obj:`LanePose`): The computed lane pose estimate
-        ~belief_img (:obj:`Image`): A debug image that shows the filter's internal state
+        ~debug/belief_img/compressed (:obj:`CompressedImage`): A debug image that shows the filter's internal state
+        ~seglist_filtered (:obj:``SegmentList): a debug topic to send the filtered list of segments that
+        are considered as valid
+
     """
 
     filter: LaneFilterHistogram
@@ -109,7 +115,13 @@ class LaneFilterNode(DTROS):
             "~lane_pose", LanePose, queue_size=1, dt_topic_type=TopicType.PERCEPTION
         )
 
+        # NEW DEBUG RENDERING: to be enabled, also replaces the one below
+        # self.pub_belief_img = rospy.Publisher(
+        #     "~debug/belief_img/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
+        # )
+
         self.pub_belief_img = rospy.Publisher(
+            # TODO: this should be a CompressedImage instead
             "~belief_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
@@ -122,6 +134,24 @@ class LaneFilterNode(DTROS):
     def cbEpisodeStart(self, msg):
         rospy.loginfo("Lane Filter Resetting")
         self.filter.initialize_belief()
+
+    @staticmethod
+    def _seg_msg_to_custom_type(msg: SegmentMsg):
+        color: SegmentColor = SegmentColor.WHITE
+        if msg.color == SegmentMsg.YELLOW:
+            color = SegmentColor.YELLOW
+        elif msg.color == SegmentMsg.RED:
+            color = SegmentColor.RED
+
+        p1, p2 = msg.points
+
+        return Segment(
+            color=color,
+            points=[
+                SegmentPoint(x=p1.x, y=p1.y),
+                SegmentPoint(x=p2.x, y=p2.y),
+            ],
+        )
 
     def cbProcessLeftEncoder(self, left_encoder_msg):
         # we need to account for the possibility that the encoder is not reading
@@ -184,7 +214,6 @@ class LaneFilterNode(DTROS):
         self.pub_lane_pose.publish(lanePose)
         if self._debug:
             self.debugOutput()
-    
     def debugOutput(self):
         """Creates and publishes debug messages
 
@@ -194,7 +223,18 @@ class LaneFilterNode(DTROS):
             belief_img = self.bridge.cv2_to_imgmsg(
                 np.array(255 * self.filter.belief).astype("uint8"), "mono8"
             )
+            #belief_img.header.stamp = segment_list_msg.header.stamp # FIXME: REPLACE WITH ENCODER TIMESTAMPS MAYBE
             self.pub_belief_img.publish(belief_img)
+
+
+            # NEW RENDERING: to be enabled
+            # if self.pub_belief_img.get_num_connections() > 0:
+            #     debug_img_msg = self.bridge.cv2_to_compressed_imgmsg(plot_d_phi(d=d_max, phi=phi_max))
+            #     debug_img_msg.header = segment_list_msg.header
+            #     self.pub_belief_img.publish(debug_img_msg)
+
+            #FIXME: USE THE Visualization of the lane filter
+            #self.filter.get_plot_phi_d()
 
     def loginfo(self, s):
         rospy.loginfo("[%s] %s" % (self.node_name, s))

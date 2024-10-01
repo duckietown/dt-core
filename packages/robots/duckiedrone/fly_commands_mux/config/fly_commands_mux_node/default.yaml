@@ -1,0 +1,6 @@
+publish_frequency: 50
+roll_override: True
+pitch_override: True
+yaw_override: True
+throttle_override: True
+command_ttl: 0.5

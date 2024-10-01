@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <!-- start args TODO: most things here should come from node's config files!-->
-        <arg name="veh" default="$(env VEHICLE_NAME)"
+	<!-- start args TODO: most things here should come from node's config files!-->
+	<arg name="veh" default="$(env VEHICLE_NAME)"
          doc="The name of the robot (e.g., autobot01, watchtower02, ...)"/>
-        <arg name="robot_type" default="$(env ROBOT_TYPE)"
+    <arg name="robot_type" default="$(env ROBOT_TYPE)"
          doc="The type of the robot (e.g., duckiebot, watchtower, traffic_light, ...)"/>
-        <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
+    <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
          doc="The configuration of the robot (e.g., DB19, DB20, WT18, ...)"/>
-        <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+    <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -49,6 +49,9 @@
     <arg name="/vehicle_avoidance/filter" default="false" />
     <arg name="/vehicle_avoidance/control" default="false"/>
 
+    <arg name="obstacle_detection" default="false"/>
+    <arg name="/obstacle_detection/detection" default="false"/>
+
     <arg name="apriltags" default="false"/>
 
     <arg name="LED" default="false" />
@@ -83,8 +86,8 @@
 
     <!-- Image Decoding -->
     <group if="$(arg /camera/raw)">
-        <remap from="decoder_node/image_in" to="camera_node/image/compressed"/>
-        <remap from="decoder_node/image_out" to="camera_node/image/raw"/>
+        <remap from="decoder_node/image_in" to="$(arg camera_topic)/image/compressed"/>
+        <remap from="decoder_node/image_out" to="$(arg camera_topic)/image/raw"/>
         <include file="$(find image_processing)/launch/image_decoding.launch">
             <arg name="veh" value="$(arg veh)"/>
             <arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -94,8 +97,8 @@
 
     <!-- Image Rectification -->
     <group if="$(arg /camera/rect)">
-        <remap from="rectifier_node/image_in" to="camera_node/image/compressed"/>
-        <remap from="rectifier_node/camera_info_in" to="camera_node/camera_info"/>
+        <remap from="rectifier_node/image_in" to="$(arg camera_topic)/image/compressed"/>
+        <remap from="rectifier_node/camera_info_in" to="$(arg camera_topic)/camera_info"/>
         <include file="$(find image_processing)/launch/image_rectification.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>
@@ -136,8 +139,9 @@
 
         <!-- Line Detector -->
         <group if="$(arg /lane_following/line_detection)">
-            <remap from="line_detector_node/thresholds" to="anti_instagram_node/thresholds"/>
-            <remap from="line_detector_node/image/compressed" to="camera_node/image/compressed"/>
+            <remap from="~thresholds" to="anti_instagram_node/thresholds"/>
+            <remap from="~camera_info" to="$(arg camera_topic)/camera_info"/>
+            <remap from="~image/compressed" to="$(arg camera_topic)/image/compressed"/>
             <include file="$(find line_detector)/launch/line_detector_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
@@ -211,13 +215,13 @@
         </group>
 
     </group>
-    <!-- End Lane Control -->    
+    <!-- End Lane Control -->
 
     <!-- Start Vehicle Avoidance -->
     <group if="$(arg vehicle_avoidance)">
 
         <!-- Vehicle Avoidance Detection Node -->
-        <remap from="vehicle_detection_node/image" to="camera_node/image/compressed" />
+        <remap from="vehicle_detection_node/image" to="$(arg camera_topic)/image/compressed" />
         <remap from="vehicle_detection_node/detection" to="road_anomaly_watcher/obstacle_exists" />
         <group if="$(arg /vehicle_avoidance/detection)">
             <include file="$(find vehicle_detection)/launch/vehicle_detection_node.launch">
@@ -228,7 +232,7 @@
         <!-- Vehicle Avoidance Filter Node -->
         <remap from="vehicle_filter_node/mode" to="fsm_node/mode" />
         <remap from="vehicle_filter_node/set_pattern" to="led_emitter_node/set_pattern"/>
-        <remap from="vehicle_filter_node/camera_info" to="camera_node/camera_info" />
+        <remap from="vehicle_filter_node/camera_info" to="$(arg camera_topic)/camera_info" />
         <remap from="vehicle_filter_node/centers" to="vehicle_detection_node/centers" />
         <!-- Breaking convenction and remapping an output to make the virtual stop line readings look like
         real stop line readings -->
@@ -252,11 +256,33 @@
     </group>
     <!-- End Vehicle Avoidance -->
 
+    <!-- Start Obstacle Detection -->
+    <group if="$(arg obstacle_detection)">
+
+        <group if="$(arg /obstacle_detection/detection)">
+<!--            publish / set -->
+            <remap from="obstacle_detection_node/mode" to="fsm_node/mode" />
+            <remap from="obstacle_detection_node/virtual_stop_line" to="road_anomaly_watcher/obstacle_distance"/>
+            <remap from="obstacle_detection_node/stopped" to="road_anomaly_watcher/obstacle_halted_vehicle"/>
+            <remap from="obstacle_detection_node/set_custom_pattern" to="led_emitter_node/set_custom_pattern"/>
+<!--            pedestrian -->
+            <remap from="obstacle_detection_node/pedestrian_detection/detection" to="pedestrian_detection/detection"/>
+<!--            vehicle -->
+            <remap from="obstacle_detection_node/vehicle_detection/detection" to="road_anomaly_watcher/obstacle_exists"/>
+<!--            tof range -->
+            <remap from="obstacle_detection_node/front_center_tof/range" to="front_center_tof_driver_node/range"/>
+            <include file="$(find obstacle_detection)/launch/obstacle_detection_node.launch">
+                <arg name="veh" value="$(arg veh)"/>
+            </include>
+        </group>
+    </group>
+    <!-- End Obstacle Detection -->
+
     <!-- Start AprilTags -->
     <group if="$(arg apriltags)">
         <!-- Detector node -->
-        <remap from="apriltag_detector_node/image" to="camera_node/image/compressed" />
-        <remap from="apriltag_detector_node/camera_info" to="camera_node/camera_info" />
+        <remap from="apriltag_detector_node/image" to="$(arg camera_topic)/image/compressed" />
+        <remap from="apriltag_detector_node/camera_info" to="$(arg camera_topic)/camera_info" />
         <include file="$(find apriltag)/launch/apriltag_detector_node.launch">
             <arg name="veh" value="$(arg veh)"/>
         </include>
@@ -298,7 +324,7 @@
     <group if="$(arg LED)">
         <!-- Detection -->
         <group if="$(arg /LED/detector)">
-            <remap from="led_detector_node/image/compressed" to="camera_node/image/compressed"/>
+            <remap from="led_detector_node/image/compressed" to="$(arg camera_topic)/image/compressed"/>
             <include file="$(find led_detection)/launch/led_detection.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg param_file_name)"/>
@@ -334,7 +360,7 @@
 
     <!-- End LEDs Detection -->
 
-   
+
     <!-- Start Communication (New intersection coorditation) -->
     <group if="$(arg communication)">
         <remap from="communication_node/image_in" to="camera_node/image/compressed"/>
@@ -346,7 +372,7 @@
         </include>
     </group>
     <!-- End Communication -->
-    
+
 
     <!-- Start Coordination -->
     <group if="$(arg coordination)">
@@ -414,7 +440,7 @@
 
     <!-- Start anti-instagram / LF, IN -->
     <group if="$(arg anti_instagram)">
-        <remap from="anti_instagram_node/uncorrected_image/compressed" to="camera_node/image/compressed"/>
+        <remap from="anti_instagram_node/uncorrected_image/compressed" to="$(arg camera_topic)/image/compressed"/>
         <!-- NOT LOADING PARAMS FROM A YAML FILE -->
         <include file="$(find anti_instagram)/launch/anti_instagram_node.launch">
             <arg name="veh" value="$(arg veh)"/>

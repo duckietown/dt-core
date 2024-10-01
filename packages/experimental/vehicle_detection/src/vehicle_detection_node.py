@@ -36,7 +36,8 @@ class VehicleDetectionNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(VehicleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(VehicleDetectionNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION,
+                                                   fsm_controlled=True)
 
         # Initialize the parameters
         self.process_frequency = DTParam("~process_frequency", param_type=ParamType.FLOAT)
@@ -91,11 +92,27 @@ class VehicleDetectionNode(DTROS):
         if now - self.last_stamp < self.publish_duration:
             return
         else:
-            self.last_stamp = now
+            # if img msg too old, discard
+            t_now = now.to_sec()
+            t_stamp = image_msg.header.stamp.to_sec()
+            if abs(t_now - t_stamp) > 0.3:
+                return
+            else:
+                self.last_stamp = now
 
         vehicle_centers_msg_out = VehicleCorners()
         detection_flag_msg_out = BoolStamped()
-        image_cv = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
+        image = self.bridge.compressed_imgmsg_to_cv2(image_msg, "bgr8")
+
+        # crop top 1.0 / 4
+        crop_ratio = 1.0 / 4
+        h_original = image.shape[0]
+        img_cropped = image[int(h_original * crop_ratio):, :, :]
+        # resize by 2.0 / 3
+        resize_scale = 2.0 / 3
+        h_cropped, w_cropped = img_cropped.shape[:2]
+        new_w_h = (int(resize_scale * w_cropped), int(resize_scale * h_cropped))
+        image_cv = cv2.resize(img_cropped, new_w_h, interpolation=cv2.INTER_NEAREST)
 
         (detection, centers) = cv2.findCirclesGrid(
             image_cv,
