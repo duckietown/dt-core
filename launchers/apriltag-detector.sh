@@ -9,12 +9,12 @@ dt-launchfile-init
 # ----------------------------------------------------------------------------
 
 
-# NOTE: Use the variable DT_REPO_PATH to know the absolute path to your code
+# NOTE: Use the variable DT_PROJECT_PATH to know the absolute path to your code
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-exec roslaunch --wait duckietown_demos apriltag_detector.launch
-
+dt-exec roslaunch apriltag apriltag_detector_node.launch veh:=$VEHICLE_NAME
+roslaunch apriltag apriltag_postprocessing_node.launch veh:=$VEHICLE_NAME
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

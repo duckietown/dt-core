@@ -3,6 +3,10 @@ from collections import namedtuple
 
 import duckietown_code_utils as dtu
 
+
+# TODO[ente-newdeal]: this has been moved to `dt_computer_vision.line_detector`
+
+
 FAMILY_LINE_DETECTOR = "line_detector"
 
 Detections = namedtuple("Detections", ["lines", "normals", "area", "centers"])

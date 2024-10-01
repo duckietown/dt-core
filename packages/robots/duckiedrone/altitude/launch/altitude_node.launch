@@ -1,0 +1,15 @@
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex megaman"/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+
+    <arg name="pkg_name" value="altitude"/>
+    <arg name="node_name" value="altitude_node"/>
+
+    <group ns="$(arg veh)">
+        <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output='screen'>
+            <remap from="~imu" to="flight_controller_node/imu"/>
+            <remap from="~tof" to="bottom_tof_driver_node/range"/>
+            <rosparam command="load" file="$(find altitude)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
+        </node>
+    </group>
+</launch>

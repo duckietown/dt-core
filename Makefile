@@ -100,8 +100,8 @@ test-cloud-logs: cloud-download
 
 
 
-tag=duckietown/dt-core:daffy-devel-AC-cleanup-amd64
-tagtest=duckietown/dt-core-test:daffy-devel-AC-cleanup-amd64
+tag=duckietown/dt-core:ente-devel-AC-cleanup-amd64
+tagtest=duckietown/dt-core-test:ente-devel-AC-cleanup-amd64
 
 shell:
 	docker run -it $(tag) bash

@@ -1,0 +1,8 @@
+name: "dt-core"
+maintainer:
+    name: "Andrea F. Daniele"
+    email: "afdaniele@duckietown.com"
+description: "Provides high-level autonomy and fleet-coordination capabilities"
+version: 4.1.4
+# pick an icon from: https://fontawesome.com/v4.7.0/icons/
+icon: diamond
