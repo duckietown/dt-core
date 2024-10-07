@@ -126,7 +126,7 @@ class PID:
                      i_range=(-400, 402),
                      control_range=(1200, 2000),
                      d_range=(-40, 40),
-                     midpoint=1250
+                     midpoint=1500
                  ),
                  throttle_low=PIDaxis(
                      1.0 / height_factor * battery_factor,
