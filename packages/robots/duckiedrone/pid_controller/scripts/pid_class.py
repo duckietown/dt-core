@@ -218,10 +218,6 @@ class PID:
             pid=self.throttle,
             trim_controller=self.trim_controller_cap_throttle
         )
-        # Print statements for the low and high i components
-        logging.logdebug("Roll  low, hi:", self.roll_low._i, self.roll._i)
-        logging.logdebug("Pitch low, hi:", self.pitch_low._i, self.pitch._i)
-        logging.logdebug("Throttle low, hi:", self.throttle_low._i, self.throttle._i)
         return [cmd_r, cmd_p, cmd_y, cmd_t]
 
     def compute_axis_command(self, error : float, time_elapsed : float, pid : PIDaxis, pid_low : PIDaxis, trim_controller : float):
