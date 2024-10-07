@@ -6,10 +6,12 @@ import rospy
 import sys
 import tf
 from duckietown_msgs.msg import DroneControl as RC
+from mavros_msgs.msg import State as FCUState
 from duckietown_msgs.msg import DroneMode as Mode
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty, Bool, Float32
+from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 
 from duckietown.dtros import DTROS, NodeType
 from pid_class import PID, PIDaxis
@@ -137,7 +139,7 @@ class PIDController(DTROS):
         )
 
         # subscribers
-        rospy.Subscriber("~mode", Mode, self.current_mode_callback, queue_size=1)
+        rospy.Subscriber("~mode", FCUState, self.current_mode_callback, queue_size=1)
         rospy.Subscriber("~state", Odometry, self.current_state_callback, queue_size=1)
         # TODO: refactor callbacks
         rospy.Subscriber("desired/pose", Pose, self.desired_pose_callback, queue_size=1)
@@ -148,9 +150,21 @@ class PIDController(DTROS):
         rospy.Subscriber("reset_transform", Empty, self.reset_callback, queue_size=1)
         rospy.Subscriber("position_control", Bool, self.position_control_callback, queue_size=1)
 
+        rospy.Service("~takeoff", SetBool, self.takeoff_srv)
+
         # publish internal desired pose (hover pose)
         self._desired_height_pub.publish(Float32(self.desired_position.z))
 
+    # ROS SERVICES CALLBACK METHODS
+    #################################
+    def takeoff_srv(self, req: SetBoolRequest):
+        """ Service to switch between flying and not flying """
+        if req.data:
+            self.current_mode = 2
+        else:
+            self.current_mode = 1
+        return SetBoolResponse(success=True, message="Mode set to %s" % self.current_mode)
+    
     # ROS SUBSCRIBER CALLBACK METHODS
     #################################
     def current_state_callback(self, state : Odometry):
@@ -203,10 +217,13 @@ class PIDController(DTROS):
         if self.path_planning:
             self.calculate_travel_time()
 
-    def current_mode_callback(self, msg):
+    def current_mode_callback(self, msg : FCUState):
         """ Update the current mode """
-        self.loginfo(f"Current mode set to: {msg.mode}")
-        self.current_mode = msg.mode
+        if msg.armed:
+            self.current_mode = 1
+        else:
+            self.current_mode = 0
+        self.loginfo(f"Current mode set to: {self.current_mode}")
 
     def position_control_callback(self, msg):
         """ Set whether or not position control is enabled """
@@ -380,12 +397,12 @@ class PIDController(DTROS):
         msg.throttle = cmd[3]
         self.cmd_pub.publish(msg)
 
-def main(controller_class : PIDController):
+def main(controller : PIDController):
     # Verbosity between 0 and 2, 2 is most verbose
     verbose = 2
 
     # create the PIDController object
-    pid : PIDController = controller_class()
+    pid : PIDController = controller
 
     # set the loop rate (Hz)
     loop_rate = rospy.Rate(pid.frequency)
@@ -467,7 +484,7 @@ def main(controller_class : PIDController):
         if verbose >= 1:
             error = pid.pid_error
             print(
-                "Errors:",
+                "Errors (mm):",
                 "\t Z: ", str(error.z)[:5],
                 "\t X ", str(error.x)[:5],
                 "\t Y ", str(error.y)[:5]
@@ -478,4 +495,4 @@ def main(controller_class : PIDController):
 
 
 if __name__ == '__main__':
-    main(PIDController)
+    main(PIDController())
