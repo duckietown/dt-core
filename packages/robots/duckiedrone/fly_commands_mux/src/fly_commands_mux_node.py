@@ -97,13 +97,13 @@ class FlyCommandsMuxNode(DTROS):
                     f"{self.t_override.value}"
                 ))
                 msg.channels[0] = int(self.manual_commands.roll) if self.r_override.value \
-                    else int(self.autonomous_commands).roll
+                    else int(self.autonomous_commands.roll)
                 msg.channels[1] = int(self.manual_commands.pitch) if self.p_override.value \
-                    else int(self.autonomous_commands).pitch
+                    else int(self.autonomous_commands.pitch)
                 msg.channels[3] = int(self.manual_commands.yaw) if self.y_override.value \
-                    else int(self.autonomous_commands).yaw
+                    else int(self.autonomous_commands.yaw)
                 msg.channels[2] = int(self.manual_commands.throttle) if self.t_override.value \
-                    else int(self.autonomous_commands).throttle
+                    else int(self.autonomous_commands.throttle)
                 self.pub_cmds.publish(msg)
 
 
