@@ -219,8 +219,10 @@ class PIDController(DTROS):
 
     def current_mode_callback(self, msg : FCUState):
         """ Update the current mode """
+        # DISARMED -> ARMED
         if msg.armed:
-            self.current_mode = 1
+            if self.current_mode == 0:
+                self.current_mode = 1
         else:
             self.current_mode = 0
         self.loginfo(f"Current mode set to: {self.current_mode}")
@@ -442,7 +444,9 @@ def main(controller : PIDController):
             if pid.current_mode == 2:  # 'FLYING'
                 # Safety check to ensure drone does not fly too high height_safety_here
                 if pid.current_state.pose.pose.position.z > pid.max_height:
-                    print("\n disarming because drone is too high \n")
+                    pid.loginfo("\n disarming because drone is too high \n")
+                    pid.previous_mode = 0
+                    pid.current_mode = 0
                     break
                 # Publish the ouput of pid step method
                 pid.publish_cmd(fly_command)
