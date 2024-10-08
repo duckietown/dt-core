@@ -200,7 +200,7 @@ class PIDController(DTROS):
         if self.desired_position != self.last_desired_position:
             # desired pose changed, the drone should move
             self.moving = True
-            print('moving')
+            rospy.loginfo('moving')
         # publish target height
         self._desired_height_pub.publish(self.desired_position.z)
 
@@ -212,7 +212,7 @@ class PIDController(DTROS):
         self.desired_yaw_velocity = msg.angular.z
         self.desired_velocity_start_time = None
         self.desired_yaw_velocity_start_time = None
-        # print("Desired_velocity", self.desired_velocity)
+        # rospy.loginfo(f"Desired_velocity {self.desired_velocity}")
         if self.path_planning:
             self.calculate_travel_time()
 
@@ -257,7 +257,7 @@ class PIDController(DTROS):
                         self.pid_error -= self.velocity_error * 100
                     else:
                         self.moving = False
-                        print('not moving')
+                        rospy.loginfo('not moving')
             else:
                 self.position_control_pub.publish(False)
 
@@ -407,7 +407,7 @@ def main(controller : PIDController):
 
     # set the loop rate (Hz)
     loop_rate = rospy.Rate(pid.frequency)
-    print('PID Controller Started')
+    rospy.loginfo('PID Controller Started')
 
     while not pid.is_shutdown:
         pid.heartbeat_pub.publish(Empty())
@@ -461,8 +461,8 @@ def main(controller : PIDController):
                 # Uncomment below statements to print the converged values.
                 # Make sure verbose = 0 so that you can see these values
                 if verbose >= 2:
-                    print('roll_low.init_i', pid.pid.roll_low.init_i)
-                    print('pitch_low.init_i', pid.pid.pitch_low.init_i)
+                    pid.logdebug(f'roll_low.init_i {pid.pid.roll_low.init_i}')
+                    pid.logdebug(f'pitch_low.init_i {pid.pid.pitch_low.init_i}')
                 # ---
                 pid.loginfo("Detected state change: FLYING -> DISARMED")
                 pid.previous_mode = pid.current_mode
@@ -472,27 +472,33 @@ def main(controller : PIDController):
         # - add pid output to the diagnostic topic
         if verbose >= 2:
             if pid.position_control:
-                print('current position:', pid.current_position)
-                print('desired position:', pid.desired_position)
-                print('position error:', pid.position_error)
-            else:
-                print('current velocity:', pid.current_velocity)
-                print('desired velocity:', pid.desired_velocity)
-                print('velocity error:  ', pid.velocity_error)
-            print('pid_error:       ', pid.pid_error)
-            print('r,p,y,t:', fly_command)
-            print('throttle_low._i', pid.pid.throttle_low.integral)
-            print('throttle._i', pid.pid.throttle.integral)
+                if pid.position_control:
+                    rospy.logdebug(
+                        f'current position: {pid.current_position}, '
+                        f'desired position: {pid.desired_position}, '
+                        f'position error: {pid.position_error}, '
+                        f'pid_error: {pid.pid_error}, '
+                        f'r,p,y,t: {fly_command}, '
+                        f'throttle._i: {pid.pid.throttle.integral}'
+                    )
+                else:
+                    rospy.logdebug(
+                        f'current velocity: {pid.current_velocity}, '
+                        f'desired velocity: {pid.desired_velocity}, '
+                        f'velocity error: {pid.velocity_error}, '
+                        f'pid_error: {pid.pid_error}, '
+                        f'r,p,y,t: {fly_command}, '
+                        f'throttle._i: {pid.pid.throttle.integral}'
+                    )
 
         if verbose >= 1:
             error = pid.pid_error
-            print(
+            rospy.logdebug(
                 "Errors (mm):",
                 "\t Z: ", str(error.z)[:5],
                 "\t X ", str(error.x)[:5],
                 "\t Y ", str(error.y)[:5]
             )
-            print("---------------------------------------")
         # ---
         loop_rate.sleep()
 
