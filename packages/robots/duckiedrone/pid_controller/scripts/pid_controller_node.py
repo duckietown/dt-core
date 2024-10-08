@@ -42,12 +42,11 @@ class PIDController(DTROS):
 
         # Initialize the current and desired positions
         self.current_position = Position()
-        # TODO: 0.5 is hovering height? hardcoded?
-        self.desired_position = Position(z=0.5)
-        self.last_desired_position = Position(z=0.5)
+        self.desired_position = Position(z=self.hover_height)
+        self.last_desired_position = self.desired_position
 
         # Initialize the position error
-        self.position_error = Error()
+        self.position_error = Error(0, 0, 0)
 
         # Initialize the current and desired velocities
         self.current_velocity = Velocity()
