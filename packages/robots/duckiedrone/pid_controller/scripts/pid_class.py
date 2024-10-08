@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Optional
 import rospy
 
 
@@ -49,7 +50,7 @@ class PIDaxis:
         self._dd = 0
         self._ddd = 0
 
-    def step(self, err, time_elapsed):
+    def step(self, err, time_elapsed) -> float:
         if self._old_err is None:
             # First time around prevent d term spike
             self._old_err = err
@@ -123,20 +124,11 @@ class PID:
                      1.0 / height_factor * battery_factor,
                      0.5 / height_factor * battery_factor,
                      2.0 / height_factor * battery_factor,
-                     i_range=(-400, 402),
-                     control_range=(1200, 2000),
-                     d_range=(-40, 40),
-                     midpoint=1500
-                 ),
-                 throttle_low=PIDaxis(
-                     1.0 / height_factor * battery_factor,
-                     0.05 / height_factor * battery_factor,
-                     2.0 / height_factor * battery_factor,
-                     i_range=(0, 401),
-                     control_range=(1200, 2000),
+                     i_range=(-400, 400),
+                     control_range=(1200, 1500),
                      d_range=(-40, 40),
                      midpoint=1250
-                 )
+                 ),
                  ):
         self.trim_controller_cap_plane = 0.05
         self.trim_controller_thresh_plane = 0.0001
@@ -153,7 +145,6 @@ class PID:
         self.trim_controller_thresh_throttle = 5.0
 
         self.throttle = throttle
-        self.throttle_low = throttle_low
 
         self._t = None
 
@@ -161,7 +152,6 @@ class PID:
         # TODO: these should be params
         self.roll_low.init_i = 0.31
         self.pitch_low.init_i = -1.05
-        self.throttle_low.init_i = 200
         self.reset()
 
     def reset(self):
@@ -175,7 +165,6 @@ class PID:
         self.pitch.reset()
         self.pitch_low.reset()
         self.throttle.reset()
-        self.throttle_low.reset()
 
     def step(self, error, cmd_yaw_velocity=0):
         """ Compute the control variables from the error using the step methods
@@ -214,13 +203,17 @@ class PID:
         cmd_t = self.compute_axis_command(
             error.z,
             time_elapsed,
-            pid_low=self.throttle_low,
+            pid_low=None,
             pid=self.throttle,
             trim_controller=self.trim_controller_cap_throttle
         )
         return [cmd_r, cmd_p, cmd_y, cmd_t]
 
-    def compute_axis_command(self, error : float, time_elapsed : float, pid : PIDaxis, pid_low : PIDaxis, trim_controller : float):
+    def compute_axis_command(self, error : float, time_elapsed : float, pid : PIDaxis, pid_low : Optional[PIDaxis] = None, trim_controller : float = 5):
+        if pid_low is None:
+            cmd_r = pid.step(error, time_elapsed)
+            return cmd_r
+
         if abs(error) < self.trim_controller_thresh_plane:
             # pass the high rate i term off to the low rate pid
             pid_low.integral += pid.integral
