@@ -7,7 +7,7 @@
 
     <group ns="$(arg veh)">
         <node pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output='screen'>
-            <remap from="~imu" to="flight_controller_node/imu"/>
+            <remap from="~imu" to="imu_node/data"/>
             <remap from="~tof" to="bottom_tof_driver_node/range"/>
             <rosparam command="load" file="$(find altitude)/config/$(arg node_name)/$(arg param_file_name).yaml"/>
         </node>
