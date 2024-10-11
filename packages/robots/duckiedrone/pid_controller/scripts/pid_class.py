@@ -51,6 +51,9 @@ class PIDaxis:
         self._ddd = 0
 
     def step(self, err, time_elapsed) -> float:
+        if time_elapsed == 0:
+            return 0
+
         if self._old_err is None:
             # First time around prevent d term spike
             self._old_err = err
@@ -121,13 +124,13 @@ class PID:
                  # 1.0, 0.5, 2.0
                  # 1.0, 0.05, 2.0
                  throttle=PIDaxis(
-                     1.0 / height_factor * battery_factor,
+                     5.0 / height_factor * battery_factor,
                      0.5 / height_factor * battery_factor,
-                     2.0 / height_factor * battery_factor,
+                     10.0 / height_factor * battery_factor,
                      i_range=(-400, 400),
                      control_range=(1200, 1500),
                      d_range=(-40, 40),
-                     midpoint=1250
+                     midpoint=1350
                  ),
                  ):
         self.trim_controller_cap_plane = 0.05
