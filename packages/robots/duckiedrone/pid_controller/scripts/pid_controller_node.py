@@ -374,7 +374,7 @@ class PIDController(DTROS):
         self.desired_velocity_travel_time = travel_time
 
     def reset(self):
-        """ Set desired_position to be current position, set
+        """ Set desired_position to be current position on `xy` and hover_height on `z`, set
         filtered_desired_velocity to be zero, and reset both the PositionPID
         and VelocityPID
         """
@@ -471,23 +471,22 @@ def main(controller : PIDController):
         # - publish these to a diagnostic topic
         # - add pid output to the diagnostic topic
         if verbose >= 2:
-            if pid.position_control:
                 if pid.position_control:
-                    rospy.logdebug(
-                        f'current position: {pid.current_position}, '
-                        f'desired position: {pid.desired_position}, '
-                        f'position error: {pid.position_error}, '
-                        f'pid_error: {pid.pid_error}, '
-                        f'r,p,y,t: {fly_command}, '
+                    rospy.loginfo('\n'
+                        f'current position: {pid.current_position},\n '
+                        f'desired position: {pid.desired_position},\n '
+                        f'position error: {pid.position_error},\n '
+                        f'pid_error: {pid.pid_error},\n '
+                        f'r,p,y,t: {fly_command},\n '
                         f'throttle._i: {pid.pid.throttle.integral}'
                     )
                 else:
-                    rospy.logdebug(
-                        f'current velocity: {pid.current_velocity}, '
-                        f'desired velocity: {pid.desired_velocity}, '
-                        f'velocity error: {pid.velocity_error}, '
-                        f'pid_error: {pid.pid_error}, '
-                        f'r,p,y,t: {fly_command}, '
+                    rospy.loginfo('\n'
+                        f'current velocity: {pid.current_velocity},\n '
+                        f'desired velocity: {pid.desired_velocity},\n '
+                        f'velocity error: {pid.velocity_error},\n '
+                        f'pid_error: {pid.pid_error},\n '
+                        f'r,p,y,t: {fly_command},\n '
                         f'throttle._i: {pid.pid.throttle.integral}'
                     )
 
