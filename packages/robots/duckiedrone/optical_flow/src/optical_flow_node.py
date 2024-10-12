@@ -14,8 +14,8 @@ from cv_bridge import CvBridge
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from duckietown_msgs.msg import Segment, SegmentList
 from geometry_msgs.msg import Point as PointMsg
+from geometry_msgs.msg import TwistStamped
 
-from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage, Range
 from opencv_apps.msg import FlowArrayStamped, Flow
 
@@ -59,7 +59,7 @@ class OpticalFlowNode(DTROS):
         self.pub_debug_image = rospy.Publisher(
             "~debug/image/compressed", CompressedImage, queue_size=1
         )
-        self.pub_odometry = rospy.Publisher("~visual_odometry", Odometry, queue_size=1)
+        self.pub_odometry = rospy.Publisher("~visual_odometry", TwistStamped, queue_size=1)
         self.pub_motion_vectors = rospy.Publisher(
             "~lineseglist_out", SegmentList, queue_size=1
         )
@@ -161,15 +161,14 @@ class OpticalFlowNode(DTROS):
         self.logdebug(f"Computed velocity vector [m/s]: {velocity}")
 
         # Publish the optical flow vector as odometry
-        odometry_msg = Odometry()
-        odometry_msg.header.stamp = now
+        velocity_msg = TwistStamped()
+        velocity_msg.header.stamp = now
 
         # TODO: change this to the correct frame
-        odometry_msg.child_frame_id = "base_link"
-        odometry_msg.twist.twist.linear.x = velocity[0]
-        odometry_msg.twist.twist.linear.y = velocity[1]
+        velocity_msg.twist.linear.x = velocity[0]
+        velocity_msg.twist.linear.y = velocity[1]
 
-        self.pub_odometry.publish(odometry_msg)
+        self.pub_odometry.publish(velocity_msg)
 
         # self.last_stamp = now
 

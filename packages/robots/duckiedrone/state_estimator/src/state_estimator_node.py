@@ -9,7 +9,14 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu, Range
 from geometry_msgs.msg import PoseStamped, TwistStamped
 
-from scripts import StateEstimatorEMA, StateEstimatorUKF12D, StateEstimatorAbs
+from scripts import (
+    StateEstimatorEMA,
+    StateEstimatorUKF12D,
+    StateEstimatorUKF7D,
+    StateEstimatorUKF2D,
+    StateEstimatorAbs,
+)
+
 
 class StateEstimatorNode(DTROS):
     """
@@ -117,8 +124,8 @@ class StateEstimatorNode(DTROS):
     def get_state_estimator(self) -> StateEstimatorAbs:
         filters_name_to_class = {
             'ema': StateEstimatorEMA,
-            'ukf2d': NotImplementedError,
-            'ukf7d': NotImplementedError,
+            'ukf2d': StateEstimatorUKF2D,
+            'ukf7d': StateEstimatorUKF7D,
             'ukf12d': StateEstimatorUKF12D,
             'mocap': NotImplementedError,
             'simulator': NotImplementedError
