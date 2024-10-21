@@ -1,6 +1,0 @@
-[submodule "libraries/lib-dt-computer-vision"]
-	path = libraries/lib-dt-computer-vision
-	url = git@github.com:duckietown/lib-dt-computer-vision
-[submodule "libraries/lib-dt-state-estimation"]
-	path = libraries/lib-dt-state-estimation
-	url = git@github.com:duckietown/lib-dt-state-estimation

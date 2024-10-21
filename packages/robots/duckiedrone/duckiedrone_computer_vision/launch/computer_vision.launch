@@ -1,0 +1,37 @@
+<launch>
+    <!-- Common Arguments -->
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+    <arg name="param_file_name" default="default" doc="Specify a param file. ex:megaman"/>
+
+    <!-- Arguments for motion vectors -->
+    <arg name="input_image_topic" default="camera_node/image"/>
+    <arg name="output_image_topic" default="$(arg input_image_topic)_raw"/>
+
+    <!-- Arguments for optical flow -->
+    <arg name="optical_flow_param_file_name" default="$(arg param_file_name)" doc="Specify a param file for optical flow. ex:megaman"/>
+
+    <!-- Arguments for ground projection -->
+    <arg name="ground_projection_param_file_name" default="$(arg param_file_name)" doc="Specify a param file for ground projection. ex:megaman"/>
+
+    <group ns="$(arg veh)">
+        <!-- Include the motion vectors launch file -->
+        <include file="$(find optical_flow)/launch/motion_vectors.launch">
+            <arg name="veh" value="$(arg veh)"/>
+            <arg name="input_image_topic" value="$(arg input_image_topic)"/>
+            <arg name="output_image_topic" value="$(arg output_image_topic)"/>
+        </include>
+    </group>
+
+    <!-- Include the optical flow launch file -->
+    <include file="$(find optical_flow)/launch/optical_flow_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="param_file_name" value="$(arg optical_flow_param_file_name)"/>
+    </include>
+
+    <!-- Include the ground projection launch file -->
+    <include file="$(find ground_projection)/launch/ground_projection_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="param_file_name" value="$(arg ground_projection_param_file_name)"/>
+    </include>
+
+</launch>

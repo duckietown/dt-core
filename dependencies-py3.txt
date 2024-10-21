@@ -1,5 +1,4 @@
 # LIST YOUR PYTHON3 PACKAGES HERE
-# NOTE: only place non-Duckietown libraries here; pin versions only if necessary
 
 ruamel.yaml==0.18.5
 
@@ -10,5 +9,17 @@ ros-node-utils==2.0.0
 compmake-z6==6.1.5
 
 # duckiedrone state estimator
-filterpy
-simple_pid
+filterpy==1.4.5
+
+
+# -- Duckietown --
+
+# ATags3 Python bindings
+dt-apriltags==3.1.7
+
+duckietown-utils-ente==7.0.0
+
+lib-dt-computer-vision==0.1.13
+lib-dt-state-estimation==0.0.6
+lib-dt-modeling==0.0.5
+lib-dt-motion-planning==0.0.1

@@ -49,8 +49,8 @@ RUN dt-args-check \
     "ARCH" "${ARCH}" \
     "DISTRO" "${DISTRO}" \
     "DOCKER_REGISTRY" "${DOCKER_REGISTRY}" \
-    "BASE_REPOSITORY" "${BASE_REPOSITORY}"
-RUN dt-check-project-format "${PROJECT_FORMAT_VERSION}"
+    "BASE_REPOSITORY" "${BASE_REPOSITORY}" \
+    && dt-check-project-format "${PROJECT_FORMAT_VERSION}"
 
 # define/create repository path
 ARG PROJECT_PATH="${SOURCE_DIR}/${PROJECT_NAME}"
@@ -71,10 +71,6 @@ ENV DT_PROJECT_NAME="${PROJECT_NAME}" \
 # install apt dependencies
 COPY ./dependencies-apt.txt "${PROJECT_PATH}/"
 RUN dt-apt-install ${PROJECT_PATH}/dependencies-apt.txt
-
-# install opencv
-COPY ./assets/opencv/${TARGETARCH} /tmp/opencv
-RUN /tmp/opencv/install.sh && python3 -m pip list | grep opencv
 
 # install python3 dependencies
 ARG PIP_INDEX_URL="https://pypi.org/simple"
@@ -132,4 +128,4 @@ ENV DUCKIETOWN_ROOT="${SOURCE_DIR}"
 ENV DUCKIETOWN_DATA="/tmp/duckietown-data"
 RUN echo 'config echo 1' > .compmake.rc
 
-COPY scripts/send-fsm-state.sh /usr/local/bin
+COPY assets/bin/send-fsm-state.sh /usr/local/bin

@@ -18,3 +18,15 @@ file
 # duckiedrone
 python3-scipy
 ros-noetic-tf-conversions
+ros-noetic-opencv-apps
+ros-noetic-mavros-msgs
+
+# OpenCV Dependencies
+pkg-config
+libcanberra-gtk*
+libtbb2
+gstreamer1.0-tools
+v4l-utils
+gfortran
+protobuf-compiler
+libgoogle-glog-dev
