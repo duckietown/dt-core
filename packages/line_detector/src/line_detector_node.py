@@ -73,13 +73,13 @@ class LineDetectorNode(DTROS):
         super(LineDetectorNode, self).__init__(
             node_name=node_name,
             node_type=NodeType.PERCEPTION,
-            fsm_controlled=True
+            fsm_controlled=False
         )
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters")
         self._veh = rospy.get_param("~veh")
-        self._scale = rospy.get_param("~scale")
+        self._img_size = rospy.get_param("~img_size")
         self._top_cutoff = rospy.get_param("~top_cutoff")
         self._colors = DTParam("~colors")
 
@@ -129,7 +129,9 @@ class LineDetectorNode(DTROS):
         )
 
         # Subscribers
-        self.sub_camera_info = rospy.Subscriber("~camera_info", CameraInfo, self.cb_camera_info, queue_size=1)
+        self.sub_camera_info = rospy.Subscriber(
+            "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
+        )
         self.sub_image = rospy.Subscriber(
             "~image/compressed", CompressedImage, self.image_cb, buff_size=10000000, queue_size=1
         )
@@ -169,6 +171,7 @@ class LineDetectorNode(DTROS):
             msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
 
         """
+        self.loginfo("Camera info received")
         if self.camera is None:
             self.camera = CameraModel(
                 width=msg.width,

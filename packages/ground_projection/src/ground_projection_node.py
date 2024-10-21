@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Tuple
 
 from dt_computer_vision.camera import Pixel
 import numpy as np
@@ -34,9 +34,9 @@ from dt_computer_vision.ground_projection import GroundProjector, GroundPoint
 from dt_computer_vision.ground_projection.rendering import draw_grid_image, debug_image, Color
 
 COLORS: Dict[int, Color] = {
-    SegmentMsg.WHITE: (255, 255, 255),
-    SegmentMsg.YELLOW: (0, 255, 255),
-    SegmentMsg.RED: (0, 0, 255),
+    Segment.WHITE: (255, 255, 255),
+    Segment.YELLOW: (0, 255, 255),
+    Segment.RED: (0, 0, 255),
 }
 DEBUG_IMG_SIZE: Tuple[int, int] = (400, 400)
 
