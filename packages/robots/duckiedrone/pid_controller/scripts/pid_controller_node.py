@@ -6,10 +6,12 @@ import rospy
 import sys
 import tf
 from duckietown_msgs.msg import DroneControl as RC
+from mavros_msgs.msg import State as FCUState
 from duckietown_msgs.msg import DroneMode as Mode
 from geometry_msgs.msg import Pose, Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty, Bool, Float32
+from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 
 from duckietown.dtros import DTROS, NodeType
 from pid_class import PID, PIDaxis
@@ -40,12 +42,11 @@ class PIDController(DTROS):
 
         # Initialize the current and desired positions
         self.current_position = Position()
-        # TODO: 0.5 is hovering height? hardcoded?
-        self.desired_position = Position(z=0.5)
-        self.last_desired_position = Position(z=0.5)
+        self.desired_position = Position(z=self.hover_height)
+        self.last_desired_position = self.desired_position
 
         # Initialize the position error
-        self.position_error = Error()
+        self.position_error = Error(0, 0, 0)
 
         # Initialize the current and desired velocities
         self.current_velocity = Velocity()
@@ -137,7 +138,7 @@ class PIDController(DTROS):
         )
 
         # subscribers
-        rospy.Subscriber("~mode", Mode, self.current_mode_callback, queue_size=1)
+        rospy.Subscriber("~mode", FCUState, self.current_mode_callback, queue_size=1)
         rospy.Subscriber("~state", Odometry, self.current_state_callback, queue_size=1)
         # TODO: refactor callbacks
         rospy.Subscriber("desired/pose", Pose, self.desired_pose_callback, queue_size=1)
@@ -148,9 +149,21 @@ class PIDController(DTROS):
         rospy.Subscriber("reset_transform", Empty, self.reset_callback, queue_size=1)
         rospy.Subscriber("position_control", Bool, self.position_control_callback, queue_size=1)
 
+        rospy.Service("~takeoff", SetBool, self.takeoff_srv)
+
         # publish internal desired pose (hover pose)
         self._desired_height_pub.publish(Float32(self.desired_position.z))
 
+    # ROS SERVICES CALLBACK METHODS
+    #################################
+    def takeoff_srv(self, req: SetBoolRequest):
+        """ Service to switch between flying and not flying """
+        if req.data:
+            self.current_mode = 2
+        else:
+            self.current_mode = 1
+        return SetBoolResponse(success=True, message="Mode set to %s" % self.current_mode)
+    
     # ROS SUBSCRIBER CALLBACK METHODS
     #################################
     def current_state_callback(self, state : Odometry):
@@ -187,7 +200,7 @@ class PIDController(DTROS):
         if self.desired_position != self.last_desired_position:
             # desired pose changed, the drone should move
             self.moving = True
-            print('moving')
+            rospy.loginfo('moving')
         # publish target height
         self._desired_height_pub.publish(self.desired_position.z)
 
@@ -199,14 +212,19 @@ class PIDController(DTROS):
         self.desired_yaw_velocity = msg.angular.z
         self.desired_velocity_start_time = None
         self.desired_yaw_velocity_start_time = None
-        # print("Desired_velocity", self.desired_velocity)
+        # rospy.loginfo(f"Desired_velocity {self.desired_velocity}")
         if self.path_planning:
             self.calculate_travel_time()
 
-    def current_mode_callback(self, msg):
+    def current_mode_callback(self, msg : FCUState):
         """ Update the current mode """
-        self.loginfo(f"Current mode set to: {msg.mode}")
-        self.current_mode = msg.mode
+        # DISARMED -> ARMED
+        if msg.armed:
+            if self.current_mode == 0:
+                self.current_mode = 1
+        else:
+            self.current_mode = 0
+        self.loginfo(f"Current mode set to: {self.current_mode}")
 
     def position_control_callback(self, msg):
         """ Set whether or not position control is enabled """
@@ -239,7 +257,7 @@ class PIDController(DTROS):
                         self.pid_error -= self.velocity_error * 100
                     else:
                         self.moving = False
-                        print('not moving')
+                        rospy.loginfo('not moving')
             else:
                 self.position_control_pub.publish(False)
 
@@ -356,7 +374,7 @@ class PIDController(DTROS):
         self.desired_velocity_travel_time = travel_time
 
     def reset(self):
-        """ Set desired_position to be current position, set
+        """ Set desired_position to be current position on `xy` and hover_height on `z`, set
         filtered_desired_velocity to be zero, and reset both the PositionPID
         and VelocityPID
         """
@@ -380,16 +398,16 @@ class PIDController(DTROS):
         msg.throttle = cmd[3]
         self.cmd_pub.publish(msg)
 
-def main(controller_class : PIDController):
+def main(controller : PIDController):
     # Verbosity between 0 and 2, 2 is most verbose
     verbose = 2
 
     # create the PIDController object
-    pid : PIDController = controller_class()
+    pid : PIDController = controller
 
     # set the loop rate (Hz)
     loop_rate = rospy.Rate(pid.frequency)
-    print('PID Controller Started')
+    rospy.loginfo('PID Controller Started')
 
     while not pid.is_shutdown:
         pid.heartbeat_pub.publish(Empty())
@@ -425,7 +443,9 @@ def main(controller_class : PIDController):
             if pid.current_mode == 2:  # 'FLYING'
                 # Safety check to ensure drone does not fly too high height_safety_here
                 if pid.current_state.pose.pose.position.z > pid.max_height:
-                    print("\n disarming because drone is too high \n")
+                    pid.loginfo("\n disarming because drone is too high \n")
+                    pid.previous_mode = 0
+                    pid.current_mode = 0
                     break
                 # Publish the ouput of pid step method
                 pid.publish_cmd(fly_command)
@@ -441,8 +461,8 @@ def main(controller_class : PIDController):
                 # Uncomment below statements to print the converged values.
                 # Make sure verbose = 0 so that you can see these values
                 if verbose >= 2:
-                    print('roll_low.init_i', pid.pid.roll_low.init_i)
-                    print('pitch_low.init_i', pid.pid.pitch_low.init_i)
+                    pid.logdebug(f'roll_low.init_i {pid.pid.roll_low.init_i}')
+                    pid.logdebug(f'pitch_low.init_i {pid.pid.pitch_low.init_i}')
                 # ---
                 pid.loginfo("Detected state change: FLYING -> DISARMED")
                 pid.previous_mode = pid.current_mode
@@ -451,31 +471,36 @@ def main(controller_class : PIDController):
         # - publish these to a diagnostic topic
         # - add pid output to the diagnostic topic
         if verbose >= 2:
-            if pid.position_control:
-                print('current position:', pid.current_position)
-                print('desired position:', pid.desired_position)
-                print('position error:', pid.position_error)
-            else:
-                print('current velocity:', pid.current_velocity)
-                print('desired velocity:', pid.desired_velocity)
-                print('velocity error:  ', pid.velocity_error)
-            print('pid_error:       ', pid.pid_error)
-            print('r,p,y,t:', fly_command)
-            print('throttle_low._i', pid.pid.throttle_low.integral)
-            print('throttle._i', pid.pid.throttle.integral)
+                if pid.position_control:
+                    rospy.loginfo('\n'
+                        f'current position: {pid.current_position},\n '
+                        f'desired position: {pid.desired_position},\n '
+                        f'position error: {pid.position_error},\n '
+                        f'pid_error: {pid.pid_error},\n '
+                        f'r,p,y,t: {fly_command},\n '
+                        f'throttle._i: {pid.pid.throttle.integral}'
+                    )
+                else:
+                    rospy.loginfo('\n'
+                        f'current velocity: {pid.current_velocity},\n '
+                        f'desired velocity: {pid.desired_velocity},\n '
+                        f'velocity error: {pid.velocity_error},\n '
+                        f'pid_error: {pid.pid_error},\n '
+                        f'r,p,y,t: {fly_command},\n '
+                        f'throttle._i: {pid.pid.throttle.integral}'
+                    )
 
         if verbose >= 1:
             error = pid.pid_error
-            print(
-                "Errors:",
+            rospy.logdebug(
+                "Errors (mm):",
                 "\t Z: ", str(error.z)[:5],
                 "\t X ", str(error.x)[:5],
                 "\t Y ", str(error.y)[:5]
             )
-            print("---------------------------------------")
         # ---
         loop_rate.sleep()
 
 
 if __name__ == '__main__':
-    main(PIDController)
+    main(PIDController())

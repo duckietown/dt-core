@@ -38,6 +38,24 @@
             ]
         },
         {
+            "name": "PID Controller Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/pid_controller/launch/pid_controller_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
+        {
+            "name": "Simple State Estimator Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/state_estimator/launch/simple_state_estimator_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
+        {
             "name": "Rigid Transform Node",
             "type": "ros",
             "request": "launch",
@@ -61,6 +79,15 @@
             "type": "ros",
             "request": "launch",
             "target": "/code/src/dt-core/packages/robots/duckiedrone/fly_commands_mux/launch/fly_commands_mux_node.launch",
+            "arguments": [
+                "veh:=${env:VEHICLE_NAME}",
+            ]
+        },
+        {
+            "name": "Localization Node",
+            "type": "ros",
+            "request": "launch",
+            "target": "/code/src/dt-core/packages/robots/duckiedrone/localization/launch/localization_node.launch",
             "arguments": [
                 "veh:=${env:VEHICLE_NAME}",
             ]
