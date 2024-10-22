@@ -1,5 +1,5 @@
 img_size: [120,160]
-top_cutoff: 40
+top_cutoff: 65
 
 colors:
   RED:

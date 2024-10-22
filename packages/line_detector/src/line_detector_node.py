@@ -1,89 +1,68 @@
 #!/usr/bin/env python3
 import json
-from typing import Optional
 
 import numpy as np
 import cv2
 import rospy
 from cv_bridge import CvBridge
-from sensor_msgs.msg import CompressedImage, CameraInfo
+from sensor_msgs.msg import CompressedImage, Image
 from duckietown_msgs.msg import Segment, SegmentList, AntiInstagramThresholds
 from line_detector import LineDetector, ColorRange, plotSegments, plotMaps
 from image_processing.anti_instagram import AntiInstagram
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 
-from dt_computer_vision.camera import CameraModel, Pixel, NormalizedImagePoint
-
 
 class LineDetectorNode(DTROS):
     """
-    The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an
-    image and is used for lane localization.
+    The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an image and
+    is used for lane localization.
 
     Upon receiving an image, this node reduces its resolution, cuts off the top part so that only the
-    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes
-    them.
+    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes them.
     The main functionality of this node is implemented in the :py:class:`line_detector.LineDetector` class.
 
-    The performance of this node can be very sensitive to its configuration parameters. Therefore, it also
-    provides a number of debug topics which can be used for fine-tuning these parameters. These configuration
-    parameters can be changed dynamically while the node is running via ``rosparam set`` commands.
+    The performance of this node can be very sensitive to its configuration parameters. Therefore, it also provides a
+    number of debug topics which can be used for fine-tuning these parameters. These configuration parameters can be
+    changed dynamically while the node is running via ``rosparam set`` commands.
 
     Args:
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
 
     Configuration:
-        ~line_detector_parameters (:obj:`dict`): A dictionary with the parameters for the detector.
-                The full list can be found in :py:class:`line_detector.LineDetector`.
-        ~colors (:obj:`dict`): A dictionary of colors and color ranges to be detected in the image.
-                The keys (color names) should match the ones in the Segment message definition, otherwise an
-                exception will be thrown! See the ``config`` directory in the node code for the default
-                ranges.
-        ~scale (:obj:`float`): A scaling factor to apply to the image before running the line detector.
-                Lower resolution would result in faster detection but lower performance.
-        ~top_cutoff (:obj:`int`): The number of rows to be removed from the top of the image
-                _after_ scaling.
+        ~line_detector_parameters (:obj:`dict`): A dictionary with the parameters for the detector. The full list can be found in :py:class:`line_detector.LineDetector`.
+        ~colors (:obj:`dict`): A dictionary of colors and color ranges to be detected in the image. The keys (color names) should match the ones in the Segment message definition, otherwise an exception will be thrown! See the ``config`` directory in the node code for the default ranges.
+        ~img_size (:obj:`list` of ``int``): The desired downsized resolution of the image. Lower resolution would result in faster detection but lower performance, default is ``[120,160]``
+        ~top_cutoff (:obj:`int`): The number of rows to be removed from the top of the image _after_ resizing, default is 40
 
     Subscriber:
         ~camera_node/image/compressed (:obj:`sensor_msgs.msg.CompressedImage`): The camera images
-        ~anti_instagram_node/thresholds(:obj:`duckietown_msgs.msg.AntiInstagramThresholds`): The thresholds
-            to do color correction
+        ~anti_instagram_node/thresholds(:obj:`duckietown_msgs.msg.AntiInstagramThresholds`): The thresholds to do color correction
 
     Publishers:
-        ~segment_list (:obj:`duckietown_msgs.msg.SegmentList`): A list of the detected segments.
-            Each segment is an :obj:`duckietown_msgs.msg.Segment` message
-        ~debug/segments/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the segments
-            drawn on the input image
-        ~debug/edges/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the Canny edges
-            drawn on the input image
-        ~debug/maps/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the regions falling
-            in each color range drawn on the input image
-        ~debug/ranges_HS (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the
-            input image and the color ranges, Hue-Saturation projection
-        ~debug/ranges_SV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the
-            input image and the color ranges, Saturation-Value projection
-        ~debug/ranges_HV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the
-            input image and the color ranges, Hue-Value projection
+        ~segment_list (:obj:`duckietown_msgs.msg.SegmentList`): A list of the detected segments. Each segment is an :obj:`duckietown_msgs.msg.Segment` message
+        ~debug/segments/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the segments drawn on the input image
+        ~debug/edges/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the Canny edges drawn on the input image
+        ~debug/maps/compressed (:obj:`sensor_msgs.msg.CompressedImage`): Debug topic with the regions falling in each color range drawn on the input image
+        ~debug/ranges_HS (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Hue-Saturation projection
+        ~debug/ranges_SV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Saturation-Value projection
+        ~debug/ranges_HV (:obj:`sensor_msgs.msg.Image`): Debug topic with a histogram of the colors in the input image and the color ranges, Hue-Value projection
 
     """
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LineDetectorNode, self).__init__(
-            node_name=node_name,
-            node_type=NodeType.PERCEPTION,
-            fsm_controlled=False
-        )
+        super(LineDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
 
         # Define parameters
-        self._line_detector_parameters = rospy.get_param("~line_detector_parameters")
+        self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
         self._veh = rospy.get_param("~veh")
-        self._img_size = rospy.get_param("~img_size")
-        self._top_cutoff = rospy.get_param("~top_cutoff")
-        self._colors = DTParam("~colors")
+        self._img_size = rospy.get_param("~img_size", None)
+        self._top_cutoff = rospy.get_param("~top_cutoff", None)
+        self._colors = DTParam("~colors", None)
 
-        # TODO: use TurboJPEG instead
+        self._traffic_mode = DTParam(f"/{self._veh}/behavior/traffic_mode", None)
+
         self.bridge = CvBridge()
 
         # The thresholds to be used for AntiInstagram color correction
@@ -102,8 +81,6 @@ class LineDetectorNode(DTROS):
         self.on_colors_range_change()
         self._colors.register_update_callback(self.on_colors_range_change)
 
-        self.camera: Optional[CameraModel] = None
-
         # Publishers
         self.pub_lines = rospy.Publisher(
             "~segment_list", SegmentList, queue_size=1, dt_topic_type=TopicType.PERCEPTION
@@ -119,19 +96,16 @@ class LineDetectorNode(DTROS):
         )
         # these are not compressed because compression adds undesired blur
         self.pub_d_ranges_HS = rospy.Publisher(
-            "~debug/ranges_HS/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
+            "~debug/ranges_HS", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
         self.pub_d_ranges_SV = rospy.Publisher(
-            "~debug/ranges_SV/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
+            "~debug/ranges_SV", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
         self.pub_d_ranges_HV = rospy.Publisher(
-            "~debug/ranges_HV/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
+            "~debug/ranges_HV", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
         # Subscribers
-        self.sub_camera_info = rospy.Subscriber(
-            "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
-        )
         self.sub_image = rospy.Subscriber(
             "~image/compressed", CompressedImage, self.image_cb, buff_size=10000000, queue_size=1
         )
@@ -156,33 +130,9 @@ class LineDetectorNode(DTROS):
         self.loginfo(f"Color range changed to {json.dumps(self._colors.value)}")
 
     def thresholds_cb(self, thresh_msg):
-        # TODO: these should be DTParam
         self.anti_instagram_thresholds["lower"] = thresh_msg.low
         self.anti_instagram_thresholds["higher"] = thresh_msg.high
         self.ai_thresholds_received = True
-        # TODO: unsubscribe here
-
-    def cb_camera_info(self, msg: CameraInfo):
-        """
-        Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
-        :py:class:`image_processing.Rectify` object for image rectification
-
-        Args:
-            msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
-
-        """
-        self.loginfo("Camera info received")
-        if self.camera is None:
-            self.camera = CameraModel(
-                width=msg.width,
-                height=msg.height,
-                K=np.array(msg.K).reshape((3, 3)),
-                D=np.array(msg.D),
-                P=np.array(msg.P).reshape((3, 4)),
-            ).scaled(self._scale).cropped(top=self._top_cutoff)
-            # unsubscribe from camera info topic
-            self.loginfo("Camera parameters received, unsubscribing.")
-            self.sub_camera_info.switch_off()
 
     def image_cb(self, image_msg):
         """
@@ -192,7 +142,7 @@ class LineDetectorNode(DTROS):
 
         #. Performs color correction
         #. Resizes the image to the ``~img_size`` resolution
-        #. Removes the top ``~top_cutoff`` rows of pixels
+        #. Removes the top ``~top_cutoff`` rows in order to remove the part of the image that doesn't include the road
         #. Extracts the line segments in the image using :py:class:`line_detector.LineDetector`
         #. Converts the coordinates of detected segments to normalized ones
         #. Creates and publishes the resultant :obj:`duckietown_msgs.msg.SegmentList` message
@@ -202,8 +152,6 @@ class LineDetectorNode(DTROS):
             image_msg (:obj:`sensor_msgs.msg.CompressedImage`): The receive image message
 
         """
-        if self.camera is None:
-            return
 
         # Decode from compressed image with OpenCV
         try:
@@ -249,34 +197,30 @@ class LineDetectorNode(DTROS):
         segment_list = SegmentList()
         segment_list.header.stamp = image_msg.header.stamp
 
-        # # Fill in the segment_list with all the detected segments
+        # Remove the offset in coordinates coming from the removing of the top part and
+        arr_cutoff = np.array([0, self._top_cutoff, 0, self._top_cutoff])
+        arr_ratio = np.array(
+            [
+                1.0 / self._img_size[1],
+                1.0 / self._img_size[0],
+                1.0 / self._img_size[1],
+                1.0 / self._img_size[0],
+            ]
+        )
+
+        # Fill in the segment_list with all the detected segments
         for color, det in list(detections.items()):
-            # Get the ID for the color from the Segment msg definition, throw and exception otherwise
+            # Get the ID for the color from the Segment msg definition
+            # Throw and exception otherwise
             if len(det.lines) > 0 and len(det.normals) > 0:
                 try:
                     color_id = getattr(Segment, color)
+                    lines_normalized = (det.lines + arr_cutoff) * arr_ratio
+                    segment_list.segments.extend(
+                        self._to_segment_msg(lines_normalized, det.normals, color_id)
+                    )
                 except AttributeError:
                     self.logerr(f"Color name {color} is not defined in the Segment message")
-                    continue
-                # itearate over segments
-                for x0, y0, x1, y1, norm_x, norm_y in np.hstack((det.lines, det.normals)):
-                    segment = Segment()
-                    segment.color = color_id
-                    # normalized point0
-                    p0_px: Pixel = Pixel(x0, y0)
-                    p0_nc: NormalizedImagePoint = self.camera.pixel2vector(p0_px)
-                    # normalized point1
-                    p1_px: Pixel = Pixel(x1, y1)
-                    p1_nc: NormalizedImagePoint = self.camera.pixel2vector(p1_px)
-                    # populate segments
-                    segment.pixels_normalized[0].x = p0_nc.x
-                    segment.pixels_normalized[0].y = p0_nc.y
-                    segment.pixels_normalized[1].x = p1_nc.x
-                    segment.pixels_normalized[1].y = p1_nc.y
-                    segment.normal.x = norm_x
-                    segment.normal.y = norm_y
-                    # populate list
-                    segment_list.segments.append(segment)
 
         # Publish the message
         self.pub_lines.publish(segment_list)
@@ -292,18 +236,28 @@ class LineDetectorNode(DTROS):
         if self.pub_d_segments.get_num_connections() > 0:
             colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
             debug_img = plotSegments(image, colorrange_detections)
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                debug_img = np.fliplr(debug_img)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
             self.pub_d_segments.publish(debug_image_msg)
 
         if self.pub_d_edges.get_num_connections() > 0:
-            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(self.detector.canny_edges)
+            canny_edges = self.detector.canny_edges
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                canny_edges = np.fliplr(canny_edges)
+            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(canny_edges)
             debug_image_msg.header = image_msg.header
             self.pub_d_edges.publish(debug_image_msg)
 
         if self.pub_d_maps.get_num_connections() > 0:
             colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
             debug_img = plotMaps(image, colorrange_detections)
+            # mirror the image if left-hand traffic mode is set
+            if self._traffic_mode.value == "LHT":
+                debug_img = np.fliplr(debug_img)
             debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
             debug_image_msg.header = image_msg.header
             self.pub_d_maps.publish(debug_image_msg)
@@ -312,9 +266,38 @@ class LineDetectorNode(DTROS):
             publisher = getattr(self, f"pub_d_ranges_{channels}")
             if publisher.get_num_connections() > 0:
                 debug_img = self._plot_ranges_histogram(channels)
-                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
+                debug_image_msg = self.bridge.cv2_to_imgmsg(debug_img, encoding="bgr8")
                 debug_image_msg.header = image_msg.header
                 publisher.publish(debug_image_msg)
+
+    @staticmethod
+    def _to_segment_msg(lines, normals, color):
+        """
+        Converts line detections to a list of Segment messages.
+
+        Converts the resultant line segments and normals from the line detection to a list of Segment messages.
+
+        Args:
+            lines (:obj:`numpy array`): An ``Nx4`` array where each row represents a line.
+            normals (:obj:`numpy array`): An ``Nx2`` array where each row represents the normal of a line.
+            color (:obj:`str`): Color name string, should be one of the pre-defined in the Segment message definition.
+
+        Returns:
+            :obj:`list` of :obj:`duckietown_msgs.msg.Segment`: List of Segment messages
+
+        """
+        segment_msg_list = []
+        for x1, y1, x2, y2, norm_x, norm_y in np.hstack((lines, normals)):
+            segment = Segment()
+            segment.color = color
+            segment.pixels_normalized[0].x = x1
+            segment.pixels_normalized[0].y = y1
+            segment.pixels_normalized[1].x = x2
+            segment.pixels_normalized[1].y = y2
+            segment.normal.x = norm_x
+            segment.normal.y = norm_y
+            segment_msg_list.append(segment)
+        return segment_msg_list
 
     def _plot_ranges_histogram(self, channels):
         """Utility method for plotting color histograms and color ranges.

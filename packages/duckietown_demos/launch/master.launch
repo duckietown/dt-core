@@ -8,6 +8,7 @@
     <arg name="robot_configuration" default="$(env ROBOT_CONFIGURATION)"
          doc="The configuration of the robot (e.g., DB19, DB20, WT18, ...)"/>
     <arg name="demo_name" /> <!-- this is required  used for demo specific configs like fsm -->
+	<arg name="traffic_mode" doc="Left/Right-hand traffic" default="RHT"/>
 	<arg name="config" default="baseline" />
 	<arg name="camera_topic" default="camera_node"/>
 	<arg name="param_file_name" default="default" />
@@ -145,6 +146,7 @@
             <include file="$(find line_detector)/launch/line_detector_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
                 <arg name="param_file_name" value="$(arg line_detector_param_file_name)"/>
+                <arg name="traffic_mode" value="$(arg traffic_mode)"/>
             </include>
         </group>
 

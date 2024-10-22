@@ -3,28 +3,17 @@
 import os
 from typing import Optional, Union, Dict, Tuple
 
-from dt_computer_vision.camera import Pixel
 import numpy as np
-from dt_computer_vision.camera.types import NormalizedImagePoint
-from dt_computer_vision.ground_projection import GroundPoint
 import rospy
 from cv_bridge import CvBridge
 from duckietown_msgs.msg import Segment, SegmentList
 from sensor_msgs.msg import CameraInfo, CompressedImage
 from geometry_msgs.msg import Point as PointMsg
-
-from dt_computer_vision.camera import CameraModel
-from dt_computer_vision.ground_projection import GroundProjector
-
 from dt_computer_vision.camera.homography import Homography, HomographyToolkit
 from duckietown.dtros import DTROS, NodeType
 
 # FIXME: Is this still used?
 
-# @dataclass
-# class ImageProjectorConfig:
-#     roi : RegionOfInterest
-#     ppm : int
 
 from dt_class_utils import DTReminder
 from dt_computer_vision.camera import CameraModel, Pixel, NormalizedImagePoint, BGRImage

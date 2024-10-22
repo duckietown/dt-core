@@ -1,17 +1,12 @@
-img_size: [120,160]
-top_cutoff: 40
+img_size: [240,320]
+top_cutoff: 120
 
 colors:
-  RED:
-    low_1: [0,140,100]
-    high_1: [15,255,255]
-    low_2: [165,140,100]
-    high_2: [180,255,255]
   WHITE:
     low: [0,0,150]
     high: [180,100,255]
   YELLOW:
-    low: [25,140,100]
+    low: [0,100,100]
     high: [45,255,255]
 
 line_detector_parameters:
