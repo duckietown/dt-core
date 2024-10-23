@@ -1,10 +1,12 @@
 #lane_control/lane_controller_node
 v_bar: 0.19
-k_d: -4.0
-k_theta: -5
+k_d: -1.0
+k_theta: -2.0
 k_Id: -3.0
 k_Iphi: 0.0
-theta_thres: 0.523
+#Broken up the 'theta_thres' for more finer tuning 
+theta_thres_max: 0.75  #0.523
+theta_thres_min: -0.5
 d_thres: 0.2615
 d_offset: 0.0
 
@@ -23,7 +25,7 @@ d_resolution: 0.011
 phi_resolution: 0.051
 
 stop_line_slowdown:
-  start: 0.6
-  end: 0.15
+  start: 0.4
+  end: 0.1
 
 verbose: 0
