@@ -173,8 +173,8 @@
             <remap from="lane_filter_node/segment_list" to="ground_projection_node/lineseglist_out"/>
             <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
             <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
-            <remap from="lane_filter_node/left_wheel_encoder_node/tick" to="left_wheel_encoder_node/tick"/>
-            <remap from="lane_filter_node/right_wheel_encoder_node/tick" to="right_wheel_encoder_node/tick"/>
+            <remap from="lane_filter_node/left_wheel_encoder_driver_node/tick" to="left_wheel_encoder_driver_node/tick"/>
+            <remap from="lane_filter_node/right_wheel_encoder_driver_node/tick" to="right_wheel_encoder_driver_node/tick"/>
 	        <!--<remap from="lane_filter_node/seglist_filtered" to="lane_controller_node/seglist_filtered" />-->
             <include file="$(find lane_filter)/launch/lane_filter_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
