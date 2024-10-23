@@ -71,7 +71,7 @@ class LaneFilterNode(DTROS):
 
         # Load the needed filter parameters defined elsewhere need here
         try:
-            encoder_resolution = rospy.get_param("left_wheel_encoder_node/resolution", 135)
+            encoder_resolution = rospy.get_param("left_wheel_encoder_driver_node/resolution", 135)
             wheel_baseline = rospy.get_param("kinematics_node/baseline")
             wheel_radius = rospy.get_param("kinematics_node/radius")
         except rospy.KeyError as e:
@@ -99,16 +99,13 @@ class LaneFilterNode(DTROS):
         )
 
         self.sub_encoder_left = rospy.Subscriber(
-            "~left_wheel_encoder_node/tick", WheelEncoderStamped, self.cbProcessLeftEncoder, queue_size=1
+            "~left_wheel_encoder_driver_node/tick", WheelEncoderStamped, self.cbProcessLeftEncoder, queue_size=1
         )
 
         self.sub_encoder_right = rospy.Subscriber(
-            "~right_wheel_encoder_node/tick", WheelEncoderStamped, self.cbProcessRightEncoder, queue_size=1
+            "~right_wheel_encoder_driver_node/tick", WheelEncoderStamped, self.cbProcessRightEncoder, queue_size=1
         )
 
-        self.sub_episode_start = rospy.Subscriber(
-            f"episode_start", EpisodeStart, self.cbEpisodeStart, queue_size=1
-        )
 
         # Publishers
         self.pub_lane_pose = rospy.Publisher(
