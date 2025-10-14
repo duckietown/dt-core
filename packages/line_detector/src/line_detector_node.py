@@ -27,11 +27,12 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 class LineDetectorNode(DTROS):
     """
     The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an image and
-    is used for lane localization.
+    is used for lane localization NEW: and then projecting them to the ground plane.
 
     Upon receiving an image, this node reduces its resolution, cuts off the top part so that only the
-    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes them.
-    The main functionality of this node is implemented in the :py:class:`line_detector.LineDetector` class.
+    road-containing part of the image is left, extracts the white, red, and yellow segments, projects them
+     to the ground and publishes them.
+    The main functionality for detecting the lines is implemented in the :py:class:`line_detector.LineDetector` class.
 
     The performance of this node can be very sensitive to its configuration parameters. Therefore, it also provides a
     number of debug topics which can be used for fine-tuning these parameters. These configuration parameters can be
@@ -261,7 +262,7 @@ class LineDetectorNode(DTROS):
         # Fill in the segment_list with all the detected segments
         for color, det in dets.items():
             # Get the ID for the color from the Segment msg definition
-            # Throw and exception otherwise
+            # Throw an exception otherwise
             if len(det["lines"]) > 0 and len(det["normals"]) > 0:
                 try:
                     color_id = getattr(SegmentMsg, color)
@@ -326,7 +327,14 @@ class LineDetectorNode(DTROS):
                 debug_image_msg.header = image_msg.header
                 self.pub_d_maps.publish(debug_image_msg)
 
-    def cb_camera_info(self, msg: CameraInfo):
+            if self.pub_debug_road_view_img.get_num_connections() > 0:
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(
+                    debug_image(segment_list, (300, 300), grid_size=6, s_segment_thickness=5)
+                )
+                debug_image_msg.header = segment_list.header
+                self.pub_debug_road_view_img.publish(debug_image_msg)
+
+    def cb_camera_info(self, msg: CameraInfo) -> None:
         """
         Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
         :py:class:`image_processing.Rectify` object for image rectification
@@ -392,7 +400,7 @@ class LineDetectorNode(DTROS):
         p_ground = self._pixel_to_ground(p)
         return PointMsg(x=p_ground.x, y=p_ground.y)
 
-    def _to_segment_msg(self, lines, normals, color):
+    def _to_segment_msg(self, lines, normals, color) -> List[SegmentMsg]:
         """
         Converts line detections to a list of Segment messages.
 

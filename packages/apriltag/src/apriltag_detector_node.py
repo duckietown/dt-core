@@ -159,7 +159,7 @@ class AprilTagDetector(DTROS):
                 q.tolist(),
                 msg.header.stamp,
                 "tag/{:s}".format(str(tag.tag_id)),
-                msg.header.frame_id,
+                "base_link",
             )
         # publish detections
         self._tag_pub.publish(tags_msg)
