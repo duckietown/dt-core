@@ -154,7 +154,8 @@ class LaneFilterNode(DTROS):
         self.left_encoder_ticks_delta = 0
         self.right_encoder_ticks_delta = 0
 
-        self.publishEstimate(self.last_update_header)
+        if self.last_update_header is not None:
+            self.publishEstimate(self.last_update_header)
 
     def cbProcessSegments(self, segment_list_msg):
         """Callback to process the segments
