@@ -120,15 +120,15 @@ class LaneFilterNode(DTROS):
             "~debug/plot_d_phi/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
-
-        self.loginfo("Lane filter node initialized")
+        self.filter.initialize()
+        self.loginfo("Lane filter node initializedd")
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
   #      rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
 
 
     def cbEpisodeStart(self, msg):
         rospy.loginfo("Lane Filter Resetting")
-        self.filter.initialize_belief()
+        self.filter.initialize()
 
     def cbProcessLeftEncoder(self, left_encoder_msg):
         # we need to account for the possibility that the encoder is not reading
