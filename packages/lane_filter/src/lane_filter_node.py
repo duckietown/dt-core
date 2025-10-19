@@ -163,7 +163,7 @@ class LaneFilterNode(DTROS):
             segment_list_msg (:obj:`SegmentList`): message containing list of processed segments
 
         """
-        rospy.loginfo("Starting to process segments")
+        rospy.loginfo_once("Starting to process segments")
         self.cbPredict()
         self.last_update_header = segment_list_msg.header
         dt_segment_list = []
@@ -185,11 +185,11 @@ class LaneFilterNode(DTROS):
             dt_segment = Segment(points=dt_points, color=dt_segment_color)
             dt_segment_list.append(dt_segment)
 
-        rospy.loginfo("First segments converted to DT format")
+        rospy.loginfo_once("First segments converted to DT format")
         self.filter.update(dt_segment_list)
 
         self.publishEstimate(segment_list_msg.header)
-        rospy.loginfo("First segments processed")
+        rospy.loginfo_once("First segments processed")
 
     def publishEstimate(self, header):
 
