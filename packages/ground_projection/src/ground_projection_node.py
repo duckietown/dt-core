@@ -59,7 +59,7 @@ class GroundProjectionNode(DTROS):
     def __init__(self, node_name: str):
         # Initialize the DTROS parent class
         super(GroundProjectionNode, self).__init__(
-            node_name=node_name, node_type=NodeType.PERCEPTION, fsm_controlled=True
+            node_name=node_name, node_type=NodeType.PERCEPTION
         )
 
         self.bridge = CvBridge()
