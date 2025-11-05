@@ -30,11 +30,11 @@ class RunInCircleScript(MatrixEntityBehavior):
     def update(self, delta_time: float) -> None:
         """Update."""
         self._time += delta_time
-        if self.pose:
+        if self.state:
             angle = self._speed * self._time
             value = math.sin(angle)
-            self.pose.x = self.pose.initial_pose["x"] + self._radius * value
+            self.state.x = self.state.initial_pose["x"] + self._radius * value
             value = math.cos(angle)
-            self.pose.y = self.pose.initial_pose["y"] + self._radius * value
-            self.pose.yaw = math.pi - angle
-            self.pose.commit()
+            self.state.y = self.state.initial_pose["y"] + self._radius * value
+            self.state.yaw = math.pi - angle
+            self.state.commit()

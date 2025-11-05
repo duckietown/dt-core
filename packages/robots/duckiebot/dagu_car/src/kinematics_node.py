@@ -48,6 +48,7 @@ class KinematicsNode(DTROS):
 
     Subscriber:
         ~car_cmd (:obj:`Twist2DStamped`): The requested car command
+        ~wheels_cmd_executed (:obj:`WheelsCmdStamped`): The actual commands executed
 
     Publisher:
         ~wheels_cmd (:obj:`WheelsCmdStamped`): The corresponding resulting wheel commands
@@ -95,6 +96,7 @@ class KinematicsNode(DTROS):
 
         # Setup subscribers
         self.sub_car_cmd = rospy.Subscriber("~car_cmd", Twist2DStamped, self.car_cmd_callback)
+        self.sub_wheels_cmd_executed = rospy.Subscriber("~wheels_cmd_executed", WheelsCmdStamped, self.wheels_cmd_executed_cb)
         # ---
         self.log("Initialized with: \n%s" % self.get_configuration_as_str())
 
@@ -177,10 +179,9 @@ class KinematicsNode(DTROS):
 
     def car_cmd_callback(self, msg_car_cmd):
         """
-        A callback that reposponds to received `car_cmd` messages by calculating the
+        A callback that responds to received `car_cmd` messages by calculating the
         corresponding wheel commands, taking into account the robot geometry, gain and trim
         factors, and the set limits. These wheel commands are then published for the motors to use.
-        The resulting linear and angular velocities are also calculated and published.
 
         Args:
             msg_car_cmd (:obj:`Twist2DStamped`): desired car command
@@ -222,11 +223,28 @@ class KinematicsNode(DTROS):
         msg_wheels_cmd.vel_left = u_l_limited
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
+    def wheels_cmd_executed_cb(self, msg_wheels_cmd_executed):
+        """
+        A callback that responds to received `wheels_cmd_executed` by
+        calculating and publishing the resulting linear and angular
+        velocities.
+
+        Args:
+            wheels_cmd_executed (:obj:`WheelsCmdStamped`): The actual
+            commands executed
+        """
         # FORWARD KINEMATICS PART
 
+        # assuming same motor constants k for both motors
+        k_r = k_l = self._k
+
+        # adjusting k by gain and trim
+        k_r_inv = (self._gain.value + self._trim.value) / k_r
+        k_l_inv = (self._gain.value - self._trim.value) / k_l
+
         # Conversion from motor duty to motor rotation rate
-        omega_r = msg_wheels_cmd.vel_right / k_r_inv
-        omega_l = msg_wheels_cmd.vel_left / k_l_inv
+        omega_r = msg_wheels_cmd_executed.vel_right / k_r_inv
+        omega_l = msg_wheels_cmd_executed.vel_left / k_l_inv
 
         # Compute linear and angular velocity of the platform
         v = (self._radius.value * omega_r + self._radius.value * omega_l) / 2.0
@@ -234,7 +252,7 @@ class KinematicsNode(DTROS):
 
         # Put the v and omega into a velocity message and publish
         msg_velocity = Twist2DStamped()
-        msg_velocity.header = msg_wheels_cmd.header
+        msg_velocity.header = msg_wheels_cmd_executed.header
         msg_velocity.v = v
         msg_velocity.omega = omega
         self.pub_velocity.publish(msg_velocity)
