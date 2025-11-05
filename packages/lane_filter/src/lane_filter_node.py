@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import rospy
 from cv_bridge import CvBridge
 
@@ -103,6 +102,10 @@ class LaneFilterNode(DTROS):
             "~right_wheel_encoder_driver_node/tick", WheelEncoderStamped, self.cbProcessRightEncoder, queue_size=1
         )
 
+        self.sub_episode_start = rospy.Subscriber(
+            "~episode_start", EpisodeStart, self.cbEpisodeStart, queue_size=1
+        )
+
 
         # Publishers
         self.pub_lane_pose = rospy.Publisher(
@@ -117,34 +120,15 @@ class LaneFilterNode(DTROS):
             "~debug/plot_d_phi/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
-
-
+        self.filter.initialize()
+        self.loginfo("Lane filter node initializedd")
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
   #      rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
-        self.publishEstimate(self.last_update_header)
 
 
     def cbEpisodeStart(self, msg):
         rospy.loginfo("Lane Filter Resetting")
-        self.filter.initialize_belief()
-
-    @staticmethod
-    def _seg_msg_to_custom_type(msg: SegmentMsg):
-        color: SegmentColor = SegmentColor.WHITE
-        if msg.color == SegmentMsg.YELLOW:
-            color = SegmentColor.YELLOW
-        elif msg.color == SegmentMsg.RED:
-            color = SegmentColor.RED
-
-        p1, p2 = msg.points
-
-        return Segment(
-            color=color,
-            points=[
-                SegmentPoint(x=p1.x, y=p1.y),
-                SegmentPoint(x=p2.x, y=p2.y),
-            ],
-        )
+        self.filter.initialize()
 
     def cbProcessLeftEncoder(self, left_encoder_msg):
         # we need to account for the possibility that the encoder is not reading
@@ -169,7 +153,8 @@ class LaneFilterNode(DTROS):
         self.left_encoder_ticks_delta = 0
         self.right_encoder_ticks_delta = 0
 
-        self.publishEstimate(self.last_update_header)
+        if self.last_update_header is not None:
+            self.publishEstimate(self.last_update_header)
 
     def cbProcessSegments(self, segment_list_msg):
         """Callback to process the segments
@@ -178,6 +163,7 @@ class LaneFilterNode(DTROS):
             segment_list_msg (:obj:`SegmentList`): message containing list of processed segments
 
         """
+        rospy.loginfo_once("Starting to process segments")
         self.cbPredict()
         self.last_update_header = segment_list_msg.header
         dt_segment_list = []
@@ -199,10 +185,11 @@ class LaneFilterNode(DTROS):
             dt_segment = Segment(points=dt_points, color=dt_segment_color)
             dt_segment_list.append(dt_segment)
 
-
+        rospy.loginfo_once("First segments converted to DT format")
         self.filter.update(dt_segment_list)
 
         self.publishEstimate(segment_list_msg.header)
+        rospy.loginfo_once("First segments processed")
 
     def publishEstimate(self, header):
 
