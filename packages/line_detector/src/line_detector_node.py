@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 import json
-from typing import List, Dict
+import os
+from typing import List, Dict, Optional, Union
 import numpy as np
 import cv2
 import rospy
 from cv_bridge import CvBridge
-from nacl.bindings import crypto_box_open
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CompressedImage, Image, CameraInfo
+from geometry_msgs.msg import Point as PointMsg
+
 from duckietown_msgs.msg import Segment as SegmentMsg, SegmentList, AntiInstagramThresholds
 from dt_computer_vision.line_detection import LineDetector, ColorRange, Detections
 from dt_computer_vision.line_detection.rendering import draw_segments, draw_maps
 from dt_computer_vision.anti_instagram import AntiInstagram
+from dt_computer_vision.camera.types import Pixel, NormalizedImagePoint, ResolutionIndependentImagePoint
+from dt_computer_vision.ground_projection import GroundPoint
+from dt_computer_vision.ground_projection.rendering import draw_grid_image, debug_image
+from dt_computer_vision.camera import CameraModel
+from dt_computer_vision.ground_projection import GroundProjector
+from dt_computer_vision.camera.homography import Homography, HomographyToolkit
+
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 
@@ -18,11 +27,12 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 class LineDetectorNode(DTROS):
     """
     The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an image and
-    is used for lane localization.
+    is used for lane localization NEW: and then projecting them to the ground plane.
 
     Upon receiving an image, this node reduces its resolution, cuts off the top part so that only the
-    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes them.
-    The main functionality of this node is implemented in the :py:class:`line_detector.LineDetector` class.
+    road-containing part of the image is left, extracts the white, red, and yellow segments, projects them
+     to the ground and publishes them.
+    The main functionality for detecting the lines is implemented in the :py:class:`line_detector.LineDetector` class.
 
     The performance of this node can be very sensitive to its configuration parameters. Therefore, it also provides a
     number of debug topics which can be used for fine-tuning these parameters. These configuration parameters can be
@@ -84,6 +94,13 @@ class LineDetectorNode(DTROS):
         self.on_colors_range_change()
         self._colors.register_update_callback(self.on_colors_range_change)
 
+        # Projection stuff
+        self.projector: Optional[GroundProjector] = None
+        self.camera: Optional[CameraModel] = None
+        self.homography: Optional[Homography] = None
+        self._first_processing_done = False
+        self.camera_info_received = False
+
         # Publishers
         self.pub_lines = rospy.Publisher(
             "~segment_list",
@@ -102,9 +119,34 @@ class LineDetectorNode(DTROS):
             "~debug/maps/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
+        self.pub_debug_road_view_img = rospy.Publisher(
+            "~debug/ground_projection_image/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.pub_debug_rectified_img = rospy.Publisher(
+            "~debug/projected_image/rectified/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.pub_debug_projected_img = rospy.Publisher(
+            "~debug/projected_image/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.debug_img_bg = None
+
+
         # Subscribers
         self.sub_image = rospy.Subscriber(
             "~image/compressed", CompressedImage, self.image_cb, buff_size=10000000, queue_size=1
+        )
+
+        self.sub_camera_info = rospy.Subscriber(
+            "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
         )
 
         self.sub_thresholds = rospy.Subscriber(
@@ -146,6 +188,9 @@ class LineDetectorNode(DTROS):
         data_received_stamp = image_msg.header.stamp
         self.loginfo(f"Incoming latency: {(start - data_received_stamp).to_sec()}")
 
+        if not self.camera_info_received:
+            return
+
         # Decode from compressed image with OpenCV
         try:
             obtained_image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
@@ -154,7 +199,7 @@ class LineDetectorNode(DTROS):
             return
         self.loginfo(f"Time to decode: {(rospy.Time.now() - start).to_sec()}")
 
-        # Resize the gpu_image to the desired dimensions
+        # Resize the image to the desired dimensions
         height_original, width_original = obtained_image.shape[0:2]
         img_size = (self._img_size[1], self._img_size[0])
         if img_size[0] != width_original or img_size[1] != height_original:
@@ -217,7 +262,7 @@ class LineDetectorNode(DTROS):
         # Fill in the segment_list with all the detected segments
         for color, det in dets.items():
             # Get the ID for the color from the Segment msg definition
-            # Throw and exception otherwise
+            # Throw an exception otherwise
             if len(det["lines"]) > 0 and len(det["normals"]) > 0:
                 try:
                     color_id = getattr(SegmentMsg, color)
@@ -282,9 +327,80 @@ class LineDetectorNode(DTROS):
                 debug_image_msg.header = image_msg.header
                 self.pub_d_maps.publish(debug_image_msg)
 
+            if self.pub_debug_road_view_img.get_num_connections() > 0:
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(
+                    debug_image(segment_list, (300, 300), grid_size=6, s_segment_thickness=5)
+                )
+                debug_image_msg.header = segment_list.header
+                self.pub_debug_road_view_img.publish(debug_image_msg)
 
-    @staticmethod
-    def _to_segment_msg(lines, normals, color):
+    def cb_camera_info(self, msg: CameraInfo) -> None:
+        """
+        Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
+        :py:class:`image_processing.Rectify` object for image rectification
+
+        Args:
+            msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
+
+        """
+        if not self.camera_info_received:
+            self.log("Received camera info message")
+            # create camera object
+            self.camera = CameraModel(
+                width=msg.width,
+                height=msg.height,
+                K=np.reshape(msg.K, (3, 3)),
+                D=np.reshape(msg.D, (5,)),
+                P=np.reshape(msg.P, (3, 4)),
+            )
+
+            self.homography = self.load_extrinsics()
+            print(f"got homography {self.homography}")
+            self.camera.H = self.homography
+            self.projector = GroundProjector(self.camera)
+
+            self.loginfo("Camera model initialized")
+
+        self.camera_info_received = True
+
+    def _pixel_to_ground(self, p: ResolutionIndependentImagePoint) -> GroundPoint:
+        """
+        Converts a pixel coordinate to a ground point.
+
+        Args:
+            p (:obj:`dt_computer_vision.camera.Pixel`): Pixel coordinate
+
+        Returns:
+            :obj:`dt_computer_vision.ground_projection`: Ground point
+
+        """
+
+        if self.camera is None:
+            raise ValueError("Camera model not initialized")
+
+        pixel: Pixel = self.camera.independent2pixel(p)
+        rect: Pixel = self.camera.rectifier.rectify_pixel(pixel)
+        vector: NormalizedImagePoint = self.camera.pixel2vector(rect)
+        p_ground: GroundPoint = self.projector.vector2ground(vector)
+
+        return p_ground
+
+    def pixel_msg_to_ground_msg(self, pixel_msg: PointMsg) -> PointMsg:
+        """
+        Converts a pixel message to a ground message.
+
+        Args:
+            pixel_msg (:obj:`geometry_msgs.msg.Point`): Pixel message
+
+        Returns:
+            :obj:`geometry_msgs.msg.Point`: Ground message
+
+        """
+        p = ResolutionIndependentImagePoint(x=pixel_msg.x, y=pixel_msg.y)
+        p_ground = self._pixel_to_ground(p)
+        return PointMsg(x=p_ground.x, y=p_ground.y)
+
+    def _to_segment_msg(self, lines, normals, color) -> List[SegmentMsg]:
         """
         Converts line detections to a list of Segment messages.
 
@@ -309,8 +425,51 @@ class LineDetectorNode(DTROS):
             segment.pixels_normalized[1].y = y2
             segment.normal.x = norm_x
             segment.normal.y = norm_y
+            segment.points[0] = self.pixel_msg_to_ground_msg(
+                segment.pixels_normalized[0]
+            )
+            segment.points[1] = self.pixel_msg_to_ground_msg(
+                segment.pixels_normalized[1]
+            )
             segment_msg_list.append(segment)
         return segment_msg_list
+
+    def load_extrinsics(self) -> Union[Homography, None]:
+        """
+        Loads the homography matrix from the extrinsic calibration file.
+
+        Returns:
+            :obj:`Homography`: the loaded homography matrix
+
+        """
+        # load extrinsic calibration
+        cali_file_folder = "/data/config/calibrations/camera_extrinsic/"
+        cali_file = cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
+
+        # Locate calibration yaml file or use the default otherwise
+        if not os.path.isfile(cali_file):
+            self.log(
+                f"Can't find calibration file: {cali_file}\n Using default calibration instead.",
+                "warn",
+            )
+            cali_file = os.path.join(cali_file_folder, "default.yaml")
+
+        # Shutdown if no calibration file not found
+        if not os.path.isfile(cali_file):
+            msg = "Found no calibration file ... aborting"
+            self.logerr(msg)
+            rospy.signal_shutdown(msg)
+
+        try:
+            H: Homography = HomographyToolkit.load_from_disk(
+                cali_file, return_date=False
+            )  # type: ignore
+            return H.reshape((3, 3))
+        except Exception as e:
+            msg = f"Error in parsing calibration file {cali_file}:\n{e}"
+            self.logerr(msg)
+            rospy.signal_shutdown(msg)
+
 
     def _plot_ranges_histogram(self, channels):
         """Utility method for plotting color histograms and color ranges.

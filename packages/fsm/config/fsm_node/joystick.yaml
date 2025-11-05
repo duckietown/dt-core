@@ -1,0 +1,45 @@
+# Initial state of the FSM
+
+initial_state: "NORMAL_JOYSTICK_CONTROL"
+
+# Define nodes
+nodes:
+  anti_instagram: "anti_instagram_node/switch"
+  apriltag_detector_node: "apriltag_detector_node/switch"
+  apriltag_postprocessing_node: "apriltag_postprocessing_node/switch"
+  led_emitter_node: "led_emitter_node/switch"
+  led_detector_node: "led_detector_node/switch"
+  line_detector_node: "line_detector_node/switch"
+  lane_filter_node: "lane_filter_node/switch"
+  stop_line_filter_node: "stop_line_filter_node/switch"
+  coordinator_node: "coordinator_node/switch"
+  unicorn_intersection_node: "unicorn_intersection_node/switch" #NOTE a.k.a. semi closed loop intersection navigation
+  lane_controller_node: "lane_controller_node/switch"
+  random_april_tag_turns_node: "random_april_tag_turns_node/switch"
+  intersection_type_detector_node: "intersection_type_detector_node/switch"
+  decoder_node: "decoder_node/switch"
+  rectifier_node: "rectifier_node/switch"
+  ground_projection_node: "ground_projection_node/switch"
+
+
+
+# Define state transitions
+
+states:
+  NORMAL_JOYSTICK_CONTROL:
+    active_nodes:
+      - anti_instagram
+      - apriltag_detector_node
+      - apriltag_postprocessing_node
+      - led_emitter_node
+      - led_detector_node
+      - lane_filter_node
+      - stop_line_filter_node
+      - coordinator_node
+      - unicorn_intersection_node
+      - lane_controller_node
+      - random_april_tag_turns_node
+      - intersection_type_detector_node
+      - decoder_node
+      - rectifier_node
+      - ground_projection_node

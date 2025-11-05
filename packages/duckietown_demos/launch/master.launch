@@ -171,7 +171,7 @@
 
         <!-- Lane Filter -->
         <group if="$(arg /lane_following/lane_filter)">
-            <remap from="lane_filter_node/segment_list" to="ground_projection_node/lineseglist_out"/>
+            <remap from="lane_filter_node/segment_list" to="line_detector_node/segment_list"/>
             <remap from="lane_filter_node/car_cmd" to="car_cmd_switch_node/cmd"/>
             <remap from="lane_filter_node/fsm_mode" to="fsm_node/mode" />
             <remap from="lane_filter_node/left_wheel_encoder_driver_node/tick" to="left_wheel_encoder_driver_node/tick"/>
