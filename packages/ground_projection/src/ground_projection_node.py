@@ -61,7 +61,7 @@ class GroundProjectionNode(DTROS):
         super(GroundProjectionNode, self).__init__(
             node_name=node_name,
             node_type=NodeType.PERCEPTION,
-            fsm_controlled=False
+            fsm_controlled=False,
         )
 
         self._debug = rospy.get_param("~debug", False)

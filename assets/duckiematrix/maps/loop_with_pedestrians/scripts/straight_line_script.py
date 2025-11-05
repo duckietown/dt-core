@@ -29,12 +29,12 @@ class StraightLineScript(MatrixEntityBehavior):
 
     def update(self, delta_time: float) -> None:
         """Update."""
-        if self.pose:
+        if self.state:
             distance = self._speed * delta_time
-            self.pose.x -= distance * np.sin(self.pose.yaw)
-            self.pose.y += distance * np.cos(self.pose.yaw)
+            self.state.x -= distance * np.sin(self.state.yaw)
+            self.state.y += distance * np.cos(self.state.yaw)
             self._distance_on_leg += distance
             if self._distance_on_leg > self._distance:
-                self.pose.yaw += np.deg2rad(180)
+                self.state.yaw += np.deg2rad(180)
                 self._distance_on_leg = 0
-            self.pose.commit()
+            self.state.commit()
