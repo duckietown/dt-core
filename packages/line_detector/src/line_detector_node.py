@@ -186,7 +186,6 @@ class LineDetectorNode(DTROS):
         """
         start = rospy.Time.now()
         data_received_stamp = image_msg.header.stamp
-        self.loginfo(f"Incoming latency: {(start - data_received_stamp).to_sec()}")
 
         if not self.camera_info_received:
             return
@@ -197,7 +196,6 @@ class LineDetectorNode(DTROS):
         except ValueError as e:
             self.logerr(f"Could not decode image: {e}")
             return
-        self.loginfo(f"Time to decode: {(rospy.Time.now() - start).to_sec()}")
 
         # Resize the image to the desired dimensions
         height_original, width_original = obtained_image.shape[0:2]
@@ -206,7 +204,6 @@ class LineDetectorNode(DTROS):
             resized_image = cv2.resize(obtained_image, img_size, interpolation=cv2.INTER_NEAREST)
 
         cropped_image = resized_image[self._top_cutoff :, :, :]
-        self.loginfo(f"Time to resize: {(rospy.Time.now() - start).to_sec()}")
 
         # Perform color correction
         if self.ai_thresholds_received:
@@ -217,7 +214,6 @@ class LineDetectorNode(DTROS):
             )
         else:
             cropped_corrected_image = cropped_image
-        self.loginfo(f"Time to correct: {(rospy.Time.now() - start).to_sec()}")
 
 
         # mirror the gpu_image if left-hand traffic mode is set
@@ -230,7 +226,6 @@ class LineDetectorNode(DTROS):
         color_detections: List[Detections] = (
             self.detector.detect(cropped_corrected_image, colors_to_detect))
 
-        self.loginfo(f"Time to detect: {(rospy.Time.now() - start).to_sec()}")
 
 
         dets: Dict[str, dict] ={}
@@ -275,8 +270,6 @@ class LineDetectorNode(DTROS):
 
         # Publish the message
         self.pub_lines.publish(segment_list)
-        self.loginfo(f"Time to publish: {(rospy.Time.now() - start).to_sec()}")
-
         # Just rename appropriately the image variable
         image = cropped_corrected_image
 
