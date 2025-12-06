@@ -50,5 +50,5 @@ After this, click the autopilot toggle in the keyboard_control window; this will
 
 ### 🤝 Contributing
 - Firmin Chapoulie
-- Guillaume 
-- Mohamad
+- Guillaume Genois
+- Mohamad Houdeib
