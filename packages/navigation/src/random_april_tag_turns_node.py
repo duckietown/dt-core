@@ -9,6 +9,7 @@ import rospy
 from duckietown_msgs.msg import AprilTagsWithInfos, FSMState, TurnIDandType, BoolStamped
 from std_msgs.msg import Int16  # Imports msg
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
+import tf
 
 
 class RandomAprilTagTurnsNode(DTROS):
@@ -53,7 +54,19 @@ class RandomAprilTagTurnsNode(DTROS):
                         tag_det = (tag_msgs.detections)[idx]
                         pos = tag_det.transform.translation
                         distance = math.sqrt(pos.x**2 + pos.y**2 + pos.z**2)
-                        if distance < dis_min:
+
+                        #Finding the anglular difference between tag normal and camera
+                        q = (
+                            tag_det.transform.rotation.x,
+                            tag_det.transform.rotation.y,
+                            tag_det.transform.rotation.z,
+                            tag_det.transform.rotation.w
+                        )
+                        R = tf.transformations.quaternion_matrix(q)[:3, :3]
+                        tag_normal_vector = R[:, 2]
+                        dot_product = tag_normal_vector[2]+0.00001
+
+                        if distance/dot_product < dis_min:
                             dis_min = distance
                             idx_min = idx
 
@@ -77,7 +90,7 @@ class RandomAprilTagTurnsNode(DTROS):
                     availableTurns = [0, 1, 2]
                 elif signType == taginfo.T_INTERSECTION:
                     availableTurns = [0, 2]
-                # rospy.loginfo(f"[{self.node_name}] reports Available turns are: [{availableTurns}]")
+                rospy.loginfo(f"[{self.node_name}] reports Available turns are: [{availableTurns}]")
                 # now randomly choose a possible direction
                 if len(availableTurns) > 0:
                     randomIndex = numpy.random.randint(len(availableTurns))

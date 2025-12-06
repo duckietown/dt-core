@@ -111,12 +111,9 @@ class LaneControllerNode(DTROS):
         self.sub_lane_reading = rospy.Subscriber(
             "~lane_pose", LanePose, self.cbAllPoses, "lane_filter", queue_size=1
         )
+        #TODO : this subscriber is subscribe to nothing  
         self.sub_intersection_navigation_pose = rospy.Subscriber(
-            "~intersection_navigation_pose",
-            LanePose,
-            self.cbAllPoses,
-            "intersection_navigation",
-            queue_size=1,
+            "~intersection_navigation_pose", LanePose, self.cbAllPoses, "intersection_navigation", queue_size=1,
         )
         self.sub_wheels_cmd_executed = rospy.Subscriber(
             "~wheels_cmd", WheelsCmdStamped, self.cbWheelsCmdExecuted, queue_size=1
@@ -126,6 +123,12 @@ class LaneControllerNode(DTROS):
         )
         self.sub_obstacle_stop_line = rospy.Subscriber(
             "~obstacle_distance_reading", StopLineReading, self.cbObstacleStopLineReading, queue_size=1
+        )
+        self.sub_fsm_node_mode = rospy.Subscriber(
+            name='fsm_node/mode',   # The full, resolved topic name
+            data_class=FSMState,     # The message type it expects to receive
+            callback=self.cbMode, 
+            queue_size=1
         )
 
         self.log("Initialized!")
@@ -158,14 +161,20 @@ class LaneControllerNode(DTROS):
 
 
     def cbMode(self, fsm_state_msg):
-
+        
         self.fsm_state = fsm_state_msg.state  # String of current FSM state
 
         if self.fsm_state == "INTERSECTION_CONTROL":
             self.current_pose_source = "intersection_navigation"
-        else:
+        elif self.fsm_state == "DETECT_INTERSECTION_TYPE":
+            self.current_pose_source = "detect_intersection_type"
+        elif self.fsm_state == "STOP_SIGN_INTERSECTION":
+            self.current_pose_source = "stop_sign_intersection"
+        elif self.fsm_state == "NORMAL_JOYSTICK_CONTROL":
+            self.current_pose_source = "normal_joystick_control"
+        elif self.fsm_state == "LANE_FOLLOWING":
             self.current_pose_source = "lane_filter"
-
+        
         if self.params["~verbose"] == 2:
             self.log("Pose source: %s" % self.current_pose_source)
 
@@ -183,7 +192,6 @@ class LaneControllerNode(DTROS):
             self.pose_msg_dict[pose_source] = input_pose_msg
 
             self.pose_msg = input_pose_msg
-
             self.getControlAction(self.pose_msg)
 
     def cbWheelsCmdExecuted(self, msg_wheels_cmd):
@@ -238,8 +246,7 @@ class LaneControllerNode(DTROS):
                 )
                 # TODO: This is a temporarily fix to avoid vehicle image detection latency caused unable to stop in time.
                 v = v * 0.25
-                omega = omega * 0.25
-
+                omega = omega * 0.2
             else:
                 v, omega = self.controller.compute_control_action(
                     d_err, phi_err, dt, wheels_cmd_exec, self.stop_line_distance
@@ -252,8 +259,16 @@ class LaneControllerNode(DTROS):
         car_control_msg = Twist2DStamped()
         car_control_msg.header = pose_msg.header
 
+        # Add a speed decrease when the duckiebot approach a stop line
+        factor = 1
+        if self.stop_line_detected and self.current_pose_source == "lane_filter":
+            distMin = self.params["~stop_line_slowdown"]['end']#minimun distance to the stop ligne
+            distMax = self.params["~stop_line_slowdown"]['start']#distance to the stop when the robot start decreasing
+            distToStop = self.stop_line_distance
+            factor = max(0, (distToStop-distMin)/(distMax-distMin))
+
         # Add commands to car message
-        car_control_msg.v = v
+        car_control_msg.v = factor*v
         car_control_msg.omega = omega
 
         self.publishCmd(car_control_msg)

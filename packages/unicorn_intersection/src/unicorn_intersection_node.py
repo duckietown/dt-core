@@ -54,7 +54,6 @@ class UnicornIntersectionNode(DTROS):
         self.sub_turn_type = rospy.Subscriber("~turn_id_and_type", TurnIDandType, self.cbTurnType)
         self.sub_encoder_left = message_filters.Subscriber("~left_wheel_encoder_driver_node/tick", WheelEncoderStamped)
         self.sub_encoder_right = message_filters.Subscriber("~right_wheel_encoder_driver_node/tick", WheelEncoderStamped)
-        self.sub_encoder_right = message_filters.Subscriber("~right_wheel_encoder_driver_node/tick", WheelEncoderStamped)
         self.sub_stop_line_reading = rospy.Subscriber("~stop_line_reading", StopLineReading, self.cbStopLineReading)
 
         ## Publisher
@@ -98,6 +97,14 @@ class UnicornIntersectionNode(DTROS):
             rospy.loginfo("[unicorn_intersection_node] We have what we need, calculating reference trajectory")
             self.reference_trajectory = self.calculate_goal_trajectory()
             rospy.loginfo(f"[unicorn_intersection_node] Reference trajectory calculated: {self.reference_trajectory}")
+            car_control_msg = Twist2DStamped()
+            car_control_msg.header.stamp = rospy.Time.now()
+            car_control_msg.header.seq = 0
+            car_control_msg.v = 0
+            car_control_msg.omega = 0
+            self.car_cmd.publish(car_control_msg)
+            #TODO implement a delay with respect to the node frequency
+            rospy.loginfo(f"[unicorn_intersection_node] On marque le stop")
             self.internal_state = "EXECUTING"
         else:
             rospy.loginfo(f"[unicorn_intersection_node] We don't have what we need yet: "
@@ -117,10 +124,13 @@ class UnicornIntersectionNode(DTROS):
         # Step 1 - calculate the goal pose in the robot frame
         if self.turn_type == 0:
             canonical_goal_pose = self.goal_poses['left']
+            rospy.loginfo(f"[unicorn_intersection_node] We are turning left")
         elif self.turn_type == 1:
             canonical_goal_pose = self.goal_poses['straight']
+            rospy.loginfo(f"[unicorn_intersection_node] We are going straigth")
         elif self.turn_type == 2:
             canonical_goal_pose = self.goal_poses['right']
+            rospy.loginfo(f"[unicorn_intersection_node] We are turning right")
         else:
             rospy.logerr("[unicorn_intersection_node] Something went wrong, invalid turn type")
 
@@ -263,7 +273,9 @@ class UnicornIntersectionNode(DTROS):
         car_control_msg.header.seq = 0
 
         # Add commands to car message
-        car_control_msg.v = self.speed
+        gainV = 0.75
+        wayPoint = self.reference_trajectory[self.iter_]
+        car_control_msg.v = min(self.speed, gainV*(np.cos(self.yaw)*(wayPoint[0]-self.x)+np.sin(self.yaw)*(wayPoint[1])-self.y))
         car_control_msg.omega = self.compute_omega(self.reference_trajectory[self.iter_],self.x,self.y,self.yaw,dt)
         self.car_cmd.publish(car_control_msg)
 
@@ -335,7 +347,7 @@ class UnicornIntersectionNode(DTROS):
             return 0
 
     def compute_omega(self,targetxy,x,y,current,dt):
-        factor = 1 # PARAM 
+        factor = 0.75 # PARAM 
         target_yaw = np.arctan2( (targetxy[1] - y),(targetxy[0]- x) )
         omega = factor* ((target_yaw - current))
 
