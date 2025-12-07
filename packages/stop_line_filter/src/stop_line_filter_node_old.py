@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
-from collections import deque
+
 import rospy
 from duckietown.dtros import DTParam, DTROS, NodeType, ParamType
 from duckietown_msgs.msg import BoolStamped, FSMState, LanePose, SegmentList, StopLineReading
@@ -61,14 +61,6 @@ class StopLineFilterNode(DTROS):
         self.sub_lane = rospy.Subscriber("~lane_pose", LanePose, self.cb_lane_pose)
         self.pub_stop_line_reading = rospy.Publisher("~stop_line_reading", StopLineReading, queue_size=1, latch=True)
         self.pub_at_stop_line = rospy.Publisher("~at_stop_line", BoolStamped, queue_size=1)
-        
-        # robustness state properties: smoothing & hysteresis
-        self._dist_window = deque(maxlen=5) # last 5 distances
-        self._at_stop_line = False
-        self._below_count = 0
-        self._above_count = 0
-        self._frames_required = 3 # frames in a row before flipping state
-        self._hysteresis_margin = 0.05 # 5 cm hysteresis window
 
     def cb_lane_pose(self, lane_pose_msg):
         self.lane_pose = lane_pose_msg
@@ -100,19 +92,7 @@ class StopLineFilterNode(DTROS):
         stop_line_reading_msg.header.stamp = segment_list_msg.header.stamp
         if good_seg_count < self.min_segs.value:
             stop_line_reading_msg.stop_line_detected = False
-            self._dist_window.clear()
-            # hysteresis: no detection pushes ustowards not at stop line decision
-            # if this condition does not pass, at_stop line stays true
-            # and we no longer see the line in this frame, but still consider ourselves at the stop line
-            self._below_count = 0
-            self._above_count += 1
-            if self._above_count >= self._frames_required:
-                self._at_stop_line = False
-                self._above_count = 0
-
-            stop_line_reading_msg.at_stop_line = self._at_stop_line
-            # rospy.loginfo(f"[stop_line_filter] NO stop line (segs={good_seg_count}, min={self.min_segs.value}, at={self._at_stop_line})")
-
+            stop_line_reading_msg.at_stop_line = False
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
 
         else:
@@ -123,37 +103,9 @@ class StopLineFilterNode(DTROS):
             stop_pose.theta = self.lane_pose.phi
             stop_line_reading_msg.stop_pose = stop_pose
 
-            raw_dist = -stop_pose.x  # positive means stop line isin front of robot, negative means behind
-
-            self._dist_window.append(raw_dist) # update distance history and compute smoothed distance
-            smooth_dist = float(np.median(self._dist_window)) if len(self._dist_window) > 0 else raw_dist
-
-            thresh = self.stop_distance.value #hysteresis on at_stop_line using smoothed distance
-
-            if not self._at_stop_line: # we are currently not at the stop line
-                if smooth_dist < thresh:
-                    self._below_count += 1
-                    if self._below_count >= self._frames_required:
-                        self._at_stop_line = True
-                        self._below_count = 0
-                else:
-                    self._below_count = 0
-                    if smooth_dist > thresh + self._hysteresis_margin: # being clearly far away reinforces not at stop line decisin
-                        self._above_count = min(self._above_count + 1, self._frames_required)
-            else: #we are currently at the stop line
-                if smooth_dist > thresh + self._hysteresis_margin:
-                    self._above_count += 1
-                    if self._above_count >= self._frames_required:
-                        self._at_stop_line = False
-                        self._above_count = 0
-                else:
-                    self._above_count = 0
-                    if smooth_dist < thresh: # clearly inside the stop zone reinforces at stop line decision
-                        self._below_count = min(self._below_count + 1, self._frames_required)
-
-            stop_line_reading_msg.at_stop_line = self._at_stop_line
-
-            # rospy.loginfo(f"[stop_line_filter] segs={good_seg_count} raw={raw_dist:.3f} smooth={smooth_dist:.3f} thr={thresh:.3f} at={self._at_stop_line}")
+            # Only detect redline if y is within max_y distance:
+            stop_line_reading_msg.at_stop_line = \
+                -stop_pose.x < self.stop_distance.value
 
             self.pub_stop_line_reading.publish(stop_line_reading_msg)
             if stop_line_reading_msg.at_stop_line:
