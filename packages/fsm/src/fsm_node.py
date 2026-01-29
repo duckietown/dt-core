@@ -48,8 +48,8 @@ class FSMNode:
             rospy.loginfo(f"FSM waiting for service {service_name}")
             try:
                 rospy.wait_for_service(
-                    service_name, timeout=10.0
-                )  #  Not sure if there is a better way to do this
+                    service_name, timeout=30.0
+                )  #  Increased timeout to handle slower node initialization
                 self.srv_dict[node_name] = rospy.ServiceProxy(service_name, SetBool)
                 rospy.loginfo(f"FSM found service {service_name}")
             except rospy.ROSException as e:
