@@ -3,5 +3,29 @@ time_of_flights:
   map_0/vehicle_0/tof_front_center:
     name: front_center
     angle: 0.4363
+    minimum_supported_samples: 3
+    minimum_return_signal: 0.1
     maximum_distance: 1.2
     frequency: 15
+    sample_resolution: 4
+    hidden_depth_layers:
+      # - Ground
+      - Mayor
+      # - Robot
+      - Marker
+      - Gizmos
+      - Cameraman
+      # - Elements
+      # - Billboards
+    visualize: true
+    flash_visualization: true
+    visualization_color:
+      r: 0.2
+      g: 0.8
+      b: 1
+      a: 0.1
+    final_measurement_visualization_color:
+      r: 0.2
+      g: 0.8
+      b: 1
+      a: 1
