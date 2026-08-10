@@ -1,8 +1,8 @@
 #lane_control/lane_controller_node
-v_bar: 0.19
-k_d: -2.0
-k_theta: -3.0
-k_Id: -3.0
+v_bar: 0.45
+k_d: -5.0
+k_theta: -12.0
+k_Id: -5.0
 k_Iphi: 0.0
 theta_thres_max: 0.75  #0.523
 theta_thres_min: -0.5
