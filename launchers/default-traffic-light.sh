@@ -13,7 +13,9 @@ dt-launchfile-init --quiet
 # NOTE: Use `dt-exec COMMAND` to run the main process (blocking process)
 
 # launching app
-dt-launcher-default-${ROBOT_TYPE//_/-}
+dt-exec roslaunch --wait traffic_light default.launch \
+    veh:="${VEHICLE_NAME}"
+
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

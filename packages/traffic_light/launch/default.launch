@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="veh" doc="Name of vehicle. ex: megaman"/>
+
+    <remap from="led_emitter_node/led_pattern" to="led_driver_node/led_pattern"/>
+    <include file="$(find led_emitter)/launch/led_emitter_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+        <arg name="robot_type" value="traffic_light"/>
+    </include>
+
+    <include file="$(find traffic_light)/launch/traffic_light_node.launch">
+        <arg name="veh" value="$(arg veh)"/>
+    </include>
+</launch>
