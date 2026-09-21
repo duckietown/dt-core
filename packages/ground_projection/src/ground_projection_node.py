@@ -59,9 +59,12 @@ class GroundProjectionNode(DTROS):
     def __init__(self, node_name: str):
         # Initialize the DTROS parent class
         super(GroundProjectionNode, self).__init__(
-            node_name=node_name, node_type=NodeType.PERCEPTION
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=False,
         )
 
+        self._debug = rospy.get_param("~debug", False)
         self.bridge = CvBridge()
         self.projector: Optional[GroundProjector] = None
         self.camera: Optional[CameraModel] = None
@@ -75,7 +78,7 @@ class GroundProjectionNode(DTROS):
             "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
         )
         self.sub_lineseglist_ = rospy.Subscriber(
-            "~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1
+            "~lineseglist_in", SegmentList, self.lineseglist_cb, queue_size=1, tcp_nodelay=True
         )
 
         # publishers
@@ -99,8 +102,6 @@ class GroundProjectionNode(DTROS):
             CompressedImage,
             queue_size=1,
         )
-
-        self.bridge = CvBridge()
 
         self.debug_img_bg = None
 
@@ -181,6 +182,10 @@ class GroundProjectionNode(DTROS):
             unrectified images
 
         """
+        start = rospy.Time.now()
+        data_received_stamp = seglist_msg.header.stamp
+        self.loginfo(f"Incoming latency: {(start - data_received_stamp).to_sec()}")
+
         if self.camera_info_received:
             # the list of segments on the ground that we will publish
             seglist_out = SegmentList()
@@ -207,18 +212,21 @@ class GroundProjectionNode(DTROS):
                 else:
                     color_vect = (255, 0, 0)
                 colored_segments[color_vect].append((projected_segment.points[0], projected_segment.points[1]))
+
+            self.loginfo(f"Time to project: {(rospy.Time.now() - start).to_sec()}")
             self.pub_lineseglist.publish(seglist_out)
 
             if not self._first_processing_done:
                 self.log("First projected segments published.")
                 self._first_processing_done = True
 
-            if self.pub_debug_road_view_img.get_num_connections() > 0:
-                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(
-                    debug_image(colored_segments,(300, 300), grid_size=6, s_segment_thickness=5)
-                )
-                debug_image_msg.header = seglist_out.header
-                self.pub_debug_road_view_img.publish(debug_image_msg)
+            if self._debug:
+                if self.pub_debug_road_view_img.get_num_connections() > 0:
+                    debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(
+                        debug_image(colored_segments,(300, 300), grid_size=6, s_segment_thickness=5)
+                    )
+                    debug_image_msg.header = seglist_out.header
+                    self.pub_debug_road_view_img.publish(debug_image_msg)
         else:
             self.log("Waiting for a CameraInfo message", "warn")
 

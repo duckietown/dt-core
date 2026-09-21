@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 import json
-from typing import List, Dict
+import os
+from typing import List, Dict, Optional, Union
 import numpy as np
 import cv2
 import rospy
 from cv_bridge import CvBridge
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CompressedImage, Image, CameraInfo
+from geometry_msgs.msg import Point as PointMsg
+
 from duckietown_msgs.msg import Segment as SegmentMsg, SegmentList, AntiInstagramThresholds
 from dt_computer_vision.line_detection import LineDetector, ColorRange, Detections
 from dt_computer_vision.line_detection.rendering import draw_segments, draw_maps
 from dt_computer_vision.anti_instagram import AntiInstagram
+from dt_computer_vision.camera.types import Pixel, NormalizedImagePoint, ResolutionIndependentImagePoint
+from dt_computer_vision.ground_projection import GroundPoint
+from dt_computer_vision.ground_projection.rendering import draw_grid_image, debug_image
+from dt_computer_vision.camera import CameraModel
+from dt_computer_vision.ground_projection import GroundProjector
+from dt_computer_vision.camera.homography import Homography, HomographyToolkit
+
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 
@@ -17,11 +27,12 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam
 class LineDetectorNode(DTROS):
     """
     The ``LineDetectorNode`` is responsible for detecting the line white, yellow and red line segment in an image and
-    is used for lane localization.
+    is used for lane localization NEW: and then projecting them to the ground plane.
 
     Upon receiving an image, this node reduces its resolution, cuts off the top part so that only the
-    road-containing part of the image is left, extracts the white, red, and yellow segments and publishes them.
-    The main functionality of this node is implemented in the :py:class:`line_detector.LineDetector` class.
+    road-containing part of the image is left, extracts the white, red, and yellow segments, projects them
+     to the ground and publishes them.
+    The main functionality for detecting the lines is implemented in the :py:class:`line_detector.LineDetector` class.
 
     The performance of this node can be very sensitive to its configuration parameters. Therefore, it also provides a
     number of debug topics which can be used for fine-tuning these parameters. These configuration parameters can be
@@ -50,11 +61,15 @@ class LineDetectorNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LineDetectorNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        super(LineDetectorNode, self).__init__(
+            node_name=node_name,
+            node_type=NodeType.PERCEPTION,
+            fsm_controlled=False)
 
         # Define parameters
         self._line_detector_parameters = rospy.get_param("~line_detector_parameters", None)
         self._veh = rospy.get_param("~veh")
+        self._debug = rospy.get_param("~debug", False)
         self._img_size = rospy.get_param("~img_size", None)
         self._top_cutoff = rospy.get_param("~top_cutoff", None)
         self._colors = DTParam("~colors", None)
@@ -79,9 +94,20 @@ class LineDetectorNode(DTROS):
         self.on_colors_range_change()
         self._colors.register_update_callback(self.on_colors_range_change)
 
+        # Projection stuff
+        self.projector: Optional[GroundProjector] = None
+        self.camera: Optional[CameraModel] = None
+        self.homography: Optional[Homography] = None
+        self._first_processing_done = False
+        self.camera_info_received = False
+
         # Publishers
         self.pub_lines = rospy.Publisher(
-            "~segment_list", SegmentList, queue_size=1, dt_topic_type=TopicType.PERCEPTION
+            "~segment_list",
+            SegmentList,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION,
+            tcp_nodelay=True
         )
         self.pub_d_segments = rospy.Publisher(
             "~debug/segments/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
@@ -93,24 +119,40 @@ class LineDetectorNode(DTROS):
             "~debug/maps/compressed", CompressedImage, queue_size=1, dt_topic_type=TopicType.DEBUG
         )
 
+        self.pub_debug_road_view_img = rospy.Publisher(
+            "~debug/ground_projection_image/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.pub_debug_rectified_img = rospy.Publisher(
+            "~debug/projected_image/rectified/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.pub_debug_projected_img = rospy.Publisher(
+            "~debug/projected_image/compressed",
+            CompressedImage,
+            queue_size=1,
+        )
+
+        self.debug_img_bg = None
+
+
         # Subscribers
         self.sub_image = rospy.Subscriber(
             "~image/compressed", CompressedImage, self.image_cb, buff_size=10000000, queue_size=1
+        )
+
+        self.sub_camera_info = rospy.Subscriber(
+            "~camera_info", CameraInfo, self.cb_camera_info, queue_size=1
         )
 
         self.sub_thresholds = rospy.Subscriber(
             "~thresholds", AntiInstagramThresholds, self.thresholds_cb, queue_size=1
         )
 
-        # Check if CUDA is available
-        # LP: I think for this to work we need the base image to have CUDA
-        #     which it currently doesn't
-        if cv2.cuda.getCudaEnabledDeviceCount() > 0:
-            self.loginfo("Using CUDA GPU for line detection.")
-            self.cuda_enabled = True
-        else:
-            self.loginfo("Using the CPU for line detection.")
-            self.cuda_enabled = False
 
     def on_colors_range_change(self):
         self.color_ranges = {
@@ -142,6 +184,11 @@ class LineDetectorNode(DTROS):
             image_msg (:obj:`sensor_msgs.msg.CompressedImage`): The receive image message
 
         """
+        start = rospy.Time.now()
+        data_received_stamp = image_msg.header.stamp
+
+        if not self.camera_info_received:
+            return
 
         # Decode from compressed image with OpenCV
         try:
@@ -149,41 +196,37 @@ class LineDetectorNode(DTROS):
         except ValueError as e:
             self.logerr(f"Could not decode image: {e}")
             return
-        
+
+        # Resize the image to the desired dimensions
+        height_original, width_original = obtained_image.shape[0:2]
+        img_size = (self._img_size[1], self._img_size[0])
+        if img_size[0] != width_original or img_size[1] != height_original:
+            resized_image = cv2.resize(obtained_image, img_size, interpolation=cv2.INTER_NEAREST)
+
+        cropped_image = resized_image[self._top_cutoff :, :, :]
+
         # Perform color correction
         if self.ai_thresholds_received:
-            obtained_image = self.ai.apply(
-                image = obtained_image,
+            cropped_corrected_image = self.ai.apply(
+                image = cropped_image,
                 lower_threshold = self.anti_instagram_thresholds["lower"],
                 higher_threshold = self.anti_instagram_thresholds["higher"]
             )
-
-        if self.cuda_enabled:
-            gpu_image = cv2.cuda_GpuMat()
-            gpu_image.upload(obtained_image)
         else:
-            gpu_image = obtained_image
+            cropped_corrected_image = cropped_image
 
-        # Resize the gpu_image to the desired dimensions
-        height_original, width_original = gpu_image.shape[0:2]
-        img_size = (self._img_size[1], self._img_size[0])
-        if img_size[0] != width_original or img_size[1] != height_original:
-            if self.cuda_enabled:
-                gpu_image = cv2.cuda.resize(gpu_image, img_size, interpolation=cv2.INTER_NEAREST)
-            else:
-                gpu_image = cv2.resize(gpu_image, img_size, interpolation=cv2.INTER_NEAREST)
-
-        gpu_image = gpu_image[self._top_cutoff :, :, :]
 
         # mirror the gpu_image if left-hand traffic mode is set
         if self._traffic_mode.value == "LHT":
-            gpu_image = np.fliplr(gpu_image)
+            cropped_corrected_image = np.fliplr(cropped_corrected_image)
 
         color_order = ["YELLOW", "WHITE", "RED"]
         colors_to_detect = [self.color_ranges[c] for c in color_order]
         # Extract the line segments for every color
         color_detections: List[Detections] = (
-            self.detector.detect(gpu_image, colors_to_detect))
+            self.detector.detect(cropped_corrected_image, colors_to_detect))
+
+
 
         dets: Dict[str, dict] ={}
         for i, detections in enumerate(color_detections):
@@ -214,7 +257,7 @@ class LineDetectorNode(DTROS):
         # Fill in the segment_list with all the detected segments
         for color, det in dets.items():
             # Get the ID for the color from the Segment msg definition
-            # Throw and exception otherwise
+            # Throw an exception otherwise
             if len(det["lines"]) > 0 and len(det["normals"]) > 0:
                 try:
                     color_id = getattr(SegmentMsg, color)
@@ -227,63 +270,130 @@ class LineDetectorNode(DTROS):
 
         # Publish the message
         self.pub_lines.publish(segment_list)
-        
-        if self.cuda_enabled:
-            # Download the image from gpu memory
-            image = gpu_image.download()
-        else:
-            # Just rename appropriately the image variable
-            image = gpu_image
+        # Just rename appropriately the image variable
+        image = cropped_corrected_image
 
-        # If there are any subscribers to the debug topics, generate a debug image and publish it
-        if self.pub_d_segments.get_num_connections() > 0:
-            debug_img = draw_segments(image,
+        if self._debug:
+            # If there are any subscribers to the debug topics, generate a debug image and publish it
+            if self.pub_d_segments.get_num_connections() > 0:
+                debug_img = draw_segments(image,
+                                          {
+                                            self.color_ranges["YELLOW"]: color_detections[0],
+                                            self.color_ranges["WHITE"]: color_detections[1],
+                                            self.color_ranges["RED"]: color_detections[2]
+                                          }
+                                        )
+
+                # mirror the image if left-hand traffic mode is set
+                if self._traffic_mode.value == "LHT":
+                    debug_img = np.fliplr(debug_img)
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
+                debug_image_msg.header = image_msg.header
+                self.pub_d_segments.publish(debug_image_msg)
+
+            if self.pub_d_edges.get_num_connections() > 0:
+                canny_edges = self.detector.find_edges(image,
+                                                       self.detector.canny_thresholds[0],
+                                                       self.detector.canny_thresholds[1],
+                                                       self.detector.canny_aperture_size
+                                                       )
+                # mirror the image if left-hand traffic mode is set
+                if self._traffic_mode.value == "LHT":
+                    canny_edges = np.fliplr(canny_edges)
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(canny_edges)
+                debug_image_msg.header = image_msg.header
+                self.pub_d_edges.publish(debug_image_msg)
+
+            if self.pub_d_maps.get_num_connections() > 0:
+    #            colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
+                debug_img = draw_maps(image,
                                       {
-                                        self.color_ranges["YELLOW"]: color_detections[0],
-                                        self.color_ranges["WHITE"]: color_detections[1],
-                                        self.color_ranges["RED"]: color_detections[2]
+                                          self.color_ranges["YELLOW"]: color_detections[0],
+                                          self.color_ranges["WHITE"]: color_detections[1],
+                                          self.color_ranges["RED"]: color_detections[2]
                                       }
-                                    )
+                                      )
+                # mirror the image if left-hand traffic mode is set
+                if self._traffic_mode.value == "LHT":
+                    debug_img = np.fliplr(debug_img)
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
+                debug_image_msg.header = image_msg.header
+                self.pub_d_maps.publish(debug_image_msg)
 
-            # mirror the image if left-hand traffic mode is set
-            if self._traffic_mode.value == "LHT":
-                debug_img = np.fliplr(debug_img)
-            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
-            debug_image_msg.header = image_msg.header
-            self.pub_d_segments.publish(debug_image_msg)
+            if self.pub_debug_road_view_img.get_num_connections() > 0:
+                debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(
+                    debug_image(segment_list, (300, 300), grid_size=6, s_segment_thickness=5)
+                )
+                debug_image_msg.header = segment_list.header
+                self.pub_debug_road_view_img.publish(debug_image_msg)
 
-        if self.pub_d_edges.get_num_connections() > 0:
-            canny_edges = self.detector.find_edges(image,
-                                                   self.detector.canny_thresholds[0],
-                                                   self.detector.canny_thresholds[1],
-                                                   self.detector.canny_aperture_size
-                                                   )
-            # mirror the image if left-hand traffic mode is set
-            if self._traffic_mode.value == "LHT":
-                canny_edges = np.fliplr(canny_edges)
-            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(canny_edges)
-            debug_image_msg.header = image_msg.header
-            self.pub_d_edges.publish(debug_image_msg)
+    def cb_camera_info(self, msg: CameraInfo) -> None:
+        """
+        Initializes a :py:class:`image_processing.GroundProjectionGeometry` object and a
+        :py:class:`image_processing.Rectify` object for image rectification
 
-        if self.pub_d_maps.get_num_connections() > 0:
-#            colorrange_detections = {self.color_ranges[c]: det for c, det in list(detections.items())}
-            debug_img = draw_maps(image,
-                                  {
-                                      self.color_ranges["YELLOW"]: color_detections[0],
-                                      self.color_ranges["WHITE"]: color_detections[1],
-                                      self.color_ranges["RED"]: color_detections[2]
-                                  }
-                                  )
-            # mirror the image if left-hand traffic mode is set
-            if self._traffic_mode.value == "LHT":
-                debug_img = np.fliplr(debug_img)
-            debug_image_msg = self.bridge.cv2_to_compressed_imgmsg(debug_img)
-            debug_image_msg.header = image_msg.header
-            self.pub_d_maps.publish(debug_image_msg)
+        Args:
+            msg (:obj:`sensor_msgs.msg.CameraInfo`): Intrinsic properties of the camera.
 
+        """
+        if not self.camera_info_received:
+            self.log("Received camera info message")
+            # create camera object
+            self.camera = CameraModel(
+                width=msg.width,
+                height=msg.height,
+                K=np.reshape(msg.K, (3, 3)),
+                D=np.reshape(msg.D, (5,)),
+                P=np.reshape(msg.P, (3, 4)),
+            )
 
-    @staticmethod
-    def _to_segment_msg(lines, normals, color):
+            self.homography = self.load_extrinsics()
+            print(f"got homography {self.homography}")
+            self.camera.H = self.homography
+            self.projector = GroundProjector(self.camera)
+
+            self.loginfo("Camera model initialized")
+
+        self.camera_info_received = True
+
+    def _pixel_to_ground(self, p: ResolutionIndependentImagePoint) -> GroundPoint:
+        """
+        Converts a pixel coordinate to a ground point.
+
+        Args:
+            p (:obj:`dt_computer_vision.camera.Pixel`): Pixel coordinate
+
+        Returns:
+            :obj:`dt_computer_vision.ground_projection`: Ground point
+
+        """
+
+        if self.camera is None:
+            raise ValueError("Camera model not initialized")
+
+        pixel: Pixel = self.camera.independent2pixel(p)
+        rect: Pixel = self.camera.rectifier.rectify_pixel(pixel)
+        vector: NormalizedImagePoint = self.camera.pixel2vector(rect)
+        p_ground: GroundPoint = self.projector.vector2ground(vector)
+
+        return p_ground
+
+    def pixel_msg_to_ground_msg(self, pixel_msg: PointMsg) -> PointMsg:
+        """
+        Converts a pixel message to a ground message.
+
+        Args:
+            pixel_msg (:obj:`geometry_msgs.msg.Point`): Pixel message
+
+        Returns:
+            :obj:`geometry_msgs.msg.Point`: Ground message
+
+        """
+        p = ResolutionIndependentImagePoint(x=pixel_msg.x, y=pixel_msg.y)
+        p_ground = self._pixel_to_ground(p)
+        return PointMsg(x=p_ground.x, y=p_ground.y)
+
+    def _to_segment_msg(self, lines, normals, color) -> List[SegmentMsg]:
         """
         Converts line detections to a list of Segment messages.
 
@@ -308,8 +418,51 @@ class LineDetectorNode(DTROS):
             segment.pixels_normalized[1].y = y2
             segment.normal.x = norm_x
             segment.normal.y = norm_y
+            segment.points[0] = self.pixel_msg_to_ground_msg(
+                segment.pixels_normalized[0]
+            )
+            segment.points[1] = self.pixel_msg_to_ground_msg(
+                segment.pixels_normalized[1]
+            )
             segment_msg_list.append(segment)
         return segment_msg_list
+
+    def load_extrinsics(self) -> Union[Homography, None]:
+        """
+        Loads the homography matrix from the extrinsic calibration file.
+
+        Returns:
+            :obj:`Homography`: the loaded homography matrix
+
+        """
+        # load extrinsic calibration
+        cali_file_folder = "/data/config/calibrations/camera_extrinsic/"
+        cali_file = cali_file_folder + rospy.get_namespace().strip("/") + ".yaml"
+
+        # Locate calibration yaml file or use the default otherwise
+        if not os.path.isfile(cali_file):
+            self.log(
+                f"Can't find calibration file: {cali_file}\n Using default calibration instead.",
+                "warn",
+            )
+            cali_file = os.path.join(cali_file_folder, "default.yaml")
+
+        # Shutdown if no calibration file not found
+        if not os.path.isfile(cali_file):
+            msg = "Found no calibration file ... aborting"
+            self.logerr(msg)
+            rospy.signal_shutdown(msg)
+
+        try:
+            H: Homography = HomographyToolkit.load_from_disk(
+                cali_file, return_date=False
+            )  # type: ignore
+            return H.reshape((3, 3))
+        except Exception as e:
+            msg = f"Error in parsing calibration file {cali_file}:\n{e}"
+            self.logerr(msg)
+            rospy.signal_shutdown(msg)
+
 
     def _plot_ranges_histogram(self, channels):
         """Utility method for plotting color histograms and color ranges.
@@ -354,16 +507,10 @@ class LineDetectorNode(DTROS):
                 [channel_to_map["H"], channel_to_map["S"], channel_to_map["V"]], axis=-1
             ).astype(np.uint8)
 
-            if self.cuda_enabled:
-                self.colormaps[channels] = cv2.cuda.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
-            else:
-                self.colormaps[channels] = cv2.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
+            self.colormaps[channels] = cv2.cvtColor(self.colormaps[channels], cv2.COLOR_HSV2BGR)
 
         # resulting histogram image as a blend of the two images
-        if self.cuda_enabled:
-            im = cv2.cuda.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
-        else:
-            im = cv2.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
+        im = cv2.cvtColor(h[:, :, None], cv2.COLOR_GRAY2BGR)
             
         im = cv2.addWeighted(im, 0.5, self.colormaps[channels], 1 - 0.5, 0.0)
 
@@ -372,10 +519,7 @@ class LineDetectorNode(DTROS):
             # convert HSV color to BGR
             c = color_range.representative
             c = np.uint8([[[c[0], c[1], c[2]]]])
-            if self.cuda_enabled:
-                color = cv2.cuda.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
-            else:
-                color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
+            color = cv2.cvtColor(c, cv2.COLOR_HSV2BGR).squeeze().astype(int).tolist()
 
             for i in range(len(color_range.low)):
                 cv2.rectangle(

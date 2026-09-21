@@ -53,7 +53,7 @@ class LaneFilterNode(DTROS):
         super(LaneFilterNode, self).__init__(
             node_name=node_name,
             node_type=NodeType.PERCEPTION,
-            fsm_controlled=True
+            fsm_controlled=False
         )
 
         self._filter = rospy.get_param("~lane_filter_histogram_configuration", None)
@@ -121,7 +121,6 @@ class LaneFilterNode(DTROS):
 
         # Set up a timer for prediction (if we got encoder data) since that data can come very quickly
   #      rospy.Timer(rospy.Duration(1 / self._predict_freq), self.cbPredict)
-        self.publishEstimate(self.last_update_header)
 
 
     def cbEpisodeStart(self, msg):
