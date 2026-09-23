@@ -24,10 +24,9 @@ class LaneControllerNode(DTROS):
         node_name (:obj:`str`): a unique, descriptive name for the node that ROS will use
     Configuration:
         ~v_bar (:obj:`float`): Nominal velocity in m/s
-        ~k_d (:obj:`float`): Proportional term for lateral deviation
-        ~k_theta (:obj:`float`): Proportional term for heading deviation
-        ~k_Id (:obj:`float`): integral term for lateral deviation
-        ~k_Iphi (:obj:`float`): integral term for lateral deviation
+        ~k_d_d (:obj:`float`): Proportional term for lateral deviation
+        ~k_d_phi (:obj:`float`): Proportional term for heading deviation
+        ~k_I_d (:obj:`float`): integral term for lateral deviation
         ~d_thres (:obj:`float`): Maximum value for lateral error
         ~theta_thres (:obj:`float`): Maximum value for heading error
         ~d_offset (:obj:`float`): Goal offset from center of the lane
@@ -61,14 +60,11 @@ class LaneControllerNode(DTROS):
         # TODO: MAKE TO WORK WITH NEW DTROS PARAMETERS
         self.params = dict()
         self.params["~v_bar"] = DTParam("~v_bar", param_type=ParamType.FLOAT, min_value=0.0, max_value=5.0)
-        self.params["~k_d"] = DTParam("~k_d", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
-        self.params["~k_theta"] = DTParam(
-            "~k_theta", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0
+        self.params["~k_d_d"] = DTParam("~k_d_d", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
+        self.params["~k_d_phi"] = DTParam(
+            "~k_d_phi", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0
         )
-        self.params["~k_Id"] = DTParam("~k_Id", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
-        self.params["~k_Iphi"] = DTParam(
-            "~k_Iphi", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0
-        )
+        self.params["~k_I_d"] = DTParam("~k_I_d", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)
         #self.params["~theta_thres"] = rospy.get_param("~theta_thres", None)
         #Breaking up the self.params["~theta_thres"] parameter for more finer tuning of phi
         self.params["~theta_thres_min"] = DTParam("~theta_thres_min", param_type=ParamType.FLOAT, min_value=-100.0, max_value=100.0)  #SUGGESTION mandatorizing the use of DTParam inplace of rospy.get_param for parameters in the entire dt-core repository as it allows active tuning while Robot is in action.
