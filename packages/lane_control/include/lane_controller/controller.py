@@ -12,10 +12,9 @@ class LaneController:
 
     Args:
         ~v_bar (:obj:`float`): Nominal velocity in m/s
-        ~k_d (:obj:`float`): Proportional term for lateral deviation
-        ~k_theta (:obj:`float`): Proportional term for heading deviation
-        ~k_Id (:obj:`float`): integral term for lateral deviation
-        ~k_Iphi (:obj:`float`): integral term for lateral deviation
+        ~k_d_d (:obj:`float`): Proportional term for lateral deviation
+        ~k_d_phi (:obj:`float`): Proportional term for heading deviation
+        ~k_I_d (:obj:`float`): integral term for lateral deviation
         ~d_thres (:obj:`float`): Maximum value for lateral error
         ~theta_thres (:obj:`float`): Maximum value for heading error
         ~d_offset (:obj:`float`): Goal offset from center of the lane
@@ -78,10 +77,9 @@ class LaneController:
 
         # Scale the parameters linear such that their real value is at 0.22m/s
         omega = (
-            self.parameters["~k_d"].value * d_err
-            + self.parameters["~k_theta"].value * phi_err
-            + self.parameters["~k_Id"].value * self.d_I
-            + self.parameters["~k_Iphi"].value * self.phi_I
+            self.parameters["~k_d_d"].value * d_err
+            + self.parameters["~k_d_phi"].value * phi_err
+            + self.parameters["~k_I_d"].value * self.d_I
         )
 
         self.prev_d_err = d_err
